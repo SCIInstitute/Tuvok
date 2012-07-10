@@ -35,6 +35,7 @@
 */
 
 #include <algorithm>
+#include <cmath>
 #include <sstream>
 #include <utility>
 #include "AbstrRenderer.h"
@@ -368,7 +369,8 @@ void AbstrRenderer::SetIsoValueRelative(float isorel) {
   // we might not know the range; use the bit width if so.
   if(minmax.second <= minmax.first) {
     minmax.first = 0;
-    minmax.second = pow(2, m_pDataset->GetBitWidth());
+    minmax.second = std::pow(2.0,
+                             static_cast<double>(m_pDataset->GetBitWidth()));
   }
   float newiso = MathTools::lerp<float,float>(isorel, 0.0, 1.0,
                                               minmax.first, minmax.second);
