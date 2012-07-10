@@ -1116,7 +1116,12 @@ RasterDataBlock::FlatDataToBrickedLOD(
         for (uint64_t l = 0;l<iDataSize;l+=BLOCK_COPY_SIZE) {
           uint64_t iCopySize = min(BLOCK_COPY_SIZE, iDataSize-l);
 
-          pBrickSource->ReadRAW(pData, iCopySize);
+          size_t bytes = pBrickSource->ReadRAW(pData, iCopySize);
+          if(bytes != iCopySize) {
+            T_ERROR("Error reading data from %s!",
+                    pBrickSource->GetFilename().c_str());
+            return false;
+          }
           m_pTempFile->WriteRAW(pData, iCopySize);
 
           if (pMaxMinDatBlock) {
