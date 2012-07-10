@@ -365,6 +365,11 @@ void AbstrRenderer::SetIsoValueRelative(float isorel) {
 
   // grab the range and lerp the given isoval to that range
   std::pair<double,double> minmax = m_pDataset->GetRange();
+  // we might not know the range; use the bit width if so.
+  if(minmax.second <= minmax.first) {
+    minmax.first = 0;
+    minmax.second = pow(2, m_pDataset->GetBitWidth());
+  }
   float newiso = MathTools::lerp<float,float>(isorel, 0.0, 1.0,
                                               minmax.first, minmax.second);
   this->SetIsoValue(newiso);
