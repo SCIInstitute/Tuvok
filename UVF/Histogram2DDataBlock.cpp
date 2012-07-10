@@ -134,19 +134,30 @@ bool Histogram2DDataBlock::Compute(
   size_t iHistoBinCount, double fMaxNonZeroValue
 ) {
   /// \todo right now we can only compute Histograms of scalar data this should be changed to a more general approach
-  if (source->ulElementDimension != 1 || source->ulElementDimensionSize.size() != 1) return false;
+  if (source->ulElementDimension != 1 ||
+      source->ulElementDimensionSize.size() != 1) {
+    return false;
+  }
 
   /// \todo right now compute Histogram assumes that at least the lowest LOD level consists only 
   //       of a single brick, this brick is used for the hist.-computation
   //       this should be changed to a more general approach
   vector<uint64_t> vSmallestLOD = source->GetSmallestBrickIndex();
   const vector<uint64_t>& vBricks = source->GetBrickCount(vSmallestLOD);
-  for (unsigned int i = 0;i<vBricks.size();i++) if (vBricks[i] != 1) return false;
+  for (unsigned int i = 0;i<vBricks.size(); i++) {
+    if (vBricks[i] != 1) {
+      return false;
+    }
+  }
   
   /// \todo right now we can only compute 2D Histograms of at least 3D data this should be changed to a more general approach
   //       also we require that the first three entries as X,Y,Z
-  if (source->ulDomainSize.size() < 3 || source->ulDomainSemantics[0] != UVFTables::DS_X ||
-      source->ulDomainSemantics[1] != UVFTables::DS_Y || source->ulDomainSemantics[2] != UVFTables::DS_Z) return false;
+  if (source->ulDomainSize.size() < 3 ||
+      source->ulDomainSemantics[0] != UVFTables::DS_X ||
+      source->ulDomainSemantics[1] != UVFTables::DS_Y ||
+      source->ulDomainSemantics[2] != UVFTables::DS_Z) {
+    return false;
+  }
 
   m_vHistData.resize(iHistoBinCount);
   for (size_t i = 0;i<iHistoBinCount;i++) {
