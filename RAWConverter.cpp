@@ -202,6 +202,161 @@ static std::tr1::shared_ptr<KeyValuePairDataBlock> metadata(
   return meta;
 }
 
+/// figures out if we need to quantize the data and does, if so.
+/// @param iComponentSize bit width of data, in-out param.
+std::tr1::shared_ptr<LargeRAWFile>
+quantize(std::tr1::shared_ptr<LargeRAWFile> sourceData,
+         const std::string tmpQuantizedFile, const bool bSigned,
+         const bool bIsFloat,
+         size_t& iComponentSize, const size_t iComponentCount,
+         const uint64_t timesteps, const uint64_t volumeSize,
+         const bool bQuantizeTo8Bit, Histogram1DDataBlock* Histogram1D)
+{
+  bool target = false;
+
+  if (bQuantizeTo8Bit && iComponentSize > 8) {
+    target = AbstrConverter::QuantizeTo8Bit(
+        *sourceData, tmpQuantizedFile,
+        iComponentSize, iComponentCount*volumeSize*timesteps,
+        bSigned, bIsFloat, Histogram1D
+    );
+    iComponentSize = 8;
+  } else {
+    switch (iComponentSize) {
+      case 8 :
+        // do not run the Process8Bits when we are dealing with unsigned
+        // color data, in that case only the histogram would be computed
+        // and we do not use in that case.
+        /// \todo change this if we want to support non-color
+        /// multi-component data
+        MESSAGE("Dataset is 8bit.");
+        if (iComponentCount != 4 || bSigned) {
+          MESSAGE("%u component, %s data",
+                  static_cast<unsigned>(iComponentCount),
+                  (bSigned) ? "signed" : "unsigned");
+          target = AbstrConverter::Process8Bits(
+            *sourceData, tmpQuantizedFile,
+            iComponentCount*volumeSize*timesteps,
+            bSigned, Histogram1D
+          );
+        }
+        break;
+      case 16 :
+        MESSAGE("Dataset is 16bit integers (shorts)");
+        if(bSigned) {
+          target =
+            Quantize<short, unsigned short>(
+              *sourceData, tmpQuantizedFile,
+              iComponentCount*volumeSize*timesteps,
+              Histogram1D
+            );
+        } else {
+          size_t iBinCount = 0;
+          target =
+            Quantize<unsigned short, unsigned short>(
+              *sourceData, tmpQuantizedFile,
+              iComponentCount*volumeSize*timesteps,
+              Histogram1D, &iBinCount
+            );
+          if (iBinCount > 0 && iBinCount <= 256) {
+            target =
+              BinningQuantize<unsigned short, unsigned char>(
+                *sourceData, tmpQuantizedFile,
+                iComponentCount*volumeSize*timesteps,
+                iComponentSize, Histogram1D
+                );
+            break;
+          }
+        }
+        break;
+      case 32 :
+        if (bIsFloat) {
+          MESSAGE("Dataset is 32bit FP (floats)");
+          target =
+            BinningQuantize<float, unsigned short>(
+              *sourceData, tmpQuantizedFile,
+              iComponentCount*volumeSize*timesteps,
+              iComponentSize, Histogram1D
+            );
+        } else {
+          MESSAGE("Dataset is 32bit integers.");
+          if(bSigned) {
+            target =
+              Quantize<int32_t, unsigned short>(
+                *sourceData, tmpQuantizedFile,
+                iComponentCount*volumeSize*timesteps,
+                Histogram1D
+              );
+          } else {
+            size_t iBinCount = 0;
+            target =
+              Quantize<uint32_t, unsigned short>(
+                *sourceData, tmpQuantizedFile,
+                iComponentCount*volumeSize*timesteps,
+                Histogram1D, &iBinCount
+              );
+            if (iBinCount > 0 && iBinCount <= 256) {
+              target =
+                BinningQuantize<uint32_t, unsigned char>(
+                  *sourceData, tmpQuantizedFile,
+                  iComponentCount*volumeSize*timesteps,
+                  iComponentSize, Histogram1D
+                  );
+              break;
+            }
+          }
+          iComponentSize = 16;
+        }
+        break;
+      case 64 :
+        if (bIsFloat) {
+          MESSAGE("Dataset is 64bit FP (doubles).");
+          target =
+            BinningQuantize<double, unsigned short>(
+              *sourceData, tmpQuantizedFile,
+              iComponentCount*volumeSize*timesteps,
+              iComponentSize, Histogram1D
+            );
+        } else {
+          MESSAGE("Dataset is 64bit integers.");
+          if(bSigned) {
+            target =
+              Quantize<int64_t, unsigned short>(
+                *sourceData, tmpQuantizedFile,
+                iComponentCount*volumeSize*timesteps,
+                Histogram1D
+              );
+          } else {
+            size_t iBinCount = 0;
+            target =
+              Quantize<uint64_t, unsigned short>(
+                *sourceData, tmpQuantizedFile,
+                iComponentCount*volumeSize*timesteps,
+                Histogram1D, &iBinCount
+              );
+            if (iBinCount > 0 && iBinCount <= 256) {
+              target =
+                BinningQuantize<uint64_t, unsigned char>(
+                  *sourceData, tmpQuantizedFile,
+                  iComponentCount*volumeSize*timesteps,
+                  iComponentSize, Histogram1D
+                  );
+              break;
+            }
+          }
+          iComponentSize = 16;
+        }
+        break;
+    }
+  }
+  if(target) {
+    std::tr1::shared_ptr<LargeRAWFile> rv(new TempFile(tmpQuantizedFile));
+    rv->Open(false);
+    return rv;
+  }
+  return sourceData;
+}
+
 bool RAWConverter::ConvertRAWDataset(const string& strFilename,
                                      const string& strTargetFilename,
                                      const string& strTempDir,
@@ -280,158 +435,12 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
 
   assert((iComponentCount*vVolumeSize.volume()*timesteps) > 0);
 
-  // we may do some processing here, into 'tmpQuantizedFile'.  The method we
-  // call will tell us whether we should use that generated file (true), or
-  // whether we should just stick with our old data source.
-  bool use_target = false;
-
-  if (bQuantizeTo8Bit && iComponentSize > 8) {
-    use_target = QuantizeTo8Bit(
-        *sourceData, tmpQuantizedFile,
-        iComponentSize, iComponentCount*vVolumeSize.volume()*timesteps,
-        bSigned, bIsFloat, &Histogram1D
-    );
-    iComponentSize = 8;
-  } else {
-    switch (iComponentSize) {
-      case 8 :
-        // do not run the Process8Bits when we are dealing with unsigned
-        // color data, in that case only the histogram would be computed
-        // and we do not use in that case.
-        /// \todo change this if we want to support non-color
-        /// multi-component data
-        MESSAGE("Dataset is 8bit.");
-        if (iComponentCount != 4 || bSigned) {
-          MESSAGE("%u component, %s data",
-                  static_cast<unsigned>(iComponentCount),
-                  (bSigned) ? "signed" : "unsigned");
-          use_target = Process8Bits(
-            *sourceData, tmpQuantizedFile,
-            iComponentCount*vVolumeSize.volume()*timesteps,
-            bSigned, &Histogram1D
-          );
-        }
-        break;
-      case 16 :
-        MESSAGE("Dataset is 16bit integers (shorts)");
-        if(bSigned) {
-          use_target =
-            Quantize<short, unsigned short>(
-              *sourceData, tmpQuantizedFile,
-              iComponentCount*vVolumeSize.volume()*timesteps, &Histogram1D
-            );
-        } else {
-          size_t iBinCount = 0;
-          use_target =
-            Quantize<unsigned short, unsigned short>(
-              *sourceData, tmpQuantizedFile,
-              iComponentCount*vVolumeSize.volume()*timesteps, &Histogram1D, &iBinCount
-            );
-          if (iBinCount > 0 && iBinCount <= 256) {
-            use_target =
-              BinningQuantize<unsigned short, unsigned char>(
-                *sourceData, tmpQuantizedFile,
-                iComponentCount*vVolumeSize.volume()*timesteps,
-                iComponentSize, &Histogram1D
-                );
-            break;
-          }
-        }
-        break;
-      case 32 :
-        if (bIsFloat) {
-          MESSAGE("Dataset is 32bit FP (floats)");
-          use_target =
-            BinningQuantize<float, unsigned short>(
-              *sourceData, tmpQuantizedFile,
-              iComponentCount*vVolumeSize.volume()*timesteps,
-              iComponentSize, &Histogram1D
-            );
-        } else {
-          MESSAGE("Dataset is 32bit integers.");
-          if(bSigned) {
-            use_target =
-              Quantize<int32_t, unsigned short>(
-                *sourceData, tmpQuantizedFile,
-                iComponentCount*vVolumeSize.volume()*timesteps,
-                &Histogram1D
-              );
-          } else {
-            size_t iBinCount = 0;
-            use_target =
-              Quantize<uint32_t, unsigned short>(
-                *sourceData, tmpQuantizedFile,
-                iComponentCount*vVolumeSize.volume()*timesteps, &Histogram1D, 
-                &iBinCount
-              );
-            if (iBinCount > 0 && iBinCount <= 256) {
-              use_target =
-                BinningQuantize<uint32_t, unsigned char>(
-                  *sourceData, tmpQuantizedFile,
-                  iComponentCount*vVolumeSize.volume()*timesteps,
-                  iComponentSize, &Histogram1D
-                  );
-              break;
-            }
-          }
-          iComponentSize = 16;
-        }
-        break;
-      case 64 :
-        if (bIsFloat) {
-          MESSAGE("Dataset is 64bit FP (doubles).");
-          use_target =
-            BinningQuantize<double, unsigned short>(
-              *sourceData, tmpQuantizedFile,
-              iComponentCount*vVolumeSize.volume()*timesteps,
-              iComponentSize, &Histogram1D
-            );
-        } else {
-          MESSAGE("Dataset is 64bit integers.");
-          if(bSigned) {
-            use_target =
-              Quantize<int64_t, unsigned short>(
-                *sourceData, tmpQuantizedFile,
-                iComponentCount*vVolumeSize.volume()*timesteps,
-                &Histogram1D
-              );
-          } else {
-            size_t iBinCount = 0;
-            use_target =
-              Quantize<uint64_t, unsigned short>(
-                *sourceData, tmpQuantizedFile,
-                iComponentCount*vVolumeSize.volume()*timesteps,
-                &Histogram1D, &iBinCount
-              );
-            if (iBinCount > 0 && iBinCount <= 256) {
-              use_target =
-                BinningQuantize<uint64_t, unsigned char>(
-                  *sourceData, tmpQuantizedFile,
-                  iComponentCount*vVolumeSize.volume()*timesteps,
-                  iComponentSize, &Histogram1D
-                  );
-              break;
-            }
-          }
-          iComponentSize = 16;
-        }
-        break;
-    }
-  }
-  
-  // if the data was signed before Quantize removed the sign
+  sourceData = quantize(sourceData, tmpQuantizedFile, bSigned, bIsFloat,
+                        iComponentSize, iComponentCount, timesteps,
+                        vVolumeSize.volume(), bQuantizeTo8Bit, &Histogram1D);
+  // if it was signed, we un-signed it. If it was unsigned.. it was unsigned.
   bSigned = false;
-
-  // Which file are we using next?  If we just quantized something, then it's
-  // the file we just generated.  Otherwise we're just going to reuse our
-  // previous file.
-  if(use_target) {
-    sourceData = std::tr1::shared_ptr<LargeRAWFile>(
-      new TempFile(tmpQuantizedFile)
-    );
-    sourceData->Open(false);
-    iHeaderSkip = 0; // the new file is straight raw without any header
-  }
+  bIsFloat = false; // we always produce non-FP data.
 
   wstring wstrUVFName(strTargetFilename.begin(), strTargetFilename.end());
   UVF uvfFile(wstrUVFName);

@@ -175,6 +175,7 @@ AbstrConverter::QuantizeTo8Bit(LargeRAWFile& rawfile,
             rawfile.GetFilename().c_str());
     return false;
   }
+
   switch (iComponentSize) {
     case 8:
       generated_target = Process8Bits(rawfile, strTargetFilename, iSize,
@@ -221,7 +222,7 @@ AbstrConverter::QuantizeTo8Bit(LargeRAWFile& rawfile,
         } else {
           generated_target =
             Quantize<uint64_t, unsigned char>(rawfile, strTargetFilename, iSize,
-                                            Histogram1D);
+                                              Histogram1D);
         }
       }
       break;
