@@ -97,8 +97,19 @@ bool ImageFileInfo::GetData(std::vector<char>& vData, uint32_t iLength,
     size_t w = static_cast<size_t>(qImage.width());
     size_t h = static_cast<size_t>(qImage.height());
 
-    std::copy(qImage.bits(), qImage.bits()+(w*h*m_iComponentCount),
-              vData.begin());
+#if QT_VERSION >= 0x040600
+    assert(qImage.byteCount() == (w*h*m_iComponentCount));
+#endif
+    // Qt says we can't use bits() directly as a uchar; the byte order differs
+    // per-platform.  So pull out each component the slow way.
+    const QRgb* bits = reinterpret_cast<const QRgb*>(qImage.bits());
+    for(uint64_t i=0; i < uint64_t(w)*h; ++i) {
+      vData[i*4 + 0] = qRed(*bits);
+      vData[i*4 + 1] = qGreen(*bits);
+      vData[i*4 + 2] = qBlue(*bits);
+      vData[i*4 + 3] = qAlpha(*bits);
+      ++bits;
+    }
   } else {
     int iCount = 0;
     for (int y = 0;y<qImage.height();y++) {
