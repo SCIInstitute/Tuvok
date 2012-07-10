@@ -258,13 +258,12 @@ bool GLRenderer::Initialize(std::tr1::shared_ptr<Context> ctx) {
 bool GLRenderer::LoadShaders(const string& volumeAccessFunction,
                              bool bBindVolume) {
   std::string tfqn = m_pDataset
-                     ? m_pDataset->GetComponentCount() == 4
+                     ? this->ColorData()
                         ? "VRender1D-Color"
                         : "VRender1D"
                      : "VRender1D";
   const std::string tfqnLit = m_pDataset
-                           ? (m_pDataset->GetComponentCount() == 3 ||
-                              m_pDataset->GetComponentCount() == 4)
+                           ? this->ColorData()
                               ? "VRender1DLit-Color.glsl"
                               : "VRender1DLit.glsl"
                            : "VRender1DLit.glsl";
@@ -518,8 +517,8 @@ void GLRenderer::StartFrame() {
       m_pProgramCVCompose->Enable();
       m_pProgramCVCompose->Set("vScreensize",vfWinSize.x, vfWinSize.y);
     } else {
-      GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ?
-                            m_pProgramIsoCompose : m_pProgramColorCompose;
+      GLSLProgram* shader = this->ColorData() ? m_pProgramColorCompose
+                                              : m_pProgramIsoCompose;
 
       shader->Enable();
       shader->Set("vScreensize",vfWinSize.x, vfWinSize.y);
@@ -1847,7 +1846,7 @@ void GLRenderer::SetDataDepShaderVars() {
 
   // If we're rendering RGBA data, we don't scale the TFqn... because we
   // don't even use a TFqn.
-  if(!this->RGBAData() && bMipViewActive) {
+  if(!this->ColorData() && bMipViewActive) {
     m_pProgramTransMIP->Enable();
     m_pProgramTransMIP->Set("fTransScale",fScale);
   }
@@ -1855,7 +1854,7 @@ void GLRenderer::SetDataDepShaderVars() {
 
   switch (m_eRenderMode) {
     case RM_1DTRANS: {
-      if(!this->RGBAData()) {
+      if(!this->ColorData()) {
         if (bSliceViewActive) {
           m_pProgram1DTransSlice->Enable();
           m_pProgram1DTransSlice->Set("fTransScale",fScale);
@@ -1898,8 +1897,8 @@ void GLRenderer::SetDataDepShaderVars() {
         m_pProgram1DTransSlice3D->Set("fTransScale",fScale);
       }
       if (b3DViewActive) {
-        GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ?
-        m_pProgramIso : m_pProgramColor;
+        GLSLProgram* shader = this->ColorData() ? m_pProgramColor
+                                                : m_pProgramIso;
 
         shader->Enable();
         shader->Set("fIsoval", static_cast<float>
@@ -2801,12 +2800,12 @@ void GLRenderer::ComposeSurfaceImage(const RenderRegion &renderRegion, int iSter
     m_pFBOCVHit[iStereoID]->Read(2, 0);
     m_pFBOCVHit[iStereoID]->Read(3, 1);
   } else {
-    if (m_pDataset->GetComponentCount() == 1) {
+    if(this->ColorData()) {
+      m_pProgramColorCompose->Enable();
+    } else {
       m_pProgramIsoCompose->Enable();
       m_pProgramIsoCompose->Set("vLightDiffuse", d.x*m_vIsoColor.x,
                                              d.y*m_vIsoColor.y, d.z*m_vIsoColor.z);
-    } else {
-      m_pProgramColorCompose->Enable();
     }
   }
 

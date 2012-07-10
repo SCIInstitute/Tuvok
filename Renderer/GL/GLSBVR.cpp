@@ -81,14 +81,12 @@ bool GLSBVR::LoadShaders() {
   }
 
   std::string tfqn = m_pDataset
-                     ? (m_pDataset->GetComponentCount() == 3 ||
-                        m_pDataset->GetComponentCount() == 4)
+                     ? this->ColorData()
                         ? "VRender1D-Color"
                         : "VRender1D"
                      : "VRender1D";
   const std::string tfqnLit = m_pDataset
-                           ? (m_pDataset->GetComponentCount() == 3 ||
-                              m_pDataset->GetComponentCount() == 4)
+                           ? this->ColorData()
                               ? "VRender1DLit-Color.glsl"
                               : "VRender1DLit.glsl"
                            : "VRender1DLit.glsl";
@@ -284,8 +282,7 @@ void GLSBVR::SetBrickDepShaderVars(const Brick& currentBrick) {
       break;
     }
     case RM_ISOSURFACE: {
-      shader = (m_pDataset->GetComponentCount() == 1) ?
-               m_pProgramIso : m_pProgramColor;
+      shader = this->ColorData() ? m_pProgramColor : m_pProgramIso;
       shader->Enable();
       shader->Set("vVoxelStepsize", vVoxelSizeTexSpace.x, vVoxelSizeTexSpace.y, vVoxelSizeTexSpace.z);
       break;
@@ -416,7 +413,7 @@ void GLSBVR::Render3DInLoop(const RenderRegion3D& renderRegion,
     m_TargetBinder.Bind(m_pFBOIsoHit[iStereoID], 0, m_pFBOIsoHit[iStereoID], 1);
     SetBrickDepShaderVars(b);
     
-    GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
+    GLSLProgram* shader = this->ColorData() ? m_pProgramColor : m_pProgramIso;
     shader->Set("fIsoval", static_cast<float>
                                         (this->GetNormalizedIsovalue()));    
     RenderProxyGeometry();

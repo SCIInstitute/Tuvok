@@ -118,14 +118,12 @@ bool GLSBVR2D::LoadShaders() {
   }
 
   std::string tfqn = m_pDataset
-                     ? (m_pDataset->GetComponentCount() == 3 ||
-                        m_pDataset->GetComponentCount() == 4)
+                     ? this->ColorData()
                         ? "VRender1D-Color"
                         : "VRender1D"
                      : "VRender1D";
   const std::string tfqnLit = m_pDataset
-                           ? (m_pDataset->GetComponentCount() == 3 ||
-                              m_pDataset->GetComponentCount() == 4)
+                           ? this->ColorData()
                               ? "VRender1DLit-Color.glsl"
                               : "VRender1DLit.glsl"
                            : "VRender1DLit.glsl";
@@ -252,8 +250,7 @@ void GLSBVR2D::SetBrickDepShaderVars(const RenderRegion3D&,
     }
     case RM_ISOSURFACE: {
       GLSLProgram *shader;
-      shader = (m_pDataset->GetComponentCount() == 1) ?
-               m_pProgramIso : m_pProgramColor;
+      shader = this->ColorData() ? m_pProgramColor : m_pProgramIso;
       shader->Set("vVoxelStepsize", vStep.x, vStep.y, vStep.z);
       break;
     }
@@ -585,7 +582,7 @@ void GLSBVR2D::Render3DInLoop(const RenderRegion3D& renderRegion,
   if (m_eRenderMode == RM_ISOSURFACE) {
     m_pContext->GetStateManager()->SetEnableBlend(false);
 
-    GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
+    GLSLProgram* shader = this->ColorData() ? m_pProgramColor : m_pProgramIso;
     m_TargetBinder.Bind(m_pFBOIsoHit[iStereoID], 0, m_pFBOIsoHit[iStereoID], 1);
 
     shader->Enable();

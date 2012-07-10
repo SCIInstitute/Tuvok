@@ -917,7 +917,7 @@ bool AbstrRenderer::Clipped(const RenderRegion& rr, const Brick& b) const
 // isosurface of 42.
 bool AbstrRenderer::ContainsData(const BrickKey& key) const
 {
-  if(this->RGBAData()) {
+  if(this->ColorData()) {
     // We don't have good metadata for color data currently, so it can never be
     // skipped.
     return true;
@@ -1011,9 +1011,9 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
     
     if(b.bIsEmpty) {
       MESSAGE("Skipping further computations for brick <%u,%u,%u> "
-              "because it is empty/invisible given the current vis parameters "
-              "but we keep it in the list in case it overlaps with other data"
-              "e.g. a mesh",
+              "because it is empty/invisible given the current vis parameters,"
+              " but we'll keep it in the list in case it overlaps with other "
+              "data (e.g. a mesh)",
               static_cast<unsigned>(std::tr1::get<0>(brick->first)),
               static_cast<unsigned>(std::tr1::get<1>(brick->first)),
               static_cast<unsigned>(std::tr1::get<2>(brick->first)));
@@ -1384,12 +1384,14 @@ void AbstrRenderer::CVFocusHasChanged(const RenderRegion &) {
   ScheduleRecompose();
 }
 
-bool AbstrRenderer::RGBAData() const {
-  // right now we just look for 4-component data, and assume all such data is
-  // RGBA... at some point we probably want to add some sort of query into the
-  // tuvok::Dataset, so that a file format could decide whether or not it wants
-  // to consider 4-component data to be RGBA data.
-  return m_pDataset->GetComponentCount() == 4;
+bool AbstrRenderer::ColorData() const {
+  // right now we just look for 4- and 3-component data, and assume all
+  // such data is RGBA... at some point we probably want to add some
+  // sort of query into tuvok::Dataset, so that a file format could
+  // decide whether or not it wants to consider 4-component data to be
+  // RGBA data.
+  return m_pDataset->GetComponentCount() == 4 ||
+         m_pDataset->GetComponentCount() == 3;
 }
 
 void AbstrRenderer::SetConsiderPreviousDepthbuffer(bool bConsiderPreviousDepthbuffer) {

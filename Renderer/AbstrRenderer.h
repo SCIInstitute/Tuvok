@@ -544,8 +544,8 @@ class AbstrRenderer: public Scriptable {
     virtual void        UpdateLightParamsInShaders() = 0;
     virtual void        CVFocusHasChanged(const RenderRegion &);
 
-    /// @returns if the data we're rendering is RGBA or not.
-    virtual bool RGBAData() const;
+    /// @returns if the data we're rendering is color or not.
+    virtual bool ColorData() const;
 
     void LuaCloneRenderMode(LuaClassInstance inst);
 

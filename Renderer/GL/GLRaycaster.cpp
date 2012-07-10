@@ -124,15 +124,13 @@ bool GLRaycaster::LoadShaders() {
   }
 
   std::string tfqn = m_pDataset
-                     ? (m_pDataset->GetComponentCount() == 3 ||
-                        m_pDataset->GetComponentCount() == 4)
+                     ? this->ColorData()
                         ? "VRender1D-Color"
                         : "VRender1D"
                      : "VRender1D";
 
   const std::string tfqnLit = m_pDataset
-                           ? (m_pDataset->GetComponentCount() == 3 ||
-                              m_pDataset->GetComponentCount() == 4)
+                           ? this->ColorData()
                               ? "VRender1DLit-Color.glsl"
                               : "VRender1DLit.glsl"
                            : "VRender1DLit.glsl";
@@ -297,9 +295,8 @@ void GLRaycaster::SetBrickDepShaderVars(const RenderRegion3D&,
       break;
     }
     case RM_ISOSURFACE : {
-      GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1)
-                              ? m_pProgramIso
-                              : m_pProgramColor;
+      GLSLProgram* shader = this->ColorData() ? m_pProgramColor
+                                              : m_pProgramIso;
       if (m_bDoClearView) {
         m_pProgramIso2->Enable();
         m_pProgramIso2->Set("vVoxelStepsize",
@@ -400,10 +397,10 @@ void GLRaycaster::ClipPlaneToShader(const ExtendedPlane& clipPlane, int iStereoI
                             break;
       case RM_2DTRANS    :  vCurrentShader.push_back(m_pProgram2DTrans[m_bUseLighting ? 1 : 0]);
                             break;
-      case RM_ISOSURFACE :  if (m_pDataset->GetComponentCount() == 1)
-                              vCurrentShader.push_back(m_pProgramIso);
-                            else
+      case RM_ISOSURFACE :  if (this->ColorData())
                               vCurrentShader.push_back(m_pProgramColor);
+                            else
+                              vCurrentShader.push_back(m_pProgramIso);
                             if (m_bDoClearView) vCurrentShader.push_back(m_pProgramIso2);
                             break;
       default    :          T_ERROR("Invalid rendermode set");
@@ -510,7 +507,7 @@ void GLRaycaster::Render3DInLoop(const RenderRegion3D& renderRegion,
 
     m_TargetBinder.Bind(m_pFBOIsoHit[iStereoID], 0, m_pFBOIsoHit[iStereoID], 1);
 
-    GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
+    GLSLProgram* shader = this->ColorData() ? m_pProgramColor : m_pProgramIso;
     shader->Enable();
     SetBrickDepShaderVars(renderRegion, b, iCurrentBrick);
     m_pFBORayEntry->Read(2);
@@ -636,7 +633,9 @@ void GLRaycaster::StartFrame() {
                               m_pProgramIso2->Set("vScreensize",vfWinSize.x, vfWinSize.y);
                               m_pProgramIso2->Set("vDomainScale",scale.x,scale.y,scale.z);
                             }
-                            GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
+                            GLSLProgram* shader = this->ColorData()
+                                                    ? m_pProgramColor
+                                                    : m_pProgramIso;
                             shader->Enable();
                             shader->Set("vScreensize",vfWinSize.x, vfWinSize.y);
                             shader->Set("vDomainScale",scale.x,scale.y,scale.z);
