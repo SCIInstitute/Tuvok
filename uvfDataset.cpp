@@ -470,13 +470,14 @@ size_t UVFDataset::DetermineNumberOfTimesteps()
   }
   // if the number of blocks don't match, say we have 0 valid timesteps.
   T_ERROR("UVF Block combinations do not match; "
-          "do not know how to interpret data."
+          "do not know how to interpret data.  "
           "Block counts (toc, raster, hist1, hist2, accel): (%u, %u, %u, %u, %u)",
           static_cast<unsigned>(toc),
           static_cast<unsigned>(raster),
           static_cast<unsigned>(hist1d),
           static_cast<unsigned>(hist2d),
           static_cast<unsigned>(accel));
+  throw tuvok::io::DSParseFailed("No valid timesteps in UVF!");
   return 0;
 }
 
