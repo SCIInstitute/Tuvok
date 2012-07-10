@@ -82,7 +82,7 @@ namespace {
 static std::string convert_endianness(const std::string& strFilename,
                                       const std::string& strTempDir,
                                       uint64_t iHeaderSkip,
-                                      uint64_t iComponentSize,
+                                      size_t iComponentSize,
                                       size_t in_core_size)
 {
   using namespace tuvok::io;
@@ -168,7 +168,7 @@ public:
 static std::tr1::shared_ptr<KeyValuePairDataBlock> metadata(
   const string& strDesc, const string& strSource,
   bool bLittleEndian, bool bSigned, bool bIsFloat,
-  uint64_t iComponentSize,
+  size_t iComponentSize,
   KVPairs* pKVPairs
 )
 {
@@ -210,7 +210,7 @@ std::tr1::shared_ptr<LargeRAWFile>
 quantize(std::tr1::shared_ptr<LargeRAWFile> sourceData,
          const std::string tmpQuantizedFile, const bool bSigned,
          const bool bIsFloat,
-         size_t& iComponentSize, const size_t iComponentCount,
+         size_t& iComponentSize, const uint64_t iComponentCount,
          const uint64_t timesteps, const uint64_t volumeSize,
          const bool bQuantizeTo8Bit, Histogram1DDataBlock* Histogram1D)
 {
@@ -385,7 +385,8 @@ std::vector<std::tr1::shared_ptr<LargeRAWFile> >
 make_raw(std::tr1::shared_ptr<LargeRAWFile> source, uint64_t n_components,
          size_t csize) {
   typedef std::vector<std::tr1::shared_ptr<LargeRAWFile> > files;
-  std::vector<std::tr1::shared_ptr<LargeRAWFile> > components(n_components);
+  const size_t nc = static_cast<size_t>(n_components);
+  std::vector<std::tr1::shared_ptr<LargeRAWFile> > components(nc);
 
   for(files::iterator f=components.begin(); f != components.end(); ++f) {
     std::ofstream ofs;
@@ -400,7 +401,7 @@ make_raw(std::tr1::shared_ptr<LargeRAWFile> source, uint64_t n_components,
                                            nonstd::DeleteArray<unsigned char>());
   size_t bytes=1;
   do {
-    for(size_t c=0; c < n_components; ++c) {
+    for(size_t c=0; c < nc; ++c) {
       bytes = source->ReadRAW(data.get(), csize);
       if(bytes) {
         components[c]->WriteRAW(data.get(), csize);

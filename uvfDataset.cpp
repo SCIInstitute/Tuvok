@@ -480,7 +480,6 @@ size_t UVFDataset::DetermineNumberOfTimesteps()
           static_cast<unsigned>(hist2d),
           static_cast<unsigned>(accel));
   throw tuvok::io::DSParseFailed("No valid timesteps in UVF!");
-  return 0;
 }
 
 bool UVFDataset::VerifyRasterDataBlock(const RasterDataBlock* rdb) const
