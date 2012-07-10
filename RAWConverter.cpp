@@ -35,6 +35,7 @@
 */
 #include "Basics/StdDefines.h"
 #include <cerrno>
+#include <cstdio>
 #include <cstring>
 #include <iterator>
 #include <list>
@@ -158,6 +159,7 @@ class TempFile : public LargeRAWFile {
 public:
   TempFile(const std::string& filename) : LargeRAWFile(filename, 0) {}
   virtual ~TempFile() {
+    MESSAGE("Deleting temporary file %s", this->GetFilename().c_str());
     Close();
     Delete();
   }
@@ -357,6 +359,64 @@ quantize(std::tr1::shared_ptr<LargeRAWFile> sourceData,
   return sourceData;
 }
 
+// Create a temporary file and return the name.
+// This isn't great -- there's a race between when we close and reopen it --
+// but there's no (standard) way to turn a file descriptor into an fstream or
+// RAWFile...
+static std::string mk_tmpfile(std::ofstream& ofs, std::ios::openmode mode)
+{
+#ifdef _WIN32
+  char *templ = tmpnam((char*)0);
+  ofs.open(templ, mode);
+#else
+  char templ[64];
+  strcpy(templ, "iv3d-tmp-raw.XXXXXX");
+  int fd = mkstemp(templ);
+  close(fd);
+  ofs.open(templ, mode);
+#endif
+  return std::string(templ);
+}
+
+/// given a data source, grab out every 'N'th element and put it in its own
+/// file.
+/// @return a list of temporary files with each component
+std::vector<std::tr1::shared_ptr<LargeRAWFile> >
+make_raw(std::tr1::shared_ptr<LargeRAWFile> source, uint64_t n_components,
+         size_t csize) {
+  typedef std::vector<std::tr1::shared_ptr<LargeRAWFile> > files;
+  std::vector<std::tr1::shared_ptr<LargeRAWFile> > components(n_components);
+
+  for(files::iterator f=components.begin(); f != components.end(); ++f) {
+    std::ofstream ofs;
+    std::string filename = mk_tmpfile(ofs, std::ios::out | std::ios::binary);
+    *f = std::tr1::shared_ptr<LargeRAWFile>(new TempFile(filename));
+    (*f)->Open(true);
+  }
+
+  source->SeekStart();
+
+  std::tr1::shared_ptr<unsigned char> data(new unsigned char[csize],
+                                           nonstd::DeleteArray<unsigned char>());
+  size_t bytes;
+  do {
+    for(size_t c=0; c < n_components; ++c) {
+      bytes = source->ReadRAW(data.get(), csize);
+      if(bytes) {
+        components[c]->WriteRAW(data.get(), csize);
+      }
+    }
+  } while(bytes > 0);
+
+  // close/reopen as read-only.
+  for(files::iterator f=components.begin(); f != components.end(); ++f) {
+    (*f)->Close();
+    (*f)->Open();
+  }
+
+  return components;
+}
+
 bool RAWConverter::ConvertRAWDataset(const string& strFilename,
                                      const string& strTargetFilename,
                                      const string& strTempDir,
@@ -435,9 +495,81 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
 
   assert((iComponentCount*vVolumeSize.volume()*timesteps) > 0);
 
-  sourceData = quantize(sourceData, tmpQuantizedFile, bSigned, bIsFloat,
-                        iComponentSize, iComponentCount, timesteps,
-                        vVolumeSize.volume(), bQuantizeTo8Bit, &Histogram1D);
+  // our routines don't handle multi-component data very effectively. As a
+  // quick hack, we'll pull out each component separately, process them
+  // individually, and then pull them back together.
+  std::vector<std::tr1::shared_ptr<LargeRAWFile> > components;
+  if(iComponentCount > 1) {
+    MESSAGE("Splitting components up into files...");
+    // remember iComponentSize is in bits, not bytes.
+    components = make_raw(sourceData, iComponentCount, iComponentSize/8);
+
+    // ... process each component (individually)
+    typedef std::vector<std::tr1::shared_ptr<LargeRAWFile> > lfv;
+    for(lfv::iterator comp = components.begin(); comp != components.end();
+        ++comp) {
+      MESSAGE("Processing component %d",
+              std::distance(components.begin(), comp));
+      std::ofstream unused;
+      const std::ios::openmode mode = std::ios::out | std::ios::trunc |
+                                      std::ios::binary;
+      std::string tmpquant = mk_tmpfile(unused, mode);
+      unused.close();
+      // we need a temporary filename, but the data might not need any
+      // processing, in which case the file will never get created. quantize()
+      // will create it again if it needs to.
+      std::remove(tmpquant.c_str());
+      (*comp)->SeekStart();
+      *comp = quantize(*comp, tmpquant, bSigned, bIsFloat, iComponentSize, 1,
+                       timesteps, vVolumeSize.volume(), bQuantizeTo8Bit,
+                       &Histogram1D);
+    }
+
+    // now stitch everything back into a single file.
+    MESSAGE("Stitching components back into one file...");
+    std::ofstream ofs(tmpQuantizedFile.c_str(), std::ios::out |
+                                                std::ios::binary |
+                                                std::ios::trunc);
+    if(!ofs) {
+      T_ERROR("Could not create %s temporary file.", tmpQuantizedFile.c_str());
+      throw tuvok::io::IOException("Could not create temporary file!");
+    }
+
+    std::tr1::shared_ptr<unsigned char> data(new unsigned char[iComponentSize],
+      nonstd::DeleteArray<unsigned char>()
+    );
+    for(lfv::iterator c = components.begin(); c != components.end(); ++c) {
+      MESSAGE("component %u is %llu bytes.",
+              unsigned(std::distance(components.begin(), c)),
+              (*c)->GetCurrentSize());
+      (*c)->SeekStart();
+    }
+    // intersperse the components: while there are still bytes left, read one
+    // element from each component and stuff it into our output file.
+    size_t bytes;
+    do {
+      for(lfv::iterator c = components.begin(); c != components.end(); ++c) {
+        bytes = (*c)->ReadRAW(data.get(), iComponentSize/8);
+        if(bytes) {
+          ofs.write(reinterpret_cast<const char*>(data.get()), bytes);
+        }
+      }
+    } while(bytes > 0);
+
+    ofs.close();
+    sourceData = std::tr1::shared_ptr<LargeRAWFile>(
+      new TempFile(tmpQuantizedFile)
+    );
+    MESSAGE("source data is from %s, %llu bits, %llu components.",
+            tmpQuantizedFile.c_str(), iComponentSize, iComponentCount);
+    sourceData->Open(false);
+    components.clear();
+  } else {
+    sourceData = quantize(sourceData, tmpQuantizedFile, bSigned, bIsFloat,
+                          iComponentSize, iComponentCount, timesteps,
+                          vVolumeSize.volume(), bQuantizeTo8Bit, &Histogram1D);
+  }
+
   // if it was signed, we un-signed it. If it was unsigned.. it was unsigned.
   bSigned = false;
   bIsFloat = false; // we always produce non-FP data.
