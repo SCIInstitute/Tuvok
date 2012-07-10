@@ -398,7 +398,7 @@ make_raw(std::tr1::shared_ptr<LargeRAWFile> source, uint64_t n_components,
 
   std::tr1::shared_ptr<unsigned char> data(new unsigned char[csize],
                                            nonstd::DeleteArray<unsigned char>());
-  size_t bytes;
+  size_t bytes=1;
   do {
     for(size_t c=0; c < n_components; ++c) {
       bytes = source->ReadRAW(data.get(), csize);
@@ -546,7 +546,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
     }
     // intersperse the components: while there are still bytes left, read one
     // element from each component and stuff it into our output file.
-    size_t bytes;
+    size_t bytes=1;
     do {
       for(lfv::iterator c = components.begin(); c != components.end(); ++c) {
         bytes = (*c)->ReadRAW(data.get(), iComponentSize/8);
