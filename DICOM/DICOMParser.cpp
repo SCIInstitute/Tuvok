@@ -375,7 +375,7 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
   char DICM[4];
   fileDICOM.read(DICM,4);
   if (DICM[0] != 'D' || DICM[1] != 'I' || DICM[2] != 'C' || DICM[3] != 'M') {
-    MESSAGE("File '%s' does not conatin DICM meta header.", strFilename.c_str());
+    MESSAGE("File '%s' does not contain DICM meta header.", strFilename.c_str());
 
     // DICOM supports files without the meta header, 
     // in that case you have to guess the parameters

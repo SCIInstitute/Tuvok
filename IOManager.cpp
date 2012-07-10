@@ -375,7 +375,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
       }
 
       // HACK: For now we set bias to 0 for unsigned file as we've
-      // encountered a number of DICOM files files were the bias
+      // encountered a number of DICOM files files where the bias
       // parameter would create negative values and so far I don't know
       // how to interpret this correctly
       if (!pDICOMStack->m_bSigned) pDICOMFileInfo->m_fBias = 0.0f;
