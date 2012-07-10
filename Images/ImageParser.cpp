@@ -98,7 +98,8 @@ bool ImageFileInfo::GetData(std::vector<char>& vData, uint32_t iLength,
     size_t h = static_cast<size_t>(qImage.height());
 
 #if QT_VERSION >= 0x040600
-    assert(qImage.byteCount() == (w*h*m_iComponentCount));
+    assert(static_cast<uint64_t>(qImage.byteCount()) ==
+           (w*h*m_iComponentCount));
 #endif
     // Qt says we can't use bits() directly as a uchar; the byte order differs
     // per-platform.  So pull out each component the slow way.
