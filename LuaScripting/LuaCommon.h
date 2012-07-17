@@ -42,8 +42,8 @@ class LuaScripting;
 template<class T>
 struct LuaClassRegCallback
 {
-  typedef std::tr1::function<void (LuaClassRegistration<T>& reg, T* cls,
-                                   LuaScripting * ss)> Type;
+  typedef std::function<void (LuaClassRegistration<T>& reg, T* cls,
+                              LuaScripting * ss)> Type;
 };
 
 }

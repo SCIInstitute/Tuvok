@@ -39,14 +39,9 @@
 #define MASTERCONTROLLER_H
 
 #include "../StdTuvokDefines.h"
-#ifdef _MSC_VER
-# include <functional>
-# include <memory>
-#else
-# include <tr1/functional>
-# include <tr1/memory>
-#endif
+#include <functional>
 #include <list>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -104,7 +99,7 @@ public:
 
   /// Lua scripting engine.
   ///@{
-  std::tr1::shared_ptr<LuaScripting>  LuaScript()       { return m_pLuaScript; }
+  std::shared_ptr<LuaScripting>  LuaScript()       { return m_pLuaScript; }
   ///@}
 
   /// Add another debug output
@@ -235,7 +230,7 @@ private:
   provenance_func* m_pProvenance;
   bool             m_bExperimentalFeatures;
 
-  std::tr1::shared_ptr<LuaScripting>  m_pLuaScript;
+  std::shared_ptr<LuaScripting>  m_pLuaScript;
   std::auto_ptr<LuaMemberReg>         m_pMemReg;
 
   AbstrRendererList m_vVolumeRenderer;

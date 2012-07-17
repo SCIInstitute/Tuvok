@@ -60,9 +60,9 @@ public:
     GLContext(int iShareGroupID) : Context(iShareGroupID) {
       ctx = GetContext();
       if (ctx) 
-        m_pState = std::tr1::shared_ptr<StateManager>(new GLStateManager());
+        m_pState = std::shared_ptr<StateManager>(new GLStateManager());
       else
-        m_pState = std::tr1::shared_ptr<StateManager>();
+        m_pState = std::shared_ptr<StateManager>();
     }
 
     /// Create an ID from the given context.
@@ -71,11 +71,11 @@ public:
       m_pState = ct.m_pState;
     }
     
-    static std::tr1::shared_ptr<Context> Current(int iShareGroupID) {
+    static std::shared_ptr<Context> Current(int iShareGroupID) {
        if(contextMap.find(GetContext()) == contextMap.end()) {
-         std::pair<const void*, std::tr1::shared_ptr<Context> > tmp(
+         std::pair<const void*, std::shared_ptr<Context> > tmp(
             GetContext(),
-            std::tr1::shared_ptr<Context>(new GLContext(iShareGroupID))
+            std::shared_ptr<Context>(new GLContext(iShareGroupID))
          );
          return contextMap.insert(tmp).first->second; // return what we're inserting
        }

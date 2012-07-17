@@ -103,7 +103,7 @@ bool DXRenderer::Initialize() {
   if( FAILED( hr ) ) return false;
 
     // call the parent
-  std::tr1::shared_ptr<DXContext> dxc = std::tr1::shared_ptr<DXContext>(new DXContext(m_pd3dDevice));
+  std::shared_ptr<DXContext> dxc = std::shared_ptr<DXContext>(new DXContext(m_pd3dDevice));
   if (!AbstrRenderer::Initialize(dxc)) {
     T_ERROR("Error in parent call -> aborting");
     return false;

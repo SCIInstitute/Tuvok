@@ -39,14 +39,9 @@
 #ifndef GPUMEMMANDATASTRUCTS_H
 #define GPUMEMMANDATASTRUCTS_H
 
-#ifdef _MSC_VER
-# include <array>
-# include <memory>
-#else
-# include <tr1/array>
-# include <tr1/memory>
-#endif
+#include <array>
 #include <deque>
+#include <memory>
 #include <string>
 #include <vector>
 #include "3rdParty/GLEW/GL/glew.h"
@@ -189,7 +184,7 @@ namespace tuvok {
 
     bool LoadData(std::vector<unsigned char>& vUploadHub);
     void FreeData();
-    std::pair<std::tr1::shared_ptr<unsigned char>, UINTVECTOR3> PadData(
+    std::pair<std::shared_ptr<unsigned char>, UINTVECTOR3> PadData(
       unsigned char* pRawData,
       UINTVECTOR3 vSize,
       uint64_t iBitWidth,

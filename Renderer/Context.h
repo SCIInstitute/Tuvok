@@ -48,12 +48,12 @@ public:
   Context(int iShareGroupID) : m_iShareGroupID(iShareGroupID) {}
 
   virtual ~Context() {}
-  std::tr1::shared_ptr<StateManager> GetStateManager() {return m_pState;}
+  std::shared_ptr<StateManager> GetStateManager() {return m_pState;}
   int GetShareGroupID() const {return m_iShareGroupID;} 
 
 protected:
-  static std::map<const void*, std::tr1::shared_ptr<Context> > contextMap;
-  std::tr1::shared_ptr<StateManager> m_pState;
+  static std::map<const void*, std::shared_ptr<Context> > contextMap;
+  std::shared_ptr<StateManager> m_pState;
   const void* ctx; /// will be GLXContext, HGLRC, or Device
   int m_iShareGroupID;
 };

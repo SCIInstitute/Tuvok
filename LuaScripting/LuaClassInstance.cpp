@@ -83,7 +83,7 @@ bool LuaClassInstance::isDefaultInstance() const
   return (mInstanceID == DEFAULT_INSTANCE_ID);
 }
 
-bool LuaClassInstance::isValid(std::tr1::shared_ptr<LuaScripting> ss) const
+bool LuaClassInstance::isValid(std::shared_ptr<LuaScripting> ss) const
 {
   return isValid(ss.get());
 }

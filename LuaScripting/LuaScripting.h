@@ -41,22 +41,14 @@
 #ifndef TUVOK_LUASCRIPTING_H_
 #define TUVOK_LUASCRIPTING_H_
 
+#include <functional>
+#include <memory>
+
 #ifndef LUASCRIPTING_NO_TUVOK
 
 #include "3rdParty/LUA/lua.hpp"
 
-#ifdef _MSC_VER
-#include <functional>
-#include <memory>
 #else
-#include <tr1/functional>
-#include <tr1/memory>
-#endif
-
-#else
-
-#include <functional>
-#include <memory>
 
 #include "Lua/lua.hpp"
 #include "NoTuvok/LuaTuvokException.h"
@@ -476,8 +468,8 @@ private: // Used by LuaMemberRegUnsafe
   /// Returns true if the function is provenance exempt.
   /// Used to tell whether or not we should log hooks later on.
   bool doProvenanceFromExec(lua_State* L,
-                            std::tr1::shared_ptr<LuaCFunAbstract> funParams,
-                            std::tr1::shared_ptr<LuaCFunAbstract> emptyParams);
+                            std::shared_ptr<LuaCFunAbstract> funParams,
+                            std::shared_ptr<LuaCFunAbstract> emptyParams);
 
 private:
 
@@ -727,9 +719,9 @@ private:
         LuaScripting* ss = static_cast<LuaScripting*>(
                     lua_touserdata(L, lua_upvalueindex(3)));
 
-        std::tr1::shared_ptr<LuaCFunAbstract> execParams(
+        std::shared_ptr<LuaCFunAbstract> execParams(
             new LuaCFunExec<FunPtr>());
-        std::tr1::shared_ptr<LuaCFunAbstract> emptyParams(
+        std::shared_ptr<LuaCFunAbstract> emptyParams(
             new LuaCFunExec<FunPtr>());
         // Fill execParams. Function parameters start at index 2.
         execParams->pullParamsFromStack(L, 2);
@@ -791,9 +783,9 @@ private:
         LuaScripting* ss = static_cast<LuaScripting*>(
                     lua_touserdata(L, lua_upvalueindex(3)));
 
-        std::tr1::shared_ptr<LuaCFunAbstract> execParams(
+        std::shared_ptr<LuaCFunAbstract> execParams(
             new LuaCFunExec<FunPtr>());
-        std::tr1::shared_ptr<LuaCFunAbstract> emptyParams(
+        std::shared_ptr<LuaCFunAbstract> emptyParams(
             new LuaCFunExec<FunPtr>());
         // Fill execParams. Function parameters start at index 2.
         execParams->pullParamsFromStack(L, 2);

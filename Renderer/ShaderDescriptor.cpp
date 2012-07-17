@@ -1,12 +1,8 @@
 #include "StdTuvokDefines.h"
-#if defined(_MSC_VER)
-# include <functional>
-#else
-# include <tr1/functional>
-#endif
 #include <algorithm>
 #include <cstdarg>
 #include <fstream>
+#include <functional>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -88,14 +84,14 @@ static std::string find_filename(std::vector<std::string> directories,
 
   // okay, now prepend each directory into our flename and see if we find a
   // match.
-  using namespace std::tr1::placeholders;
+  using namespace std::placeholders;
   const std::string dirsep = "/";
   // the functor is a composition: 'exists(add(_1, dirsep, filename))'
   sv::const_iterator fn =
     std::find_if(directories.begin(), directories.end(),
-                 std::tr1::bind(
+                 std::bind(
                    std::ptr_fun(exists),
-                   std::tr1::bind(concat, _1, dirsep, filename)
+                   std::bind(concat, _1, dirsep, filename)
                  ));
 
   if(fn == directories.end()) { // file not found.

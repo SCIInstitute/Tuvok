@@ -185,7 +185,7 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
       m_pMasterController->LuaScript());
 }
 
-bool AbstrRenderer::Initialize(std::tr1::shared_ptr<Context> ctx) {
+bool AbstrRenderer::Initialize(std::shared_ptr<Context> ctx) {
   m_pContext = ctx;
   return m_pDataset != NULL;
 }
@@ -297,7 +297,7 @@ void AbstrRenderer::SetDataset(Dataset *vds)
 
 /*
 void AbstrRenderer::UpdateData(const BrickKey& bk,
-                               std::tr1::shared_ptr<float> fp, size_t len)
+                               std::shared_ptr<float> fp, size_t len)
 {
   MESSAGE("Updating data with %u element array", static_cast<uint32_t>(len));
   // free old data; we know we'll never need it, at this point.
@@ -538,7 +538,7 @@ void AbstrRenderer::ShowClipPlane(bool bShown,
 void AbstrRenderer::LuaShowClipPlane(bool bShown,
                                      LuaClassInstance inst)
 {
-  tr1::shared_ptr<LuaScripting> ss = m_pMasterController->LuaScript();
+  shared_ptr<LuaScripting> ss = m_pMasterController->LuaScript();
   ShowClipPlane(bShown, inst.getRawPointer<RenderRegion>(ss));
 }
 
@@ -850,7 +850,7 @@ bool AbstrRenderer::RegionNeedsBrick(const RenderRegion& rr,
 {
   if(rr.is2D()) {
     return rr.GetUseMIP() ||
-           std::tr1::get<1>(key) == m_pDataset->GetLODLevelCount()-1;
+           std::get<1>(key) == m_pDataset->GetLODLevelCount()-1;
   }
 
   FLOATVECTOR3 vScale(float(m_pDataset->GetScale().x),
@@ -868,18 +868,18 @@ bool AbstrRenderer::RegionNeedsBrick(const RenderRegion& rr,
   // skip the brick if it is outside the current view frustum
   if (!m_FrustumCullingLOD.IsVisible(b.vCenter, b.vExtension)) {
     MESSAGE("Outside view frustum, skipping <%u,%u,%u>",
-            static_cast<unsigned>(std::tr1::get<0>(key)),
-            static_cast<unsigned>(std::tr1::get<1>(key)),
-            static_cast<unsigned>(std::tr1::get<2>(key)));
+            static_cast<unsigned>(std::get<0>(key)),
+            static_cast<unsigned>(std::get<1>(key)),
+            static_cast<unsigned>(std::get<2>(key)));
     return false;
   }
 
   // skip the brick if the clipping plane removes it.
   if(m_bClipPlaneOn && Clipped(rr, b)) {
     MESSAGE("clipped by clip plane: skipping <%u,%u,%u>",
-            static_cast<unsigned>(std::tr1::get<0>(key)),
-            static_cast<unsigned>(std::tr1::get<1>(key)),
-            static_cast<unsigned>(std::tr1::get<2>(key)));
+            static_cast<unsigned>(std::get<0>(key)),
+            static_cast<unsigned>(std::get<1>(key)),
+            static_cast<unsigned>(std::get<2>(key)));
     return false;
   }
 
@@ -989,8 +989,8 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
   BrickTable::const_iterator brick = m_pDataset->BricksBegin();
   for(; brick != m_pDataset->BricksEnd(); ++brick) {
     // skip over the brick if it's for the wrong timestep or LOD
-    if(std::tr1::get<0>(brick->first) != m_iTimestep ||
-       std::tr1::get<1>(brick->first) != m_iCurrentLOD) {
+    if(std::get<0>(brick->first) != m_iTimestep ||
+       std::get<1>(brick->first) != m_iCurrentLOD) {
       continue;
     }
     const BrickMD& bmd = brick->second;
@@ -1010,9 +1010,9 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
     }
     if(!needed) {
       MESSAGE("Skipping brick <%u,%u,%u> because it isn't relevant.",
-              static_cast<unsigned>(std::tr1::get<0>(brick->first)),
-              static_cast<unsigned>(std::tr1::get<1>(brick->first)),
-              static_cast<unsigned>(std::tr1::get<2>(brick->first)));
+              static_cast<unsigned>(std::get<0>(brick->first)),
+              static_cast<unsigned>(std::get<1>(brick->first)),
+              static_cast<unsigned>(std::get<2>(brick->first)));
       continue;
     } 
     
@@ -1021,9 +1021,9 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
               "because it is empty/invisible given the current vis parameters,"
               " but we'll keep it in the list in case it overlaps with other "
               "data (e.g. a mesh)",
-              static_cast<unsigned>(std::tr1::get<0>(brick->first)),
-              static_cast<unsigned>(std::tr1::get<1>(brick->first)),
-              static_cast<unsigned>(std::tr1::get<2>(brick->first)));
+              static_cast<unsigned>(std::get<0>(brick->first)),
+              static_cast<unsigned>(std::get<1>(brick->first)),
+              static_cast<unsigned>(std::get<2>(brick->first)));
     } else {
       std::pair<FLOATVECTOR3, FLOATVECTOR3> vTexcoords = m_pDataset->GetTextCoords(brick, m_bUseOnlyPowerOfTwo);
       b.vTexcoordsMin = vTexcoords.first;
@@ -1273,7 +1273,7 @@ void AbstrRenderer::Set2DPlanesIn3DView(bool bRenderPlanesIn3D,
 void AbstrRenderer::LuaSet2DPlanesIn3DView(bool bRenderPlanesIn3D,
                                            LuaClassInstance region)
 {
-  tr1::shared_ptr<LuaScripting> ss = m_pMasterController->LuaScript();
+  shared_ptr<LuaScripting> ss = m_pMasterController->LuaScript();
   Set2DPlanesIn3DView(bRenderPlanesIn3D,region.getRawPointer<RenderRegion>(ss));
 }
 
@@ -1476,7 +1476,7 @@ AbstrRenderer::SetRenderRegions(const std::vector<RenderRegion*> &regions)
 void
 AbstrRenderer::LuaSetRenderRegions(std::vector<LuaClassInstance> regions)
 {
-  tr1::shared_ptr<LuaScripting> ss = m_pMasterController->LuaScript();
+  shared_ptr<LuaScripting> ss = m_pMasterController->LuaScript();
 
   // Generate our own vector of render regions from the provided information.
   this->renderRegions.clear();
@@ -1493,7 +1493,7 @@ AbstrRenderer::LuaSetRenderRegions(std::vector<LuaClassInstance> regions)
 
 std::vector<LuaClassInstance> AbstrRenderer::LuaGetRenderRegions()
 {
-  tr1::shared_ptr<LuaScripting> ss = m_pMasterController->LuaScript();
+  shared_ptr<LuaScripting> ss = m_pMasterController->LuaScript();
   std::vector<LuaClassInstance> ret;
   ret.reserve(this->renderRegions.size());
   for (std::vector<RenderRegion*>::iterator it = this->renderRegions.begin();
@@ -1625,7 +1625,7 @@ LuaClassInstance AbstrRenderer::LuaGetDataset() {
 }
 
 void AbstrRenderer::LuaCloneRenderMode(LuaClassInstance inst) {
-  tr1::shared_ptr<LuaScripting> ss(m_pMasterController->LuaScript());
+  shared_ptr<LuaScripting> ss(m_pMasterController->LuaScript());
   AbstrRenderer* other = inst.getRawPointer<AbstrRenderer>(ss);
 
   this->SetUseLighting(other->GetUseLighting());

@@ -3,11 +3,7 @@
 #define TUVOK_SHADER_DESCRIPTOR_H
 
 #include "StdTuvokDefines.h"
-#if defined(_MSC_VER)
-# include <memory>
-#else
-# include <tr1/memory>
-#endif
+#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
@@ -58,7 +54,7 @@ class ShaderDescriptor {
       std::pair<std::string, std::string> operator*() const;
       private:
         struct siterinfo;
-        std::tr1::shared_ptr<siterinfo> si;
+        std::shared_ptr<siterinfo> si;
         SIterator(struct siterinfo);
         friend class ShaderDescriptor;
     };
@@ -70,7 +66,7 @@ class ShaderDescriptor {
 
   private:
     struct sinfo;
-    std::tr1::shared_ptr<sinfo> si;
+    std::shared_ptr<sinfo> si;
 };
 
 }

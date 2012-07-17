@@ -32,12 +32,8 @@
 //!    Date   : November 2011
 //
 //!    Copyright (C) 2011 IVDA, MMCI, DFKI, SCI Institute
+#include <memory>
 #include <stdexcept>
-#ifdef _MSC_VER
-# include <memory>
-#else
-# include <tr1/memory>
-#endif
 
 #include "GLVolumePool.h"
 

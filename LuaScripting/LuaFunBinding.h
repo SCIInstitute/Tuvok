@@ -527,40 +527,40 @@ public:
 // record is cleared. This is because a shared pointer
 // reference to LuaScripting will be stored inside of the provenance system.
 template <typename T>
-class LuaStrictStack<std::tr1::shared_ptr<T> >
+class LuaStrictStack<std::shared_ptr<T> >
 {
 public:
 
-  typedef std::tr1::shared_ptr<T> Type;
+  typedef std::shared_ptr<T> Type;
 
-  static std::tr1::shared_ptr<T> get(lua_State* L, int pos)
+  static std::shared_ptr<T> get(lua_State* L, int pos)
   {
-    std::tr1::shared_ptr<T>* ptr =
-        reinterpret_cast<std::tr1::shared_ptr<T>* >(lua_touserdata(L, pos));
+    std::shared_ptr<T>* ptr =
+        reinterpret_cast<std::shared_ptr<T>* >(lua_touserdata(L, pos));
     return *ptr;
   }
 
   static int gc(lua_State* L)
   {
     // Explicitly call the shared pointer's destructor.
-    std::tr1::shared_ptr<T>& ptr =
-        *reinterpret_cast<std::tr1::shared_ptr<T>* >(lua_touserdata(L, 1));
+    std::shared_ptr<T>& ptr =
+        *reinterpret_cast<std::shared_ptr<T>* >(lua_touserdata(L, 1));
 
     // Using clang for external unit testing. While VC and GCC don't have a
     // problem with the latter syntax, clang can't handle it.
 #ifdef __clang__
     ptr.~shared_ptr();
 #else
-    ptr.std::tr1::template shared_ptr<T>::~shared_ptr();
+    ptr.std::template shared_ptr<T>::~shared_ptr();
 #endif
     return 0;
   }
 
-  static void push(lua_State* L, std::tr1::shared_ptr<T> in)
+  static void push(lua_State* L, std::shared_ptr<T> in)
   {
     // Allocate space for a shared pointer.
-    void* spData = lua_newuserdata(L, sizeof(std::tr1::shared_ptr<T>));
-    new(spData) std::tr1::shared_ptr<T>(in);
+    void* spData = lua_newuserdata(L, sizeof(std::shared_ptr<T>));
+    new(spData) std::shared_ptr<T>(in);
 
     // Setup metatable for the shared pointer to ensure it is dereferenced
     // when the lua instance is destroyed. We need to explicitly call the
@@ -571,16 +571,16 @@ public:
     lua_setmetatable(L, -2);
   }
 
-  static std::string getValStr(std::tr1::shared_ptr<T>)
+  static std::string getValStr(std::shared_ptr<T>)
   {
     std::ostringstream os;
     os << "SharedPointer";
     return os.str();
   }
   static std::string getTypeStr() { return "shared_ptr"; }
-  static std::tr1::shared_ptr<T> getDefault()
+  static std::shared_ptr<T> getDefault()
   {
-    return std::tr1::shared_ptr<T>();
+    return std::shared_ptr<T>();
   }
 };
 

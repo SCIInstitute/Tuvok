@@ -34,16 +34,12 @@
   \date    August 2008
 */
 
-#ifdef _MSC_VER
-# include <functional>
-#else
-# include <tr1/functional>
-#endif
 #include <cstring>
+#include <functional>
 #include <new>
 #include <numeric>
 #include <typeinfo>
-#include <IO/IOManager.h>
+#include "IO/IOManager.h"
 #include "GPUMemManDataStructs.h"
 #include "Basics/MathTools.h"
 #include "Controller/Controller.h"
@@ -54,7 +50,6 @@
 #include "Renderer/GL/GLVolume2DTex.h"
 
 using namespace tuvok;
-using namespace std::tr1;
 
 GLVolumeListElem::GLVolumeListElem(Dataset* _pDataset, const BrickKey& key,
                                    bool bIsPaddedToPowerOfTwo,
@@ -188,7 +183,7 @@ size_t GLVolumeListElem::GetGPUSize() const
 #else
   return static_cast<size_t>(nonstd::accumulate(
     this->volumes.begin(), this->volumes.end(), 0,
-    std::tr1::mem_fn(&GLVolume::GetGPUSize))
+    std::mem_fn(&GLVolume::GetGPUSize))
   );
 #endif
   */
@@ -207,7 +202,7 @@ size_t GLVolumeListElem::GetCPUSize() const
 #else
   return static_cast<size_t>(nonstd::accumulate( 
     this->volumes.begin(), this->volumes.end(), 0,
-    std::tr1::mem_fn(&GLVolume::GetCPUSize))
+    std::mem_fn(&GLVolume::GetCPUSize))
   );
 #endif
   */
@@ -271,7 +266,7 @@ bool GLVolumeListElem::Replace(Dataset* _pDataset,
        MathTools::IsPow2(uint32_t(vSize[2])))) {
     volume->SetData(m_bUsingHub ? &vUploadHub.at(0) : &vData.at(0));
   } else {
-    std::pair<shared_ptr<unsigned char>, UINTVECTOR3> padded = PadData(
+    std::pair<std::shared_ptr<unsigned char>, UINTVECTOR3> padded = PadData(
       m_bUsingHub ? &vUploadHub.at(0) : &vData.at(0),
       pDataset->GetBrickVoxelCounts(m_Key),
       pDataset->GetBitWidth(),
@@ -307,7 +302,7 @@ void  GLVolumeListElem::FreeData() {
 
 static void DeleteArray(unsigned char* p) { delete[] p; }
 
-std::pair<shared_ptr<unsigned char>, UINTVECTOR3>
+std::pair<std::shared_ptr<unsigned char>, UINTVECTOR3>
 GLVolumeListElem::PadData(unsigned char* pRawData, UINTVECTOR3 vSize, uint64_t iBitWidth,
                           uint64_t iCompCount)
 {
@@ -321,14 +316,14 @@ GLVolumeListElem::PadData(unsigned char* pRawData, UINTVECTOR3 vSize, uint64_t i
   size_t iRowSizeSource = vSize[0]*iElementSize;
   size_t iRowSizeTarget = vPaddedSize[0]*iElementSize;
 
-  shared_ptr<unsigned char> pPaddedData;
+  std::shared_ptr<unsigned char> pPaddedData;
   try {
-    pPaddedData = shared_ptr<unsigned char>(
+    pPaddedData = std::shared_ptr<unsigned char>(
       new unsigned char[iRowSizeTarget * vPaddedSize[1] * vPaddedSize[2]],
       DeleteArray
     );
   } catch(std::bad_alloc&) {
-    return std::make_pair(shared_ptr<unsigned char>(), vPaddedSize);
+    return std::make_pair(std::shared_ptr<unsigned char>(), vPaddedSize);
   }
   memset(pPaddedData.get(), 0, iRowSizeTarget*vPaddedSize[1]*vPaddedSize[2]);
 
@@ -487,9 +482,9 @@ bool GLVolumeListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
                                      clamp, clamp, clamp);
     }
   } else {
-    std::pair<shared_ptr<unsigned char>, UINTVECTOR3> padded =
+    std::pair<std::shared_ptr<unsigned char>, UINTVECTOR3> padded =
       PadData(pRawData, vSize, iBitWidth, iCompCount);
-    const shared_ptr<unsigned char>& pPaddedData = padded.first;
+    const std::shared_ptr<unsigned char>& pPaddedData = padded.first;
     const UINTVECTOR3& vPaddedSize = padded.second;
 
     if (m_bEmulate3DWith2DStacks) {

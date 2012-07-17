@@ -47,7 +47,7 @@ namespace tuvok
 {
 
 //-----------------------------------------------------------------------------
-LuaMemberReg::LuaMemberReg(tr1::shared_ptr<LuaScripting> scriptSys)
+LuaMemberReg::LuaMemberReg(shared_ptr<LuaScripting> scriptSys)
 : LuaMemberRegUnsafe(scriptSys.get())
 , mScriptSystem_shared(scriptSys)
 {
@@ -81,7 +81,7 @@ SUITE(LuaTestMemberFunctionRegistration)
   class A
   {
   public:
-    A(tr1::shared_ptr<LuaScripting> ss)
+    A(shared_ptr<LuaScripting> ss)
     : mReg(ss)
     {}
 
@@ -117,7 +117,7 @@ SUITE(LuaTestMemberFunctionRegistration)
 
     auto_ptr<A> a;
 
-    tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
+    shared_ptr<LuaScripting> sc(new LuaScripting());
 
     a = auto_ptr<A>(new A(sc));
 
@@ -137,7 +137,7 @@ SUITE(LuaTestMemberFunctionRegistration)
   {
     TEST_HEADER;
 
-    tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
+    shared_ptr<LuaScripting> sc(new LuaScripting());
 
     {
       auto_ptr<A> a(new A(sc));
@@ -163,7 +163,7 @@ SUITE(LuaTestMemberFunctionRegistration)
   {
     TEST_HEADER;
 
-    tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
+    shared_ptr<LuaScripting> sc(new LuaScripting());
 
     auto_ptr<A> a(new A(sc));
 
@@ -217,7 +217,7 @@ SUITE(LuaTestMemberFunctionRegistration)
   {
   public:
 
-    B(tr1::shared_ptr<LuaScripting> ss)
+    B(shared_ptr<LuaScripting> ss)
     : mReg(ss)
     {
       i1 = 0; i2 = 0;
@@ -259,7 +259,7 @@ SUITE(LuaTestMemberFunctionRegistration)
     TEST_HEADER;
 
     // Setup custom undo/redo hooks and test their efficacy.
-    tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
+    shared_ptr<LuaScripting> sc(new LuaScripting());
 
     auto_ptr<B> b(new B(sc));
 

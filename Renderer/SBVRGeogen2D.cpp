@@ -37,16 +37,7 @@
 #include "StdTuvokDefines.h"
 #include <algorithm>
 #include <cassert>
-#include <StdTuvokDefines.h>
-#if defined(_MSC_VER) ||                                               \
-    (defined(__GNUC__) && (__GNUC__ == 4 && __GNUC_MINOR__ <= 1)) ||   \
-    defined(DETECTED_OS_APPLE)
-// MS puts tr1 in standard headers.  Old gcc's and all gcc's on Apple are
-// broken, not including this part of tr1.
-# include <cmath>
-#else
-# include <tr1/cmath>
-#endif
+#include <cmath>
 #include <functional>
 #include <limits>
 #include "SBVRGeogen2D.h"

@@ -67,8 +67,8 @@ public:
   ///                             to defaults.
   void logExecution(const std::string& function,
                     bool undoRedoStackExempt,
-                    std::tr1::shared_ptr<LuaCFunAbstract> funParams,
-                    std::tr1::shared_ptr<LuaCFunAbstract> emptyParams);
+                    std::shared_ptr<LuaCFunAbstract> funParams,
+                    std::shared_ptr<LuaCFunAbstract> emptyParams);
 
   // Modifies the last provenance log.
   void ammendLastProvLog(const std::string& ammend);
@@ -155,8 +155,8 @@ private:
   struct UndoRedoItem
   {
     UndoRedoItem(const std::string& funName,
-                 std::tr1::shared_ptr<LuaCFunAbstract> undo,
-                 std::tr1::shared_ptr<LuaCFunAbstract> redo)
+                 std::shared_ptr<LuaCFunAbstract> undo,
+                 std::shared_ptr<LuaCFunAbstract> redo)
     : function(funName), undoParams(undo), redoParams(redo), childItems()
     , instCreations(), instDeletions(), alsoRedoChildren(false)
     {}
@@ -165,10 +165,10 @@ private:
     std::string function;
 
     /// Prior execution of undoFunction (saved in lastExec table entry).
-    std::tr1::shared_ptr<LuaCFunAbstract> undoParams;
+    std::shared_ptr<LuaCFunAbstract> undoParams;
 
     /// Parameters of the function, exactly as it was called.
-    std::tr1::shared_ptr<LuaCFunAbstract> redoParams;
+    std::shared_ptr<LuaCFunAbstract> redoParams;
 
     /// Child items will be RARELY used. Only by those few functions that
     /// nest lua provenance enabled function calls inside of other lua
@@ -181,7 +181,7 @@ private:
     /// in the first place -- so redoing will ignore the child items completely)
     /// I have some hand written notes on the structure of this provenance
     /// system, if there are any interested parties.
-    std::tr1::shared_ptr<std::vector<UndoRedoItem> > childItems;
+    std::shared_ptr<std::vector<UndoRedoItem> > childItems;
 
     /// Pushing child items like this (along with the way the provenance calls
     /// functions, then their children) reverses the order in which the
@@ -196,7 +196,7 @@ private:
     {
       if (childItems.get() == NULL)
       {
-        childItems = std::tr1::shared_ptr<std::vector<UndoRedoItem> >(
+        childItems = std::shared_ptr<std::vector<UndoRedoItem> >(
             new std::vector<UndoRedoItem>());
       }
       childItems->push_back(item);
@@ -206,12 +206,12 @@ private:
     /// (these instance IDs will be contiguous. e.g. [2, 5] or [234, 265], but
     ///  never {245, 246, 248} where we are missing an instance ID in a specific
     ///  range).
-    std::tr1::shared_ptr<std::vector<int> > instCreations;
+    std::shared_ptr<std::vector<int> > instCreations;
     void addInstCreation(int id)
     {
       if (instCreations.get() == NULL)
       {
-        instCreations = std::tr1::shared_ptr<std::vector<int> >(
+        instCreations = std::shared_ptr<std::vector<int> >(
             new std::vector<int>());
       }
       instCreations->push_back(id);
@@ -219,12 +219,12 @@ private:
     }
 
     /// Instance IDs that were deleted as a result of this call.
-    std::tr1::shared_ptr<std::vector<int> > instDeletions;
+    std::shared_ptr<std::vector<int> > instDeletions;
     void addInstDeletion(int id)
     {
       if (instDeletions.get() == NULL)
       {
-        instDeletions = std::tr1::shared_ptr<std::vector<int> >(
+        instDeletions = std::shared_ptr<std::vector<int> >(
             new std::vector<int>());
       }
       instDeletions->push_back(id);
@@ -242,7 +242,7 @@ private:
   // Calls the function at UndoRedoItem index: funcIndex using the params
   // specified by funcToUse.
   void performUndoRedoOp(const std::string& funcName,
-                         std::tr1::shared_ptr<LuaCFunAbstract> params,
+                         std::shared_ptr<LuaCFunAbstract> params,
                          bool isUndo);
 
   std::vector<std::string> getUndoStackDesc();

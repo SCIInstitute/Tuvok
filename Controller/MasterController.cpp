@@ -35,12 +35,7 @@
 //!    Copyright (C) 2008 SCI Institute
 
 #include <sstream>
-
-#ifdef _MSC_VER
-# include <functional>
-#else
-# include <tr1/functional>
-#endif
+#include <functional>
 #include "MasterController.h"
 #include "../Basics/SystemInfo.h"
 #include "../DebugOut/TextfileOut.h"
@@ -75,9 +70,9 @@ MasterController::MasterController() :
   m_pScriptEngine = new Scripting();
   RegisterCalls(m_pScriptEngine);
 
-  using namespace std::tr1::placeholders;
-  std::tr1::function<Dataset*(const std::string&, AbstrRenderer*)> f =
-    std::tr1::bind(&GPUMemMan::LoadDataset, m_pGPUMemMan, _1, _2);
+  using namespace std::placeholders;
+  std::function<Dataset*(const std::string&, AbstrRenderer*)> f =
+    std::bind(&GPUMemMan::LoadDataset, m_pGPUMemMan, _1, _2);
   m_pIOManager->SetMemManLoadFunction(f);
 
   RegisterLuaCommands();
@@ -303,7 +298,7 @@ void MasterController::AddLuaRendererType(const std::string& rendererLoc,
 }
 
 void MasterController::RegisterLuaCommands() {
-  std::tr1::shared_ptr<LuaScripting> ss = LuaScript();
+  std::shared_ptr<LuaScripting> ss = LuaScript();
 
   // Register volume renderer class.
   std::string renderer = "tuvok.renderer";

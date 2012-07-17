@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
     );
 
     AbstrRenderer* ren;
-    std::tr1::shared_ptr<LuaScripting> ss = Controller::Instance().LuaScript();
+    std::shared_ptr<LuaScripting> ss = Controller::Instance().LuaScript();
 
     for(int i=0; i < MasterController::RENDERER_LAST; ++i) {
 //      ren = Controller::Instance().RequestNewVolumeRenderer(

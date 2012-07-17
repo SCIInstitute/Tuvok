@@ -62,7 +62,7 @@ SUITE(LuaTestClassRegistration)
   {
   public:
 
-    A(int a, float b, string c, tr1::shared_ptr<LuaScripting> ss)
+    A(int a, float b, string c, shared_ptr<LuaScripting> ss)
     {
       ++a_constructor;
       i1 = a; i2 = 0;
@@ -115,7 +115,7 @@ SUITE(LuaTestClassRegistration)
     }
 
     static A* luaConstruct(int a, float b, string c,
-                           tr1::shared_ptr<LuaScripting> ss)
+                           shared_ptr<LuaScripting> ss)
     { return new A(a, b, c, ss); }
 
   };
@@ -125,7 +125,7 @@ SUITE(LuaTestClassRegistration)
   class B
   {
   public:
-    B(tr1::shared_ptr<LuaScripting> ss)
+    B(shared_ptr<LuaScripting> ss)
     {
       ++b_constructor;
       i1 = 0; f1 = 0;
@@ -162,7 +162,7 @@ SUITE(LuaTestClassRegistration)
       d.function(&B::get_s1, "get_s1", "", false);
     }
 
-    static B* luaConstruct(tr1::shared_ptr<LuaScripting> ss) {return new B(ss);}
+    static B* luaConstruct(shared_ptr<LuaScripting> ss) {return new B(ss);}
 
   };
 
@@ -173,7 +173,7 @@ SUITE(LuaTestClassRegistration)
     a_destructor = 0;
 
     {
-      tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
+      shared_ptr<LuaScripting> sc(new LuaScripting());
 
       // Register class definitions.
       sc->registerClassStatic<A>(&A::luaConstruct, "factory.a1", "a class",
@@ -234,7 +234,7 @@ SUITE(LuaTestClassRegistration)
 
     // More thorough checks
     {
-      tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
+      shared_ptr<LuaScripting> sc(new LuaScripting());
 
       // Register class definitions.
       sc->registerClassStatic<A>(&A::luaConstruct, "factory.a1", "a class",
@@ -408,7 +408,7 @@ SUITE(LuaTestClassRegistration)
   {
     TEST_HEADER;
 
-    tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
+    shared_ptr<LuaScripting> sc(new LuaScripting());
 
     {
       sc->registerClassStatic<A>(&A::luaConstruct, "factory.a1", "a class",
@@ -452,7 +452,7 @@ SUITE(LuaTestClassRegistration)
     TEST_HEADER;
 
     // Thoroughly test class provenance.
-    tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
+    shared_ptr<LuaScripting> sc(new LuaScripting());
 
     // Register class definitions.
     sc->registerClassStatic<A>(&A::luaConstruct, "factory.a1", "a class",
@@ -522,7 +522,7 @@ SUITE(LuaTestClassRegistration)
     sc->clean();
   }
 
-  tr1::shared_ptr<LuaScripting> gSS;
+  shared_ptr<LuaScripting> gSS;
 
   static int c_constructor = 0;
   static int c_destructor = 0;
@@ -793,7 +793,7 @@ SUITE(LuaTestClassRegistration)
     TEST_HEADER;
 
     // Thoroughly test class provenance.
-    gSS = tr1::shared_ptr<LuaScripting>(new LuaScripting());
+    gSS = shared_ptr<LuaScripting>(new LuaScripting());
 
     gSS->registerClassStatic<A>(&A::luaConstruct, "factory.a", "a class",
                                 LuaClassRegCallback<A>::Type(
@@ -1345,7 +1345,7 @@ SUITE(LuaTestClassRegistration)
   {
   public:
 
-    X(tr1::shared_ptr<LuaScripting> ss)
+    X(shared_ptr<LuaScripting> ss)
     {}
 
     int i1;
@@ -1380,7 +1380,7 @@ SUITE(LuaTestClassRegistration)
   {
   public:
 
-    Y(tr1::shared_ptr<LuaScripting> ss)
+    Y(shared_ptr<LuaScripting> ss)
     : mSS(ss)
     {}
 
@@ -1390,7 +1390,7 @@ SUITE(LuaTestClassRegistration)
     }
 
   private:
-    tr1::shared_ptr<LuaScripting> mSS;
+    shared_ptr<LuaScripting> mSS;
   };
 
   TEST(MemberFunctionConstructor)
@@ -1398,7 +1398,7 @@ SUITE(LuaTestClassRegistration)
     TEST_HEADER;
 
     // Tests out using member functions as constructors.
-    tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
+    shared_ptr<LuaScripting> sc(new LuaScripting());
 
     Y* y = new Y(sc);
 
@@ -1433,7 +1433,7 @@ SUITE(LuaTestClassRegistration)
   {
     TEST_HEADER;
 
-    tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
+    shared_ptr<LuaScripting> sc(new LuaScripting());
 
     // Register class definitions.
     sc->registerClassStatic<A>(&A::luaConstruct, "factory.a1", "a class",
@@ -1463,8 +1463,7 @@ SUITE(LuaTestClassRegistration)
 
   TEST(ClassRTTITypeChecks)
   {
-    tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
-
+    shared_ptr<LuaScripting> sc(new LuaScripting());
   }
 
 }
@@ -1576,7 +1575,7 @@ SUITE(LuaTestClassRegistration_MultipleInheritenceFromTop)
   {
   public:
 
-    A(int a, float b, string c, tr1::shared_ptr<LuaScripting> ss)
+    A(int a, float b, string c, shared_ptr<LuaScripting> ss)
     {
       ++a_constructor;
       i1 = a;
@@ -1633,7 +1632,7 @@ SUITE(LuaTestClassRegistration_MultipleInheritenceFromTop)
     virtual string C_className()  {return "A from C class";}
 
     static A* luaConstruct(int a, float b, string c,
-                           tr1::shared_ptr<LuaScripting> ss)
+                           shared_ptr<LuaScripting> ss)
     { return new A(a, b, c, ss); }
   };
 
@@ -1681,7 +1680,7 @@ SUITE(LuaTestClassRegistration_MultipleInheritenceFromTop)
     // Help should be given for classes, but not for any of their instances
     // in the _sys_ table.
 
-    tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
+    shared_ptr<LuaScripting> sc(new LuaScripting());
 
     // Register class definitions.
     sc->registerClassStatic<A>(&A::luaConstruct, "factory.a1", "",
@@ -1783,7 +1782,7 @@ SUITE(LuaTestClassRegistration_MultipleInheritenceFromBottom)
   {
   public:
 
-    X(tr1::shared_ptr<LuaScripting> ss)
+    X(shared_ptr<LuaScripting> ss)
     {}
     virtual ~X() {};
 
@@ -1827,7 +1826,7 @@ SUITE(LuaTestClassRegistration_MultipleInheritenceFromBottom)
   {
   public:
 
-    Z(tr1::shared_ptr<LuaScripting> ss)
+    Z(shared_ptr<LuaScripting> ss)
     : X(ss)
     {}
 
@@ -1868,7 +1867,7 @@ SUITE(LuaTestClassRegistration_MultipleInheritenceFromBottom)
   {
   public:
 
-    A(int a, float b, string c, tr1::shared_ptr<LuaScripting> ss)
+    A(int a, float b, string c, shared_ptr<LuaScripting> ss)
     : Z(ss)
     {
       ++a_constructor;
@@ -1937,7 +1936,7 @@ SUITE(LuaTestClassRegistration_MultipleInheritenceFromBottom)
     virtual string C_className()  {return "A from C class";}
 
     static A* luaConstruct(int a, float b, string c,
-                           tr1::shared_ptr<LuaScripting> ss)
+                           shared_ptr<LuaScripting> ss)
     { return new A(a, b, c, ss); }
   };
 
@@ -1948,7 +1947,7 @@ SUITE(LuaTestClassRegistration_MultipleInheritenceFromBottom)
     // Help should be given for classes, but not for any of their instances
     // in the _sys_ table.
 
-    tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
+    shared_ptr<LuaScripting> sc(new LuaScripting());
 
     // Register class definitions.
     sc->registerClassStatic<X>(&A::luaConstruct, "factory.a1", "",

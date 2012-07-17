@@ -41,11 +41,7 @@
 
 #include "StdTuvokDefines.h"
 #include <string>
-#ifdef DETECTED_OS_WINDOWS
-# include <memory>
-#else
-# include <tr1/memory>
-#endif
+#include <memory>
 
 #include "../StdTuvokDefines.h"
 #include "../Renderer/CullingLOD.h"
@@ -213,7 +209,7 @@ class AbstrRenderer: public Scriptable {
     }
 
 
-    virtual bool Initialize(std::tr1::shared_ptr<Context> ctx);
+    virtual bool Initialize(std::shared_ptr<Context> ctx);
 
     /** Deallocates GPU memory allocated during the rendering process. */
     virtual void Cleanup() = 0;
@@ -223,7 +219,7 @@ class AbstrRenderer: public Scriptable {
     void SetDataset(Dataset *vds);
 /*    /// Modifies previously uploaded data.
     void UpdateData(const BrickKey&,
-                    std::tr1::shared_ptr<float> fp, size_t len);
+                    std::shared_ptr<float> fp, size_t len);
 */
     Dataset&       GetDataset()       { return *m_pDataset; }
     const Dataset& GetDataset() const { return *m_pDataset; }
@@ -523,7 +519,7 @@ class AbstrRenderer: public Scriptable {
     virtual void SetInterpolant(Interpolant eInterpolant);
     Interpolant GetInterpolant() const {return m_eInterpolant;}
 
-    std::tr1::shared_ptr<Context> GetContext() const {return m_pContext;}
+    std::shared_ptr<Context> GetContext() const {return m_pContext;}
 
     /// Registers base class Lua functions.
     static void RegisterLuaFunctions(LuaClassRegistration<AbstrRenderer>& reg,
@@ -551,7 +547,7 @@ class AbstrRenderer: public Scriptable {
 
   protected:
     MasterController*   m_pMasterController;
-    std::tr1::shared_ptr<Context> m_pContext;
+    std::shared_ptr<Context> m_pContext;
     ERenderMode         m_eRenderMode;
     bool                m_bFirstDrawAfterModeChange;
     bool                m_bFirstDrawAfterResize;

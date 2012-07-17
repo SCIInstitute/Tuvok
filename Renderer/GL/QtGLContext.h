@@ -53,9 +53,9 @@ class QtGLContext : public Context {
     QtGLContext(int iShareGroupID) : Context(iShareGroupID) {
       ctx = QGLContext::currentContext();
       if (ctx) 
-        m_pState = std::tr1::shared_ptr<StateManager>(new GLStateManager());
+        m_pState = std::shared_ptr<StateManager>(new GLStateManager());
       else
-        m_pState = std::tr1::shared_ptr<StateManager>();
+        m_pState = std::shared_ptr<StateManager>();
     }
     /// Create an ID from the given context.
     /// NOTE: Do not create multiple QtGLContext's from the same QGLContext!
@@ -65,9 +65,9 @@ class QtGLContext : public Context {
       m_iShareGroupID = iShareGroupID;
       ctx = ct;
       if (ctx) 
-        m_pState = std::tr1::shared_ptr<StateManager>(new GLStateManager());
+        m_pState = std::shared_ptr<StateManager>(new GLStateManager());
       else
-        m_pState = std::tr1::shared_ptr<StateManager>();
+        m_pState = std::shared_ptr<StateManager>();
     }
     QtGLContext(const QtGLContext& ct, int iShareGroupID) :
       Context(iShareGroupID)
@@ -77,11 +77,11 @@ class QtGLContext : public Context {
       m_pState = ct.m_pState;
     }
 
-    static std::tr1::shared_ptr<Context> Current(int iShareGroupID) {
+    static std::shared_ptr<Context> Current(int iShareGroupID) {
        if(contextMap.find(QGLContext::currentContext()) == contextMap.end()) {
-         std::pair<const void*, std::tr1::shared_ptr<Context> > tmp(
+         std::pair<const void*, std::shared_ptr<Context> > tmp(
            QGLContext::currentContext(),
-           std::tr1::shared_ptr<Context>(new QtGLContext(iShareGroupID))
+           std::shared_ptr<Context>(new QtGLContext(iShareGroupID))
          );
          return contextMap.insert(tmp).first->second; // return what we're inserting
        }

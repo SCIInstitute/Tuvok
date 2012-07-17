@@ -110,7 +110,7 @@ void GLImageTexture2D::Bind(uint32_t iUnit, uint32_t texture) {
 
 void GLImageTexture2D::Clear() {
   WARNING("Clearing by setting a giant texture... inefficient.");
-  std::tr1::shared_ptr<uint8_t> pixels(
+  std::shared_ptr<uint8_t> pixels(
     new uint8_t[m_iSizeX*m_iSizeY * gl_components(m_format) *
                 gl_byte_width(m_type)],
     nonstd::DeleteArray<uint8_t>()

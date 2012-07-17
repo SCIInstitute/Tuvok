@@ -188,8 +188,8 @@ void LuaProvenance::logHooks(int staticHooks, int memberHooks)
 //-----------------------------------------------------------------------------
 void LuaProvenance::logExecution(const string& fname,
                                  bool undoRedoStackExempt,
-                                 tr1::shared_ptr<LuaCFunAbstract> funParams,
-                                 tr1::shared_ptr<LuaCFunAbstract> emptyParams)
+                                 shared_ptr<LuaCFunAbstract> funParams,
+                                 shared_ptr<LuaCFunAbstract> emptyParams)
 {
   // TODO: Add indentation to provenance record for registered functions that
   //       are called within other registered functions.
@@ -565,7 +565,7 @@ void LuaProvenance::issueRedo()
 
 //-----------------------------------------------------------------------------
 void LuaProvenance::performUndoRedoOp(const string& funcName,
-                                      tr1::shared_ptr<LuaCFunAbstract> params,
+                                      shared_ptr<LuaCFunAbstract> params,
                                       bool isUndo)
 {
   // Obtain function's table, then grab its metamethod __call.
@@ -977,7 +977,7 @@ SUITE(LuaProvenanceTests)
   {
   public:
 
-    A(tr1::shared_ptr<LuaScripting> ss)
+    A(shared_ptr<LuaScripting> ss)
     : mReg(ss)
     {
       i1 = 0; i2 = 0;
@@ -1010,7 +1010,7 @@ SUITE(LuaProvenanceTests)
   {
     TEST_HEADER;
 
-    tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
+    shared_ptr<LuaScripting> sc(new LuaScripting());
 
     auto_ptr<A> a(new A(sc));
 

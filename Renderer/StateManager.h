@@ -38,12 +38,7 @@
 #define STATEMANAGER_H
 
 #include "StdTuvokDefines.h"
-
-#ifdef _MSC_VER
-# include <memory>
-#else
-# include <tr1/memory>
-#endif
+#include <memory>
 
 namespace tuvok {
 
@@ -176,7 +171,7 @@ namespace tuvok {
        GPUState m_InternalState;
   };
 
-  typedef std::tr1::shared_ptr<StateManager> StateManagerPtr; 
+  typedef std::shared_ptr<StateManager> StateManagerPtr; 
 
 }; //namespace tuvok
 

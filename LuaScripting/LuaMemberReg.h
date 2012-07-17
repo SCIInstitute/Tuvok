@@ -55,13 +55,13 @@ class LuaMemberReg : public LuaMemberRegUnsafe
 {
 public:
 
-  LuaMemberReg(std::tr1::shared_ptr<LuaScripting> scriptSys);
+  LuaMemberReg(std::shared_ptr<LuaScripting> scriptSys);
   virtual ~LuaMemberReg();
 
 private:
 
   /// Shared instance of the scripting system we are bound to.
-  std::tr1::shared_ptr<LuaScripting>  mScriptSystem_shared;
+  std::shared_ptr<LuaScripting>  mScriptSystem_shared;
 };
 
 }

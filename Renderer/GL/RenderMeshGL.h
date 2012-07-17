@@ -37,11 +37,7 @@
 #ifndef TUVOK_RENDERMESHGL_H
 #define TUVOK_RENDERMESHGL_H
 
-#ifdef _MSC_VER
-# include <array>
-#else
-# include <tr1/array>
-#endif
+#include <array>
 #include "../RenderMesh.h"
 #include "GLInclude.h"
 
@@ -66,7 +62,7 @@ public:
   virtual void RenderTransGeometryInside();
   virtual void GeometryHasChanged(bool bUpdateAABB, bool bUpdateKDtree);
 
-  typedef std::tr1::array<float, 3> color;
+  typedef std::array<float, 3> color;
   /// if on, adds some simple geometry at the location of every vertex.
   void EnableVertexMarkers(bool b);
   /// changes the color of the markers used for vertices.
@@ -101,9 +97,9 @@ private:
   GLuint m_IndexVBOInside;
   GLuint m_SpheresVBO;
 
-  typedef std::tr1::array<float, 3> point;
-  typedef std::tr1::array<point, 3> triangle;
-  typedef std::tr1::array<triangle, 20> isocahedron;
+  typedef std::array<float, 3> point;
+  typedef std::array<point, 3> triangle;
+  typedef std::array<triangle, 20> isocahedron;
   isocahedron m_Isocahedron;
   bool   m_bSpheresEnabled;
   color  m_SphereColor;

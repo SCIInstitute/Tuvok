@@ -162,7 +162,7 @@ static GLenum driver_supports_fp_textures()
   return glewGetExtension("GL_ARB_texture_float");
 }
 
-bool GLRenderer::Initialize(std::tr1::shared_ptr<Context> ctx) {
+bool GLRenderer::Initialize(std::shared_ptr<Context> ctx) {
   if (!AbstrRenderer::Initialize(ctx)) {
     T_ERROR("Error in parent call -> aborting");
     return false;
@@ -276,10 +276,10 @@ bool GLRenderer::LoadShaders(const string& volumeAccessFunction,
   // memory manager (duh), and always using the same context ID.
   // Make a small functor so we don't have to keep specifying those parameters.
   GPUMemMan& mm = *(Controller::Instance().MemMan());
-  using namespace std::tr1::placeholders;
-  std::tr1::function<GLSLProgram*(const ShaderDescriptor&)> program =
-    std::tr1::bind(&GPUMemMan::GetGLSLProgram, &mm, _1,
-                   m_pContext->GetShareGroupID());
+  using namespace std::placeholders;
+  std::function<GLSLProgram*(const ShaderDescriptor&)> program =
+    std::bind(&GPUMemMan::GetGLSLProgram, &mm, _1,
+              m_pContext->GetShareGroupID());
 
   m_pProgramTrans = program(ShaderDescriptor::Create(m_vShaderSearchDirs,
     "Transfer-VS.glsl", NULL,

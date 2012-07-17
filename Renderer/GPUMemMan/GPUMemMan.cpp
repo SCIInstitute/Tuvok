@@ -36,11 +36,7 @@
 
 #include <cassert>
 #include <algorithm>
-#ifndef _MSC_VER
-# include <tr1/functional>
-#else
-# include <functional>
-#endif
+#include <functional>
 #include <numeric>
 #include <typeinfo>
 // normally we'd include Qt headers first, but we want to make sure to get GLEW
@@ -68,7 +64,7 @@
 #include "Renderer/GL/GLVolume.h"
 
 using namespace std;
-using namespace std::tr1::placeholders;
+using namespace std::placeholders;
 using namespace tuvok;
 
 GPUMemMan::GPUMemMan(MasterController* masterController) :
@@ -927,7 +923,7 @@ void GPUMemMan::FreeAssociatedTextures(Dataset* pDataset, int iShareGroupID) {
   while(1) { // exit condition is checked for and `break'd in the loop.
     const GLVolumeListIter& iter =
       std::find_if(m_vpTex3DList.begin(), m_vpTex3DList.end(),
-                   std::tr1::bind(DatasetTexture(), _1, make_pair(pDataset,iShareGroupID)) );
+                   std::bind(DatasetTexture(), _1, make_pair(pDataset,iShareGroupID)) );
     if(iter == m_vpTex3DList.end()) {
       break;
     }
@@ -1048,9 +1044,9 @@ GLSLProgram* GPUMemMan::GetGLSLProgram(const ShaderDescriptor& sdesc,
                                        int iShareGroupID)
 {
   GLSLListElem elem(m_MasterController, sdesc, iShareGroupID, false);
-  using namespace std::tr1::placeholders;
+  using namespace std::placeholders;
   GLSLListIter i = std::find_if(m_vpGLSLList.begin(), m_vpGLSLList.end(),
-                                std::tr1::bind(deref_glsl(), _1, &elem));
+                                std::bind(deref_glsl(), _1, &elem));
   if(i != m_vpGLSLList.end()) {
     MESSAGE("Reusing GLSL program.");
     (*i)->iAccessCounter++;

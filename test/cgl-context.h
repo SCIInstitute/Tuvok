@@ -28,11 +28,7 @@
 #ifndef TUVOK_CGL_CONTEXT_H
 #define TUVOK_CGL_CONTEXT_H
 
-#ifdef _MSC_VER
-# include <memory>
-#else
-# include <tr1/memory>
-#endif
+#include <memory>
 #include "context.h"
 
 namespace tuvok {
@@ -51,7 +47,7 @@ class TvkCGLContext : public TvkContext {
     bool swapBuffers();
 
   private:
-    std::tr1::shared_ptr<struct cinfo> ci;
+    std::shared_ptr<struct cinfo> ci;
 };
 
 }

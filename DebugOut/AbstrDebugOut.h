@@ -42,14 +42,10 @@
 #define TUVOK_ABSTRDEBUGOUT_H
 
 #include "../StdTuvokDefines.h"
+#include <array>
 #include <cstdarg>
 #include <deque>
 #include <string>
-#ifdef DETECTED_OS_WINDOWS
-# include <array>
-#else
-# include <tr1/array>
-#endif
 
 class AbstrDebugOut {
   public:
@@ -128,8 +124,8 @@ protected:
     bool                      m_bShowErrors;
     bool                      m_bShowOther;
 
-    std::tr1::array<bool, CHANNEL_FINAL> m_bRecordLists;
-    std::tr1::array<std::deque<std::string>, CHANNEL_FINAL> m_strLists;
+    std::array<bool, CHANNEL_FINAL> m_bRecordLists;
+    std::array<std::deque<std::string>, CHANNEL_FINAL> m_strLists;
 
     void ReplaceSpecialChars(char* buff, size_t iSize) const;
 };

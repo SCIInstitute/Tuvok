@@ -104,13 +104,13 @@ void GLTexture2D::SetData(const void *pixels, bool bRestoreBinding) {
   if (bRestoreBinding) GL(glBindTexture(GL_TEXTURE_2D, prevTex));
 }
 
-std::tr1::shared_ptr<const void> GLTexture2D::GetData()
+std::shared_ptr<const void> GLTexture2D::GetData()
 {
   GL(glPixelStorei(GL_PACK_ALIGNMENT ,1));
   GL(glPixelStorei(GL_UNPACK_ALIGNMENT ,1));
   GL(glBindTexture(GL_TEXTURE_2D, m_iGLID));
 
-  std::tr1::shared_ptr<uint8_t> data(
+  std::shared_ptr<uint8_t> data(
     new uint8_t[gl_components(m_format) * gl_byte_width(m_type) *
                 m_iSizeX*m_iSizeY],
     nonstd::DeleteArray<uint8_t>()

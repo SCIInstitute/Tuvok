@@ -2009,8 +2009,8 @@ std::string LuaScripting::getNewMemberHookID()
 
 //-----------------------------------------------------------------------------
 bool LuaScripting::doProvenanceFromExec(lua_State* L,
-                            std::tr1::shared_ptr<LuaCFunAbstract> funParams,
-                            std::tr1::shared_ptr<LuaCFunAbstract> emptyParams)
+                            std::shared_ptr<LuaCFunAbstract> funParams,
+                            std::shared_ptr<LuaCFunAbstract> emptyParams)
 {
   if (mProvenance->isEnabled())
   {
@@ -3177,7 +3177,7 @@ SUITE(TestLuaScriptingSystem)
     TEST_HEADER;
 
     // Setup custom undo/redo hooks and test their efficacy.
-    tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
+    shared_ptr<LuaScripting> sc(new LuaScripting());
 
     sc->registerFunction(&set_i1, "set_i1", "", true);
     sc->registerFunction(&set_s1, "set_s1", "", true);

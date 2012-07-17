@@ -38,13 +38,8 @@
 #ifndef GLTEXTURE2D_H
 #define GLTEXTURE2D_H
 
-#if defined(_MSC_VER)
-# include <memory>
-#else
-# include <tr1/memory>
-#endif
-
 #include "../../StdTuvokDefines.h"
+#include <memory>
 #include "GLTexture.h"
 #include "../../Basics/Vectors.h"
 
@@ -77,7 +72,7 @@ class GLTexture2D : public GLTexture {
     void SetData(const UINTVECTOR2& offset, const UINTVECTOR2& size,
                  const void *pixels, bool bRestoreBinding=true);
 
-    std::tr1::shared_ptr<const void> GetData();
+    std::shared_ptr<const void> GetData();
 
     virtual uint64_t GetCPUSize() const {
       return uint64_t(m_iSizeX*m_iSizeY*m_iSizePerElement);

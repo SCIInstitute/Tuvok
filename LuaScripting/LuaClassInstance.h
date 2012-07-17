@@ -67,7 +67,7 @@ public:
   /// Returns true if this is the default instance of this class (no
   /// real data or functions).
   bool isDefaultInstance() const;
-  bool isValid(std::tr1::shared_ptr<LuaScripting> ss) const;
+  bool isValid(std::shared_ptr<LuaScripting> ss) const;
   bool isValid(LuaScripting* ss) const;
   void invalidate();  // Invalidates this class instance. isValid will return
                       // false and the instanceID will be lost.
@@ -100,7 +100,7 @@ public:
   /// This pointer can die on you at any time. Undo/redo can invalidate
   /// this pointer.
   template <typename T>
-  T* getRawPointer(std::tr1::shared_ptr<LuaScripting> ss);
+  T* getRawPointer(std::shared_ptr<LuaScripting> ss);
   void* getVoidPointer(LuaScripting* ss);
 
 private:
@@ -110,7 +110,7 @@ private:
 };
 
 template <typename T>
-T* LuaClassInstance::getRawPointer(std::tr1::shared_ptr<LuaScripting> ss)
+T* LuaClassInstance::getRawPointer(std::shared_ptr<LuaScripting> ss)
 {
   // TODO: Add RTTI
   return reinterpret_cast<T*>(getVoidPointer(ss.get()));

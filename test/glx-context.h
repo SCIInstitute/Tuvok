@@ -29,12 +29,7 @@
 #define TUVOK_GLX_CONTEXT_H
 
 #include "StdTuvokDefines.h"
-#ifdef _MSC_VER
-# include <memory>
-#else
-# include <tr1/memory>
-#endif
-
+#include <memory>
 #include "context.h"
 
 namespace tuvok {
@@ -53,7 +48,7 @@ namespace tuvok {
       bool swapBuffers();
 
     private:
-      std::tr1::shared_ptr<struct xinfo> xi;
+      std::shared_ptr<struct xinfo> xi;
   };
 }
 #endif /* TUVOK_GLX_CONTEXT_H */

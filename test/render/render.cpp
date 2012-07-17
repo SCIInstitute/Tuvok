@@ -92,7 +92,7 @@ int main(int argc, const char *argv[])
 //    ren = Controller::Instance().RequestNewVolumeRenderer(
 //      MasterController::OPENGL_SBVR, false, false, false, false, false
 //    );
-    std::tr1::shared_ptr<LuaScripting> ss = Controller::Instance().LuaScript();
+    std::shared_ptr<LuaScripting> ss = Controller::Instance().LuaScript();
     LuaClassInstance inst = ss->cexecRet<LuaClassInstance>(
         "tuvok.renderer.new",
         int(MasterController::OPENGL_SBVR), false, false, false, false, false);

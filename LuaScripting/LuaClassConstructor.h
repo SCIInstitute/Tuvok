@@ -241,9 +241,9 @@ private:
       LuaScripting* ss = static_cast<LuaScripting*>(                          //
                   lua_touserdata(L, lua_upvalueindex(3)));                    //
 
-      std::tr1::shared_ptr<LuaCFunAbstract> execParams(
+      std::shared_ptr<LuaCFunAbstract> execParams(
           new LuaCFunExec<FunPtr>());
-      std::tr1::shared_ptr<LuaCFunAbstract> emptyParams(
+      std::shared_ptr<LuaCFunAbstract> emptyParams(
           new LuaCFunExec<FunPtr>());
       // Fill execParams. Function parameters start at index 2.
       execParams->pullParamsFromStack(L, 2);
@@ -353,9 +353,9 @@ private:
       LuaScripting* ss = static_cast<LuaScripting*>(                          //
                   lua_touserdata(L, lua_upvalueindex(4)));                    //
 
-      std::tr1::shared_ptr<LuaCFunAbstract> execParams(
+      std::shared_ptr<LuaCFunAbstract> execParams(
           new LuaCFunExec<FunPtr>());
-      std::tr1::shared_ptr<LuaCFunAbstract> emptyParams(
+      std::shared_ptr<LuaCFunAbstract> emptyParams(
           new LuaCFunExec<FunPtr>());
       // Fill execParams. Function parameters start at index 2.
       execParams->pullParamsFromStack(L, 2);
