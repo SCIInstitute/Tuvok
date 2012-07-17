@@ -1,9 +1,52 @@
-/*
-   For more information, please see: http://software.sci.utah.edu
+#pragma once
 
+#ifndef GLHASHTABLE_H
+#define GLHASHTABLE_H
+
+#include "StdTuvokDefines.h"
+#include "GLObject.h"
+#include "Basics/Vectors.h"
+#include <memory>
+
+namespace tuvok {
+
+class GLTexture1D;
+
+class GLHashTable : public GLObject {
+  public:
+    GLHashTable(const UINTVECTOR3& maxBrickCount, uint32_t iTableSize=211, uint32_t iRehashCount=10); 
+    virtual ~GLHashTable();
+
+    void InitGL();
+    void FreeGL();
+
+    std::string GetShaderFragment(uint32_t iMountPoint=0);
+    void Enable(uint32_t iMountPoint=0);
+    std::vector<UINTVECTOR4> GetData();
+    void ClearData();
+
+    virtual uint64_t GetCPUSize() const;
+    virtual uint64_t GetGPUSize() const;
+  private:
+
+    UINTVECTOR3 m_maxBrickCount;
+    uint32_t m_iTableSize;
+    uint32_t m_iRehashCount;
+    GLTexture1D* m_pHashTableTex;
+    std::shared_ptr<uint32_t> m_rawData;
+
+    UINTVECTOR4 Int2Vector(uint32_t index) const;
+};
+
+}
+
+#endif // GLHASHTABLE_H
+
+/*
    The MIT License
 
-   Copyright (c) 2012 Interactive Visualization and Data Analysis Group.
+   Copyright (c) 2012 Interactive Visualiyation and Data Analysis Group,
+   Saarland University
 
 
    Permission is hereby granted, free of charge, to any person obtaining a
@@ -24,39 +67,3 @@
    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
    DEALINGS IN THE SOFTWARE.
 */
-#pragma once
-
-#ifndef TUVOK_GL_HASH_TABLE_H
-#define TUVOK_GL_HASH_TABLE_H
-
-#include "StdTuvokDefines.h"
-#if defined(_MSC_VER)
-# include <memory>
-#else
-# include <tr1/memory>
-#endif
-#include "Basics/Vectors.h"
-#include "GLObject.h"
-
-namespace tuvok {
-
-struct hinfo;
-
-class GLHashTable : public GLObject {
-  public:
-    GLHashTable(const UINTVECTOR2& texSize,
-                std::tr1::shared_ptr<AbstrRenderer>& ren);
-    virtual ~GLHashTable() { }
-
-    void Activate(uint32_t imgUnit, uint32_t texUnit);
-    std::vector<UINTVECTOR4> GetList();
-
-    virtual uint64_t GetCPUSize() const;
-    virtual uint64_t GetGPUSize() const;
-
-  private:
-    std::tr1::shared_ptr<struct hinfo> hi;
-};
-
-}
-#endif /* TUVOK_GL_HASH_TABLE_H */

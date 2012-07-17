@@ -1,94 +1,114 @@
 #include "StdTuvokDefines.h"
 #include "GLHashTable.h"
-#include "Controller/Controller.h"
-#include "Renderer/AbstrRenderer.h"
-#include "Renderer/GL/GLSLProgram.h"
-#include "Renderer/GL/GLImageTexture2D.h"
-#include "Basics/Vectors.h"
 
-namespace tuvok {
+#include <GL/glew.h>
+#include "GLInclude.h"
+#include "GLSLProgram.h"
+#include "GLFBOTex.h"
+#include "GLTexture1D.h"
+#include "../ShaderDescriptor.h"
+#include "Basics/nonstd.h"
 
-struct hinfo {
-  hinfo(UINTVECTOR2 s,
-        std::tr1::shared_ptr<GLImageTexture2D> tbl,
-        std::tr1::shared_ptr<GLSLProgram> g,
-        std::tr1::shared_ptr<AbstrRenderer> r) :
-    size(s), table(tbl), glsl(g), renderer(r) { }
-  UINTVECTOR2 size;
-  std::tr1::shared_ptr<GLImageTexture2D> table;
-  std::tr1::shared_ptr<GLSLProgram> glsl;
-  std::tr1::shared_ptr<AbstrRenderer> renderer;
-};
+#include <sstream>
 
-GLHashTable::GLHashTable(const UINTVECTOR2& texSize,
-                         std::tr1::shared_ptr<AbstrRenderer>& ren) :
-  hi(new struct hinfo(texSize, std::tr1::shared_ptr<GLImageTexture2D>(),
-                      std::tr1::shared_ptr<GLSLProgram>(), ren))
+using namespace tuvok;
+
+GLHashTable::GLHashTable(const UINTVECTOR3& maxBrickCount, uint32_t iTableSize, uint32_t iRehashCount) :
+  m_maxBrickCount(maxBrickCount),
+  m_iTableSize(iTableSize),
+  m_iRehashCount(iRehashCount),
+  m_pHashTableTex(NULL)
 {
-  this->hi->table = std::tr1::shared_ptr<GLImageTexture2D>(
-    new GLImageTexture2D(texSize.x, texSize.y, GL_RGBA, GL_RGBA16UI_EXT, 8,
-                         NULL)
+  m_rawData = std::tr1::shared_ptr<uint32_t>(
+    new uint32_t[m_iTableSize], 
+    nonstd::DeleteArray<uint32_t>()
   );
 }
 
-void GLHashTable::Activate(uint32_t imgUnit, uint32_t texUnit) {
-  this->hi->table->Bind(imgUnit, texUnit);
-  this->hi->table->Clear();
+GLHashTable::~GLHashTable() {
+  FreeGL();
 }
 
-std::vector<UINTVECTOR4> GLHashTable::GetList() {
-  std::vector<UINTVECTOR4> rv;
+void GLHashTable::InitGL() {
+  m_pHashTableTex = new GLTexture1D(m_iTableSize, GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT, 4, NULL);
+}
 
-  std::tr1::shared_ptr<const void> data = hi->table->GetData();
-  // might need to use 32bit..
-  const uint16_t* ht = static_cast<const uint16_t*>(data.get());
+UINTVECTOR4 GLHashTable::Int2Vector(uint32_t index) const {
+  UINTVECTOR4 coords;
 
-  for(size_t i=0; i < this->hi->size.area(); i+=4) {
-    // Our texture is a bunch of 0's, and we need some way to indicate
-    // that a given location has a brick there. we use the last element
-    // (LOD) to indicate if the brick is 'set'.  Therefore the LOD is
-    // offset by 1, so when constructing the brick ID we need to make
-    // sure to fix that offset.
-    if(ht[i+3]) {
-      UINTVECTOR4 brick(ht[i+0], ht[i+1], ht[i+2], ht[i+3]-1);
-#if _DEBUG
-      MESSAGE("adding brick %llu %llu %llu %llu",
-              brick.x, brick.y, brick.z, brick.w);
-#endif
-      rv.push_back(brick);
-    }
+  coords.w = index / m_maxBrickCount.volume(); 
+  index -= coords.w*m_maxBrickCount.volume();
+  coords.z = index / (m_maxBrickCount.x * m_maxBrickCount.y); 
+  index -= coords.z*(m_maxBrickCount.x * m_maxBrickCount.y);
+  coords.y = index / m_maxBrickCount.x; 
+  index -= coords.y*m_maxBrickCount.x;
+  coords.x = index;
+
+  return coords;
+}
+
+void GLHashTable::Enable(uint32_t iMountPoint) { 
+  GL(glBindImageTexture(iMountPoint, m_pHashTableTex->GetGLID(), 0, false, 0, GL_READ_WRITE, GL_R32UI));
+}
+
+std::vector<UINTVECTOR4> GLHashTable::GetData() {
+// GL(glMemoryBarrier(GL_ALL_BARRIER_BITS));
+
+  m_pHashTableTex->GetData(m_rawData);
+  std::vector<UINTVECTOR4> requests;
+  for (size_t i = 0;i<m_iTableSize;++i) {
+    uint32_t elem = m_rawData.get()[i];
+    if (elem != 0) requests.push_back(Int2Vector(elem-1));
   }
-  return rv;
+  return requests;
 }
 
-uint64_t GLHashTable::GetCPUSize() const { return 0; /* fixme */ }
-uint64_t GLHashTable::GetGPUSize() const { return 0; /* fixme */ }
-
+void GLHashTable::ClearData() {
+  std::fill(m_rawData.get(), m_rawData.get()+m_iTableSize, 0);
+  m_pHashTableTex->SetData(m_rawData.get());
 }
 
-/*
-   For more information, please see: http://software.sci.utah.edu
+std::string GLHashTable::GetShaderFragment(uint32_t iMountPoint) {
+  std::stringstream ss;
 
-   The MIT License
+  ss << "#version 420 compatibility" << std::endl
+     << "" << std::endl
+     << "layout(binding = " << iMountPoint << ", size1x32) coherent uniform uimage1D hashTable;" << std::endl
+     << "" << std::endl
+     << "uint Serialize(uvec4 bd) {" << std::endl
+     << "  return 1 + bd.x + bd.y * " << m_maxBrickCount.x << " + bd.z * " << m_maxBrickCount.x * m_maxBrickCount.y << " + bd.w * " << m_maxBrickCount.volume() << ";" << std::endl
+     << "}" << std::endl
+     << "" << std::endl
+     << "int HashValue(uint serializedValue) {" << std::endl
+     << "  return int(serializedValue % " << m_iTableSize << ");" << std::endl
+     << "}" << std::endl
+     << "" << std::endl
+     << "uint Hash(uvec4 bd) {" << std::endl
+     << "  uint rehashCount = 0;" << std::endl
+     << "  uint serializedValue = Serialize(bd);" << std::endl
+     << "" << std::endl
+     << "  do {" << std::endl
+     << "    int hash = HashValue(serializedValue+rehashCount);" << std::endl
+     << "    uint valueInImage = imageAtomicCompSwap(hashTable, hash, uint(0), serializedValue);" << std::endl
+     << "    if (valueInImage == 0 || valueInImage == serializedValue) return rehashCount;" << std::endl
+     << "  } while (++rehashCount < " << m_iRehashCount << ") ;" << std::endl
+     << "" << std::endl
+     << "  return uint(" << m_iRehashCount << ");" << std::endl
+     << "}" << std::endl;
+  return ss.str();
+}
 
-   Copyright (c) 2012 Interactive Visualization and Data Analysis Group.
+void GLHashTable::FreeGL() {
+  if (m_pHashTableTex) {
+    m_pHashTableTex->Delete();
+    delete m_pHashTableTex;
+    m_pHashTableTex = NULL;
+  }
+}
 
-
-   Permission is hereby granted, free of charge, to any person obtaining a
-   copy of this software and associated documentation files (the "Software"),
-   to deal in the Software without restriction, including without limitation
-   the rights to use, copy, modify, merge, publish, distribute, sublicense,
-   and/or sell copies of the Software, and to permit persons to whom the
-   Software is furnished to do so, subject to the following conditions:
-
-   The above copyright notice and this permission notice shall be included
-   in all copies or substantial portions of the Software.
-
-   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-   THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-   DEALINGS IN THE SOFTWARE.
-*/
+uint64_t GLHashTable::GetCPUSize() const {
+  return m_pHashTableTex->GetCPUSize() + m_iTableSize*4;
+}
+uint64_t GLHashTable::GetGPUSize() const {
+  return m_pHashTableTex->GetGPUSize();
+}
