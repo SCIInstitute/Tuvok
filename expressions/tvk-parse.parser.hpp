@@ -1,9 +1,8 @@
-
-/* A Bison parser, made by GNU Bison 2.4.1.  */
+/* A Bison parser, made by GNU Bison 2.5.  */
 
 /* Skeleton interface for Bison GLR parsers in C
    
-      Copyright (C) 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+      Copyright (C) 2002-2011 Free Software Foundation, Inc.
    
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -63,7 +62,7 @@
 typedef union YYSTYPE
 {
 
-/* Line 2638 of glr.c  */
+/* Line 2663 of glr.c  */
 #line 53 "tvk-parse.ypp"
 
   double y_dbl;
@@ -72,8 +71,8 @@ typedef union YYSTYPE
 
 
 
-/* Line 2638 of glr.c  */
-#line 77 "./tvk-parse.parser.hpp"
+/* Line 2663 of glr.c  */
+#line 76 "./tvk-parse.parser.hpp"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 #endif
