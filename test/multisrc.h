@@ -1,9 +1,9 @@
+#include <cstdint>
 #include <cstdlib>
 #include <time.h>
 #include <algorithm>
 #include <functional>
 #include <vector>
-#include <boost/cstdint.hpp>
 
 #include <cxxtest/TestSuite.h>
 
