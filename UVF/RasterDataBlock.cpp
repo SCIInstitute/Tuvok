@@ -1202,7 +1202,7 @@ RasterDataBlock::SeekToBrick(const std::vector<uint64_t>& vLOD,
   LargeRAWFile_ptr  pStreamFile;
   uint64_t iOffset = GetLocalDataPointerOffset(vLOD, vBrick)/8;
 
-  if (!m_pStreamFile) {
+  if (m_pStreamFile) {
     // add global offset
     iOffset += m_iOffset;
     // add size of header
