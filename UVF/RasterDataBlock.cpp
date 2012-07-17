@@ -994,7 +994,7 @@ RasterDataBlock::FlatDataToBrickedLOD(
 
   uint64_t uiBytesPerElement = ComputeElementSize()/8;
 
-  if (m_pTempFile == NULL) {
+  if (m_pTempFile == nullptr) {
     AllocateTemp(SysTools::AppendFilename(strTempFile,"1"),
                  m_vLODOffsets.empty());
   }
@@ -1330,7 +1330,7 @@ bool RasterDataBlock::GetData(std::vector<double>& vData,
 }
 
 bool RasterDataBlock::Settable() const {
-  return m_pStreamFile != NULL &&
+  return m_pStreamFile != nullptr &&
          m_pStreamFile->IsWritable() &&
          !m_vLODOffsets.empty();
 }
