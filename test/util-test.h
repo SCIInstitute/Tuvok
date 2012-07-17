@@ -2,7 +2,7 @@
 #define SCIO_TEST_UTIL_H
 #include <cstring>
 #include <fstream>
-#if defined(__GNUC__) && (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ <= 1))
+#if defined(__GNUC__) && (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ <= 5))
 # define BROKEN_TR1_RANDOM
 #endif
 #include <random>

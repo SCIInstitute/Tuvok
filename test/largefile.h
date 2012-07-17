@@ -272,7 +272,7 @@ namespace {
 
     for(size_t i=0; i < 8; ++i) {
       int64_t data[N];
-      const boost::uint64_t this_offset = offset + i*(sizeof(int64_t)*N);
+      const uint64_t this_offset = offset + i*(sizeof(int64_t)*N);
       std::generate(data, data+N, std::bind(generate_constant, VALUE[i]));
       lf.wr(std::shared_ptr<const void>(data, null_deleter),
                                              this_offset,
@@ -353,14 +353,14 @@ namespace {
     const std::string tmpf = mk_tmpfile(ofs, std::ios::out | std::ios::binary);
     ofs.close();
 
-    boost::int8_t s8 = -7;
-    boost::uint8_t u8 = 19;
-    boost::int16_t s16 = 6;
-    boost::uint16_t u16 = 74;
-    boost::int32_t s32 = -15;
-    boost::uint32_t u32 = 2048;
-    boost::int64_t s64 = -21438907;
-    boost::uint64_t u64 = 234987;
+    int8_t s8 = -7;
+    uint8_t u8 = 19;
+    int16_t s16 = 6;
+    uint16_t u16 = 74;
+    int32_t s32 = -15;
+    uint32_t u32 = 2048;
+    int64_t s64 = -21438907;
+    uint64_t u64 = 234987;
     float f = 9.81;
     double d = 4.242;
 
@@ -438,7 +438,7 @@ namespace {
       lf.write(data, N);
     }
     { // now make sure we have 2 VALUE[0]'s and N VALUE[2]'s, no VALUE[1]'s!
-      const boost::uint64_t len = sizeof(int64_t)*(N+2);
+      const uint64_t len = sizeof(int64_t)*(N+2);
       T lf(tmpf, std::ios::in, 0, len);
       std::shared_ptr<const void> mem = lf.rd(0, len);
       const int64_t* data = static_cast<const int64_t*>(mem.get());
@@ -463,7 +463,7 @@ namespace {
     const int64_t VALUE[] = { -42, 96, 67 };
     { // write N VALUE[0]'s, N VALUE[1]'s, then truncate down to two values.
       T lf(tmpf, std::ios::out, 0, sizeof(int64_t)*128);
-      TS_ASSERT_EQUALS(lf.offset(), static_cast<boost::uint64_t>(0));
+      TS_ASSERT_EQUALS(lf.offset(), static_cast<uint64_t>(0));
       int64_t data[N];
       std::generate(data, data+N, std::bind(generate_constant, VALUE[0]));
       lf.write(data, N);
@@ -473,7 +473,7 @@ namespace {
       lf.seek(lf.offset()-sizeof(int64_t));
       TS_ASSERT_EQUALS(lf.offset(), sizeof(int64_t)*N);
       lf.seek(0);
-      TS_ASSERT_EQUALS(lf.offset(), static_cast<boost::uint64_t>(0));
+      TS_ASSERT_EQUALS(lf.offset(), static_cast<uint64_t>(0));
     }
     remove(tmpf.c_str());
   }
@@ -493,7 +493,7 @@ namespace {
     }
     ofs.close();
     T lf(tmpf, std::ios::in, 0, sizeof(int64_t)*128);
-    TS_ASSERT_EQUALS(lf.offset(), static_cast<boost::uint64_t>(0));
+    TS_ASSERT_EQUALS(lf.offset(), static_cast<uint64_t>(0));
     const size_t len = sizeof(int64_t)*(N/2);
     lf.rd(len);
     TS_ASSERT_EQUALS(lf.offset(), sizeof(int64_t)*(N/2));
