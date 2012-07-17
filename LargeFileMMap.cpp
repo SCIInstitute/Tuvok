@@ -41,16 +41,16 @@
 
 LargeFileMMap::LargeFileMMap(const std::string fn,
                              std::ios_base::openmode mode,
-                             boost::uint64_t header_size,
-                             boost::uint64_t length) :
+                             uint64_t header_size,
+                             uint64_t length) :
   LargeFileFD(fn, mode, header_size), map(NULL), length(length)
 {
   this->open(mode);
 }
 LargeFileMMap::LargeFileMMap(const std::wstring fn,
                              std::ios_base::openmode mode,
-                             boost::uint64_t header_size,
-                             boost::uint64_t length) :
+                             uint64_t header_size,
+                             uint64_t length) :
   LargeFileFD(fn, mode, header_size), map(NULL), length(length)
 {
   this->open(mode);
@@ -67,7 +67,7 @@ LargeFileMMap::~LargeFileMMap()
   this->close();
 }
 
-std::shared_ptr<const void> LargeFileMMap::rd(boost::uint64_t offset,
+std::shared_ptr<const void> LargeFileMMap::rd(uint64_t offset,
                                                    size_t len)
 {
   if(len == 0 || (!this->is_open())) {
@@ -94,7 +94,7 @@ std::shared_ptr<const void> LargeFileMMap::rd(boost::uint64_t offset,
 }
 
 void LargeFileMMap::wr(const std::shared_ptr<const void>& data,
-                       boost::uint64_t offset, size_t len)
+                       uint64_t offset, size_t len)
 {
   if(len == 0) { return; }
   if(!this->is_open()) {
@@ -154,7 +154,7 @@ void LargeFileMMap::open(std::ios_base::openmode mode)
 
   /* length must be a multiple of the page size.  Round it up. */
   const long page_size = sysconf(_SC_PAGESIZE);
-  const boost::uint64_t u_page_size = static_cast<boost::uint64_t>(page_size);
+  const uint64_t u_page_size = static_cast<uint64_t>(page_size);
   if(page_size != -1 && (this->length % u_page_size) != 0) {
     /* i.e. sysconf was successful and length isn't a multiple of page size. */
     this->length += (u_page_size * ((this->length-1) / u_page_size)) +

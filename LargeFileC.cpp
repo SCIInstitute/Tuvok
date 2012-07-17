@@ -45,16 +45,16 @@
 
 LargeFileC::LargeFileC(const std::string fn,
                        std::ios_base::openmode mode,
-                       boost::uint64_t header_size,
-                       boost::uint64_t /* length */) :
+                       uint64_t header_size,
+                       uint64_t /* length */) :
   LargeFile(fn, mode, header_size), fp(NULL)
 {
   this->open(mode);
 }
 LargeFileC::LargeFileC(const std::wstring fn,
                        std::ios_base::openmode mode,
-                       boost::uint64_t header_size,
-                       boost::uint64_t /* length */) :
+                       uint64_t header_size,
+                       uint64_t /* length */) :
   LargeFile(fn, mode, header_size), fp(NULL)
 {
   this->open(mode);
@@ -67,7 +67,7 @@ LargeFileC::~LargeFileC()
   }
 }
 
-int seeko(FILE* strm, boost::uint64_t off, int whence) {
+int seeko(FILE* strm, uint64_t off, int whence) {
 #if _POSIX_C_SOURCE >= 200112L
   if(fseeko(strm, off, whence) < 0) {
 #else
@@ -79,7 +79,7 @@ int seeko(FILE* strm, boost::uint64_t off, int whence) {
   return 0;
 }
 
-std::shared_ptr<const void> LargeFileC::rd(boost::uint64_t offset,
+std::shared_ptr<const void> LargeFileC::rd(uint64_t offset,
                                                 size_t len)
 {
   if(!this->is_open()) {
@@ -102,7 +102,7 @@ std::shared_ptr<const void> LargeFileC::rd(boost::uint64_t offset,
 }
 
 void LargeFileC::wr(const std::shared_ptr<const void>& data,
-                    boost::uint64_t offset,
+                    uint64_t offset,
                     size_t len)
 {
   if(!this->is_open()) {
@@ -118,30 +118,30 @@ void LargeFileC::wr(const std::shared_ptr<const void>& data,
   }
 }
 
-void LargeFileC::enqueue(boost::uint64_t, size_t)
+void LargeFileC::enqueue(uint64_t, size_t)
 {
   /* unimplemented... */
 }
 
-static boost::uint64_t offs(FILE* fp) {
+static uint64_t offs(FILE* fp) {
 #if _POSIX_C_SOURCE >= 200112L
-  return static_cast<boost::uint64_t>(ftello(fp));
+  return static_cast<uint64_t>(ftello(fp));
 #else
-  return static_cast<boost::uint64_t>(ftell(fp));
+  return static_cast<uint64_t>(ftell(fp));
 #endif
 }
 
-boost::uint64_t LargeFileC::filesize() const
+uint64_t LargeFileC::filesize() const
 {
   if(!this->is_open()) {
     throw std::ios_base::failure("file is not open");
   }
 
-  const boost::uint64_t current = offs(this->fp); // save so we can reset
+  const uint64_t current = offs(this->fp); // save so we can reset
   seeko(this->fp, 0, SEEK_END);
-  boost::uint64_t end = offs(this->fp);
+  uint64_t end = offs(this->fp);
   seeko(this->fp, 0, SEEK_SET);
-  boost::uint64_t begin = offs(this->fp);
+  uint64_t begin = offs(this->fp);
   seeko(this->fp, current, SEEK_SET); // reset file pointer
   return end - begin;
 }
@@ -190,7 +190,7 @@ int filenumber(FILE* strm) {
 #endif
 }
 
-int lftruncate(int fd, boost::uint64_t length) {
+int lftruncate(int fd, uint64_t length) {
 #ifdef _MSC_VER
   return _chsize(fd, length);
 #else
@@ -198,7 +198,7 @@ int lftruncate(int fd, boost::uint64_t length) {
 #endif
 }
 
-void LargeFileC::truncate(boost::uint64_t len) {
+void LargeFileC::truncate(uint64_t len) {
   if(!this->is_open()) {
     this->open(std::ios::out);
   }

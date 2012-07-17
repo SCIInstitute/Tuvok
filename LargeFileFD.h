@@ -37,38 +37,38 @@ class LargeFileFD : public LargeFile {
     /// byte 0 actually seeks to 'header_size'.
     LargeFileFD(const std::string fn,
                 std::ios_base::openmode mode = std::ios_base::in,
-                boost::uint64_t header_size=0,
-                boost::uint64_t length=0);
+                uint64_t header_size=0,
+                uint64_t length=0);
     /// @argument header_size is maintained as a "base" offset.  Seeking to
     /// byte 0 actually seeks to 'header_size'.
     LargeFileFD(const std::wstring fn,
                 std::ios_base::openmode mode = std::ios_base::in,
-                boost::uint64_t header_size=0,
-                boost::uint64_t length=0);
+                uint64_t header_size=0,
+                uint64_t length=0);
     virtual ~LargeFileFD();
 
     virtual void open(std::ios_base::openmode mode = std::ios_base::in);
 
     /// reads a block of data, returns a pointer to it.  User must cast it to
     /// the type that makes sense for them.
-    virtual std::shared_ptr<const void> rd(boost::uint64_t offset,
+    virtual std::shared_ptr<const void> rd(uint64_t offset,
                                                 size_t len);
     using LargeFile::read;
     using LargeFile::rd;
 
     /// writes a block of data.
     virtual void wr(const std::shared_ptr<const void>& data,
-                    boost::uint64_t offset,
+                    uint64_t offset,
                     size_t len);
 
     /// notifies the object that we're going to need the following data soon.
     /// Many implementations will prefetch this data when it knows this.
-    virtual void enqueue(boost::uint64_t offset, size_t len);
+    virtual void enqueue(uint64_t offset, size_t len);
 
-    virtual boost::uint64_t filesize() const;
+    virtual uint64_t filesize() const;
     virtual bool is_open() const;
     virtual void close();
-    virtual void truncate(boost::uint64_t length=0);
+    virtual void truncate(uint64_t length=0);
 
   protected:
     int fd;

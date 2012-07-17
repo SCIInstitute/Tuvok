@@ -43,16 +43,16 @@
 
 LargeFileFD::LargeFileFD(const std::string fn,
                          std::ios_base::openmode mode,
-                         boost::uint64_t header_size,
-                         boost::uint64_t /* length */) :
+                         uint64_t header_size,
+                         uint64_t /* length */) :
   LargeFile(fn, mode, header_size), fd(-1)
 {
   this->open(mode);
 }
 LargeFileFD::LargeFileFD(const std::wstring fn,
                          std::ios_base::openmode mode,
-                         boost::uint64_t header_size,
-                         boost::uint64_t /* length */) :
+                         uint64_t header_size,
+                         uint64_t /* length */) :
   LargeFile(fn, mode, header_size), fd(-1)
 {
   this->open(mode);
@@ -65,7 +65,7 @@ LargeFileFD::~LargeFileFD()
   }
 }
 
-std::shared_ptr<const void> LargeFileFD::rd(boost::uint64_t offset,
+std::shared_ptr<const void> LargeFileFD::rd(uint64_t offset,
                                                  size_t len)
 {
   if(!this->is_open()) {
@@ -100,7 +100,7 @@ std::shared_ptr<const void> LargeFileFD::rd(boost::uint64_t offset,
 }
 
 void LargeFileFD::wr(const std::shared_ptr<const void>& data,
-                     boost::uint64_t offset,
+                     uint64_t offset,
                      size_t len)
 {
   if(!this->is_open()) {
@@ -123,7 +123,7 @@ void LargeFileFD::wr(const std::shared_ptr<const void>& data,
   } while(written < len && errno == EINTR);
 }
 
-void LargeFileFD::enqueue(boost::uint64_t offset, size_t len)
+void LargeFileFD::enqueue(uint64_t offset, size_t len)
 {
   if(len == 0) { return; }
 #if _POSIX_C_SOURCE >= 200112L
@@ -143,7 +143,7 @@ void LargeFileFD::enqueue(boost::uint64_t offset, size_t len)
 #endif
 }
 
-boost::uint64_t LargeFileFD::filesize() const
+uint64_t LargeFileFD::filesize() const
 {
   struct stat st;
   if(stat(m_filename.c_str(), &st) == -1) {
@@ -158,7 +158,7 @@ boost::uint64_t LargeFileFD::filesize() const
     return 0;
   }
 
-  return static_cast<boost::uint64_t>(st.st_size);
+  return static_cast<uint64_t>(st.st_size);
 }
 
 bool LargeFileFD::is_open() const
@@ -202,7 +202,7 @@ void LargeFileFD::open(std::ios_base::openmode mode)
   }
 }
 
-void LargeFileFD::truncate(boost::uint64_t len) {
+void LargeFileFD::truncate(uint64_t len) {
   if(this->fd == -1) {
     LargeFile::truncate(this->m_filename.c_str(), len);
     return;

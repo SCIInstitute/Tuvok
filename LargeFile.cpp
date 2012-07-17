@@ -44,8 +44,8 @@
 
 LargeFile::LargeFile(const std::string fn,
                      std::ios_base::openmode,
-                     boost::uint64_t hsz,
-                     boost::uint64_t /* length */) :
+                     uint64_t hsz,
+                     uint64_t /* length */) :
   m_filename(fn),
   header_size(hsz),
   byte_offset(0),
@@ -54,8 +54,8 @@ LargeFile::LargeFile(const std::string fn,
 }
 LargeFile::LargeFile(const std::wstring fn,
                      std::ios_base::openmode,
-                     boost::uint64_t hsz,
-                     boost::uint64_t /* length */) :
+                     uint64_t hsz,
+                     uint64_t /* length */) :
   m_filename(fn.begin(), fn.end()),
   header_size(hsz),
   byte_offset(0),
@@ -71,7 +71,7 @@ std::shared_ptr<const void> LargeFile::rd(size_t length)
   return rv;
 }
 
-boost::uint64_t LargeFile::gcount() const { return this->bytes_read; }
+uint64_t LargeFile::gcount() const { return this->bytes_read; }
 
 void LargeFile::wr(const std::shared_ptr<const void>& data,
                    size_t length)
@@ -80,10 +80,10 @@ void LargeFile::wr(const std::shared_ptr<const void>& data,
   this->byte_offset += length;
 }
 
-void LargeFile::seek(boost::uint64_t to) { this->byte_offset = to; }
-boost::uint64_t LargeFile::offset() const { return this->byte_offset; }
+void LargeFile::seek(uint64_t to) { this->byte_offset = to; }
+uint64_t LargeFile::offset() const { return this->byte_offset; }
 
-void LargeFile::truncate(const char* path, boost::uint64_t length)
+void LargeFile::truncate(const char* path, uint64_t length)
 {
   DEBUG("path=" << path);
 #ifdef DETECTED_OS_WINDOWS
@@ -118,7 +118,7 @@ void LargeFile::truncate(const char* path, boost::uint64_t length)
 #endif
 }
 
-void LargeFile::truncate(boost::uint64_t length)
+void LargeFile::truncate(uint64_t length)
 {
   LargeFile::truncate(this->m_filename.c_str(), length);
   // move offset down if it's beyond EOF.

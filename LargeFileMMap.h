@@ -31,32 +31,32 @@
 #include "LargeFileFD.h"
 
 // experimentally found to be the largest value we can mmap.
-const boost::uint64_t UINT64_PAGE_MAX = 35184372088832ULL;
+const uint64_t UINT64_PAGE_MAX = 35184372088832ULL;
 
 /** A large raw file backed by an 'mmap' implementation. */
 class LargeFileMMap : public LargeFileFD {
   public:
     LargeFileMMap(const std::string fn,
                   std::ios_base::openmode mode = std::ios_base::in,
-                  boost::uint64_t header_size=0,
-                  boost::uint64_t length = UINT64_PAGE_MAX);
+                  uint64_t header_size=0,
+                  uint64_t length = UINT64_PAGE_MAX);
     LargeFileMMap(const std::wstring fn,
                   std::ios_base::openmode mode = std::ios_base::in,
-                  boost::uint64_t header_size=0,
-                  boost::uint64_t length = UINT64_PAGE_MAX);
+                  uint64_t header_size=0,
+                  uint64_t length = UINT64_PAGE_MAX);
     virtual ~LargeFileMMap();
 
     void open(std::ios_base::openmode mode = std::ios_base::in);
 
     /// reads a block of data, returns a pointer to it.  User must cast it to
     /// the type that makes sense for them.
-    std::shared_ptr<const void> rd(boost::uint64_t offset, size_t len);
+    std::shared_ptr<const void> rd(uint64_t offset, size_t len);
     using LargeFile::read;
     using LargeFile::rd;
 
     /// writes a block of data.
     void wr(const std::shared_ptr<const void>& data,
-            boost::uint64_t offset, size_t len);
+            uint64_t offset, size_t len);
     using LargeFile::wr;
 
     virtual bool is_open() const;
@@ -64,7 +64,7 @@ class LargeFileMMap : public LargeFileFD {
 
   private:
     void* map;
-    boost::uint64_t length;
+    uint64_t length;
 
   private:
     LargeFileMMap(const LargeFileMMap&);

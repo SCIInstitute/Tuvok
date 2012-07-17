@@ -43,20 +43,20 @@
 /// searches for a request among a list of outstanding AIO ops.  The given
 /// offset is intended to be exact (i.e. this won't apply header offsets).
 static struct aiocb* find_request(const LargeFileAIO::Reqs& reqs,
-                                  boost::uint64_t offset, size_t len);
+                                  uint64_t offset, size_t len);
 
 LargeFileAIO::LargeFileAIO(const std::string fn,
                            std::ios_base::openmode mode,
-                           boost::uint64_t header_size,
-                           boost::uint64_t /* length */) :
+                           uint64_t header_size,
+                           uint64_t /* length */) :
   LargeFileFD(fn, mode, header_size), writes_copied(true)
 {
   this->open(mode);
 }
 LargeFileAIO::LargeFileAIO(const std::wstring fn,
                            std::ios_base::openmode mode,
-                           boost::uint64_t header_size,
-                           boost::uint64_t /* length */) :
+                           uint64_t header_size,
+                           uint64_t /* length */) :
   LargeFileFD(fn, mode, header_size), writes_copied(true)
 {
   this->open(mode);
@@ -78,13 +78,13 @@ namespace nonstd {
   };
 }
 
-std::shared_ptr<const void> LargeFileAIO::rd(boost::uint64_t offset,
+std::shared_ptr<const void> LargeFileAIO::rd(uint64_t offset,
                                                   size_t len)
 {
   struct aiocb *cb;
 
   // first, try to find this request among our list of outstanding requests.
-  const boost::uint64_t real_offset = offset + this->header_size;
+  const uint64_t real_offset = offset + this->header_size;
   cb = find_request(this->control, real_offset, len);
   if(NULL == cb) {
     if((cb = submit_new_request(real_offset, len)) == NULL) {
@@ -123,7 +123,7 @@ std::shared_ptr<const void> LargeFileAIO::rd(boost::uint64_t offset,
 
 /// notifies the object that we're going to need the following data soon.
 /// Many implementations will prefetch this data when it knows this.
-void LargeFileAIO::enqueue(boost::uint64_t offset, size_t len)
+void LargeFileAIO::enqueue(uint64_t offset, size_t len)
 {
   if(len == 0) { return; }
   struct aiocb* cb;
@@ -135,7 +135,7 @@ void LargeFileAIO::enqueue(boost::uint64_t offset, size_t len)
   LargeFileFD::enqueue(offset, len);
 
   // do they already have such a request outstanding?
-  const boost::uint64_t real_offset = offset + this->header_size;
+  const uint64_t real_offset = offset + this->header_size;
   cb = find_request(this->control, real_offset, len);
   if(cb != NULL) {
     DEBUG("request already exists... ignoring it.");
@@ -146,7 +146,7 @@ void LargeFileAIO::enqueue(boost::uint64_t offset, size_t len)
 }
 
 void LargeFileAIO::wr(const std::shared_ptr<const void>& data,
-                      boost::uint64_t offset,
+                      uint64_t offset,
                       size_t len)
 {
   if(len == 0) { return; }
@@ -254,7 +254,7 @@ void LargeFileAIO::close()
   LargeFileFD::close();
 }
 
-struct aiocb* LargeFileAIO::submit_new_request(boost::uint64_t offset,
+struct aiocb* LargeFileAIO::submit_new_request(uint64_t offset,
                                                size_t len)
 {
   struct aiocb* cb = new struct aiocb;
@@ -301,12 +301,12 @@ struct aiocb* LargeFileAIO::submit_new_request(boost::uint64_t offset,
 static struct aiocb*
 find_request(
   const LargeFileAIO::Reqs& reqs,
-  boost::uint64_t offset,
+  uint64_t offset,
   size_t len)
 {
   for(LargeFileAIO::Reqs::const_iterator i = reqs.begin(); i != reqs.end(); ++i)
   {
-    if(static_cast<boost::uint64_t>(i->first->aio_offset) == offset &&
+    if(static_cast<uint64_t>(i->first->aio_offset) == offset &&
        i->first->aio_nbytes == len) {
       return i->first;
     }

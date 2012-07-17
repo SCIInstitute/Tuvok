@@ -39,20 +39,19 @@
 #ifndef STDDEFINES_H
 #define STDDEFINES_H
 
-#include <limits>
-#if _MSC_VER >= 1600 // VS 2010 or newer
-#include <cstdint>
-#else 
-#include "boost/cstdint.hpp"
-using boost::int64_t;
-using boost::int32_t;
-using boost::int16_t;
-using boost::int8_t;
-using boost::uint64_t;
-using boost::uint32_t;
-using boost::uint16_t;
-using boost::uint8_t;
+#if defined(_MSC_VER) && _MSC_VER < 1600
+# warning "VS 2010 required for cstdint header."
 #endif
+#include <cstdint>
+#include <limits>
+using std::int64_t;
+using std::int32_t;
+using std::int16_t;
+using std::int8_t;
+using std::uint64_t;
+using std::uint32_t;
+using std::uint16_t;
+using std::uint8_t;
 
 // Make sure windows doesn't give us stupid macros that interfere with
 // functions in 'std'.
