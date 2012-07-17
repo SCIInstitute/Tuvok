@@ -994,7 +994,7 @@ RasterDataBlock::FlatDataToBrickedLOD(
 
   uint64_t uiBytesPerElement = ComputeElementSize()/8;
 
-  if (m_pTempFile == nullptr) {
+  if (!m_pTempFile) {
     AllocateTemp(SysTools::AppendFilename(strTempFile,"1"),
                  m_vLODOffsets.empty());
   }
@@ -1202,7 +1202,7 @@ RasterDataBlock::SeekToBrick(const std::vector<uint64_t>& vLOD,
   LargeRAWFile_ptr  pStreamFile;
   uint64_t iOffset = GetLocalDataPointerOffset(vLOD, vBrick)/8;
 
-  if (m_pStreamFile != NULL) {
+  if (!m_pStreamFile) {
     // add global offset
     iOffset += m_iOffset;
     // add size of header
@@ -1220,7 +1220,7 @@ bool RasterDataBlock::GetData(uint8_t* vData, size_t bytes,
                               const std::vector<uint64_t>& vBrick) const
 {
   LargeRAWFile_ptr pStreamFile = SeekToBrick(vLOD, vBrick);
-  if(pStreamFile == NULL) { return false; }
+  if(!pStreamFile) { return false; }
 
   pStreamFile->ReadRAW(vData, bytes);
   return true;
@@ -1330,7 +1330,7 @@ bool RasterDataBlock::GetData(std::vector<double>& vData,
 }
 
 bool RasterDataBlock::Settable() const {
-  return m_pStreamFile != nullptr &&
+  return m_pStreamFile &&
          m_pStreamFile->IsWritable() &&
          !m_vLODOffsets.empty();
 }
