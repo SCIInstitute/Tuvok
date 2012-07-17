@@ -284,7 +284,7 @@ bool GLSLProgram::Initialize(void) {
     MESSAGE("Initializing OpenGL on a: %s",
             (const char*)glGetString(GL_VENDOR));
     if (atof((const char*)glGetString(GL_VERSION)) >= 2.0) {
-      MESSAGE("OpenGL 2.0 supported");
+      MESSAGE("OpenGL 2.0 supported (actual version: \"%s\")", glGetString(GL_VERSION));
       gl::arb = m_bGLUseARB = false;
     } else { // check for ARB extensions
       if (glewGetExtension("GL_ARB_shader_objects"))
@@ -452,10 +452,10 @@ void GLSLProgram::Load(const ShaderDescriptor& sd)
   { // figure out if the linking was successful.
     GLint linked = GL_TRUE;
     if(gl::arb) {
-      glGetObjectParameterivARB(this->m_hProgram, GL_OBJECT_LINK_STATUS_ARB,
-                                &linked);
+      GL(glGetObjectParameterivARB(this->m_hProgram, GL_OBJECT_LINK_STATUS_ARB,
+                                &linked));
     } else {
-      glGetProgramiv(this->m_hProgram, GL_LINK_STATUS, &linked);
+      GL(glGetProgramiv(this->m_hProgram, GL_LINK_STATUS, &linked));
     }
 
     if(linked != GL_TRUE) {
