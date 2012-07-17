@@ -36,6 +36,8 @@
 
 #include "GLTexture1D.h"
 #include "Controller/Controller.h"
+#include "GLCommon.h"
+#include "Basics/nonstd.h"
 
 using namespace tuvok;
 
@@ -67,15 +69,19 @@ void GLTexture1D::SetData(uint32_t offset, uint32_t size, const void *pixels, bo
   GL(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
 
   GLint prevTex=0;
-  if (bRestoreBinding) GL(glGetIntegerv(GL_TEXTURE_BINDING_1D, &prevTex));
+  if (bRestoreBinding) {
+    GL(glGetIntegerv(GL_TEXTURE_BINDING_1D, &prevTex));
+    if (GLuint(prevTex) != m_iGLID) GL(glBindTexture(GL_TEXTURE_1D, m_iGLID));
+  } else {
+    GL(glBindTexture(GL_TEXTURE_1D, m_iGLID));
+  }
 
-  GL(glBindTexture(GL_TEXTURE_1D, m_iGLID));
   GL(glTexSubImage1D(GL_TEXTURE_1D, 0, 
                      offset,
                      size,
                      m_format, m_type, (GLvoid*)pixels));
 
-  if (bRestoreBinding) GL(glBindTexture(GL_TEXTURE_1D, prevTex));
+  if (bRestoreBinding && GLuint(prevTex) != m_iGLID) GL(glBindTexture(GL_TEXTURE_1D, GLuint(prevTex)));
 }
 
 void GLTexture1D::SetData(const void *pixels, bool bRestoreBinding) {
@@ -83,11 +89,41 @@ void GLTexture1D::SetData(const void *pixels, bool bRestoreBinding) {
   GL(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
 
   GLint prevTex=0;
-  if (bRestoreBinding) GL(glGetIntegerv(GL_TEXTURE_BINDING_1D, &prevTex));
+  if (bRestoreBinding) {
+    GL(glGetIntegerv(GL_TEXTURE_BINDING_1D, &prevTex));
+    if (GLuint(prevTex) != m_iGLID) GL(glBindTexture(GL_TEXTURE_1D, m_iGLID));
+  } else {
+    GL(glBindTexture(GL_TEXTURE_1D, m_iGLID));
+  }
 
-  GL(glBindTexture(GL_TEXTURE_1D, m_iGLID));
   GL(glTexImage1D(GL_TEXTURE_1D, 0, m_internalformat, m_iSize, 0, m_format,
                   m_type, (GLvoid*)pixels));
 
-  if (bRestoreBinding) GL(glBindTexture(GL_TEXTURE_1D, prevTex));
+  if (bRestoreBinding && GLuint(prevTex) != m_iGLID) GL(glBindTexture(GL_TEXTURE_1D, GLuint(prevTex)));
+}
+
+std::tr1::shared_ptr<const void> GLTexture1D::GetData()
+{
+  GL(glPixelStorei(GL_PACK_ALIGNMENT ,1));
+  GL(glPixelStorei(GL_UNPACK_ALIGNMENT ,1));
+  GL(glBindTexture(GL_TEXTURE_1D, m_iGLID));
+
+  std::tr1::shared_ptr<uint8_t> data(
+    new uint8_t[gl_components(m_format) * 
+                gl_byte_width(m_type) * 
+                m_iSize], 
+    nonstd::DeleteArray<uint8_t>()
+  );
+  GL(glGetTexImage(GL_TEXTURE_1D, 0, m_format, m_type, data.get()));
+
+  return data;
+}
+
+void GLTexture1D::GetData(std::tr1::shared_ptr<void> data)
+{
+  GL(glPixelStorei(GL_PACK_ALIGNMENT ,1));
+  GL(glPixelStorei(GL_UNPACK_ALIGNMENT ,1));
+  GL(glBindTexture(GL_TEXTURE_1D, m_iGLID));
+
+  GL(glGetTexImage(GL_TEXTURE_1D, 0, m_format, m_type, data.get()));
 }
