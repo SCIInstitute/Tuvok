@@ -40,10 +40,10 @@ namespace tuvok { namespace expression {
 Node::~Node() { this->children.clear(); }
 void Node::AddChild(Node* n)
 {
-  this->children.push_back(std::tr1::shared_ptr<Node>(n));
+  this->children.push_back(std::shared_ptr<Node>(n));
 }
 
-const std::tr1::shared_ptr<Node> Node::GetChild(size_t index) const
+const std::shared_ptr<Node> Node::GetChild(size_t index) const
 {
   assert(index < this->children.size());
   return this->children[index];

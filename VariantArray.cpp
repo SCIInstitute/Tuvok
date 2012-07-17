@@ -52,7 +52,7 @@ VariantArray::VariantArray(const VariantArray &va) :
 
 VariantArray::~VariantArray() {}
 
-void VariantArray::set(const std::tr1::shared_ptr<uint8_t> data,
+void VariantArray::set(const std::shared_ptr<uint8_t> data,
                        size_t len)
 {
   this->reset();
@@ -60,7 +60,7 @@ void VariantArray::set(const std::tr1::shared_ptr<uint8_t> data,
   this->scalar_ub = data;
   this->data_type = DT_UBYTE;
 }
-void VariantArray::set(const std::tr1::shared_ptr<int8_t> data, size_t len)
+void VariantArray::set(const std::shared_ptr<int8_t> data, size_t len)
 {
   this->reset();
   this->length = len;
@@ -68,7 +68,7 @@ void VariantArray::set(const std::tr1::shared_ptr<int8_t> data, size_t len)
   this->data_type = DT_BYTE;
 }
 
-void VariantArray::set(const std::tr1::shared_ptr<uint16_t> data,
+void VariantArray::set(const std::shared_ptr<uint16_t> data,
                        size_t len)
 {
   this->reset();
@@ -76,7 +76,7 @@ void VariantArray::set(const std::tr1::shared_ptr<uint16_t> data,
   this->scalar_us = data;
   this->data_type = DT_USHORT;
 }
-void VariantArray::set(const std::tr1::shared_ptr<int16_t> data,
+void VariantArray::set(const std::shared_ptr<int16_t> data,
                        size_t len)
 {
   this->reset();
@@ -85,7 +85,7 @@ void VariantArray::set(const std::tr1::shared_ptr<int16_t> data,
   this->data_type = DT_SHORT;
 }
 
-void VariantArray::set(const std::tr1::shared_ptr<float> data, size_t len)
+void VariantArray::set(const std::shared_ptr<float> data, size_t len)
 {
   this->reset();
   this->length = len;
@@ -93,7 +93,7 @@ void VariantArray::set(const std::tr1::shared_ptr<float> data, size_t len)
   this->data_type = DT_FLOAT;
 }
 
-void VariantArray::set(const std::tr1::shared_ptr<double> data, size_t len)
+void VariantArray::set(const std::shared_ptr<double> data, size_t len)
 {
   this->reset();
   this->length = len;

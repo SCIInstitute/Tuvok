@@ -38,15 +38,9 @@
 
 #include <StdTuvokDefines.h>
 
-#ifdef DETECTED_OS_WINDOWS
-# include <functional>
-# include <memory>
-# include <unordered_map>
-#else
-# include <tr1/functional>
-# include <tr1/memory>
-# include <tr1/unordered_map>
-#endif
+#include <functional>
+#include <memory>
+#include <unordered_map>
 #include <utility>
 #include "BrickedDataset.h"
 #include "VariantArray.h"
@@ -107,33 +101,33 @@ public:
   /// topmost, farthest brick.
   ///@{
   void AddBrick(const BrickKey&, const BrickMD&,
-                const std::tr1::shared_ptr<double>, size_t len,
+                const std::shared_ptr<double>, size_t len,
                 double fMin, double fMax);
   void AddBrick(const BrickKey&, const BrickMD&,
-                const std::tr1::shared_ptr<float>, size_t len,
+                const std::shared_ptr<float>, size_t len,
                 float fMin, float fMax);
   void AddBrick(const BrickKey&, const BrickMD&,
-                const std::tr1::shared_ptr<unsigned char>, size_t len,
+                const std::shared_ptr<unsigned char>, size_t len,
                 unsigned char ubMin, unsigned char ubMax);
   void AddBrick(const BrickKey&, const BrickMD&,
-                const std::tr1::shared_ptr<short>, size_t len,
+                const std::shared_ptr<short>, size_t len,
                 short sMin, short sMax);
   void AddBrick(const BrickKey&, const BrickMD&,
-                const std::tr1::shared_ptr<unsigned short>, size_t len,
+                const std::shared_ptr<unsigned short>, size_t len,
                 unsigned short sMin, unsigned short sMax);
   ///@}
   ///@}
   /// Updates the data within an existing brick.
   ///@{
-  void UpdateData(const BrickKey&, const std::tr1::shared_ptr<double>,
+  void UpdateData(const BrickKey&, const std::shared_ptr<double>,
                   size_t len);
-  void UpdateData(const BrickKey&, const std::tr1::shared_ptr<float>,
+  void UpdateData(const BrickKey&, const std::shared_ptr<float>,
                   size_t len);
-  void UpdateData(const BrickKey&, const std::tr1::shared_ptr<unsigned char>,
+  void UpdateData(const BrickKey&, const std::shared_ptr<unsigned char>,
                   size_t len);
-  void UpdateData(const BrickKey&, const std::tr1::shared_ptr<short>,
+  void UpdateData(const BrickKey&, const std::shared_ptr<short>,
                   size_t len);
-  void UpdateData(const BrickKey&, const std::tr1::shared_ptr<unsigned short>,
+  void UpdateData(const BrickKey&, const std::shared_ptr<unsigned short>,
                   size_t len);
   ///@}
   void Clear();
@@ -225,7 +219,7 @@ public:
   virtual const char* Name() const { return "External dataset"; }
   virtual ExternalDataset* Create(const std::string&, uint64_t, bool) const;
 
-  typedef std::tr1::unordered_map<BrickKey, VariantArray, BKeyHash> DataTable;
+  typedef std::unordered_map<BrickKey, VariantArray, BKeyHash> DataTable;
 
 protected:
   /// Should the data change and the client isn't going to supply a histogram,

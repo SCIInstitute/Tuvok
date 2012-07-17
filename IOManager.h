@@ -40,24 +40,18 @@
 #define IOMANAGER_H
 
 #include "StdTuvokDefines.h"
-#ifdef _MSC_VER
-# include <functional>
-# include <memory>
-# include <tuple>
-#else
-# include <tr1/functional>
-# include <tr1/memory>
-# include <tr1/tuple>
-#endif
 #include <algorithm>
 #include <fstream>
+#include <functional>
 #include <limits>
 #include <list>
+#include <memory>
 #include <string>
+#include <tuple>
 #include "Basics/TuvokException.h"
 #include "Basics/Vectors.h"
 
-typedef std::tr1::tuple<std::string,std::string,bool,bool> tConverterFormat;
+typedef std::tuple<std::string,std::string,bool,bool> tConverterFormat;
 
 class AbstrConverter;
 class FileStackInfo;
@@ -102,7 +96,7 @@ public:
   IOManager();
   ~IOManager();
 
-  std::vector<std::tr1::shared_ptr<FileStackInfo> >
+  std::vector<std::shared_ptr<FileStackInfo> >
     ScanDirectory(std::string strDirectory) const;
   bool ConvertDataset(FileStackInfo* pStack,
                       const std::string& strTargetFilename,
@@ -203,7 +197,7 @@ public:
     return ReBrickDataset(strSourceFilename,strTargetFilename,strTempDir,m_iMaxBrickSize,m_iBrickOverlap,bQuantizeTo8Bit);
   }
 
-  std::tr1::shared_ptr<tuvok::Mesh> LoadMesh(const std::string& meshfile) const;
+  std::shared_ptr<tuvok::Mesh> LoadMesh(const std::string& meshfile) const;
 
   void AddMesh(const UVF* sourceDataset,
                   const std::string& trisoup_file,
@@ -215,15 +209,15 @@ public:
   /// memory manager to call us.  The MMgr will in turn use the DSFactory from
   /// here to actually create the data set.
   void SetMemManLoadFunction(
-    std::tr1::function<tuvok::Dataset*(const std::string&,
-                                       tuvok::AbstrRenderer*)>& f
+    std::function<tuvok::Dataset*(const std::string&,
+                                  tuvok::AbstrRenderer*)>& f
   );
   tuvok::Dataset* LoadDataset(const std::string& strFilename,
                               tuvok::AbstrRenderer* requester) const;
   ///@}
   tuvok::Dataset* CreateDataset(const std::string& filename,
                                 uint64_t max_brick_size, bool verify) const;
-  void AddReader(std::tr1::shared_ptr<tuvok::FileBackedDataset>);
+  void AddReader(std::shared_ptr<tuvok::FileBackedDataset>);
   bool AnalyzeDataset(const std::string& strFilename, RangeInfo& info,
                       const std::string& strTempDir) const;
   bool NeedsConversion(const std::string& strFilename) const;
@@ -291,8 +285,8 @@ private:
   uint64_t m_iMaxBrickSize;
   uint64_t m_iBrickOverlap;
   uint64_t m_iIncoresize;
-  std::tr1::function<tuvok::Dataset* (const std::string&,
-                                      tuvok::AbstrRenderer*)> m_LoadDS;
+  std::function<tuvok::Dataset* (const std::string&,
+                                 tuvok::AbstrRenderer*)> m_LoadDS;
 
   void CopyToTSB(const tuvok::Mesh& m, GeometryDataBlock* tsb) const;
 };

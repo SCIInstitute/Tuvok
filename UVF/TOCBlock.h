@@ -30,9 +30,9 @@ public:
                             const UINT64VECTOR3& vMaxBrickSize,
                             uint32_t iOverlap,
                             size_t iCacheSize,
-                            std::tr1::shared_ptr<MaxMinDataBlock>
+                            std::shared_ptr<MaxMinDataBlock>
                               pMaxMinDatBlock =
-                                std::tr1::shared_ptr<MaxMinDataBlock>(),
+                                std::shared_ptr<MaxMinDataBlock>(),
                             AbstrDebugOut* pDebugOut=NULL);
   bool FlatDataToBrickedLOD(LargeRAWFile_ptr pSourceData,
                             const std::string& strTempFile,
@@ -43,9 +43,9 @@ public:
                             const UINT64VECTOR3& vMaxBrickSize,
                             uint32_t iOverlap,
                             size_t iCacheSize,
-                            std::tr1::shared_ptr<MaxMinDataBlock>
+                            std::shared_ptr<MaxMinDataBlock>
                               pMaxMinDatBlock =
-                                std::tr1::shared_ptr<MaxMinDataBlock>(),
+                                std::shared_ptr<MaxMinDataBlock>(),
                             AbstrDebugOut* pDebugOut=NULL);
 
   bool BrickedLODToFlatData(uint64_t iLoD,

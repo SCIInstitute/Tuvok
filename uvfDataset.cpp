@@ -529,11 +529,11 @@ bool UVFDataset::VerifyTOCBlock(const TOCBlock* tb) const
 UINT64VECTOR3 UVFDataset::GetEffectiveBrickSize(const BrickKey &k) const
 {
   if (m_bToCBlock) {
-    const TOCTimestep* ts = static_cast<TOCTimestep*>(m_timesteps[std::tr1::get<0>(k)]);
+    const TOCTimestep* ts = static_cast<TOCTimestep*>(m_timesteps[std::get<0>(k)]);
     return UINT64VECTOR3(ts->GetDB()->GetBrickSize(KeyToTOCVector(k)) - 2*ts->GetDB()->GetOverlap());
   } else {
     const NDBrickKey& key = IndexToVectorKey(k);
-    size_t iLOD = static_cast<size_t>(std::tr1::get<1>(k));
+    size_t iLOD = static_cast<size_t>(std::get<1>(k));
     const RDTimestep* ts = static_cast<RDTimestep*>(m_timesteps[key.timestep]);
 
     UINT64VECTOR3 vBrickSize =
@@ -799,10 +799,10 @@ UINTVECTOR3 UVFDataset::GetBrickVoxelCounts(const BrickKey& k) const
 {
  if (m_bToCBlock) {
     const UINT64VECTOR4 coords = KeyToTOCVector(k);
-    const TOCTimestep* ts = static_cast<TOCTimestep*>(m_timesteps[std::tr1::get<0>(k)]);
+    const TOCTimestep* ts = static_cast<TOCTimestep*>(m_timesteps[std::get<0>(k)]);
     return UINTVECTOR3(ts->GetDB()->GetBrickSize(coords));
   } else {
-    size_t iLOD = static_cast<size_t>(std::tr1::get<1>(k));
+    size_t iLOD = static_cast<size_t>(std::get<1>(k));
     const NDBrickKey& key = IndexToVectorKey(k);
     const RDTimestep* ts = static_cast<RDTimestep*>(m_timesteps[key.timestep]);
     return UINTVECTOR3(ts->m_vvaBrickSize[iLOD]
@@ -890,10 +890,10 @@ std::vector<uint64_t>
 UVFDataset::IndexToVector(const BrickKey &k) const {
   std::vector<uint64_t> vBrick;
   if (!m_bToCBlock) {
-    const RDTimestep* ts = static_cast<RDTimestep*>(m_timesteps[std::tr1::get<0>(k)]);
-    const size_t lod = std::tr1::get<1>(k);
+    const RDTimestep* ts = static_cast<RDTimestep*>(m_timesteps[std::get<0>(k)]);
+    const size_t lod = std::get<1>(k);
 
-    uint64_t iIndex = uint64_t(std::tr1::get<2>(k));
+    uint64_t iIndex = uint64_t(std::get<2>(k));
     uint64_t iZIndex = uint64_t(iIndex / (ts->m_vaBrickCount[lod].x *
                                       ts->m_vaBrickCount[lod].y));
     iIndex = iIndex % (ts->m_vaBrickCount[lod].x *
@@ -911,10 +911,10 @@ UVFDataset::IndexToVector(const BrickKey &k) const {
 
 UINT64VECTOR4 UVFDataset::KeyToTOCVector(const BrickKey &k) const {
   if (m_bToCBlock) {
-    const TOCTimestep* ts = static_cast<TOCTimestep*>(m_timesteps[std::tr1::get<0>(k)]);
+    const TOCTimestep* ts = static_cast<TOCTimestep*>(m_timesteps[std::get<0>(k)]);
 
-    uint64_t iLOD = std::tr1::get<1>(k);
-    uint64_t iLinearIndex = std::tr1::get<2>(k);
+    uint64_t iLOD = std::get<1>(k);
+    uint64_t iLinearIndex = std::get<2>(k);
     UINT64VECTOR3 iBricks = ts->GetDB()->GetBrickCount(iLOD);
 
     uint64_t x = iLinearIndex % iBricks.x;
@@ -930,8 +930,8 @@ UINT64VECTOR4 UVFDataset::KeyToTOCVector(const BrickKey &k) const {
 
 NDBrickKey UVFDataset::IndexToVectorKey(const BrickKey &k) const {
   NDBrickKey ndk;
-  ndk.timestep = std::tr1::get<0>(k);
-  ndk.lod.push_back(std::tr1::get<1>(k));
+  ndk.timestep = std::get<0>(k);
+  ndk.lod.push_back(std::get<1>(k));
   ndk.brick = IndexToVector(k);
   return ndk;
 }
@@ -1137,13 +1137,13 @@ void UVFDataset::ComputeRange() {
 InternalMaxMinElement UVFDataset::MaxMinForKey(const BrickKey &k) const {
   InternalMaxMinElement maxMinElement;
   if (m_bToCBlock) {
-    const TOCTimestep* ts = static_cast<TOCTimestep*>(m_timesteps[std::tr1::get<0>(k)]);
+    const TOCTimestep* ts = static_cast<TOCTimestep*>(m_timesteps[std::get<0>(k)]);
     size_t iLinIndex = size_t(ts->GetDB()->GetLinearBrickIndex(KeyToTOCVector(k)));
     return  ts->m_pMaxMinData->GetValue(iLinIndex, ts->GetDB()->GetComponentCount() == 4 ? 3 : 0 );
   } else {
 
     const NDBrickKey& key = IndexToVectorKey(k);
-    size_t iLOD = static_cast<size_t>(std::tr1::get<1>(k));
+    size_t iLOD = static_cast<size_t>(std::get<1>(k));
     
     const RDTimestep* ts = static_cast<RDTimestep*>(m_timesteps[key.timestep]);
     return ts->m_vvaMaxMin[iLOD]
@@ -1156,7 +1156,7 @@ InternalMaxMinElement UVFDataset::MaxMinForKey(const BrickKey &k) const {
 bool UVFDataset::ContainsData(const BrickKey &k, double isoval) const
 {
   // if we have no max min data we have to assume that every block is visible
-  if(NULL == m_timesteps[std::tr1::get<0>(k)]->m_pMaxMinData) {return true;}
+  if(NULL == m_timesteps[std::get<0>(k)]->m_pMaxMinData) {return true;}
   const InternalMaxMinElement maxMinElement = MaxMinForKey(k);
   return (isoval <= maxMinElement.maxScalar);
 }
@@ -1164,7 +1164,7 @@ bool UVFDataset::ContainsData(const BrickKey &k, double isoval) const
 bool UVFDataset::ContainsData(const BrickKey &k, double fMin,double fMax) const
 {
   // if we have no max min data we have to assume that every block is visible
-  if(NULL == m_timesteps[std::tr1::get<0>(k)]->m_pMaxMinData) {return true;}
+  if(NULL == m_timesteps[std::get<0>(k)]->m_pMaxMinData) {return true;}
   const InternalMaxMinElement maxMinElement = MaxMinForKey(k);
   return (fMax >= maxMinElement.minScalar && fMin <= maxMinElement.maxScalar);
 }
@@ -1172,7 +1172,7 @@ bool UVFDataset::ContainsData(const BrickKey &k, double fMin,double fMax) const
 bool UVFDataset::ContainsData(const BrickKey &k, double fMin,double fMax, double fMinGradient,double fMaxGradient) const
 {
   // if we have no max min data we have to assume that every block is visible
-  if(NULL == m_timesteps[std::tr1::get<0>(k)]->m_pMaxMinData) {return true;}
+  if(NULL == m_timesteps[std::get<0>(k)]->m_pMaxMinData) {return true;}
   const InternalMaxMinElement maxMinElement = MaxMinForKey(k);
   return (fMax >= maxMinElement.minScalar &&
           fMin <= maxMinElement.maxScalar)
@@ -1336,7 +1336,7 @@ bool UVFDataset::AppendMesh(const Mesh& m) {
     MESSAGE("Successfully reopened file in readwrite mode.");
 
     // now create a GeometryDataBlock ...
-    std::tr1::shared_ptr<GeometryDataBlock> tsb(new GeometryDataBlock());
+    std::shared_ptr<GeometryDataBlock> tsb(new GeometryDataBlock());
 
     // ... and transfer the data from the mesh object
     // source data
@@ -1640,7 +1640,7 @@ std::pair<FLOATVECTOR3, FLOATVECTOR3> UVFDataset::GetTextCoords(BrickTable::cons
 
   if (m_bToCBlock) {
     const UINT64VECTOR4 coords = KeyToTOCVector(brick->first);
-    const TOCBlock* tb = static_cast<TOCTimestep*>(m_timesteps[std::tr1::get<0>(brick->first)])->GetDB();
+    const TOCBlock* tb = static_cast<TOCTimestep*>(m_timesteps[std::get<0>(brick->first)])->GetDB();
 
     uint32_t iOverlap = tb->GetOverlap();
     FLOATVECTOR3 brickAspect = FLOATVECTOR3(tb->GetBrickAspect(coords));

@@ -37,18 +37,11 @@
 
 #include "StdTuvokDefines.h"
 
+#include <functional>
+#include <memory>
+#include <tuple>
+#include <unordered_map>
 #include <utility>
-#ifdef DETECTED_OS_WINDOWS
-# include <functional>
-# include <memory>
-# include <tuple>
-# include <unordered_map>
-#else
-# include <tr1/functional>
-# include <tr1/memory>
-# include <tr1/tuple>
-# include <tr1/unordered_map>
-#endif
 #include "Basics/Vectors.h"
 
 namespace tuvok {
@@ -61,7 +54,7 @@ namespace tuvok {
 ///  struct or similar: if a new component gets added to the key which is not
 ///  the last component, it shifts all the indices, necessitating massive code
 ///  changes.
-typedef std::tr1::tuple<size_t, size_t, size_t> BrickKey; ///< timestep + LOD + 1D brick index
+typedef std::tuple<size_t, size_t, size_t> BrickKey; ///< timestep + LOD + 1D brick index
 struct BrickMD {
   FLOATVECTOR3 center; ///< center of the brick, in world coords
   FLOATVECTOR3 extents; ///< width/height/depth of the brick.
@@ -69,16 +62,16 @@ struct BrickMD {
 };
 struct BKeyHash : std::unary_function<BrickKey, std::size_t> {
   std::size_t operator()(const BrickKey& bk) const {
-    size_t ts    = std::tr1::hash<size_t>()(std::tr1::get<0>(bk));
-    size_t h_lod = std::tr1::hash<size_t>()(std::tr1::get<1>(bk));
-    size_t brick = std::tr1::hash<size_t>()(std::tr1::get<2>(bk));
+    size_t ts    = std::hash<size_t>()(std::get<0>(bk));
+    size_t h_lod = std::hash<size_t>()(std::get<1>(bk));
+    size_t brick = std::hash<size_t>()(std::get<2>(bk));
     size_t seed = h_lod;
     seed ^= brick + 0x9e3779b9 + (seed << 6) + (seed >> 2);
     seed ^= ts + 0x9e3779b9 + (seed << 6) + (seed >> 2);
     return seed;
   }
 };
-typedef std::tr1::unordered_map<BrickKey, BrickMD, BKeyHash> BrickTable;
+typedef std::unordered_map<BrickKey, BrickMD, BKeyHash> BrickTable;
 
 } // namespace tuvok
 

@@ -31,13 +31,9 @@
 
 #include <cassert>
 #include <iterator>
-#ifdef _MSC_VER
-# include <memory>
-#else
-# include <tr1/memory>
-#endif
-#include <vector>
+#include <memory>
 #include <ostream>
+#include <vector>
 
 #include "semantic.h"
 #include "IO/VariantArray.h"
@@ -51,7 +47,7 @@ class Node {
     /// For iteration over all children in the tree.  Order is
     /// "leftmost" to "rightmost".
     ///@{
-    typedef std::vector<std::tr1::shared_ptr<Node> >::const_iterator citer;
+    typedef std::vector<std::shared_ptr<Node> >::const_iterator citer;
     citer begin() const;
     citer end() const;
     ///@}
@@ -69,10 +65,10 @@ class Node {
     virtual double Evaluate(size_t idx) const=0;
 
   protected:
-    const std::tr1::shared_ptr<Node> GetChild(size_t index) const;
+    const std::shared_ptr<Node> GetChild(size_t index) const;
 
   private:
-    std::vector<std::tr1::shared_ptr<Node> > children;
+    std::vector<std::shared_ptr<Node> > children;
 };
 
 namespace { template<typename T> void NullDeleter(T*) {} }
@@ -97,7 +93,7 @@ void evaluate(Node& tree,
   // create vec of VariantArrays to set for the tree's volumes.
   std::vector<VariantArray> vols(volumes.size());
   for(size_t i=0; i < volumes.size(); ++i) {
-    vols[i].set(std::tr1::shared_ptr<T>(&(volumes[i].at(0)), NullDeleter<T>),
+    vols[i].set(std::shared_ptr<T>(&(volumes[i].at(0)), NullDeleter<T>),
                 volumes[i].size());
   }
   tree.SetVolumes(vols);

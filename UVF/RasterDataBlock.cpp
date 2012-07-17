@@ -922,7 +922,7 @@ bool RasterDataBlock::FlatDataToBrickedLOD(
                       const void* pIn, void* pOut),
   void (*maxminFunc)(const void* pIn, size_t iStart, size_t iCount,
                      std::vector<DOUBLEVECTOR4>& fMinMax),
-  std::tr1::shared_ptr<MaxMinDataBlock> pMaxMinDatBlock,
+  std::shared_ptr<MaxMinDataBlock> pMaxMinDatBlock,
   AbstrDebugOut* pDebugOut)
 {
   // size of input data
@@ -940,7 +940,7 @@ bool RasterDataBlock::FlatDataToBrickedLOD(
 
   // convert the flat file to our bricked LOD representation
   bool bResult = FlatDataToBrickedLOD(
-    std::tr1::shared_ptr<LargeRAWFile>(&pSourceFile, nonstd::null_deleter()),
+    std::shared_ptr<LargeRAWFile>(&pSourceFile, nonstd::null_deleter()),
     strTempFile, combineFunc, maxminFunc, pMaxMinDatBlock, pDebugOut
   );
 
@@ -980,7 +980,7 @@ RasterDataBlock::FlatDataToBrickedLOD(
                       const void* pIn, void* pOut),
   void (*maxminFunc)(const void* pIn, size_t iStart, size_t iCount,
                      std::vector<DOUBLEVECTOR4>& fMinMax),
-  std::tr1::shared_ptr<MaxMinDataBlock> pMaxMinDatBlock,
+  std::shared_ptr<MaxMinDataBlock> pMaxMinDatBlock,
   AbstrDebugOut* pDebugOut)
 {
 

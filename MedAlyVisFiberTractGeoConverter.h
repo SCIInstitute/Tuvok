@@ -45,7 +45,7 @@ namespace tuvok {
   public:
     MedAlyVisFiberTractGeoConverter();
     virtual ~MedAlyVisFiberTractGeoConverter() {}
-    virtual std::tr1::shared_ptr<Mesh> ConvertToMesh(
+    virtual std::shared_ptr<Mesh> ConvertToMesh(
       const std::string& strFilename
     );
 

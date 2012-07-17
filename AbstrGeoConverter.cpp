@@ -40,9 +40,9 @@
 
 using namespace tuvok;
 
-std::tr1::shared_ptr<Mesh>
+std::shared_ptr<Mesh>
 AbstrGeoConverter::ConvertToMesh(const std::string&) {
-  return std::tr1::shared_ptr<Mesh>();
+  return std::shared_ptr<Mesh>();
 }
 
 bool AbstrGeoConverter::ConvertToNative(const Mesh&,

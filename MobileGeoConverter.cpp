@@ -106,7 +106,7 @@ bool MobileGeoConverter::ConvertToNative(const Mesh& m,
   return true;
 }
 
-std::tr1::shared_ptr<Mesh>
+std::shared_ptr<Mesh>
 MobileGeoConverter::ConvertToMesh(const std::string& strFilename) {
   VertVec       vertices;
   NormVec       normals;
@@ -138,7 +138,7 @@ MobileGeoConverter::ConvertToMesh(const std::string& strFilename) {
   G3D::clean(&geometry);
 
   std::string desc = m_vConverterDesc + " data converted from " + SysTools::GetFilename(strFilename);
-  return std::tr1::shared_ptr<Mesh>(
+  return std::shared_ptr<Mesh>(
     new Mesh(vertices,normals,texcoords,colors,
              VertIndices,NormalIndices,TCIndices,COLIndices,
              false, false, desc, Mesh::MT_TRIANGLES)

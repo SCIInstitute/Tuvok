@@ -5,13 +5,7 @@
 #if defined(__GNUC__) && (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ <= 1))
 # define BROKEN_TR1_RANDOM
 #endif
-#ifdef BROKEN_TR1_RANDOM
-  /* nothing */
-#elif defined(_MSC_VER)
-# include <random>
-#else
-# include <tr1/random>
-#endif
+#include <random>
 #include "Controller/Controller.h"
 using namespace tuvok;
 
@@ -92,13 +86,13 @@ namespace {
       std::numeric_limits<T>::max(),
       -(std::numeric_limits<T>::max()-1) // bleh, not great.
     );
-    // double: tr1 RNGs are only defined for FP types.  We'll generate double
+    // double: RNGs are only defined for FP types.  We'll generate double
     // and just cast to T.
 #ifndef BROKEN_TR1_RANDOM
-    std::tr1::variate_generator<std::tr1::mt19937,
-                                std::tr1::normal_distribution<double> > vg(
-      std::tr1::mt19937(time(NULL)),
-      std::tr1::normal_distribution<double>(mean, stddev)
+    std::variate_generator<std::mt19937,
+                           std::normal_distribution<double> > vg(
+      std::mt19937(time(NULL)),
+      std::normal_distribution<double>(mean, stddev)
     );
 #endif
     for(size_t i=0; i < sz/sizeof(T); ++i) {

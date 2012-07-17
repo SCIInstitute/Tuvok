@@ -36,9 +36,9 @@ void BinaryExpression::SetOperator(enum OpType o) { this->oper = o; }
 void BinaryExpression::Analyze() const throw(semantic::Error) {
   // If they gave us a divide, check for division by zero.
   if(this->oper == OP_DIVIDE) {
-    const std::tr1::shared_ptr<Node> rhs = this->GetChild(1);
-    const std::tr1::shared_ptr<Constant> c =
-      std::tr1::dynamic_pointer_cast<Constant>(rhs);
+    const std::shared_ptr<Node> rhs = this->GetChild(1);
+    const std::shared_ptr<Constant> c =
+      std::dynamic_pointer_cast<Constant>(rhs);
     if(c->GetValue() == 0.0) {
       throw semantic::DivisionByZero("Cannot divide by zero.", __FILE__,
                                      __LINE__);

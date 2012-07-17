@@ -46,7 +46,7 @@ class MedAlyVisGeoConverter : public AbstrGeoConverter {
 public:
   MedAlyVisGeoConverter();
   virtual ~MedAlyVisGeoConverter() {}
-  virtual std::tr1::shared_ptr<Mesh>
+  virtual std::shared_ptr<Mesh>
     ConvertToMesh(const std::string& strFilename);
 
   virtual bool CanImportData() const { return true; }

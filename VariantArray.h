@@ -36,13 +36,8 @@
 #ifndef TUVOK_VARIANT_ARRAY_H
 #define TUVOK_VARIANT_ARRAY_H
 
-#include <StdTuvokDefines.h>
-
-#ifdef _MSC_VER
-# include <memory>
-#else
-# include <tr1/memory>
-#endif
+#include "StdTuvokDefines.h"
+#include <memory>
 
 namespace tuvok {
 
@@ -74,12 +69,12 @@ public:
   VariantArray(const VariantArray &);
   ~VariantArray();
 
-  void set(const std::tr1::shared_ptr<uint8_t>, size_t len);
-  void set(const std::tr1::shared_ptr<int8_t>, size_t len);
-  void set(const std::tr1::shared_ptr<uint16_t>, size_t len);
-  void set(const std::tr1::shared_ptr<int16_t>, size_t len);
-  void set(const std::tr1::shared_ptr<float>, size_t len);
-  void set(const std::tr1::shared_ptr<double>, size_t len);
+  void set(const std::shared_ptr<uint8_t>, size_t len);
+  void set(const std::shared_ptr<int8_t>, size_t len);
+  void set(const std::shared_ptr<uint16_t>, size_t len);
+  void set(const std::shared_ptr<int16_t>, size_t len);
+  void set(const std::shared_ptr<float>, size_t len);
+  void set(const std::shared_ptr<double>, size_t len);
 
   size_t size() const { return length; }
 
@@ -97,12 +92,12 @@ private:
   void reset(); ///< set all internal pointers to null.
 
 private:
-  std::tr1::shared_ptr<uint8_t>  scalar_ub;
-  std::tr1::shared_ptr<int8_t>   scalar_b;
-  std::tr1::shared_ptr<int16_t>  scalar_s;
-  std::tr1::shared_ptr<uint16_t> scalar_us;
-  std::tr1::shared_ptr<float>    scalar_f;
-  std::tr1::shared_ptr<double>   scalar_d;
+  std::shared_ptr<uint8_t>  scalar_ub;
+  std::shared_ptr<int8_t>   scalar_b;
+  std::shared_ptr<int16_t>  scalar_s;
+  std::shared_ptr<uint16_t> scalar_us;
+  std::shared_ptr<float>    scalar_f;
+  std::shared_ptr<double>   scalar_d;
   size_t                         length;
   enum DataType                  data_type;
 };

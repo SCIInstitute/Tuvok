@@ -50,7 +50,7 @@ PLYGeoConverter::PLYGeoConverter() :
 }
 
 
-std::tr1::shared_ptr<Mesh>
+std::shared_ptr<Mesh>
 PLYGeoConverter::ConvertToMesh(const std::string& strFilename) {
   VertVec       vertices;
   NormVec       normals;
@@ -161,7 +161,7 @@ PLYGeoConverter::ConvertToMesh(const std::string& strFilename) {
                                   faceProp p = StringToFProp(GetToken(line));
                                   propType t1 = StringToType(GetToken(line));
                                   propType t2 = StringToType(GetToken(line));
-                                  faceProps.push_back(tr1::make_tuple(t1,t2,p));
+                                  faceProps.push_back(make_tuple(t1,t2,p));
                                 } else if (iReaderState == PARSING_EDGE_HEADER) {
                                   propType t = StringToType(GetToken(line));
                                   edgeProp p = StringToEProp(GetToken(line));
@@ -261,7 +261,7 @@ PLYGeoConverter::ConvertToMesh(const std::string& strFilename) {
         string strValue = GetToken(line);
 
         double fValue=0.0; int iValue=0;
-        if (tr1::get<1>(faceProps[i]) <= PROPT_DOUBLE) {
+        if (std::get<1>(faceProps[i]) <= PROPT_DOUBLE) {
           fValue = atof(strValue.c_str());
           iValue = static_cast<int>(fValue);
         } else {
@@ -269,11 +269,11 @@ PLYGeoConverter::ConvertToMesh(const std::string& strFilename) {
           fValue = static_cast<double>(iValue);
         }
 
-        switch (tr1::get<2>(faceProps[i])) {
+        switch (std::get<2>(faceProps[i])) {
           case FPROP_LIST : {
                               for (int j = 0;j<iValue;j++) {
                                 // hack: read everything as int, regardless of the 
-                                //       type stored in tr1::get<1>(faceProps[i])
+                                //       type stored in std::get<1>(faceProps[i])
                                 strValue = GetToken(line);
                                 int elem = atoi(strValue.c_str());
                                 v.push_back(elem);
@@ -334,7 +334,7 @@ PLYGeoConverter::ConvertToMesh(const std::string& strFilename) {
 
   std::string desc = m_vConverterDesc + " data converted from " + SysTools::GetFilename(strFilename);
 
-  return std::tr1::shared_ptr<Mesh>(
+  return std::shared_ptr<Mesh>(
     new Mesh(vertices,normals,texcoords,colors,
              VertIndices,NormalIndices,TCIndices,COLIndices,
              false,false,desc, (iFaceCount > 0) ? Mesh::MT_TRIANGLES

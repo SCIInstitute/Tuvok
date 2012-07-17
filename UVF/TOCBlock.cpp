@@ -101,7 +101,7 @@ bool TOCBlock::FlatDataToBrickedLOD(
   const UINT64VECTOR3& vMaxBrickSize,
   uint32_t iOverlap,
   size_t iCacheSize,
-  std::tr1::shared_ptr<MaxMinDataBlock> pMaxMinDatBlock,
+  std::shared_ptr<MaxMinDataBlock> pMaxMinDatBlock,
   AbstrDebugOut* debugOut
 ) {
 
@@ -124,7 +124,7 @@ bool TOCBlock::FlatDataToBrickedLOD(
   const UINT64VECTOR3& vMaxBrickSize,
   uint32_t iOverlap,
   size_t iCacheSize,
-  std::tr1::shared_ptr<MaxMinDataBlock> pMaxMinDatBlock,
+  std::shared_ptr<MaxMinDataBlock> pMaxMinDatBlock,
   AbstrDebugOut*
 ) {
   m_vMaxBrickSize = vMaxBrickSize;

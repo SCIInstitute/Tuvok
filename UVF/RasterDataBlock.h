@@ -212,8 +212,8 @@ public:
                         const void* pIn, void* pOut),
     void (*maxminFunc)(const void* pIn, size_t iStart, size_t iCount,
                        std::vector<DOUBLEVECTOR4>& fMinMax),
-    std::tr1::shared_ptr<MaxMinDataBlock> pMaxMinDatBlock =
-      std::tr1::shared_ptr<MaxMinDataBlock>(),
+    std::shared_ptr<MaxMinDataBlock> pMaxMinDatBlock =
+      std::shared_ptr<MaxMinDataBlock>(),
     AbstrDebugOut* pDebugOut=NULL
   );
   bool FlatDataToBrickedLOD(
@@ -222,8 +222,8 @@ public:
                         const void* pIn, void* pOut),
     void (*maxminFunc)(const void* pIn, size_t iStart, size_t iCount,
                        std::vector<DOUBLEVECTOR4>& fMinMax),
-    std::tr1::shared_ptr<MaxMinDataBlock> pMaxMinDatBlock =
-      std::tr1::shared_ptr<MaxMinDataBlock>(),
+    std::shared_ptr<MaxMinDataBlock> pMaxMinDatBlock =
+      std::shared_ptr<MaxMinDataBlock>(),
     AbstrDebugOut* pDebugOut=NULL
   );
 

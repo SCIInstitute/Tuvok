@@ -50,7 +50,7 @@ MedAlyVisGeoConverter::MedAlyVisGeoConverter() :
 }
 
 
-std::tr1::shared_ptr<Mesh>
+std::shared_ptr<Mesh>
 MedAlyVisGeoConverter::ConvertToMesh(const std::string& strFilename) {
   ifstream trisoup(strFilename.c_str(), ios::binary);
   if(!trisoup) {
@@ -96,7 +96,7 @@ MedAlyVisGeoConverter::ConvertToMesh(const std::string& strFilename) {
 
   std::string desc = m_vConverterDesc + " data converted from " + SysTools::GetFilename(strFilename);
 
-  std::tr1::shared_ptr<Mesh> m(
+  std::shared_ptr<Mesh> m(
     new Mesh(vertices,NormVec(),TexCoordVec(),ColorVec(),
              VertIndices,IndexVec(),IndexVec(),IndexVec(),
              false,false,desc,Mesh::MT_TRIANGLES)

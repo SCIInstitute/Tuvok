@@ -24,12 +24,8 @@
    DEALINGS IN THE SOFTWARE.
 */
 #include "StdTuvokDefines.h"
-#ifdef _MSC_VER
-# include <memory>
-#else
-# include <tr1/memory>
-#endif
 #include <fstream>
+#include <memory>
 #include "Basics/Mesh.h"
 #include "Controller/Controller.h"
 #include "LinesGeoConverter.h"
@@ -44,7 +40,7 @@ LinesGeoConverter::LinesGeoConverter() {
 }
 
 using namespace io;
-std::tr1::shared_ptr<Mesh>
+std::shared_ptr<Mesh>
 LinesGeoConverter::ConvertToMesh(const std::string& rawFilename) {
   MESSAGE("Converting %s...", rawFilename.c_str());
   std::ifstream lines(rawFilename.c_str(), std::ios::in);
@@ -130,7 +126,7 @@ LinesGeoConverter::ConvertToMesh(const std::string& rawFilename) {
     *v = FLOATVECTOR3((*v)[0]-0.5f, (*v)[1]-0.5f, (*v)[2]);
   }
 
-  return std::tr1::shared_ptr<Mesh>(new Mesh(
+  return std::shared_ptr<Mesh>(new Mesh(
     vertices, NormVec(), TexCoordVec(), colors, edges,
     IndexVec(), IndexVec(), c_indices, false, false,
     "Esra-mesh", Mesh::MT_LINES

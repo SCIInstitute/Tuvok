@@ -38,13 +38,8 @@
 #define PLYGEOCONVERTER_H
 
 #include "../StdTuvokDefines.h"
+#include <tuple>
 #include "AbstrGeoConverter.h"
-
-#ifdef _MSC_VER
-# include <tuple>
-#else
-# include <tr1/tuple>
-#endif
 
 namespace tuvok {
 
@@ -52,7 +47,7 @@ namespace tuvok {
   public:
     PLYGeoConverter();
     virtual ~PLYGeoConverter() {}
-    virtual std::tr1::shared_ptr<Mesh>
+    virtual std::shared_ptr<Mesh>
       ConvertToMesh(const std::string& strFilename);
     virtual bool ConvertToNative(const Mesh& m,
                                  const std::string& strTargetFilename);
@@ -131,9 +126,9 @@ namespace tuvok {
       EPROP_UNKNOWN
     };
 
-    std::vector< std::pair<propType, vertexProp> > vertexProps;
-    std::vector< std::tr1::tuple<propType, propType, faceProp> > faceProps;
-    std::vector< std::pair<propType, edgeProp> > edgeProps;
+    std::vector<std::pair<propType, vertexProp> > vertexProps;
+    std::vector<std::tuple<propType, propType, faceProp> > faceProps;
+    std::vector<std::pair<propType, edgeProp> > edgeProps;
 
     propType StringToType(const std::string& token);
     vertexProp StringToVProp(const std::string& token);

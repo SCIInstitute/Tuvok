@@ -44,9 +44,9 @@ void BrickedDataset::AddBrick(const BrickKey& bk,
                               const BrickMD& brick)
 {
   MESSAGE("adding brick (%u, %u, %u) -> ((%g,%g,%g), (%g,%g,%g), (%u,%u,%u))",
-          static_cast<unsigned>(std::tr1::get<0>(bk)),
-          static_cast<unsigned>(std::tr1::get<1>(bk)),
-          static_cast<unsigned>(std::tr1::get<2>(bk)),
+          static_cast<unsigned>(std::get<0>(bk)),
+          static_cast<unsigned>(std::get<1>(bk)),
+          static_cast<unsigned>(std::get<2>(bk)),
           brick.center[0], brick.center[1], brick.center[2],
           brick.extents[0], brick.extents[1], brick.extents[2],
           static_cast<unsigned>(brick.n_voxels[0]),
@@ -66,9 +66,9 @@ FLOATVECTOR3 BrickedDataset::GetBrickExtents(const BrickKey &bk) const
 #endif
   if(iter == this->bricks.end()) {
     T_ERROR("Unknown brick (%u, %u, %u)",
-            static_cast<unsigned>(std::tr1::get<0>(bk)),
-            static_cast<unsigned>(std::tr1::get<1>(bk)),
-            static_cast<unsigned>(std::tr1::get<2>(bk)));
+            static_cast<unsigned>(std::get<0>(bk)),
+            static_cast<unsigned>(std::get<1>(bk)),
+            static_cast<unsigned>(std::get<2>(bk)));
     return FLOATVECTOR3(0.0f, 0.0f, 0.0f);
   }
   return iter->second.extents;
@@ -91,8 +91,8 @@ BrickTable::size_type BrickedDataset::GetBrickCount(size_t lod, size_t ts) const
   BrickTable::size_type count = 0;
   BrickTable::const_iterator iter = this->bricks.begin();
   for(; iter != this->bricks.end(); ++iter) {
-    if(std::tr1::get<0>(iter->first) == ts &&
-       std::tr1::get<1>(iter->first) == lod) {
+    if(std::get<0>(iter->first) == ts &&
+       std::get<1>(iter->first) == lod) {
       ++count;
     }
   }

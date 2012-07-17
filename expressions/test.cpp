@@ -12,17 +12,17 @@ extern void parser_free();
 // Function pointer for traversals.  First argument is the node, second
 // argument is "user data"; a given traversal function should cast it
 // to whatever is needed.
-/// @todo fixme should probably be a std::tr1::function or something like that.
-typedef bool (*TraversalFunc)(const std::tr1::shared_ptr<Node> n, void* data);
+/// @todo fixme should probably be a std::function or something like that.
+typedef bool (*TraversalFunc)(const std::shared_ptr<Node> n, void* data);
 
-bool print_tree(const std::tr1::shared_ptr<Node> n, void*);
-void inorder(const std::tr1::shared_ptr<Node> node, TraversalFunc f, void*);
+bool print_tree(const std::shared_ptr<Node> n, void*);
+void inorder(const std::shared_ptr<Node> node, TraversalFunc f, void*);
 
 int main() {
   int x = yyparse();
   if(x != 1) {
     // NullDeleter: "parser" owns that memory; it'll free it with parser_free.
-    std::tr1::shared_ptr<Node> tree = std::tr1::shared_ptr<Node>(
+    std::shared_ptr<Node> tree = std::shared_ptr<Node>(
       parser_tree_root(), NullDeleter<Node>
     );
     inorder(tree, print_tree, NULL);
@@ -40,7 +40,7 @@ int main() {
 
 // perform an inorder traversal.  The traversal function can return
 // false to terminate the recursion early.
-void inorder(const std::tr1::shared_ptr<Node> node, TraversalFunc f, void* data)
+void inorder(const std::shared_ptr<Node> node, TraversalFunc f, void* data)
 {
   if(f(node, data) == false) {
     return;
@@ -52,7 +52,7 @@ void inorder(const std::tr1::shared_ptr<Node> node, TraversalFunc f, void* data)
   }
 }
 
-bool print_tree(const std::tr1::shared_ptr<Node> n, void*)
+bool print_tree(const std::shared_ptr<Node> n, void*)
 {
   n->Print(std::cout);
   std::cout << "\n";

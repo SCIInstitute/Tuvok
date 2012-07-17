@@ -35,15 +35,10 @@
 #include "../StdTuvokDefines.h"
 #include <cctype>
 #include <fstream>
-#ifdef _MSC_VER
-# include <functional>
-# include <unordered_map>
-#else
-# include <tr1/functional>
-# include <tr1/unordered_map>
-#endif
+#include <functional>
 #include <sstream>
 #include <string>
+#include <unordered_map>
 #include "InveonConverter.h"
 #include "Basics/EndianConvert.h"
 #include "Basics/SysTools.h"
@@ -54,7 +49,7 @@ InveonConverter::InveonConverter()
   m_vSupportedExt.push_back("HDR");
 }
 
-typedef std::tr1::unordered_map<std::string, std::string> LineMap;
+typedef std::unordered_map<std::string, std::string> LineMap;
 // The 'hdr' files we are given consist of a series of lines which begin with a
 // keyword, and then a series of space-separated parameters.  This searches for
 // lines which begin with the strings in the keys of the map, and fills the
@@ -280,7 +275,7 @@ bool InveonConverter::ConvertToNative(
 bool InveonConverter::CanRead(const std::string&,
                               const std::vector<int8_t>& start) const
 {
-  using namespace std::tr1::placeholders;
+  using namespace std::placeholders;
 
   std::string as_string(
     static_cast<const signed char*>(&*start.begin()),
@@ -294,9 +289,9 @@ bool InveonConverter::CanRead(const std::string&,
   // Are there any non-ascii characters?
   std::vector<int8_t>::const_iterator notascii = std::find_if(
     start.begin(), start.end(),
-    std::tr1::bind(
+    std::bind(
       std::not_equal_to<int>(),
-        std::tr1::bind(isascii, _1),
+        std::bind(isascii, _1),
         1
       )
   );

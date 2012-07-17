@@ -54,7 +54,7 @@ public:
   LinesGeoConverter();
   virtual ~LinesGeoConverter() {}
 
-  virtual std::tr1::shared_ptr<Mesh> ConvertToMesh(const std::string&);
+  virtual std::shared_ptr<Mesh> ConvertToMesh(const std::string&);
 
   virtual bool CanExportData() const { return false; }
   virtual bool CanImportData() const { return true; }

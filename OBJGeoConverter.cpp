@@ -60,7 +60,7 @@ inline int OBJGeoConverter::CountOccurences(const std::string& str, const std::s
   return count;
 }
 
-std::tr1::shared_ptr<Mesh>
+std::shared_ptr<Mesh>
 OBJGeoConverter::ConvertToMesh(const std::string& strFilename) {
   bool bFlipVertices = false;
 
@@ -267,7 +267,7 @@ OBJGeoConverter::ConvertToMesh(const std::string& strFilename) {
     COLIndices = VertIndices;
 
 
-  std::tr1::shared_ptr<Mesh> m(
+  std::shared_ptr<Mesh> m(
     new Mesh(vertices,normals,texcoords,colors,
              VertIndices,NormalIndices,TCIndices,COLIndices,
              false, false, desc, 

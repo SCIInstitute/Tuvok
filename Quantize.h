@@ -43,11 +43,7 @@
 #include <fstream>
 #include <functional>
 #include <limits>
-#ifdef DETECTED_OS_WINDOWS
-# include <type_traits>
-#else
-# include <tr1/type_traits>
-#endif
+#include <type_traits>
 #include <boost/algorithm/minmax_element.hpp>
 #include "Basics/LargeRAWFile.h"
 #include "Basics/ctti.h"

@@ -38,12 +38,8 @@
 
 #include "StdTuvokDefines.h"
 
-#ifdef DETECTED_OS_WINDOWS
-# include <memory>
-#else
-# include <tr1/memory>
-#endif
 #include <list>
+#include <memory>
 #include <stdexcept>
 #include "TuvokIOError.h"
 
@@ -69,12 +65,12 @@ public:
 
   /// Identify the reader which can read the given file.
   /// @return The dataset if we find a match, or NULL if not.
-  const std::tr1::weak_ptr<Dataset> Reader(const std::string&) const;
+  const std::weak_ptr<Dataset> Reader(const std::string&) const;
 
-  void AddReader(std::tr1::shared_ptr<Dataset>);
+  void AddReader(std::shared_ptr<Dataset>);
 
   // We can't copy datasets.  So we store pointers to them instead.
-  typedef std::list<std::tr1::shared_ptr<Dataset> > DSList;
+  typedef std::list<std::shared_ptr<Dataset> > DSList;
   const DSList& Readers() const;
 
 private:

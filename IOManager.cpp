@@ -165,7 +165,7 @@ IOManager::IOManager() :
   m_vpConverters.push_back(new InveonConverter());
   m_vpConverters.push_back(new AnalyzeConverter());
   m_vpConverters.push_back(new AmiraConverter());
-  m_dsFactory->AddReader(tr1::shared_ptr<UVFDataset>(new UVFDataset()));
+  m_dsFactory->AddReader(shared_ptr<UVFDataset>(new UVFDataset()));
 }
 
 
@@ -195,11 +195,11 @@ IOManager::~IOManager()
   delete m_pFinalConverter;
 }
 
-vector<std::tr1::shared_ptr<FileStackInfo> >
+vector<std::shared_ptr<FileStackInfo> >
 IOManager::ScanDirectory(string strDirectory) const {
   MESSAGE("Scanning directory %s", strDirectory.c_str());
 
-  vector<std::tr1::shared_ptr<FileStackInfo> > fileStacks;
+  vector<std::shared_ptr<FileStackInfo> > fileStacks;
 
   DICOMParser parseDICOM;
   parseDICOM.GetDirInfo(strDirectory);
@@ -237,8 +237,8 @@ IOManager::ScanDirectory(string strDirectory) const {
   }
 
   for (size_t stack=0; stack < parseDICOM.m_FileStacks.size(); ++stack) {
-    std::tr1::shared_ptr<FileStackInfo> f =
-      std::tr1::shared_ptr<FileStackInfo>(new DICOMStackInfo(
+    std::shared_ptr<FileStackInfo> f =
+      std::shared_ptr<FileStackInfo>(new DICOMStackInfo(
         static_cast<DICOMStackInfo*>(parseDICOM.m_FileStacks[stack])
       ));
 
@@ -260,8 +260,8 @@ IOManager::ScanDirectory(string strDirectory) const {
   }
 
   for (size_t stack=0; stack < parseImages.m_FileStacks.size(); ++stack) {
-    std::tr1::shared_ptr<FileStackInfo> f =
-      std::tr1::shared_ptr<FileStackInfo>(new ImageStackInfo(
+    std::shared_ptr<FileStackInfo> f =
+      std::shared_ptr<FileStackInfo>(new ImageStackInfo(
         dynamic_cast<ImageStackInfo*>(parseImages.m_FileStacks[stack])
       ));
 
@@ -1232,7 +1232,7 @@ UVFDataset* IOManager::ConvertDataset(const string& strFilename,
 }
 
 void IOManager::SetMemManLoadFunction(
-  std::tr1::function<tuvok::Dataset*(const std::string&,
+  std::function<tuvok::Dataset*(const std::string&,
                                      AbstrRenderer*)>& f
 ) {
   m_LoadDS = f;
@@ -1255,7 +1255,7 @@ Dataset* IOManager::CreateDataset(const string& filename,
   return m_dsFactory->Create(filename, max_brick_size, verify);
 }
 
-void IOManager::AddReader(tr1::shared_ptr<FileBackedDataset> ds)
+void IOManager::AddReader(shared_ptr<FileBackedDataset> ds)
 {
   m_dsFactory->AddReader(ds);
 }
@@ -1398,7 +1398,7 @@ public:
 protected:
   T                  m_TIsoValue;
   uint32_t           m_iIndexoffset;
-  std::tr1::shared_ptr<MarchingCubes<T> > m_pMarchingCubes;
+  std::shared_ptr<MarchingCubes<T> > m_pMarchingCubes;
   UINT64VECTOR3      m_vDataSize;
   tuvok::AbstrGeoConverter* m_conv;
   FLOATVECTOR4       m_vColor;
@@ -1419,7 +1419,7 @@ bool IOManager::ExtractIsosurface(const tuvok::UVFDataset* pSourceData,
   }
 
   string strTempFilename = strTempDir + SysTools::GetFilename(strTargetFilename)+".tmp_raw";
-  std::tr1::shared_ptr<MCData> pMCData;
+  std::shared_ptr<MCData> pMCData;
 
   bool   bFloatingPoint  = pSourceData->GetIsFloat();
   bool   bSigned         = pSourceData->GetIsSigned();
@@ -1580,7 +1580,7 @@ bool IOManager::ExportDataset(const UVFDataset* pSourceData, uint64_t iLODlevel,
 // mean we can't read this.  If we can't read it, it needs to be converted.
 // All your data are belong to us.
 bool IOManager::NeedsConversion(const string& strFilename) const {
-  const tr1::weak_ptr<Dataset> reader = m_dsFactory->Reader(strFilename);
+  const weak_ptr<Dataset> reader = m_dsFactory->Reader(strFilename);
   return reader.expired();
 }
 
@@ -1588,7 +1588,7 @@ bool IOManager::NeedsConversion(const string& strFilename) const {
 // that verification method.
 bool IOManager::Verify(const string& strFilename) const
 {
-  const tr1::weak_ptr<Dataset> reader = m_dsFactory->Reader(strFilename);
+  const weak_ptr<Dataset> reader = m_dsFactory->Reader(strFilename);
 
   // I swear I did not purposely choose words so that this text aligned.
   assert(!reader.expired() && "Impossible; we wouldn't have reached this code "
@@ -1598,8 +1598,8 @@ bool IOManager::Verify(const string& strFilename) const
                               "file.");
 
   // Upcast it.  Hard to verify a checksum on an abstract entity.
-  const tr1::shared_ptr<FileBackedDataset> fileds =
-    tr1::dynamic_pointer_cast<FileBackedDataset>(reader.lock());
+  const shared_ptr<FileBackedDataset> fileds =
+    dynamic_pointer_cast<FileBackedDataset>(reader.lock());
 
   return fileds->Verify(strFilename);
 }
@@ -1632,8 +1632,8 @@ string IOManager::GetLoadDialogString() const {
   const DSFactory::DSList& readers = m_dsFactory->Readers();
   for(DSFactory::DSList::const_iterator rdr=readers.begin();
       rdr != readers.end(); ++rdr) {
-    const tr1::shared_ptr<FileBackedDataset> fileds =
-      tr1::dynamic_pointer_cast<FileBackedDataset>(*rdr);
+    const shared_ptr<FileBackedDataset> fileds =
+      dynamic_pointer_cast<FileBackedDataset>(*rdr);
     const list<string> extensions = fileds->Extensions();
     for(list<string>::const_iterator ext = extensions.begin();
         ext != extensions.end(); ++ext) {
@@ -1660,8 +1660,8 @@ string IOManager::GetLoadDialogString() const {
   // native formats
   for(DSFactory::DSList::const_iterator rdr=readers.begin();
       rdr != readers.end(); ++rdr) {
-    const tr1::shared_ptr<FileBackedDataset> fileds =
-      tr1::dynamic_pointer_cast<FileBackedDataset>(*rdr);
+    const shared_ptr<FileBackedDataset> fileds =
+      dynamic_pointer_cast<FileBackedDataset>(*rdr);
     const list<string> extensions = fileds->Extensions();
     strDialog += string(fileds->Name()) + " (";
     for(list<string>::const_iterator ext = extensions.begin();
@@ -1740,10 +1740,10 @@ vector< pair <string, string > > IOManager::GetImportFormatList() const {
 vector< tConverterFormat > IOManager::GetFormatList() const {
 
   vector< tConverterFormat > v;
-  v.push_back(tr1::make_tuple("UVF", "Universal Volume Format", true, true));
+  v.push_back(make_tuple("UVF", "Universal Volume Format", true, true));
   for (size_t i = 0;i<m_vpConverters.size();i++) {
       for (size_t j = 0;j<m_vpConverters[i]->SupportedExt().size();j++) {
-        v.push_back(tr1::make_tuple(
+        v.push_back(make_tuple(
                         SysTools::ToLowerCase(
                           m_vpConverters[i]->SupportedExt()[j]
                         ),
@@ -1873,7 +1873,7 @@ vector< tConverterFormat > IOManager::GetGeoFormatList() const {
   vector< tConverterFormat > v;
   for (size_t i = 0;i<m_vpGeoConverters.size();i++) {
     for (size_t j = 0;j<m_vpGeoConverters[i]->SupportedExt().size();j++) {
-      v.push_back(tr1::make_tuple(
+      v.push_back(make_tuple(
                       SysTools::ToLowerCase(
                         m_vpGeoConverters[i]->SupportedExt()[j]
                       ),
@@ -2164,7 +2164,7 @@ CreateUVFFromRDB(const std::string& filename,
   double max_val = DBL_MAX;
   {
     const size_t components = static_cast<size_t>(rdb->ulElementDimensionSize[0]);
-    std::tr1::shared_ptr<MaxMinDataBlock> mmdb(new MaxMinDataBlock(components));
+    std::shared_ptr<MaxMinDataBlock> mmdb(new MaxMinDataBlock(components));
     std::vector<DOUBLEVECTOR4> minmax = MaxMin(rdb);
     MESSAGE("found %u brick min/maxes...",
             static_cast<unsigned>(minmax.size()));
@@ -2184,13 +2184,13 @@ CreateUVFFromRDB(const std::string& filename,
   }
 
   { // histograms
-    std::tr1::shared_ptr<Histogram1DDataBlock> hist1d(
+    std::shared_ptr<Histogram1DDataBlock> hist1d(
       new Histogram1DDataBlock()
     );
     hist1d->Compute(rdb);
     outuvf.AddDataBlock(hist1d);
     {
-      std::tr1::shared_ptr<Histogram2DDataBlock> hist2d(
+      std::shared_ptr<Histogram2DDataBlock> hist2d(
         new Histogram2DDataBlock()
       );
       hist2d->Compute(rdb, hist1d->GetHistogram().size(), max_val);
@@ -2205,7 +2205,7 @@ CreateUVFFromRDB(const std::string& filename,
 // Identifies the 'widest' type that is utilized in a series of UVFs.
 // For example, if we've got FP data in one UVF and unsigned bytes in
 // another, the 'widest' type is FP.
-void IdentifyType(const std::vector<std::tr1::shared_ptr<UVFDataset> >& uvf,
+void IdentifyType(const std::vector<std::shared_ptr<UVFDataset> >& uvf,
                   size_t& bit_width, bool& is_float, bool &is_signed)
 {
   bit_width = 0;
@@ -2233,7 +2233,7 @@ void TypedRead(std::vector<T>& data,
 
   size_t dest_width = sizeof(T) * 8;
   bool dest_signed = ctti<T>::is_signed;
-  bool dest_float = std::tr1::is_floating_point<T>::value;
+  bool dest_float = std::is_floating_point<T>::value;
 
   // fp data implies signed data.
   assert(is_float ? is_signed : true);
@@ -2323,7 +2323,7 @@ namespace {
   template<typename T>
   void ReadAndEvalBrick(
     RasterDataBlock& rdb,
-    const std::vector<std::tr1::shared_ptr<UVFDataset> >& uvfs,
+    const std::vector<std::shared_ptr<UVFDataset> >& uvfs,
     const std::vector<BrickTable::const_iterator>& iters,
     tuvok::expression::Node* tree
   ) {
@@ -2366,10 +2366,10 @@ IOManager::EvaluateExpression(const char* expr,
 
   // open all of those files and get UVF datasets for each of them.
   const bool verify=false;
-  std::vector<std::tr1::shared_ptr<UVFDataset> > uvf;
+  std::vector<std::shared_ptr<UVFDataset> > uvf;
   typedef std::vector<std::string>::const_iterator citer;
   for(citer f = volumes.begin(); f != volumes.end(); ++f) {
-    uvf.push_back(std::tr1::shared_ptr<UVFDataset>(
+    uvf.push_back(std::shared_ptr<UVFDataset>(
       dynamic_cast<UVFDataset*>(
         m_dsFactory->Create(*f, 256 /* hack! */, verify)
       )
@@ -2377,7 +2377,7 @@ IOManager::EvaluateExpression(const char* expr,
   }
   // ensure those UVFs are "equal" in some sense (same number of voxels, etc).
   MergeableDatasets mergeable;
-  typedef std::vector<std::tr1::shared_ptr<UVFDataset> >::const_iterator uiter;
+  typedef std::vector<std::shared_ptr<UVFDataset> >::const_iterator uiter;
   for(uiter u = uvf.begin(); u != uvf.end(); ++u) {
     if(!mergeable(**uvf.begin(), **u)) {
       throw tuvok::io::UnmergeableDatasets("Incompatible input volumes",
@@ -2401,7 +2401,7 @@ IOManager::EvaluateExpression(const char* expr,
   }
 #endif
 
-  std::tr1::shared_ptr<RasterDataBlock> rdb(new RasterDataBlock());
+  std::shared_ptr<RasterDataBlock> rdb(new RasterDataBlock());
   rdb->SetBlockSemantic(UVFTables::BS_REG_NDIM_GRID);
   rdb->SetIdentityTransformation();
   rdb->SetTypeToUShort(UVFTables::ES_RED);
@@ -2477,11 +2477,11 @@ IOManager::EvaluateExpression(const char* expr,
     }
     MESSAGE("Brick %u (evaluation)...", static_cast<unsigned>(brick));
 
-    using namespace std::tr1::placeholders;
+    using namespace std::placeholders;
     // advance each brick iterator by one.
     std::for_each(viters.begin(), viters.end(),
-                  std::tr1::bind(std::advance<BrickTable::const_iterator,int>,
-                                 _1, 1));
+                  std::bind(std::advance<BrickTable::const_iterator,int>,
+                            _1, 1));
   }
 
   CreateUVFFromRDB(out_fn, rdb.get());
@@ -2542,13 +2542,13 @@ void IOManager::CopyToTSB(const Mesh& m, GeometryDataBlock* tsb) const {
 }
 
 
-std::tr1::shared_ptr<Mesh> IOManager::LoadMesh(const string& meshfile) const
+std::shared_ptr<Mesh> IOManager::LoadMesh(const string& meshfile) const
 {
   MESSAGE("Opening Mesh File ...");
 
   // iterate through all our converters, stopping when one successfully
   // converts our data.
-  std::tr1::shared_ptr<Mesh> m;
+  std::shared_ptr<Mesh> m;
   for(vector<AbstrGeoConverter*>::const_iterator conv =
       m_vpGeoConverters.begin(); conv != m_vpGeoConverters.end(); ++conv) {
     MESSAGE("Attempting converter '%s'", (*conv)->GetDesc().c_str());
@@ -2572,7 +2572,7 @@ void IOManager::AddMesh(const UVF* sourceDataset,
                         const string& meshfile,
                         const string& uvf_fn) const
 {
-  std::tr1::shared_ptr<Mesh> m = LoadMesh(meshfile);
+  std::shared_ptr<Mesh> m = LoadMesh(meshfile);
 
   if (!m) {
     WARNING("No converter for geometry file %s can be found",
@@ -2584,7 +2584,7 @@ void IOManager::AddMesh(const UVF* sourceDataset,
   if (m->GetNormalIndices().empty()) m->RecomputeNormals();
 
   // now create a GeometryDataBlock ...
-  std::tr1::shared_ptr<GeometryDataBlock> tsb(new GeometryDataBlock());
+  std::shared_ptr<GeometryDataBlock> tsb(new GeometryDataBlock());
 
   // ... and transfer the data from the mesh object
   CopyToTSB(*m, tsb.get());

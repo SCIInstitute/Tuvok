@@ -42,13 +42,13 @@ void ConditionalExpression::Print(std::ostream& os) const {
 }
 
 double ConditionalExpression::Evaluate(size_t idx) const {
-  const std::tr1::shared_ptr<Node> boolean = this->GetChild(0);
+  const std::shared_ptr<Node> boolean = this->GetChild(0);
 
   if(boolean->Evaluate(idx)) {
-    const std::tr1::shared_ptr<Node> true_path = this->GetChild(1);
+    const std::shared_ptr<Node> true_path = this->GetChild(1);
     return true_path->Evaluate(idx);
   }
-  const std::tr1::shared_ptr<Node> false_path = this->GetChild(2);
+  const std::shared_ptr<Node> false_path = this->GetChild(2);
   return false_path->Evaluate(idx);
 }
 

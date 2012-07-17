@@ -214,7 +214,7 @@ private:
   {
    if (m_bToCBlock) {
       const UINT64VECTOR4 coords = KeyToTOCVector(k);
-      const TOCTimestep* ts = static_cast<TOCTimestep*>(m_timesteps[std::tr1::get<0>(k)]);
+      const TOCTimestep* ts = static_cast<TOCTimestep*>(m_timesteps[std::get<0>(k)]);
 
       size_t targetSize = size_t(ts->GetDB()->GetComponentTypeSize() *
                                  ts->GetDB()->GetComponentCount() *

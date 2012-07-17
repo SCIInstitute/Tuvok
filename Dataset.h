@@ -38,16 +38,10 @@
 #include "StdTuvokDefines.h"
 
 #include <cstdlib>
+#include <functional>
+#include <memory>
+#include <unordered_map>
 #include <utility>
-#ifdef DETECTED_OS_WINDOWS
-# include <functional>
-# include <memory>
-# include <unordered_map>
-#else
-# include <tr1/functional>
-# include <tr1/memory>
-# include <tr1/unordered_map>
-#endif
 #include <boost/noncopyable.hpp>
 #include "Basics/Grids.h"
 #include "Basics/Vectors.h"

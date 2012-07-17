@@ -37,13 +37,9 @@
 #ifndef TUVOK_ABSTRGEOCONVERTER_H
 #define TUVOK_ABSTRGEOCONVERTER_H
 
-#ifdef _MSC_VER
-# include <memory>
-#else
-# include <tr1/memory>
-#endif
 #include "../StdTuvokDefines.h"
 #include <string>
+#include <memory>
 #include <vector>
 #include "Basics/Vectors.h"
 
@@ -57,7 +53,7 @@ class AbstrGeoConverter {
 public:
   virtual ~AbstrGeoConverter() {}
 
-  virtual std::tr1::shared_ptr<Mesh> ConvertToMesh(
+  virtual std::shared_ptr<Mesh> ConvertToMesh(
     const std::string& strRawFilename
   );
 

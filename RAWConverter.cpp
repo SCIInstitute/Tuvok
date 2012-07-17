@@ -62,11 +62,11 @@ using namespace tuvok;
 // holds UVF data blocks, because they cannot be deleted until the UVF file is
 // written.
 struct TimestepBlocks {
-  std::tr1::shared_ptr<TOCBlock> tocblock;
-  std::tr1::shared_ptr<RasterDataBlock> rdb;
+  std::shared_ptr<TOCBlock> tocblock;
+  std::shared_ptr<RasterDataBlock> rdb;
 
-  std::tr1::shared_ptr<MaxMinDataBlock> maxmin;
-  std::tr1::shared_ptr<Histogram2DDataBlock> hist2d;
+  std::shared_ptr<MaxMinDataBlock> maxmin;
+  std::shared_ptr<Histogram2DDataBlock> hist2d;
 };
 
 namespace {
@@ -118,7 +118,7 @@ static std::string convert_endianness(const std::string& strFilename,
                                         static_cast<size_t>(in_core_size));
   uint64_t bytes_converted = 0;
 
-  std::tr1::shared_ptr<unsigned char> buffer(
+  std::shared_ptr<unsigned char> buffer(
     new unsigned char[buffer_size],
     nonstd::DeleteArray<unsigned char>()
   );
@@ -165,15 +165,15 @@ public:
   }
 };
 
-static std::tr1::shared_ptr<KeyValuePairDataBlock> metadata(
+static std::shared_ptr<KeyValuePairDataBlock> metadata(
   const string& strDesc, const string& strSource,
   bool bLittleEndian, bool bSigned, bool bIsFloat,
   size_t iComponentSize,
   KVPairs* pKVPairs
 )
 {
-  std::tr1::shared_ptr<KeyValuePairDataBlock> meta =
-    std::tr1::shared_ptr<KeyValuePairDataBlock>(new KeyValuePairDataBlock());
+  std::shared_ptr<KeyValuePairDataBlock> meta =
+    std::shared_ptr<KeyValuePairDataBlock>(new KeyValuePairDataBlock());
 
   if(!strSource.empty()) { meta->AddPair("Data Source", strSource); }
   if(!strDesc.empty()) { meta->AddPair("Description", strDesc); }
@@ -206,8 +206,8 @@ static std::tr1::shared_ptr<KeyValuePairDataBlock> metadata(
 
 /// figures out if we need to quantize the data and does, if so.
 /// @param iComponentSize bit width of data, in-out param.
-std::tr1::shared_ptr<LargeRAWFile>
-quantize(std::tr1::shared_ptr<LargeRAWFile> sourceData,
+std::shared_ptr<LargeRAWFile>
+quantize(std::shared_ptr<LargeRAWFile> sourceData,
          const std::string tmpQuantizedFile, const bool bSigned,
          const bool bIsFloat,
          size_t& iComponentSize, const uint64_t iComponentCount,
@@ -352,7 +352,7 @@ quantize(std::tr1::shared_ptr<LargeRAWFile> sourceData,
     }
   }
   if(target) {
-    std::tr1::shared_ptr<LargeRAWFile> rv(new TempFile(tmpQuantizedFile));
+    std::shared_ptr<LargeRAWFile> rv(new TempFile(tmpQuantizedFile));
     rv->Open(false);
     return rv;
   }
@@ -381,23 +381,23 @@ static std::string mk_tmpfile(std::ofstream& ofs, std::ios::openmode mode)
 /// given a data source, grab out every 'N'th element and put it in its own
 /// file.
 /// @return a list of temporary files with each component
-std::vector<std::tr1::shared_ptr<LargeRAWFile> >
-make_raw(std::tr1::shared_ptr<LargeRAWFile> source, uint64_t n_components,
+std::vector<std::shared_ptr<LargeRAWFile> >
+make_raw(std::shared_ptr<LargeRAWFile> source, uint64_t n_components,
          size_t csize) {
-  typedef std::vector<std::tr1::shared_ptr<LargeRAWFile> > files;
+  typedef std::vector<std::shared_ptr<LargeRAWFile> > files;
   const size_t nc = static_cast<size_t>(n_components);
-  std::vector<std::tr1::shared_ptr<LargeRAWFile> > components(nc);
+  std::vector<std::shared_ptr<LargeRAWFile> > components(nc);
 
   for(files::iterator f=components.begin(); f != components.end(); ++f) {
     std::ofstream ofs;
     std::string filename = mk_tmpfile(ofs, std::ios::out | std::ios::binary);
-    *f = std::tr1::shared_ptr<LargeRAWFile>(new TempFile(filename));
+    *f = std::shared_ptr<LargeRAWFile>(new TempFile(filename));
     (*f)->Open(true);
   }
 
   source->SeekStart();
 
-  std::tr1::shared_ptr<unsigned char> data(new unsigned char[csize],
+  std::shared_ptr<unsigned char> data(new unsigned char[csize],
                                            nonstd::DeleteArray<unsigned char>());
   size_t bytes=1;
   do {
@@ -445,7 +445,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
 
   // Save the original metadata now: as we quantize or whatnot, we will modify
   // it, and we need to know the original settings for recording it in the UVF.
-  std::tr1::shared_ptr<KeyValuePairDataBlock> metaPairs = metadata(
+  std::shared_ptr<KeyValuePairDataBlock> metaPairs = metadata(
     strDesc, strSource,
     (bConvertEndianness && EndianConvert::IsBigEndian()) ||
       (EndianConvert::IsLittleEndian() && !bConvertEndianness),
@@ -467,7 +467,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
 
   string tmpQuantizedFile = strTempDir+SysTools::GetFilename(strFilename)+".quantized";
 
-  std::tr1::shared_ptr<LargeRAWFile> sourceData;
+  std::shared_ptr<LargeRAWFile> sourceData;
 
   if (bConvertEndianness) {
     // the new data source is the endian-converted file.
@@ -477,11 +477,11 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
       convert_endianness(strFilename, strTempDir, iHeaderSkip, iComponentSize,
                          core_size);
     iHeaderSkip = 0;  // the new file is straight raw without any header
-    sourceData = std::tr1::shared_ptr<LargeRAWFile>(
+    sourceData = std::shared_ptr<LargeRAWFile>(
       new TempFile(tmpEndianConvertedFile)
     );
   } else {
-    sourceData = std::tr1::shared_ptr<LargeRAWFile>(
+    sourceData = std::shared_ptr<LargeRAWFile>(
       new LargeRAWFile(strFilename, iHeaderSkip)
     );
   }
@@ -499,14 +499,14 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
   // our routines don't handle multi-component data very effectively. As a
   // quick hack, we'll pull out each component separately, process them
   // individually, and then pull them back together.
-  std::vector<std::tr1::shared_ptr<LargeRAWFile> > components;
+  std::vector<std::shared_ptr<LargeRAWFile> > components;
   if(iComponentCount > 1) {
     MESSAGE("Splitting components up into files...");
     // remember iComponentSize is in bits, not bytes.
     components = make_raw(sourceData, iComponentCount, iComponentSize/8);
 
     // ... process each component (individually)
-    typedef std::vector<std::tr1::shared_ptr<LargeRAWFile> > lfv;
+    typedef std::vector<std::shared_ptr<LargeRAWFile> > lfv;
     for(lfv::iterator comp = components.begin(); comp != components.end();
         ++comp) {
       MESSAGE("Processing component %d",
@@ -536,7 +536,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
       throw tuvok::io::IOException("Could not create temporary file!");
     }
 
-    std::tr1::shared_ptr<unsigned char> data(new unsigned char[iComponentSize],
+    std::shared_ptr<unsigned char> data(new unsigned char[iComponentSize],
       nonstd::DeleteArray<unsigned char>()
     );
     for(lfv::iterator c = components.begin(); c != components.end(); ++c) {
@@ -558,7 +558,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
     } while(bytes > 0);
 
     ofs.close();
-    sourceData = std::tr1::shared_ptr<LargeRAWFile>(
+    sourceData = std::shared_ptr<LargeRAWFile>(
       new TempFile(tmpQuantizedFile)
     );
     MESSAGE("source data is from %s, %llu bits, %llu components.",
@@ -597,20 +597,20 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
 
 
   for(size_t ts=0; ts < static_cast<size_t>(timesteps); ++ts) {
-    blocks[ts].maxmin = std::tr1::shared_ptr<MaxMinDataBlock>(
+    blocks[ts].maxmin = std::shared_ptr<MaxMinDataBlock>(
       new MaxMinDataBlock(static_cast<size_t>(iComponentCount))
       );
-    blocks[ts].hist2d = std::tr1::shared_ptr<Histogram2DDataBlock>(
+    blocks[ts].hist2d = std::shared_ptr<Histogram2DDataBlock>(
       new Histogram2DDataBlock()
       );
 
-    std::tr1::shared_ptr<MaxMinDataBlock> MaxMinData = blocks[ts].maxmin;
+    std::shared_ptr<MaxMinDataBlock> MaxMinData = blocks[ts].maxmin;
 
     if (Controller::ConstInstance().ExperimentalFeatures()) {
-      blocks[ts].tocblock = std::tr1::shared_ptr<TOCBlock>(
+      blocks[ts].tocblock = std::shared_ptr<TOCBlock>(
         new TOCBlock()
       );
-      std::tr1::shared_ptr<TOCBlock> dataVolume = blocks[ts].tocblock;
+      std::shared_ptr<TOCBlock> dataVolume = blocks[ts].tocblock;
 
       if (strSource == "") {
         dataVolume->strBlockID = (strDesc!="")
@@ -694,7 +694,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
         }
 
         MESSAGE("Computing 2D Histogram...");
-        std::tr1::shared_ptr<Histogram2DDataBlock> Histogram2D =
+        std::shared_ptr<Histogram2DDataBlock> Histogram2D =
           blocks[ts].hist2d;
         if (!Histogram2D->Compute(dataVolume.get(), 0,
           Histogram1D.GetHistogram().size(),
@@ -705,7 +705,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
         }
         MESSAGE("Storing histogram data...");
         uvfFile.AddDataBlock(
-          std::tr1::shared_ptr<Histogram1DDataBlock>(&Histogram1D,
+          std::shared_ptr<Histogram1DDataBlock>(&Histogram1D,
           nonstd::null_deleter())
           );
         uvfFile.AddDataBlock(Histogram2D);
@@ -714,10 +714,10 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
         uvfFile.AddDataBlock(MaxMinData);
       }
     } else {
-      blocks[ts].rdb = std::tr1::shared_ptr<RasterDataBlock>(
+      blocks[ts].rdb = std::shared_ptr<RasterDataBlock>(
         new RasterDataBlock()
         );
-      std::tr1::shared_ptr<RasterDataBlock> dataVolume = blocks[ts].rdb;
+      std::shared_ptr<RasterDataBlock> dataVolume = blocks[ts].rdb;
 
       if (strSource == "") {
         dataVolume->strBlockID = (strDesc!="")
@@ -924,7 +924,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
         }
 
         MESSAGE("Computing 2D Histogram...");
-        std::tr1::shared_ptr<Histogram2DDataBlock> Histogram2D =
+        std::shared_ptr<Histogram2DDataBlock> Histogram2D =
           blocks[ts].hist2d;
         if (!Histogram2D->Compute(dataVolume.get(),
           Histogram1D.GetHistogram().size(),
@@ -935,7 +935,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
         }
         MESSAGE("Storing histogram data...");
         uvfFile.AddDataBlock(
-          std::tr1::shared_ptr<Histogram1DDataBlock>(&Histogram1D,
+          std::shared_ptr<Histogram1DDataBlock>(&Histogram1D,
           nonstd::null_deleter())
           );
         uvfFile.AddDataBlock(Histogram2D);

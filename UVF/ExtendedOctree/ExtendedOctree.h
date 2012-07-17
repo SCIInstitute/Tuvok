@@ -29,12 +29,7 @@
 
 #include "Basics/StdDefines.h"
 
-// make sure have access to the tr1 shared_ptr
-#ifdef _MSC_VER
-# include <memory>
-#else
-# include <tr1/memory>
-#endif
+#include <memory>
 
 // for the LargeRawfile class
 #include "Basics/LargeRAWFile.h"

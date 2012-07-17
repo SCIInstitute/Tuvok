@@ -251,7 +251,7 @@ bool UVF::VerifyChecksum(LargeRAWFile_ptr streamFile, GlobalHeader& globalHeader
 void UVF::ParseDataBlocks() {
   uint64_t iOffset = m_GlobalHeader.GetDataPos();
   do  {
-    std::tr1::shared_ptr<DataBlock> d(
+    std::shared_ptr<DataBlock> d(
       new DataBlock(m_streamFile, iOffset, m_GlobalHeader.bIsBigEndian)
     );
 
@@ -262,7 +262,7 @@ void UVF::ParseDataBlocks() {
                                        m_GlobalHeader.bIsBigEndian);
     }
 
-    m_DataBlocks.push_back(std::tr1::shared_ptr<DataBlockListElem>(
+    m_DataBlocks.push_back(std::shared_ptr<DataBlockListElem>(
       new DataBlockListElem(d, false, iOffset-m_GlobalHeader.GetDataPos(),
                             d->ulOffsetToNextDataBlock)
     ));
@@ -300,9 +300,9 @@ bool UVF::AddConstDataBlock(const DataBlock* dataBlock) {
   const uint64_t iSizeofData = dataBlock->ComputeDataSize();
   if (!dataBlock->Verify(iSizeofData)) return false;
 
-  std::tr1::shared_ptr<DataBlock> d(dataBlock->Clone());
+  std::shared_ptr<DataBlock> d(dataBlock->Clone());
   
-  m_DataBlocks.push_back(std::tr1::shared_ptr<DataBlockListElem>(
+  m_DataBlocks.push_back(std::shared_ptr<DataBlockListElem>(
     new DataBlockListElem(d,true,m_iAccumOffsets,
                           d->GetOffsetToNextBlock())
   ));
@@ -312,12 +312,12 @@ bool UVF::AddConstDataBlock(const DataBlock* dataBlock) {
   return true;
 }
 
-bool UVF::AddDataBlock(std::tr1::shared_ptr<DataBlock> dataBlock) {
+bool UVF::AddDataBlock(std::shared_ptr<DataBlock> dataBlock) {
   const uint64_t iSizeofData = dataBlock->ComputeDataSize();
 
   if (!dataBlock->Verify(iSizeofData)) return false;
 
-  m_DataBlocks.push_back(std::tr1::shared_ptr<DataBlockListElem>(
+  m_DataBlocks.push_back(std::shared_ptr<DataBlockListElem>(
     new DataBlockListElem(dataBlock, true, m_iAccumOffsets,
                           dataBlock->GetOffsetToNextBlock())
   ));
@@ -382,14 +382,14 @@ DataBlock* UVF::GetDataBlockRW(uint64_t index, bool bOnlyChangeHeader) {
 }
 
 
-bool UVF::AppendBlockToFile(std::tr1::shared_ptr<DataBlock> dataBlock) {
+bool UVF::AppendBlockToFile(std::shared_ptr<DataBlock> dataBlock) {
   if (!m_bFileIsReadWrite)  return false;
   
   // add new block to the datablock vector
   DataBlockListElem* dble = new DataBlockListElem(dataBlock, false,
                                            m_streamFile->GetCurrentSize(),
                                            dataBlock->GetOffsetToNextBlock());
-  m_DataBlocks.push_back(std::tr1::shared_ptr<DataBlockListElem>(dble));
+  m_DataBlocks.push_back(std::shared_ptr<DataBlockListElem>(dble));
 
   // the block before the last needs to rewrite offset
   m_DataBlocks[m_DataBlocks.size()-2]->m_bHeaderIsDirty = true; 
@@ -406,7 +406,7 @@ bool UVF::DropBlockFromFile(size_t iBlockIndex) {
   if (!m_bFileIsReadWrite)  return false;
 
   // create copy buffer
-  std::tr1::shared_ptr<unsigned char> pBuffer(
+  std::shared_ptr<unsigned char> pBuffer(
     new unsigned char[BLOCK_COPY_SIZE], nonstd::DeleteArray<unsigned char>()
   );
 

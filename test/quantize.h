@@ -119,7 +119,7 @@ void verify_type() {
       } else {
         TS_ASSERT_EQUALS(val, static_cast<tubyte>(STARTING_NEG+i));
       }
-    } else if(!std::tr1::is_floating_point<T>::value) {
+    } else if(!std::is_floating_point<T>::value) {
       // Don't test this part when we've got FP data; we allow "expanding"
       // quantization in that case, so these assumptions are wrong.
       unsigned short val;
@@ -153,7 +153,7 @@ void verify_type() {
       } else {
         TS_ASSERT_EQUALS(histo[i], static_cast<uint64_t>(0));
       }
-    } else if(!std::tr1::is_floating_point<T>::value) {
+    } else if(!std::is_floating_point<T>::value) {
       // we expand FP data; hard to assert a specific histogram in that case.
       if(static_cast<uT>(i < N_VALUES)) {
         TS_ASSERT_EQUALS(histo[i], static_cast<uint64_t>(1));

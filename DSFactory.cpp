@@ -63,7 +63,7 @@ Dataset* DSFactory::Create(const std::string& filename,
   std::vector<int8_t> bytes(512);
   first_block(filename, bytes);
 
-  const std::tr1::weak_ptr<Dataset> ds = this->Reader(filename);
+  const std::weak_ptr<Dataset> ds = this->Reader(filename);
   if(!ds.expired()) {
     return ds.lock()->Create(filename, max_brick_size, verify);
   }
@@ -71,29 +71,29 @@ Dataset* DSFactory::Create(const std::string& filename,
                      __FILE__, __LINE__);
 }
 
-const std::tr1::weak_ptr<Dataset>
+const std::weak_ptr<Dataset>
 DSFactory::Reader(const std::string& filename) const
 {
   std::vector<int8_t> bytes(512);
   first_block(filename, bytes);
 
-  typedef std::list<std::tr1::shared_ptr<Dataset> > DSList;
+  typedef std::list<std::shared_ptr<Dataset> > DSList;
   for(DSList::const_iterator ds = datasets.begin(); ds != datasets.end(); ++ds)
   {
     MESSAGE("Checking if %s can open %s", (*ds)->Name(), filename.c_str());
     /// downcast to FileBackedDataset for now.  We could move CanRead
     /// up into Dataset, but there's currently no need and that doesn't
     /// make much sense.
-    const std::tr1::shared_ptr<FileBackedDataset> fds =
-      std::tr1::dynamic_pointer_cast<FileBackedDataset>(*ds);
+    const std::shared_ptr<FileBackedDataset> fds =
+      std::dynamic_pointer_cast<FileBackedDataset>(*ds);
     if(fds->CanRead(filename, bytes)) {
       return *ds;
     }
   }
-  return std::tr1::weak_ptr<Dataset>();
+  return std::weak_ptr<Dataset>();
 }
 
-void DSFactory::AddReader(std::tr1::shared_ptr<Dataset> ds)
+void DSFactory::AddReader(std::shared_ptr<Dataset> ds)
 {
   this->datasets.push_front(ds);
 }

@@ -17,7 +17,7 @@ class DataBlockListElem {
       m_iBlockSize(0)
     {}
     
-    DataBlockListElem(std::tr1::shared_ptr<DataBlock> block,
+    DataBlockListElem(std::shared_ptr<DataBlock> block,
                       bool bIsDirty, uint64_t iOffsetInFile,
                       uint64_t iBlockSize) :
       m_block(block),
@@ -27,7 +27,7 @@ class DataBlockListElem {
       m_iBlockSize(iBlockSize)
     {}
 
-  std::tr1::shared_ptr<DataBlock> m_block;
+  std::shared_ptr<DataBlock> m_block;
   bool m_bIsDirty;
   bool m_bHeaderIsDirty;
   uint64_t m_iOffsetInFile;
@@ -62,11 +62,11 @@ public:
   // file creation routines
   bool SetGlobalHeader(const GlobalHeader& GlobalHeader);
   bool AddConstDataBlock(const DataBlock* dataBlock);
-  bool AddDataBlock(std::tr1::shared_ptr<DataBlock> dataBlock);
+  bool AddDataBlock(std::shared_ptr<DataBlock> dataBlock);
   bool Create();
 
   // RW access routines
-  bool AppendBlockToFile(std::tr1::shared_ptr<DataBlock> dataBlock);
+  bool AppendBlockToFile(std::shared_ptr<DataBlock> dataBlock);
   bool DropBlockFromFile(size_t iBlockIndex);
 
   static bool IsUVFFile(const std::wstring& wstrFilename);
@@ -79,7 +79,7 @@ protected:
   uint64_t          m_iAccumOffsets;
 
   GlobalHeader m_GlobalHeader;
-  std::vector<std::tr1::shared_ptr<DataBlockListElem> > m_DataBlocks;
+  std::vector<std::shared_ptr<DataBlockListElem> > m_DataBlocks;
 
   bool ParseGlobalHeader(bool bVerify, std::string* pstrProblem = NULL);
   void ParseDataBlocks();
