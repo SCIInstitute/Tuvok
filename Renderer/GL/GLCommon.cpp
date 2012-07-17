@@ -5,6 +5,10 @@
 
 size_t gl_components(GLenum format) {
   switch(format) {
+    case GL_RED_INTEGER:
+    case GL_GREEN_INTEGER:
+    case GL_BLUE_INTEGER:
+    case GL_ALPHA_INTEGER:
     case GL_RED:
     case GL_GREEN:
     case GL_BLUE:
