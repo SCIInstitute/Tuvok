@@ -35,7 +35,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <boost/algorithm/minmax_element.hpp>
 #include "ExternalDataset.h"
 #include <Controller/Controller.h>
 

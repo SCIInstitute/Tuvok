@@ -44,7 +44,6 @@
 #include <functional>
 #include <limits>
 #include <type_traits>
-#include <boost/algorithm/minmax_element.hpp>
 #include "Basics/LargeRAWFile.h"
 #include "Basics/ctti.h"
 #include "UVF/Histogram1DDataBlock.h"
@@ -284,8 +283,8 @@ std::pair<T,T> io_minmax(DataSrc<T> ds, Histogram<T, sz> histogram,
     progress.notify("Computing value range",iPos);
 
     typedef typename std::vector<T>::const_iterator iterator;
-    std::pair<iterator,iterator> cur_mm = boost::minmax_element(data.begin(),
-                                                                data.end());
+    std::pair<iterator,iterator> cur_mm = std::minmax_element(data.begin(),
+                                                              data.end());
     t_minmax.first = std::min(t_minmax.first, *cur_mm.first);
     t_minmax.second = std::max(t_minmax.second, *cur_mm.second);
 
