@@ -102,13 +102,13 @@ void GLTexture1D::SetData(const void *pixels, bool bRestoreBinding) {
   if (bRestoreBinding && GLuint(prevTex) != m_iGLID) GL(glBindTexture(GL_TEXTURE_1D, GLuint(prevTex)));
 }
 
-std::tr1::shared_ptr<const void> GLTexture1D::GetData()
+std::shared_ptr<const void> GLTexture1D::GetData()
 {
   GL(glPixelStorei(GL_PACK_ALIGNMENT ,1));
   GL(glPixelStorei(GL_UNPACK_ALIGNMENT ,1));
   GL(glBindTexture(GL_TEXTURE_1D, m_iGLID));
 
-  std::tr1::shared_ptr<uint8_t> data(
+  std::shared_ptr<uint8_t> data(
     new uint8_t[gl_components(m_format) * 
                 gl_byte_width(m_type) * 
                 m_iSize], 
@@ -119,7 +119,7 @@ std::tr1::shared_ptr<const void> GLTexture1D::GetData()
   return data;
 }
 
-void GLTexture1D::GetData(std::tr1::shared_ptr<void> data)
+void GLTexture1D::GetData(std::shared_ptr<void> data)
 {
   GL(glPixelStorei(GL_PACK_ALIGNMENT ,1));
   GL(glPixelStorei(GL_UNPACK_ALIGNMENT ,1));

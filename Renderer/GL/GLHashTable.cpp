@@ -19,7 +19,7 @@ GLHashTable::GLHashTable(const UINTVECTOR3& maxBrickCount, uint32_t iTableSize, 
   m_iRehashCount(iRehashCount),
   m_pHashTableTex(NULL)
 {
-  m_rawData = std::tr1::shared_ptr<uint32_t>(
+  m_rawData = std::shared_ptr<uint32_t>(
     new uint32_t[m_iTableSize], 
     nonstd::DeleteArray<uint32_t>()
   );
