@@ -37,8 +37,8 @@
 #define TUVOK_TEST_CONTEXT_H
 
 #include "StdTuvokDefines.h"
+#include <cstdint>
 #include <exception>
-#include "boost/cstdint.hpp"
 
 namespace tuvok {
 
