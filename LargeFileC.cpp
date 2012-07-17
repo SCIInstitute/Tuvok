@@ -79,7 +79,7 @@ int seeko(FILE* strm, boost::uint64_t off, int whence) {
   return 0;
 }
 
-std::tr1::shared_ptr<const void> LargeFileC::rd(boost::uint64_t offset,
+std::shared_ptr<const void> LargeFileC::rd(boost::uint64_t offset,
                                                 size_t len)
 {
   if(!this->is_open()) {
@@ -90,18 +90,18 @@ std::tr1::shared_ptr<const void> LargeFileC::rd(boost::uint64_t offset,
     throw std::ios_base::failure("could not seek to correct file position");
   }
 
-  std::tr1::shared_ptr<char> data(new char[len], nonstd::DeleteArray<char>());
+  std::shared_ptr<char> data(new char[len], nonstd::DeleteArray<char>());
 
   size_t nitems = fread(data.get(), 1, len, this->fp);
   this->bytes_read = nitems;
 
   // we need to cast it to a 'const void' to return it...
-  std::tr1::shared_ptr<const void> mem =
-    std::tr1::static_pointer_cast<const void>(data);
+  std::shared_ptr<const void> mem =
+    std::static_pointer_cast<const void>(data);
   return mem;
 }
 
-void LargeFileC::wr(const std::tr1::shared_ptr<const void>& data,
+void LargeFileC::wr(const std::shared_ptr<const void>& data,
                     boost::uint64_t offset,
                     size_t len)
 {

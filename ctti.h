@@ -36,26 +36,22 @@
  * @todo see what can be removed in favor of C++11 definitions.
  */
 #include "StdDefines.h"
-#ifdef DETECTED_OS_WINDOWS
-# include <type_traits>
-#else
-# include <tr1/type_traits>
-#endif
+#include <type_traits>
 
 struct signed_tag {};
 struct unsigned_tag {};
 
 namespace {
 /// "Compile time type info"
-/// Metaprogramming type traits that we need but aren't in tr1.
-/// is_signed: tr1's is_signed only returns true for *integral* signed types..
+/// Metaprogramming type traits that we need but aren't in c++0x.
+/// is_signed: std::is_signed only returns true for *integral* signed types..
 ///            ridiculous.  so we use this as a replacement.
 /// size_type: unsigned variant of 'T'.
 /// signed_type: signed variant of 'T'.
 ///@{
 template <typename T> struct ctti_base {
-  enum { is_signed = std::tr1::is_signed<T>::value ||
-                     std::tr1::is_floating_point<T>::value };
+  enum { is_signed = std::is_signed<T>::value ||
+                     std::is_floating_point<T>::value };
 };
 template <typename T> struct ctti : ctti_base<T> { };
 

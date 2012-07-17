@@ -46,11 +46,10 @@
     defined(DETECTED_OS_APPLE) ||                                    \
     (defined(__GNUC__) && ((__GNUC__ == 4 && (__GNUC_MINOR__ == 0 || \
                                               __GNUC_MINOR__ == 1))))
-# include <cmath>
 #else
-# define USABLE_TR1
-# include <tr1/cmath>
+# define USABLE_TR1 1
 #endif
+#include <cmath>
 #ifdef _DEBUG
 # include <stdexcept>
 #endif
@@ -85,7 +84,7 @@ namespace MathTools {
                                                             (imax-imin)));
 #if defined(_DEBUG) && defined(USABLE_TR1)
     // Very useful while debugging, but too expensive for general use.
-    if(std::tr1::isnan(ret) || std::tr1::isinf(ret)) {
+    if(std::isnan(ret) || std::isinf(ret)) {
       throw std::range_error("NaN or infinity!");
     }
 #endif

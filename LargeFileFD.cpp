@@ -65,7 +65,7 @@ LargeFileFD::~LargeFileFD()
   }
 }
 
-std::tr1::shared_ptr<const void> LargeFileFD::rd(boost::uint64_t offset,
+std::shared_ptr<const void> LargeFileFD::rd(boost::uint64_t offset,
                                                  size_t len)
 {
   if(!this->is_open()) {
@@ -79,8 +79,8 @@ std::tr1::shared_ptr<const void> LargeFileFD::rd(boost::uint64_t offset,
   posix_fadvise(this->fd, offset+this->header_size, len, POSIX_FADV_WILLNEED);
 #endif
 
-  std::tr1::shared_ptr<char> data =
-    std::tr1::shared_ptr<char>(new char[len], nonstd::DeleteArray<char>());
+  std::shared_ptr<char> data =
+    std::shared_ptr<char>(new char[len], nonstd::DeleteArray<char>());
   ssize_t bytes;
   size_t completed = 0;
   do {
@@ -94,12 +94,12 @@ std::tr1::shared_ptr<const void> LargeFileFD::rd(boost::uint64_t offset,
 
   this->bytes_read = completed;
   // we need to cast it to a 'const void' to return it...
-  std::tr1::shared_ptr<const void> mem =
-    std::tr1::static_pointer_cast<const void>(data);
+  std::shared_ptr<const void> mem =
+    std::static_pointer_cast<const void>(data);
   return mem;
 }
 
-void LargeFileFD::wr(const std::tr1::shared_ptr<const void>& data,
+void LargeFileFD::wr(const std::shared_ptr<const void>& data,
                      boost::uint64_t offset,
                      size_t len)
 {

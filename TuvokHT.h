@@ -28,17 +28,13 @@
 #ifndef BASICS_HASHTABLE_H
 #define BASICS_HASHTABLE_H
 
-#ifdef _MSC_VER
-# include <unordered_map>
-#else
-# include <tr1/unordered_map>
-#endif
+#include <unordered_map>
 #include "tr1.h"
 
 namespace tuvok {
   template<typename From, typename To>
   struct Hash {
-    typedef std::tr1::unordered_map<From, To, std::equal_to<From> > Table;
+    typedef std::unordered_map<From, To, std::equal_to<From> > Table;
   };
 }
 

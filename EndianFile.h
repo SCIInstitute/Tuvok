@@ -58,8 +58,8 @@ class EndianFile {
     }
     template<typename T> void write(const T* v, size_t N=1) {
       if(this->big_endian != EndianConvert::IsBigEndian()) {
-        std::tr1::shared_ptr<void> mem =
-          std::tr1::shared_ptr<void>(new T[N]);
+        std::shared_ptr<void> mem =
+          std::shared_ptr<void>(new T[N]);
         std::transform(v, v+N, static_cast<T*>(mem.get()),
                        EndianConvert::Swap<T>);
         lf.wr(mem, N*sizeof(T));

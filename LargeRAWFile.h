@@ -159,12 +159,8 @@ protected:
   uint64_t      m_iHeaderSize;
 };
 
-#ifdef _MSC_VER
-# include <memory>
-#else
-# include <tr1/memory>
-#endif
+#include <memory>
 
-typedef std::tr1::shared_ptr<LargeRAWFile> LargeRAWFile_ptr;
+typedef std::shared_ptr<LargeRAWFile> LargeRAWFile_ptr;
 
 #endif // LARGERAWFILE_H

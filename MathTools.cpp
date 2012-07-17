@@ -91,7 +91,7 @@ uint32_t MathTools::NextPow2(uint32_t n, bool bReturn_ID_on_Pow2) {
 bool MathTools::NaN(float f)
 {
 #ifdef USABLE_TR1
-  return std::tr1::isnan(f);
+  return std::isnan(f);
 #elif defined(_MSC_VER)
   return _finite(f) == 0;
 #else

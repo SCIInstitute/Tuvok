@@ -63,17 +63,17 @@ LargeFile::LargeFile(const std::wstring fn,
 {
 }
 
-std::tr1::shared_ptr<const void> LargeFile::rd(size_t length)
+std::shared_ptr<const void> LargeFile::rd(size_t length)
 {
   // The other 'read' will take account of the header_size.
-  std::tr1::shared_ptr<const void> rv(this->rd(this->byte_offset, length));
+  std::shared_ptr<const void> rv(this->rd(this->byte_offset, length));
   this->byte_offset += length;
   return rv;
 }
 
 boost::uint64_t LargeFile::gcount() const { return this->bytes_read; }
 
-void LargeFile::wr(const std::tr1::shared_ptr<const void>& data,
+void LargeFile::wr(const std::shared_ptr<const void>& data,
                    size_t length)
 {
   this->wr(data, this->byte_offset, length);

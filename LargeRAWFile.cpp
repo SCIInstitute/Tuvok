@@ -1,9 +1,5 @@
+#include <memory>
 #include <sstream>
-#ifdef _MSC_VER
-# include <memory>
-#else
-# include <tr1/memory>
-#endif
 #include "LargeRAWFile.h"
 #include "nonstd.h"
 
@@ -272,7 +268,7 @@ bool LargeRAWFile::Copy(const std::wstring& wstrSource,
 
   uint64_t iFileSize = source.GetCurrentSize();
   uint64_t iCopySize = min(iFileSize,BLOCK_COPY_SIZE);
-  std::tr1::shared_ptr<unsigned char> pBuffer(
+  std::shared_ptr<unsigned char> pBuffer(
     new unsigned char[size_t(iCopySize)],
     nonstd::DeleteArray<unsigned char>()
   );

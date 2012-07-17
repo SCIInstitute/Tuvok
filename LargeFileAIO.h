@@ -28,11 +28,7 @@
 #ifndef BASICS_LARGEFILE_AIO_H
 #define BASICS_LARGEFILE_AIO_H
 
-#ifdef _MSC_VER
-# include <unordered_map>
-#else
-# include <tr1/unordered_map>
-#endif
+#include <unordered_map>
 #include "LargeFileFD.h"
 
 struct aiocb;
@@ -57,7 +53,7 @@ class LargeFileAIO : public LargeFileFD {
 
     /// reads a block of data, returns a pointer to it.  User must cast it to
     /// the type that makes sense for them.
-    virtual std::tr1::shared_ptr<const void> rd(boost::uint64_t offset,
+    virtual std::shared_ptr<const void> rd(boost::uint64_t offset,
                                                 size_t len);
     using LargeFile::read;
     using LargeFile::rd;
@@ -67,7 +63,7 @@ class LargeFileAIO : public LargeFileFD {
     virtual void enqueue(boost::uint64_t offset, size_t len);
 
     /// writes a block of data.
-    virtual void wr(const std::tr1::shared_ptr<const void>& data,
+    virtual void wr(const std::shared_ptr<const void>& data,
                     boost::uint64_t offset,
                     size_t len);
     using LargeFile::write;
@@ -80,8 +76,8 @@ class LargeFileAIO : public LargeFileFD {
 
     virtual void close();
 
-    typedef std::tr1::unordered_map<struct aiocb*,
-                                    std::tr1::shared_ptr<const void> > Reqs;
+    typedef std::unordered_map<struct aiocb*,
+                               std::shared_ptr<const void> > Reqs;
   private:
     LargeFileAIO(const LargeFileAIO&);
     LargeFileAIO& operator=(const LargeFileAIO&);

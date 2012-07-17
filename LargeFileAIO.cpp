@@ -78,7 +78,7 @@ namespace nonstd {
   };
 }
 
-std::tr1::shared_ptr<const void> LargeFileAIO::rd(boost::uint64_t offset,
+std::shared_ptr<const void> LargeFileAIO::rd(boost::uint64_t offset,
                                                   size_t len)
 {
   struct aiocb *cb;
@@ -89,7 +89,7 @@ std::tr1::shared_ptr<const void> LargeFileAIO::rd(boost::uint64_t offset,
   if(NULL == cb) {
     if((cb = submit_new_request(real_offset, len)) == NULL) {
       DEBUG("could not submit new request."); // .. so just bail.
-      return std::tr1::shared_ptr<const void>();
+      return std::shared_ptr<const void>();
     }
   }
   const struct aiocb* const cblist[1] = { cb };
@@ -114,7 +114,7 @@ std::tr1::shared_ptr<const void> LargeFileAIO::rd(boost::uint64_t offset,
   // Make sure they'll both get freed up; control block now, and the data will
   // be the return shared_ptr, so it's that ptr's responsibility to clean it
   // up.
-  std::tr1::shared_ptr<const void> mem = this->control.find(cb)->second;
+  std::shared_ptr<const void> mem = this->control.find(cb)->second;
   delete cb;
   this->control.erase(cb);
 
@@ -145,7 +145,7 @@ void LargeFileAIO::enqueue(boost::uint64_t offset, size_t len)
   submit_new_request(real_offset, len);
 }
 
-void LargeFileAIO::wr(const std::tr1::shared_ptr<const void>& data,
+void LargeFileAIO::wr(const std::shared_ptr<const void>& data,
                       boost::uint64_t offset,
                       size_t len)
 {
@@ -160,17 +160,17 @@ void LargeFileAIO::wr(const std::tr1::shared_ptr<const void>& data,
   cb->aio_offset = offset + this->header_size;
   cb->aio_nbytes = len;
 
-  std::tr1::shared_ptr<const void> saved_data;
+  std::shared_ptr<const void> saved_data;
   if(writes_copied) {
     // allocate a new buffer and hold on to that.
     int8_t* buf = new int8_t[len];
     ::memcpy(buf, data.get(), len);
     const void* bufv = static_cast<const void*>(buf);
-    saved_data = std::tr1::shared_ptr<const void>(
+    saved_data = std::shared_ptr<const void>(
       bufv, nonstd::DeleteArray<const void>()
     );
   } else {
-    saved_data = std::tr1::shared_ptr<const void>(data);
+    saved_data = std::shared_ptr<const void>(data);
   }
   // cast away the const.  We know the AIO op won't modify the data anyway --
   // it's a write operation.
@@ -262,7 +262,7 @@ struct aiocb* LargeFileAIO::submit_new_request(boost::uint64_t offset,
 
   cb->aio_fildes = this->fd;
   cb->aio_offset = offset;
-  std::tr1::shared_ptr<void> data(new int8_t[len],
+  std::shared_ptr<void> data(new int8_t[len],
                                   nonstd::DeleteArray<int8_t>());
   cb->aio_buf = data.get();
   cb->aio_nbytes = len;

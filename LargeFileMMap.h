@@ -50,12 +50,12 @@ class LargeFileMMap : public LargeFileFD {
 
     /// reads a block of data, returns a pointer to it.  User must cast it to
     /// the type that makes sense for them.
-    std::tr1::shared_ptr<const void> rd(boost::uint64_t offset, size_t len);
+    std::shared_ptr<const void> rd(boost::uint64_t offset, size_t len);
     using LargeFile::read;
     using LargeFile::rd;
 
     /// writes a block of data.
-    void wr(const std::tr1::shared_ptr<const void>& data,
+    void wr(const std::shared_ptr<const void>& data,
             boost::uint64_t offset, size_t len);
     using LargeFile::wr;
 
