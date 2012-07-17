@@ -52,6 +52,7 @@ public:
            GLenum intformat, unsigned int iSizePerElement,
            bool bHaveDepth=false, int iNumBuffers=1);
   virtual ~GLFBOTex(void);
+  virtual void SetViewport();
   virtual void Write(unsigned int iTargetBuffer=0, int iBuffer=0,
                      bool bCheckBuffer=true);
   virtual void Read(unsigned int iTargetUnit,int iBuffer=0);

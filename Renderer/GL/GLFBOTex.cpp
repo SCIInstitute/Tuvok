@@ -252,6 +252,10 @@ bool GLFBOTex::CheckFBO(const char* method) {
   }
 }
 
+void GLFBOTex::SetViewport() {
+    glViewport(0, 0, m_iSizeX, m_iSizeY);
+}
+
 /**
  * Lock texture for writing. Texture may not be bound any more!
  */
