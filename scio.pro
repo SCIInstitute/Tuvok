@@ -13,6 +13,7 @@ LIBS              = -Lexpressions -ltuvokexpr
 unix:LIBS        += -lz
 macx:LIBS        += -framework CoreFoundation
 win32:LIBS       += shlwapi.lib
+unix:QMAKE_CXXFLAGS += -std=c++0x
 unix:QMAKE_CXXFLAGS += -fno-strict-aliasing
 unix:QMAKE_CFLAGS += -fno-strict-aliasing
 

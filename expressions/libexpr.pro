@@ -6,6 +6,7 @@ DEFINES          += YY_NO_UNPUT _FILE_OFFSET_BITS=64
 TARGET            = tuvokexpr
 DEPENDPATH       += . ../../Basics ../
 INCLUDEPATH      += ../../ ../../Basics ../ ../3rdParty/boost
+unix:QMAKE_CXXFLAGS += -std=c++0x
 unix:QMAKE_CXXFLAGS += -fno-strict-aliasing
 unix:QMAKE_CFLAGS += -fno-strict-aliasing
 

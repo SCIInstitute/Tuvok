@@ -8,6 +8,7 @@ DEPENDPATH       += . ../../Basics ../
 INCLUDEPATH      += ../../ ../../Basics ../ ../3rdParty/boost
 macx:LIBS        += -framework CoreFoundation
 win32:LIBS       += shlwapi.lib
+unix:QMAKE_CXXFLAGS += -std=c++0x
 unix:QMAKE_CXXFLAGS += -fno-strict-aliasing
 unix:QMAKE_CFLAGS += -fno-strict-aliasing
 QTPLUGIN -= qgif qjpeg qtiff

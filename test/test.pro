@@ -11,6 +11,7 @@ QMAKE_LIBDIR     += ../../Build ../expressions
 LIBS             += -lTuvok -ltuvokexpr
 unix:LIBS        += -lz -lrt
 win32:LIBS       += shlwapi.lib
+unix:QMAKE_CXXFLAGS += -std=c++0x
 unix:QMAKE_CXXFLAGS += -fno-strict-aliasing
 unix:QMAKE_CFLAGS += -fno-strict-aliasing
 unix:CONFIG(debug, debug|release) {
