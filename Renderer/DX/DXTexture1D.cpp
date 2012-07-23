@@ -122,7 +122,7 @@ void DXTexture1D::SetData(const void *pData) {
   char* pcData = (char*)pData;
 
   void *pMapData;
-  pStagingTexture->Map(0, D3D10_MAP_WRITE, nullptr, &pMapData );
+  pStagingTexture->Map(0, D3D10_MAP_WRITE, 0, &pMapData );
   char *pStagingData = (char*)pMapData;
   size_t iDataSize = m_iSizePerElement * m_iSize;
   memcpy(pStagingData, pcData, iDataSize);

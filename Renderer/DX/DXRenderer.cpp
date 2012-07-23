@@ -54,7 +54,7 @@ DXRenderer::DXRenderer(MasterController* pMasterController, bool bUseOnlyPowerOf
   AbstrRenderer(pMasterController, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder),
   m_hWnd(nullptr),
   m_hInst(nullptr),
-  m_driverType(D3D10_DRIVER_TYPE_nullptr),
+  m_driverType(D3D10_DRIVER_TYPE_NULL),
   m_pd3dDevice(nullptr),
   m_pSwapChain(nullptr),
   m_pRenderTargetView(nullptr),

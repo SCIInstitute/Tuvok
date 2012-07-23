@@ -129,7 +129,7 @@ void DXTexture3D::SetData(const void *pData) {
   char* pcData = (char*)pData;
 
   D3D10_MAPPED_TEXTURE3D map;
-  pStagingTexture->Map(0, D3D10_MAP_WRITE, nullptr, &map );
+  pStagingTexture->Map(0, D3D10_MAP_WRITE, 0, &map );
   if (map.RowPitch   == m_iSizePerElement * m_iSizeX &&
       map.DepthPitch == m_iSizePerElement * m_iSizeX * m_iSizeY) {
     char *pStagingData = (char*)map.pData;

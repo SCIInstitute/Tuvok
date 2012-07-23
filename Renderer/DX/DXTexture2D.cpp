@@ -128,7 +128,7 @@ void DXTexture2D::SetData(const void *pData) {
   char* pcData = (char*)pData;
 
   D3D10_MAPPED_TEXTURE2D map;
-  pStagingTexture->Map(0, D3D10_MAP_WRITE, nullptr, &map );
+  pStagingTexture->Map(0, D3D10_MAP_WRITE, 0, &map );
   char *pStagingData = (char*)map.pData;
   if (map.RowPitch == m_iSizePerElement * m_iSizeX) {
     size_t iDataSize = m_iSizePerElement * m_iSizeX * m_iSizeY;
