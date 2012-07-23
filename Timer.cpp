@@ -53,7 +53,7 @@ Timer::Timer() {
 
 void Timer::Start() {
 #ifndef DETECTED_OS_WINDOWS
-  gettimeofday(&m_timeStart, nullptr);
+  gettimeofday(&m_timeStart, NULL);
 #else
   QueryPerformanceCounter(&m_timeStart);
 #endif
@@ -63,7 +63,7 @@ void Timer::Start() {
 double Timer::Elapsed() {
 #ifndef DETECTED_OS_WINDOWS
   struct timeval timeProbe;
-  gettimeofday(&timeProbe, nullptr);
+  gettimeofday(&timeProbe, NULL);
 
   return (timeProbe.tv_sec - m_timeStart.tv_sec) * 1000.0 +
          (timeProbe.tv_usec - m_timeStart.tv_usec) / 1000.0;
@@ -80,7 +80,7 @@ double Timer::Elapsed() {
 double Timer::Now() {
 #ifndef DETECTED_OS_WINDOWS
   struct timeval tm;
-  gettimeofday(&tm, nullptr);
+  gettimeofday(&tm, NULL);
   return tm.tv_sec + (tm.tv_usec/1000000);
 #else
   assert(1 == 0); /// @todo implement

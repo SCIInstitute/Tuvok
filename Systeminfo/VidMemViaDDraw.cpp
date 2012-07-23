@@ -26,13 +26,13 @@
 // Defines, and constants
 //-----------------------------------------------------------------------------
 #ifndef SAFE_DELETE
-#define SAFE_DELETE(p)       { if (p) { delete (p);     (p)=nullptr; } }
+#define SAFE_DELETE(p)       { if (p) { delete (p);     (p)=NULL; } }
 #endif
 #ifndef SAFE_DELETE_ARRAY
-#define SAFE_DELETE_ARRAY(p) { if (p) { delete[] (p);   (p)=nullptr; } }
+#define SAFE_DELETE_ARRAY(p) { if (p) { delete[] (p);   (p)=NULL; } }
 #endif
 #ifndef SAFE_RELEASE
-#define SAFE_RELEASE(p)      { if (p) { (p)->Release(); (p)=nullptr; } }
+#define SAFE_RELEASE(p)      { if (p) { (p)->Release(); (p)=NULL; } }
 #endif
 
 typedef HRESULT ( WINAPI* LPDIRECTDRAWCREATE )( GUID FAR *lpGUID, LPDIRECTDRAW FAR *lplpDD, IUnknown FAR *pUnkOuter );
@@ -64,14 +64,14 @@ BOOL WINAPI DDEnumCallbackEx( GUID FAR* lpGUID, LPSTR , LPSTR lpDriverName, LPVO
 //-----------------------------------------------------------------------------
 HRESULT GetVideoMemoryViaDirectDraw( HMONITOR hMonitor, DWORD* pdwAvailableVidMem )
 {
-    LPDIRECTDRAW pDDraw = nullptr;
-    LPDIRECTDRAWENUMERATEEXA pDirectDrawEnumerateEx = nullptr;
+    LPDIRECTDRAW pDDraw = NULL;
+    LPDIRECTDRAWENUMERATEEXA pDirectDrawEnumerateEx = NULL;
     HRESULT hr;
     bool bGotMemory = false;
     *pdwAvailableVidMem = 0;
 
     HINSTANCE hInstDDraw;
-    LPDIRECTDRAWCREATE pDDCreate = nullptr;
+    LPDIRECTDRAWCREATE pDDCreate = NULL;
 
     hInstDDraw = LoadLibrary( L"ddraw.dll" );
     if( hInstDDraw )
@@ -90,7 +90,7 @@ HRESULT GetVideoMemoryViaDirectDraw( HMONITOR hMonitor, DWORD* pdwAvailableVidMe
         pDDCreate = ( LPDIRECTDRAWCREATE )GetProcAddress( hInstDDraw, "DirectDrawCreate" );
         if( pDDCreate )
         {
-            pDDCreate( &match.guid, &pDDraw, nullptr );
+            pDDCreate( &match.guid, &pDDraw, NULL );
 
             LPDIRECTDRAW7 pDDraw7;
             if( SUCCEEDED( pDDraw->QueryInterface( IID_IDirectDraw7, ( VOID** )&pDDraw7 ) ) )
@@ -98,7 +98,7 @@ HRESULT GetVideoMemoryViaDirectDraw( HMONITOR hMonitor, DWORD* pdwAvailableVidMe
                 DDSCAPS2 ddscaps;
                 ZeroMemory( &ddscaps, sizeof( DDSCAPS2 ) );
                 ddscaps.dwCaps = DDSCAPS_VIDEOMEMORY | DDSCAPS_LOCALVIDMEM;
-                hr = pDDraw7->GetAvailableVidMem( &ddscaps, pdwAvailableVidMem, nullptr );
+                hr = pDDraw7->GetAvailableVidMem( &ddscaps, pdwAvailableVidMem, NULL );
                 if( SUCCEEDED( hr ) )
                     bGotMemory = true;
                 pDDraw7->Release();
@@ -129,7 +129,7 @@ HRESULT GetDeviceIDFromHMonitor( HMONITOR hm, WCHAR* strDeviceID, int cchDeviceI
         ZeroMemory( &match, sizeof( DDRAW_MATCH ) );
         match.hMonitor = hm;
 
-        LPDIRECTDRAWENUMERATEEXA pDirectDrawEnumerateEx = nullptr;
+        LPDIRECTDRAWENUMERATEEXA pDirectDrawEnumerateEx = NULL;
         pDirectDrawEnumerateEx = ( LPDIRECTDRAWENUMERATEEXA )GetProcAddress( hInstDDraw, "DirectDrawEnumerateExA" );
 
         if( pDirectDrawEnumerateEx )
@@ -143,7 +143,7 @@ HRESULT GetDeviceIDFromHMonitor( HMONITOR hm, WCHAR* strDeviceID, int cchDeviceI
             ZeroMemory( &dispdev, sizeof( dispdev ) );
             dispdev.cb = sizeof( dispdev );
 
-            while( EnumDisplayDevicesA( nullptr, iDevice, ( DISPLAY_DEVICEA* )&dispdev, 0 ) )
+            while( EnumDisplayDevicesA( NULL, iDevice, ( DISPLAY_DEVICEA* )&dispdev, 0 ) )
             {
                 // Skip devices that are monitors that echo another display
                 if( dispdev.StateFlags & DISPLAY_DEVICE_MIRRORING_DRIVER )

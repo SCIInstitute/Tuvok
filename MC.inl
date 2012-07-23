@@ -376,8 +376,8 @@ template <class T> int MarchingCubes<T>::ms_triTable[256][16] =
 template <class T> MarchingCubes<T>::MarchingCubes(void)
 {
   m_vVolSize    = INTVECTOR3(0,0,0);
-  m_pTVolume    = nullptr;
-  m_Isosurface  = nullptr;
+  m_pTVolume    = NULL;
+  m_Isosurface  = NULL;
 }
 
 template <class T> MarchingCubes<T>::~MarchingCubes(void)

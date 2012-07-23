@@ -235,11 +235,11 @@ namespace SysTools {
   bool GetFilenameDialog(const std::string& lpstrTitle,
                          const CHAR* lpstrFilter,
                          std::string &filename, const bool save,
-                         HWND owner=nullptr, DWORD* nFilterIndex=nullptr);
+                         HWND owner=NULL, DWORD* nFilterIndex=NULL);
   bool GetFilenameDialog(const std::wstring& lpstrTitle,
                          const WCHAR* lpstrFilter,
                          std::wstring &filename, const bool save,
-                         HWND owner=nullptr, DWORD* nFilterIndex=nullptr);
+                         HWND owner=NULL, DWORD* nFilterIndex=NULL);
 #endif
 
   class CmdLineParams {
