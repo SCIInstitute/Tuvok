@@ -538,8 +538,8 @@ void GLTreeRaycaster::RenderHQMIPPreLoop(RenderRegion2D &region) {
   // TODO
 }
 
-void GLTreeRaycaster::RenderHQMIPInLoop(const RenderRegion2D &renderRegion,
-                                    const Brick& b) {
+void GLTreeRaycaster::RenderHQMIPInLoop(const RenderRegion2D &,
+                                        const Brick&) {
   // TODO
 }
 
