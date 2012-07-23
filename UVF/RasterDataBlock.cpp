@@ -531,13 +531,13 @@ bool RasterDataBlock::Verify(string* pstrProblem) const {
      ulLODLevelCount.size() != ulLODIndexCount ||
      ulElementDimensionSize.size() != ulElementDimension) {
 
-      if (pstrProblem != NULL) *pstrProblem = "RasterDataBlock::Verify ulDomainDimension mismatch";
+      if (pstrProblem != nullptr) *pstrProblem = "RasterDataBlock::Verify ulDomainDimension mismatch";
       return false;
   }
 
   for (size_t i = 0;i<size_t(ulDomainDimension);i++) {
     if (ulBrickSize[i] <= ulBrickOverlap[i]) {
-      if (pstrProblem != NULL) {
+      if (pstrProblem != nullptr) {
         stringstream s;
         s << "RasterDataBlock::Verify ulBrickSize[" << i << "] > ulBrickOverlap[" << i << "]";
         *pstrProblem = s.str();
@@ -552,7 +552,7 @@ bool RasterDataBlock::Verify(string* pstrProblem) const {
       ulElementBitSize[i].size() != ulElementDimensionSize[i] ||
       ulElementMantissa[i].size() != ulElementDimensionSize[i] ||
       bSignedElement[i].size() != ulElementDimensionSize[i]) {
-        if (pstrProblem != NULL) {
+        if (pstrProblem != nullptr) {
           stringstream s;
           s << "RasterDataBlock::Verify ulElementDimensionSize[" << i << "] mismatch";
           *pstrProblem = s.str();
@@ -566,7 +566,7 @@ bool RasterDataBlock::Verify(string* pstrProblem) const {
 }
 
 bool RasterDataBlock::Verify(uint64_t iSizeofData, string* pstrProblem) const {
-  if (pstrProblem != NULL && iSizeofData != UVF_INVALID) *pstrProblem = "RasterDataBlock::Verify iSizeofData != UVF_INVALID";
+  if (pstrProblem != nullptr && iSizeofData != UVF_INVALID) *pstrProblem = "RasterDataBlock::Verify iSizeofData != UVF_INVALID";
 
   // ComputeDataSize calls Verify() which does all the other checks
   return (iSizeofData != UVF_INVALID) && (ComputeDataSize(pstrProblem) == iSizeofData);
@@ -815,8 +815,8 @@ void RasterDataBlock::SubSample(LargeRAWFile_ptr pSourceFile,
   vector<uint64_t> sourceElementsSerialized;
   sourceElementsSerialized.resize(vOffsetVector.size());
 
-  unsigned char* pSourceData = NULL;
-  unsigned char* pTargetData = NULL;
+  unsigned char* pSourceData = nullptr;
+  unsigned char* pTargetData = nullptr;
 
   uint64_t iSourceMinWindowSize = vOffsetVector[vOffsetVector.size()-1]+1;
   uint64_t iSourceWindowSize = iSourceMinWindowSize+(sourceSize[0]-vReduction[0]);

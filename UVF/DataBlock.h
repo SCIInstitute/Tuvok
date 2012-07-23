@@ -14,7 +14,7 @@ public:
   virtual ~DataBlock();
   virtual DataBlock& operator=(const DataBlock& other);
   virtual bool Verify(uint64_t iSizeofData,
-                      std::string* pstrProblem = NULL) const;
+                      std::string* pstrProblem = nullptr) const;
 
   UVFTables::BlockSemanticTable GetBlockSemantic() const {
     return ulBlockSemantics;

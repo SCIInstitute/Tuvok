@@ -171,7 +171,7 @@ bool GeometryDataBlock::Verify(uint64_t iSizeofData, string* pstrProblem) const
   uint64_t iCorrectSize = ComputeDataSize();
   bool bResult = iCorrectSize == iSizeofData;
 
-  if (!bResult && pstrProblem != NULL)  {
+  if (!bResult && pstrProblem != nullptr)  {
     stringstream s;
     s << "GeometryDataBlock::Verify: size mismatch. Should be " << iCorrectSize << " but parameter was " << iSizeofData << ".";
     *pstrProblem = s.str();

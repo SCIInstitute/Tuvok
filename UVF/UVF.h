@@ -49,7 +49,7 @@ public:
   virtual ~UVF(void);
 
   bool Open(bool bMustBeSameVersion=true, bool bVerify=true,
-            bool bReadWrite=false, std::string* pstrProblem = NULL);
+            bool bReadWrite=false, std::string* pstrProblem = nullptr);
   void Close();
 
   const GlobalHeader& GetGlobalHeader() const {return m_GlobalHeader;}
@@ -81,11 +81,11 @@ protected:
   GlobalHeader m_GlobalHeader;
   std::vector<std::shared_ptr<DataBlockListElem> > m_DataBlocks;
 
-  bool ParseGlobalHeader(bool bVerify, std::string* pstrProblem = NULL);
+  bool ParseGlobalHeader(bool bVerify, std::string* pstrProblem = nullptr);
   void ParseDataBlocks();
   static bool VerifyChecksum(LargeRAWFile_ptr streamFile,
                              GlobalHeader& globalHeader,
-                             std::string* pstrProblem = NULL);
+                             std::string* pstrProblem = nullptr);
   static std::vector<unsigned char> ComputeChecksum(
     LargeRAWFile_ptr streamFile,
     UVFTables::ChecksumSemanticTable eChecksumSemanticsEntry

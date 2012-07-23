@@ -135,7 +135,7 @@ void UVF::Close() {
 
 bool UVF::ParseGlobalHeader(bool bVerify, std::string* pstrProblem) {
   if (m_streamFile->GetCurrentSize() < GlobalHeader::GetMinSize() + 8) {
-    if (pstrProblem!=NULL) (*pstrProblem) = "file to small to be a UVF file";
+    if (pstrProblem!=nullptr) (*pstrProblem) = "file to small to be a UVF file";
     return false;
   }
 
@@ -143,7 +143,7 @@ bool UVF::ParseGlobalHeader(bool bVerify, std::string* pstrProblem) {
   m_streamFile->ReadRAW(pData, 8);
 
   if (pData[0] != 'U' || pData[1] != 'V' || pData[2] != 'F' || pData[3] != '-' || pData[4] != 'D' || pData[5] != 'A' || pData[6] != 'T' || pData[7] != 'A') {
-    if (pstrProblem!=NULL) (*pstrProblem) = "file magic not found";
+    if (pstrProblem!=nullptr) (*pstrProblem) = "file magic not found";
     return false;
   }
   
@@ -218,7 +218,7 @@ bool UVF::VerifyChecksum(LargeRAWFile_ptr streamFile, GlobalHeader& globalHeader
   vector<unsigned char> vecActualCheckSum = ComputeChecksum(streamFile, globalHeader.ulChecksumSemanticsEntry);
 
   if (vecActualCheckSum.size() != globalHeader.vcChecksum.size()) {
-    if (pstrProblem != NULL)  {
+    if (pstrProblem != nullptr)  {
       stringstream s;
       string strActual = "", strFile = "";
       for (size_t i = 0;i<vecActualCheckSum.size();i++) strActual += vecActualCheckSum[i];
@@ -232,7 +232,7 @@ bool UVF::VerifyChecksum(LargeRAWFile_ptr streamFile, GlobalHeader& globalHeader
 
   for (size_t i = 0;i<vecActualCheckSum.size();i++) 
     if (vecActualCheckSum[i] != globalHeader.vcChecksum[i]) {      
-      if (pstrProblem != NULL)  {
+      if (pstrProblem != nullptr)  {
         stringstream s;
         string strActual = "", strFile = "";
         for (size_t j = 0;j<vecActualCheckSum.size();j++) strActual += vecActualCheckSum[j];
