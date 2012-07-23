@@ -14,6 +14,7 @@ QT               += opengl
 LIBS             += -lTuvok -ltuvokexpr -lz
 unix:LIBS        += -lGL -lX11
 macx:LIBS        += -lX11 -framework CoreFoundation
+unix:QMAKE_CXXFLAGS += -std=c++0x
 unix:QMAKE_CXXFLAGS += -fno-strict-aliasing -g
 unix:QMAKE_CFLAGS += -fno-strict-aliasing -g
 unix:!macx:LIBS  += -lGLU
