@@ -49,10 +49,8 @@ exists($$PRL) {
 # If the PRL config contains the `shared' configuration, then the installed
 # Qt is shared.  In that case, disable the image plugins.
 contains(QMAKE_PRL_CONFIG, shared) {
-  message("Shared build, ensuring there will be image plugins linked in.")
   QTPLUGIN -= qgif qjpeg qtiff
 } else {
-  message("Static build, forcing image plugins to get loaded.")
   QTPLUGIN += qgif qjpeg qtiff
 }
 
