@@ -56,10 +56,10 @@ GLSBVR::GLSBVR(MasterController* pMasterController,
              bDisableBorder)
 {
   m_bSupportsMeshes = true;
-  m_pProgram1DTransMesh[0] = nullptr;
-  m_pProgram1DTransMesh[1] = nullptr;
-  m_pProgram2DTransMesh[0] = nullptr;
-  m_pProgram2DTransMesh[1] = nullptr;
+  m_pProgram1DTransMesh[0] = NULL;
+  m_pProgram1DTransMesh[1] = NULL;
+  m_pProgram2DTransMesh[0] = NULL;
+  m_pProgram2DTransMesh[1] = NULL;
 }
 
 GLSBVR::~GLSBVR() {
@@ -95,81 +95,81 @@ bool GLSBVR::LoadShaders() {
 
   if(!LoadAndVerifyShader(&m_pProgram1DTrans[0], m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
-                          nullptr,
+                          NULL,
                           "Volume3D.glsl",      // SampleVolume
                           tfqn.c_str(),         // VRender1D
                           bias.c_str(),
                           "VRender1DProxy.glsl",
                           "FTB.glsl",           // TraversalOrderDepColor
-                          "GLSBVR-1D-FS.glsl", nullptr) ||
+                          "GLSBVR-1D-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTrans[1], m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
-                          nullptr,                          
+                          NULL,                          
                           "Volume3D.glsl",      // SampleVolume
                           tfqnLit.c_str(),      // VRender1DLit
                           "lighting.glsl",      // Lighting
                           "FTB.glsl",           // TraversalOrderDepColor
-                          "GLSBVR-1D-light-FS.glsl", nullptr) ||
+                          "GLSBVR-1D-light-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[0], m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
-                          nullptr,
+                          NULL,
                           "Volume3D.glsl",      // SampleVolume, ComputeGradient
                           "FTB.glsl",           // TraversalOrderDepColor
-                          "GLSBVR-2D-FS.glsl", nullptr) ||
+                          "GLSBVR-2D-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[1], m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
-                          nullptr,
+                          NULL,
                           "Volume3D.glsl",      // SampleVolume, ComputeGradient
                           "lighting.glsl",      // Lighting
                           "FTB.glsl",           // TraversalOrderDepColor
-                          "GLSBVR-2D-light-FS.glsl", nullptr) ||
+                          "GLSBVR-2D-light-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramHQMIPRot, m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
-                          nullptr,
+                          NULL,
                           "Volume3D.glsl",      // SampleVolume
-                          "GLSBVR-MIP-Rot-FS.glsl", nullptr) ||
+                          "GLSBVR-MIP-Rot-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramIso, m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
-                          nullptr,
+                          NULL,
                           "Volume3D.glsl",      // SampleVolume, ComputeNormal
-                          "GLSBVR-ISO-FS.glsl", nullptr) ||
+                          "GLSBVR-ISO-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramColor, m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
-                          nullptr,
+                          NULL,
                           "Volume3D.glsl",      // SampleVolume, ComputeNormal
-                          "GLSBVR-Color-FS.glsl", nullptr) ||
+                          "GLSBVR-Color-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTransMesh[0], m_vShaderSearchDirs,
                           "GLSBVR-Mesh-VS.glsl",
-                          nullptr,
+                          NULL,
                           "Volume3D.glsl",      // SampleVolume
                           tfqn.c_str(),         // VRender1D
                           bias.c_str(),
                           "FTB.glsl",           // TraversalOrderDepColor
                           "lighting.glsl",      // Lighting (for Mesh)
                           "VRender1DProxy.glsl",
-                          "GLSBVR-Mesh-1D-FS.glsl", nullptr) ||
+                          "GLSBVR-Mesh-1D-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTransMesh[1], m_vShaderSearchDirs,
                           "GLSBVR-Mesh-VS.glsl",
-                          nullptr,
+                          NULL,
                           "Volume3D.glsl",      // SampleVolume
                           tfqnLit.c_str(),      // VRender1DLit
                           "lighting.glsl",      // Lighting
                           "FTB.glsl",           // TraversalOrderDepColor
-                          "GLSBVR-Mesh-1D-light-FS.glsl", nullptr) ||
+                          "GLSBVR-Mesh-1D-light-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTransMesh[0], m_vShaderSearchDirs,
                           "GLSBVR-Mesh-VS.glsl",
-                          nullptr,
+                          NULL,
                           "Volume3D.glsl",      // SampleVolume, ComputeNormal
                           "lighting.glsl",      // Lighting (for Mesh)
                           "FTB.glsl",           // TraversalOrderDepColor
-                          "GLSBVR-Mesh-2D-FS.glsl", nullptr) ||
+                          "GLSBVR-Mesh-2D-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTransMesh[1], m_vShaderSearchDirs,
                           "GLSBVR-Mesh-VS.glsl",
-                          nullptr,
+                          NULL,
                           "Volume3D.glsl",      // SampleVolume
                           "lighting.glsl",      // Lighting
                           "FTB.glsl",           // TraversalOrderDepColor
-                          "GLSBVR-Mesh-2D-light-FS.glsl", nullptr)) {
+                          "GLSBVR-Mesh-2D-light-FS.glsl", NULL)) {
       Cleanup();
       T_ERROR("Error loading a shader.");
       return false;
@@ -338,7 +338,7 @@ void GLSBVR::Render3DPreLoop(const RenderRegion3D&) {
 }
 
 
-#define BUFFER_OFFSET(i) ((char *)nullptr + (i))
+#define BUFFER_OFFSET(i) ((char *)NULL + (i))
 GLsizei iStructSize = GLsizei(sizeof(VERTEX_FORMAT));
 
 void GLSBVR::RenderProxyGeometry() const {

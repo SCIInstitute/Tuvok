@@ -234,7 +234,7 @@ private:
 
       // The function table that called us on the top of the stack.
       int consTable = 1;
-      typename LuaCFunExec<FunPtr>::returnType r = nullptr;
+      typename LuaCFunExec<FunPtr>::returnType r = NULL;
 
       FunPtr fp = reinterpret_cast<FunPtr>(                                   //
           lua_touserdata(L, lua_upvalueindex(1)));                            //
@@ -282,7 +282,7 @@ private:
       ss->endCommand();
 
       // Check to see if the function succeeded.
-      if (r != nullptr)
+      if (r != NULL)
       {
         postExecSuccess(ss, inst);
         // Call registration fptr.
@@ -343,7 +343,7 @@ private:
 
       // The function table that called us on the top of the stack.
       int consTable = 1;
-      typename LuaCFunExec<FunPtr>::returnType r = nullptr;
+      typename LuaCFunExec<FunPtr>::returnType r = NULL;
 
       FunPtr fp = *static_cast<FunPtr*>(lua_touserdata(L,                     //
                                                        lua_upvalueindex(1))); //
@@ -393,7 +393,7 @@ private:
       }
       ss->endCommand();
 
-      if (r != nullptr)
+      if (r != NULL)
       {
         postExecSuccess(ss, inst);
         // Call registration fptr.

@@ -137,10 +137,10 @@ namespace gl {
                           GLuint* objs) {
     
     // workaround for broken GL implementations
-    // some implementations crash if count is a nullptr pointer
+    // some implementations crash if count is a NULL pointer
     // althougth this is perfectly valid according to the spec
     GLsizei dummyCount;   
-    if (count == nullptr) count = &dummyCount;
+    if (count == NULL) count = &dummyCount;
 
     if(arb) {
       glGetAttachedObjectsARB(static_cast<GLhandleARB>(program), mx, count,
@@ -207,7 +207,7 @@ static void detach_shaders(GLuint program)
   if(num_shaders > 0) {
     // get the shader IDs
     std::vector<GLuint> shaders(num_shaders);    
-    gl::GetAttachedShaders(program, num_shaders, nullptr, &shaders[0]);
+    gl::GetAttachedShaders(program, num_shaders, NULL, &shaders[0]);
     if((err = glGetError()) != GL_NO_ERROR) {
       WARNING("Error obtaining the shader IDs attached to program %u: %#x",
               static_cast<unsigned>(program), static_cast<unsigned>(err));
@@ -272,7 +272,7 @@ bool GLSLProgram::Initialize(void) {
   // static var to true) but failed to do so properly
 #ifdef GLSL_DEBUG
   else {
-    if (glMultiTexCoord2f==nullptr) {
+    if (glMultiTexCoord2f==NULL) {
       T_ERROR("GLEW must be initialized.  "
               "Set GLSLProgram::m_bGlewInitialized = false "
               "in GLSLProgram.cpp if you want this class to do it for you");
@@ -380,7 +380,7 @@ static bool attachshader(GLuint program, const std::string& source,
         // cap err length, for crazy drivers.
         log_length = std::min(static_cast<GLint>(4096), log_length);
         std::vector<GLchar> log(log_length);
-        glGetShaderInfoLog(sh, static_cast<GLsizei>(log.size()), nullptr, &log[0]);
+        glGetShaderInfoLog(sh, static_cast<GLsizei>(log.size()), NULL, &log[0]);
         errmsg << &log[0];
       }
 
@@ -591,7 +591,7 @@ GLuint GLSLProgram::LoadShader(const char *ShaderDesc, GLenum Type, GLSLPROGRAM_
   bool bError=false;
   if (m_bGLUseARB) {
     hShader = glCreateShaderObjectARB(Type);
-    glShaderSourceARB(hShader,1,(const GLchar**)&pcShader,nullptr); // upload null-terminated shader
+    glShaderSourceARB(hShader,1,(const GLchar**)&pcShader,NULL); // upload null-terminated shader
     glCompileShaderARB(hShader);
 
     // Check for errors
@@ -602,7 +602,7 @@ GLuint GLSLProgram::LoadShader(const char *ShaderDesc, GLenum Type, GLSLPROGRAM_
   } else {
     hShader = glCreateShader(Type);
     // upload null-terminated shader
-    glShaderSource(hShader,1,(const char**)&pcShader,nullptr);
+    glShaderSource(hShader,1,(const char**)&pcShader,NULL);
     glCompileShader(hShader);
 
     // Check for compile status
@@ -662,18 +662,18 @@ void GLSLProgram::Enable(void) {
  */
 void GLSLProgram::Disable(void) {
   // opengl may not be enabed yet so be careful calling gl functions
- if (glUseProgramObjectARB != nullptr || glUseProgram != nullptr) gl::UseProgram(0);
+ if (glUseProgramObjectARB != NULL || glUseProgram != NULL) gl::UseProgram(0);
 }
 
 
 /**
  * Checks and handles glErrors.
  * This routine is verbose when run with GLSL_DEBUG defined, only.
- * If called with nullptr as parameter, queries glGetError() and returns true if glGetError() did not return GL_NO_ERROR.
- * If called with a non-nullptr parameter, queries glGetError() and concatenates pcError and the verbosed glError.
+ * If called with NULL as parameter, queries glGetError() and returns true if glGetError() did not return GL_NO_ERROR.
+ * If called with a non-NULL parameter, queries glGetError() and concatenates pcError and the verbosed glError.
  * If in debug mode, the error is output to stderr, otherwise it is silently ignored.
- * \param pcError first part of an error message. May be nullptr.
- * \param pcAdditional additional part of error message. May be nullptr.
+ * \param pcError first part of an error message. May be NULL.
+ * \param pcAdditional additional part of error message. May be NULL.
  * \return bool specifying if an error occured (true) or not (false)
  * \warning uses glGetError()
  * \author <a href="mailto:jens.schneider@in.tum.de">Jens Schneider</a>
@@ -686,7 +686,7 @@ bool GLSLProgram::CheckGLError(const char*, const char*) const {
 #else
 bool GLSLProgram::CheckGLError(const char *pcError,
                                const char *pcAdditional) const {
-  if (pcError==nullptr) {  // Simply check for error, true if an error occured.
+  if (pcError==NULL) {  // Simply check for error, true if an error occured.
 
     // is there and error in the stack
     bool bError = glGetError()!=GL_NO_ERROR ;

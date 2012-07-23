@@ -108,23 +108,23 @@ ShaderDescriptor ShaderDescriptor::Create(
   va_start(args, directories);
 
   const char* filename;
-  // we expect two nullptrs: first terminates vertex list, second fragment list.
+  // we expect two NULLs: first terminates vertex list, second fragment list.
   do {
     filename = va_arg(args, const char*);
-    if(filename != nullptr) {
+    if(filename != NULL) {
       rv.si->vertex.push_back(std::make_pair(std::string(filename),
                               SHADER_VERTEX_DISK));
     }
-  } while(filename != nullptr);
+  } while(filename != NULL);
 
   // now second: fragment shaders.
   do {
     filename = va_arg(args, const char*);
-    if(filename != nullptr) {
+    if(filename != NULL) {
       rv.si->fragment.push_back(std::make_pair(std::string(filename),
                                 SHADER_FRAGMENT_DISK));
     }
-  } while(filename != nullptr);
+  } while(filename != NULL);
   va_end(args);
 
   // now try to clean up all those paths.

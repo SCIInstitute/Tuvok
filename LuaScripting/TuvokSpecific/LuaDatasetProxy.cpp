@@ -49,23 +49,23 @@ namespace tuvok
 
 LuaDatasetProxy::LuaDatasetProxy()
 {
-  mReg = nullptr;
+  mReg = NULL;
 }
 
 LuaDatasetProxy::~LuaDatasetProxy()
 {
-  if (mReg != nullptr)
+  if (mReg != NULL)
     delete mReg;
 }
 
 void LuaDatasetProxy::bindDataset(Dataset* ds)
 {
-  if (mReg == nullptr)
+  if (mReg == NULL)
     throw LuaError("Unable to bind dataset, no class registration available.");
 
   mReg->clearProxyFunctions();
 
-  if (ds != nullptr)
+  if (ds != NULL)
   {
     // Register dataset functions using ds.
     std::string id;
@@ -76,7 +76,7 @@ void LuaDatasetProxy::bindDataset(Dataset* ds)
 
     // Attempt to cast the dataset to a file backed dataset.
     FileBackedDataset* fileDataset = dynamic_cast<FileBackedDataset*>(ds);
-    if (fileDataset != nullptr)
+    if (fileDataset != NULL)
     {
       id = mReg->functionProxy(fileDataset, &FileBackedDataset::Filename,
                                "path", "Full path to the dataset.", false);

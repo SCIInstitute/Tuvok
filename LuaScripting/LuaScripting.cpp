@@ -96,8 +96,8 @@ const char* LuaScripting::TBL_MD_PROV_EXEMPT    = "provExempt";
 const char* LuaScripting::TBL_MD_NUM_PARAMS     = "numParams";
 const char* LuaScripting::TBL_MD_UNDO_FUNC      = "undoHook";
 const char* LuaScripting::TBL_MD_REDO_FUNC      = "redoHook";
-const char* LuaScripting::TBL_MD_nullptr_UNDO      = "nullUndo";
-const char* LuaScripting::TBL_MD_nullptr_REDO      = "nullRedo";
+const char* LuaScripting::TBL_MD_NULL_UNDO      = "nullUndo";
+const char* LuaScripting::TBL_MD_NULL_REDO      = "nullRedo";
 const char* LuaScripting::TBL_MD_PARAM_DESC     = "tblParamDesc";
 
 const char* LuaScripting::PARAM_DESC_NAME_SUFFIX = "n";
@@ -127,9 +127,9 @@ LuaScripting::LuaScripting()
 , mClassCons(new LuaClassConstructor(this))
 , mVerboseMode(false)
 {
-  mL = lua_newstate(luaInternalAlloc, nullptr);
+  mL = lua_newstate(luaInternalAlloc, NULL);
 
-  if (mL == nullptr) throw LuaError("Failed to initialize Lua.");
+  if (mL == NULL) throw LuaError("Failed to initialize Lua.");
 
   lua_atpanic(mL, &luaPanic);
   luaL_openlibs(mL);
@@ -250,7 +250,7 @@ void* LuaScripting::luaInternalAlloc(void* /*ud*/, void* ptr, size_t /*osize*/,
   if (nsize == 0)
   {
     free(ptr);
-    return nullptr;
+    return NULL;
   }
   else
   {
@@ -2354,7 +2354,7 @@ void LuaScripting::setNullUndoFun(const std::string& name)
   }
 
   lua_pushboolean(mL, 1);
-  lua_setfield(mL, -2, TBL_MD_nullptr_UNDO);
+  lua_setfield(mL, -2, TBL_MD_NULL_UNDO);
 
   lua_pop(mL, 1);
 }
@@ -2373,7 +2373,7 @@ void LuaScripting::setNullRedoFun(const std::string& name)
   }
 
   lua_pushboolean(mL, 1);
-  lua_setfield(mL, -2, TBL_MD_nullptr_REDO);
+  lua_setfield(mL, -2, TBL_MD_NULL_REDO);
 
   lua_pop(mL, 1);
 }
@@ -2436,7 +2436,7 @@ static int l_dir (lua_State *L)
 
   // try to open the given directory
   *d = opendir(path);
-  if (*d == nullptr)  // error opening the directory?
+  if (*d == NULL)  // error opening the directory?
     luaL_error(L, "cannot open %s: %s", path,
                                         strerror(errno));
 
@@ -2451,7 +2451,7 @@ static int dir_iter (lua_State *L)
 {
   DIR *d = *(DIR **)lua_touserdata(L, lua_upvalueindex(1));
   struct dirent *entry;
-  if ((entry = readdir(d)) != nullptr) {
+  if ((entry = readdir(d)) != NULL) {
     lua_pushstring(L, entry->d_name);
     return 1;
   }

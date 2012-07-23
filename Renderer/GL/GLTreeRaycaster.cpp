@@ -27,21 +27,21 @@ GLTreeRaycaster::GLTreeRaycaster(MasterController* pMasterController,
              bDownSampleTo8Bits, 
              bDisableBorder),
 
-  m_pglHashTable(nullptr),
-  m_pVolumePool(nullptr),
+  m_pglHashTable(NULL),
+  m_pVolumePool(NULL),
 
-  m_pFBORayEntry(nullptr),
-  m_pProgramRenderFrontFaces(nullptr),
-  m_pProgramRenderFrontFacesNT(nullptr),
-  m_pProgramIso2(nullptr),
+  m_pFBORayEntry(NULL),
+  m_pProgramRenderFrontFaces(NULL),
+  m_pProgramRenderFrontFacesNT(NULL),
+  m_pProgramIso2(NULL),
   m_bNoRCClipplanes(bNoRCClipplanes)
 {
   m_bSupportsMeshes = false;
 }
 
 GLTreeRaycaster::~GLTreeRaycaster() {
-  delete m_pglHashTable; m_pglHashTable = nullptr;
-  delete  m_pVolumePool; m_pVolumePool = nullptr;
+  delete m_pglHashTable; m_pglHashTable = NULL;
+  delete  m_pVolumePool; m_pVolumePool = NULL;
 }
 
 
@@ -58,13 +58,13 @@ void GLTreeRaycaster::Cleanup() {
 
   if (m_pFBORayEntry){
     m_pMasterController->MemMan()->FreeFBO(m_pFBORayEntry); 
-    m_pFBORayEntry = nullptr;
+    m_pFBORayEntry = NULL;
   }
 }
 
 void GLTreeRaycaster::CreateOffscreenBuffers() {
   GLRenderer::CreateOffscreenBuffers();
-  if (m_pFBORayEntry){m_pMasterController->MemMan()->FreeFBO(m_pFBORayEntry); m_pFBORayEntry = nullptr;}
+  if (m_pFBORayEntry){m_pMasterController->MemMan()->FreeFBO(m_pFBORayEntry); m_pFBORayEntry = NULL;}
   if (m_vWinSize.area() > 0) {
     m_pFBORayEntry = m_pMasterController->MemMan()->GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP, m_vWinSize.x, m_vWinSize.y, GL_RGBA16F_ARB, 2*4, m_pContext->GetShareGroupID(), false);
   }
@@ -113,73 +113,73 @@ bool GLTreeRaycaster::LoadShaders() {
 
   if(!LoadAndVerifyShader(&m_pProgramRenderFrontFaces, m_vShaderSearchDirs,
                           "GLTreeRaycaster-VS.glsl",
-                          nullptr,
-                          "GLTreeRaycaster-frontfaces-FS.glsl", nullptr) ||
+                          NULL,
+                          "GLTreeRaycaster-frontfaces-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramRenderFrontFacesNT, m_vShaderSearchDirs,
                           "GLTreeRaycasterNoTransform-VS.glsl",
-                          nullptr,
-                          "GLTreeRaycaster-frontfaces-FS.glsl", nullptr) ||
+                          NULL,
+                          "GLTreeRaycaster-frontfaces-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTrans[0], m_vShaderSearchDirs,
                           "GLTreeRaycaster-VS.glsl",
-                          nullptr,
+                          NULL,
                           "Compositing.glsl",   // UnderCompositing
                           "clip-plane.glsl",    // ClipByPlane
                           "Volume3D.glsl",      // SampleVolume
                           tfqn.c_str(),         // VRender1D
                           bias.c_str(),
                           "VRender1DProxy.glsl",
-                          shaderNames[0],  nullptr) ||
+                          shaderNames[0],  NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTrans[1], m_vShaderSearchDirs,
                           "GLTreeRaycaster-VS.glsl",
-                          nullptr,
+                          NULL,
                           "Compositing.glsl",   // UnderCompositing
                           "clip-plane.glsl",    // ClipByPlane
                           "Volume3D.glsl",      // SampleVolume
                           "lighting.glsl",      // Lighting
                           tfqnLit.c_str(),      // VRender1DLit
-                          shaderNames[1], nullptr) ||
+                          shaderNames[1], NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[0], m_vShaderSearchDirs,
                           "GLTreeRaycaster-VS.glsl",
-                          nullptr,
+                          NULL,
                           "Compositing.glsl",   // UnderCompositing
                           "clip-plane.glsl",    // ClipByPlane
                           "Volume3D.glsl",      // SampleVolume, ComputeGradient
-                          shaderNames[2], nullptr) ||
+                          shaderNames[2], NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[1], m_vShaderSearchDirs,
                           "GLTreeRaycaster-VS.glsl",
-                          nullptr,
+                          NULL,
                           "Compositing.glsl",   // UnderCompositing
                           "clip-plane.glsl",    // ClipByPlane
                           "Volume3D.glsl",      // SampleVolume, ComputeGradient
                           "lighting.glsl",      // Lighting
-                          shaderNames[3], nullptr) ||
+                          shaderNames[3], NULL) ||
      !LoadAndVerifyShader(&m_pProgramIso, m_vShaderSearchDirs,
                           "GLTreeRaycaster-VS.glsl",
-                          nullptr,
+                          NULL,
                           "clip-plane.glsl",       // ClipByPlane
                           "RefineIsosurface.glsl", // RefineIsosurface
                           "Volume3D.glsl",        // SampleVolume, ComputeNormal
-                          shaderNames[6], nullptr) ||
+                          shaderNames[6], NULL) ||
      !LoadAndVerifyShader(&m_pProgramColor, m_vShaderSearchDirs,
                           "GLTreeRaycaster-VS.glsl",
-                          nullptr,
+                          NULL,
                           "clip-plane.glsl",       // ClipByPlane
                           "RefineIsosurface.glsl", // RefineIsosurface
                           "Volume3D.glsl",        // SampleVolume, ComputeNormal
-                          shaderNames[4], nullptr) ||
+                          shaderNames[4], NULL) ||
      !LoadAndVerifyShader(&m_pProgramIso2, m_vShaderSearchDirs,
                           "GLTreeRaycaster-VS.glsl",
-                          nullptr,
+                          NULL,
                           "clip-plane.glsl",       // ClipByPlane
                           "RefineIsosurface.glsl", // RefineIsosurface
                           "Volume3D.glsl",        // SampleVolume, ComputeNormal
-                          shaderNames[5], nullptr) ||
+                          shaderNames[5], NULL) ||
      !LoadAndVerifyShader(&m_pProgramHQMIPRot, m_vShaderSearchDirs,
                           "GLTreeRaycaster-VS.glsl",
-                          nullptr,
+                          NULL,
                           "Volume3D.glsl",      // SampleVolume
                           "GLTreeRaycaster-MIP-Rot-FS.glsl",
-                          nullptr))
+                          NULL))
   {
       Cleanup();
       T_ERROR("Error loading a shader.");

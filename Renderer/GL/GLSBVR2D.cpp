@@ -132,49 +132,49 @@ bool GLSBVR2D::LoadShaders() {
   
   if(!LoadAndVerifyShader(&m_pProgram1DTrans[0], m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
-                          nullptr,
+                          NULL,
                           volumeAccessFunction.c_str(), // sampleVolume
                           tfqn.c_str(),         // VRender1D
                           bias.c_str(),
                           "VRender1DProxy.glsl",
                           "FTB.glsl",           // TraversalOrderDepColor
-                          "GLSBVR-1D-FS.glsl", nullptr) ||
+                          "GLSBVR-1D-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTrans[1], m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
-                          nullptr,                          
+                          NULL,                          
                           volumeAccessFunction.c_str(),
                           tfqnLit.c_str(),         // VRender1DLit
                           "lighting.glsl",      // Lighting
                           "FTB.glsl",           // TraversalOrderDepColor
-                          "GLSBVR-1D-light-FS.glsl", nullptr) ||
+                          "GLSBVR-1D-light-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[0], m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
-                          nullptr,
+                          NULL,
                           volumeAccessFunction.c_str(),
                           "FTB.glsl",           // TraversalOrderDepColor
-                          "GLSBVR-2D-FS.glsl", nullptr) ||
+                          "GLSBVR-2D-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[1], m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
-                          nullptr,
+                          NULL,
                           volumeAccessFunction.c_str(),
                           "lighting.glsl",
                           "FTB.glsl",           // TraversalOrderDepColor
-                          "GLSBVR-2D-light-FS.glsl", nullptr) ||
+                          "GLSBVR-2D-light-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramHQMIPRot, m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
-                          nullptr,
+                          NULL,
                           volumeAccessFunction.c_str(),
-                          "GLSBVR-MIP-Rot-FS.glsl", nullptr) ||
+                          "GLSBVR-MIP-Rot-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramIso, m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
-                          nullptr,
+                          NULL,
                           volumeAccessFunction.c_str(),
-                          "GLSBVR-ISO-FS.glsl", nullptr) ||
+                          "GLSBVR-ISO-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramColor, m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
-                          nullptr,
+                          NULL,
                           volumeAccessFunction.c_str(),
-                          "GLSBVR-Color-FS.glsl", nullptr))
+                          "GLSBVR-Color-FS.glsl", NULL))
   {
       Cleanup();
       T_ERROR("Error loading a shader.");

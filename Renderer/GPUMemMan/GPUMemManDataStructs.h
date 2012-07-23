@@ -270,7 +270,7 @@ namespace tuvok {
         pGLSLProgram->Load(sdesc);
         if(!pGLSLProgram->IsValid()) {
           delete pGLSLProgram;
-          pGLSLProgram = nullptr;
+          pGLSLProgram = NULL;
         }
       }
     }

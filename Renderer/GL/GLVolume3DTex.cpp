@@ -40,10 +40,10 @@ using namespace tuvok;
 
 GLVolume3DTex::GLVolume3DTex() :
   GLVolume(0, 0, 0, 0, 0, 0,
-           0, nullptr, GL_NEAREST, GL_NEAREST,
+           0, NULL, GL_NEAREST, GL_NEAREST,
            GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE,
            GL_CLAMP_TO_EDGE),
-  m_pTexture(nullptr)
+  m_pTexture(NULL)
 {
 }
 
@@ -79,7 +79,7 @@ void GLVolume3DTex::FreeGLResources() {
     m_pTexture->Delete();
     delete m_pTexture;
   }
-  m_pTexture = nullptr;
+  m_pTexture = NULL;
 }
 
 void GLVolume3DTex::SetData(const void *voxels) {

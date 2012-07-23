@@ -25,9 +25,9 @@ UINTVECTOR3 GetBrickSize(UINTVECTOR3, uint32_t, UINTVECTOR3, UINTVECTOR3,
 
 GLVolumePool::GLVolumePool(UINTVECTOR3 poolSize, UINTVECTOR3 brickSize,
                           GLint internalformat, GLenum format, GLenum type)
-  : m_StaticLODLUT(nullptr),
-    m_PoolMetadataTexture(nullptr),
-    m_PoolDataTexture(nullptr),
+  : m_StaticLODLUT(NULL),
+    m_PoolMetadataTexture(NULL),
+    m_PoolDataTexture(NULL),
     m_poolSize(poolSize),
     m_brickSize(brickSize),
     m_internalformat(internalformat),

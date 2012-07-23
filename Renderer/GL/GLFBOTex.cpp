@@ -65,10 +65,10 @@ GLFBOTex::GLFBOTex(MasterController* pMasterController, GLenum minfilter,
   m_iSizeX(width),
   m_iSizeY(height),
   m_hTexture(new GLuint[iNumBuffers]),
-  m_LastTexUnit(nullptr),
+  m_LastTexUnit(NULL),
   m_LastDepthTextUnit(0),
   m_iNumBuffers(iNumBuffers),
-  m_LastAttachment(nullptr)
+  m_LastAttachment(NULL)
 {
   if (width<1) width=1;
   if (height<1) height=1;
@@ -112,7 +112,7 @@ GLFBOTex::GLFBOTex(MasterController* pMasterController, GLenum minfilter,
       T_ERROR("GL Error during texture creation!");
       GL(glDeleteTextures(m_iNumBuffers,m_hTexture));
       delete[] m_hTexture;
-      m_hTexture=nullptr;
+      m_hTexture=NULL;
       return;
   }
   if (bHaveDepth) {
@@ -128,7 +128,7 @@ GLFBOTex::GLFBOTex(MasterController* pMasterController, GLenum minfilter,
     GL(glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST));
     GL(glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST));
     GL(glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0,
-                    GL_DEPTH_COMPONENT, GL_FLOAT, nullptr));
+                    GL_DEPTH_COMPONENT, GL_FLOAT, NULL));
 #endif
   }
   else m_hDepthBuffer=0;
@@ -145,13 +145,13 @@ GLFBOTex::~GLFBOTex(void) {
   if (m_hTexture) {
     GL(glDeleteTextures(m_iNumBuffers,m_hTexture));
     delete[] m_hTexture;
-    m_hTexture=nullptr;
+    m_hTexture=NULL;
   }
   delete[] m_LastTexUnit;
-  m_LastTexUnit=nullptr;
+  m_LastTexUnit=NULL;
 
   delete[] m_LastAttachment;
-  m_LastAttachment=nullptr;
+  m_LastAttachment=NULL;
 
 #ifdef GLFBOTEX_DEPTH_RENDERBUFFER
   if (m_hDepthBuffer) GL(glDeleteRenderbuffersEXT(1,&m_hDepthBuffer));
@@ -198,7 +198,7 @@ bool GLFBOTex::initTextures(GLenum minfilter, GLenum magfilter,
       case GL_LINEAR_MIPMAP_LINEAR:
         do {
           GL_RET(glTexImage2D(GL_TEXTURE_2D, level, intformat, width, height, 0,
-                       GL_RGBA, GL_UNSIGNED_BYTE, nullptr));
+                       GL_RGBA, GL_UNSIGNED_BYTE, NULL));
           width/=2;
           height/=2;
           if (width==0 && height>0) width=1;
@@ -208,7 +208,7 @@ bool GLFBOTex::initTextures(GLenum minfilter, GLenum magfilter,
         break;
       default:
         GL_RET(glTexImage2D(GL_TEXTURE_2D, 0, intformat, width, height, 0,
-                            GL_RGBA, GL_UNSIGNED_BYTE, nullptr));
+                            GL_RGBA, GL_UNSIGNED_BYTE, NULL));
         break;
     }
   }

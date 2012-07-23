@@ -63,11 +63,11 @@ class GLTargetBinder {
     virtual ~GLTargetBinder();
 
     virtual void Bind(const std::vector<GLBufferID>& vpFBOs);
-    virtual void Bind(GLFBOTex* pFBO0, GLFBOTex* pFBO1 = nullptr, GLFBOTex* pFBO2 = nullptr, GLFBOTex* pFBO3 = nullptr);
+    virtual void Bind(GLFBOTex* pFBO0, GLFBOTex* pFBO1 = NULL, GLFBOTex* pFBO2 = NULL, GLFBOTex* pFBO3 = NULL);
     virtual void Bind(GLFBOTex* pFBO0, int iSubBuffer0,
-                      GLFBOTex* pFBO1 = nullptr, int iSubBuffer1=0,
-                      GLFBOTex* pFBO2 = nullptr, int iSubBuffer2=0,
-                      GLFBOTex* pFBO3 = nullptr, int iSubBuffer3=0);
+                      GLFBOTex* pFBO1 = NULL, int iSubBuffer1=0,
+                      GLFBOTex* pFBO2 = NULL, int iSubBuffer2=0,
+                      GLFBOTex* pFBO3 = NULL, int iSubBuffer3=0);
 
     virtual void Unbind();
 

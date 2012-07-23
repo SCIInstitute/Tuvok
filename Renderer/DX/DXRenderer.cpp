@@ -52,13 +52,13 @@ using namespace tuvok;
 
 DXRenderer::DXRenderer(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder) :
   AbstrRenderer(pMasterController, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder),
-  m_hWnd(nullptr),
-  m_hInst(nullptr),
+  m_hWnd(NULL),
+  m_hInst(NULL),
   m_driverType(D3D10_DRIVER_TYPE_NULL),
-  m_pd3dDevice(nullptr),
-  m_pSwapChain(nullptr),
-  m_pRenderTargetView(nullptr),
-  m_pDXGIFactory(nullptr)
+  m_pd3dDevice(NULL),
+  m_pSwapChain(NULL),
+  m_pRenderTargetView(NULL),
+  m_pDXGIFactory(NULL)
 {
 }
 
@@ -86,13 +86,13 @@ bool DXRenderer::Initialize() {
       D3D10_DRIVER_TYPE_REFERENCE,
   };
   UINT numDriverTypes = sizeof( driverTypes ) / sizeof( driverTypes[0] );
-  m_pd3dDevice = nullptr;
+  m_pd3dDevice = NULL;
   for( UINT driverTypeIndex = 0; driverTypeIndex < numDriverTypes; driverTypeIndex++ )
   {
     m_driverType = driverTypes[driverTypeIndex];
-    hr = DynamicDX::D3D10CreateDevice( nullptr,
+    hr = DynamicDX::D3D10CreateDevice( NULL,
                             m_driverType,
-                            nullptr,
+                            NULL,
                             createDeviceFlags,
                             D3D10_SDK_VERSION,
                             &m_pd3dDevice );
@@ -150,7 +150,7 @@ void DXRenderer::Resize(const UINTVECTOR2& vWinSize) {
   // next create the DirectX swapchain subsystem
   HRESULT hr = S_OK;
   // get the dxgi device
-  IDXGIDevice* pDXGIDevice = nullptr;
+  IDXGIDevice* pDXGIDevice = NULL;
   hr = m_pd3dDevice->QueryInterface( IID_IDXGIDevice, ( void** )&pDXGIDevice );
   if( FAILED( hr ) ) {
       // TODO report failiure
@@ -177,7 +177,7 @@ void DXRenderer::Resize(const UINTVECTOR2& vWinSize) {
   SwapChainDesc.Flags = 0;
   hr = m_pDXGIFactory->CreateSwapChain( pDXGIDevice, &SwapChainDesc, &m_pSwapChain );
   pDXGIDevice->Release();
-  pDXGIDevice = nullptr;
+  pDXGIDevice = NULL;
   if( FAILED( hr ) ) {
       // TODO report failiure
       return;
@@ -191,14 +191,14 @@ void DXRenderer::Resize(const UINTVECTOR2& vWinSize) {
       return;
   }
 
-  hr = m_pd3dDevice->CreateRenderTargetView( pBackBuffer, nullptr, &m_pRenderTargetView );
+  hr = m_pd3dDevice->CreateRenderTargetView( pBackBuffer, NULL, &m_pRenderTargetView );
   pBackBuffer->Release();
   if( FAILED( hr ) ) {
       // TODO report failiure
       return;
   }
 
-  m_pd3dDevice->OMSetRenderTargets( 1, &m_pRenderTargetView, nullptr );
+  m_pd3dDevice->OMSetRenderTargets( 1, &m_pRenderTargetView, NULL );
 
   // Setup the viewport
   D3D10_VIEWPORT vp;

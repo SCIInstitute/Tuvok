@@ -193,7 +193,7 @@ Dataset* GPUMemMan::LoadDataset(const string& strFilename,
     // Given the above, this cast is guaranteed to succeed.
     FileBackedDataset *dataset = dynamic_cast<FileBackedDataset*>
                                              (i->pVolumeDataset);
-    assert(dataset != nullptr);
+    assert(dataset != NULL);
 
     if (dataset->Filename() == strFilename) {
       MESSAGE("Reusing %s", strFilename.c_str());
@@ -219,7 +219,7 @@ Dataset* GPUMemMan::LoadDataset(const string& strFilename,
   } else {
     delete dataset;
     T_ERROR("Error opening dataset %s", strFilename.c_str());
-    return nullptr;
+    return NULL;
   }
 }
 
@@ -307,7 +307,7 @@ GLTexture2D* GPUMemMan::Load2DTextureFromFile(const string& strFilename, int iSh
   QImage image;
   if (!image.load(strFilename.c_str())) {
     T_ERROR("Unable to load file %s", strFilename.c_str());
-    return nullptr;
+    return NULL;
   }
   MESSAGE("Loaded %s, now creating OpenGL resources ..", strFilename.c_str());
 
@@ -324,7 +324,7 @@ GLTexture2D* GPUMemMan::Load2DTextureFromFile(const string& strFilename, int iSh
   return tex;
 #else
   T_ERROR("No Qt support!");
-  return nullptr;
+  return NULL;
 #endif
 }
 
@@ -447,7 +447,7 @@ GLTexture1D* GPUMemMan::Access1DTrans(TransferFunction1D* pTransferFunction1D,
   }
 
   T_ERROR("Unable to find 1D transferfunction");
-  return nullptr;
+  return NULL;
 }
 
 void GPUMemMan::Free1DTrans(TransferFunction1D* pTransferFunction1D,
@@ -508,7 +508,7 @@ void GPUMemMan::GetEmpty2DTrans(const VECTOR2<size_t>& iSize,
   MESSAGE("Creating new empty 2D transfer function");
   *ppTransferFunction2D = new TransferFunction2D(iSize);
 
-  unsigned char* pcData = nullptr;
+  unsigned char* pcData = NULL;
   (*ppTransferFunction2D)->GetByteArray(&pcData);
   *tex = new GLTexture2D(uint32_t(iSize.x), uint32_t(iSize.y), GL_RGBA8, GL_RGBA,
                          GL_UNSIGNED_BYTE, 4, pcData);
@@ -532,7 +532,7 @@ void GPUMemMan::Get2DTransFromFile(const string& strFilename,
   if(!(*ppTransferFunction2D)->Load(strFilename)) {
     T_ERROR("Loading failed.");
     delete *ppTransferFunction2D;
-    *ppTransferFunction2D = nullptr;
+    *ppTransferFunction2D = NULL;
     return;
   }
 
@@ -542,7 +542,7 @@ void GPUMemMan::Get2DTransFromFile(const string& strFilename,
     (*ppTransferFunction2D)->Resample(vSize);
   }
 
-  unsigned char* pcData = nullptr;
+  unsigned char* pcData = NULL;
   (*ppTransferFunction2D)->GetByteArray(&pcData);
   *tex = new GLTexture2D(uint32_t((*ppTransferFunction2D)->GetSize().x),
                          uint32_t((*ppTransferFunction2D)->GetSize().y),
@@ -567,7 +567,7 @@ GLTexture2D* GPUMemMan::Access2DTrans(TransferFunction2D* pTransferFunction2D,
   }
 
   T_ERROR("Unable to find 2D transferfunction");
-  return nullptr;
+  return NULL;
 }
 
 void GPUMemMan::Free2DTrans(TransferFunction2D* pTransferFunction2D,
@@ -751,7 +751,7 @@ GLVolume* GPUMemMan::GetVolume(Dataset* pDataset, const BrickKey& key,
       // system must be extremely memory limited.  Make a note and then bail.
       if(m_vpTex3DList.empty()) {
         T_ERROR("This system does not have enough memory to render a brick.");
-        return nullptr;
+        return NULL;
       }
       // Delete all bricks that aren't used.  If that ends up being nothing,
       // then we're pretty screwed.  Stupidly choose a brick in that case.
@@ -767,7 +767,7 @@ GLVolume* GPUMemMan::GetVolume(Dataset* pDataset, const BrickKey& key,
     }
   } while(!m_vpTex3DList.empty());
   // Can't happen, but to quiet compilers:
-  return nullptr;
+  return NULL;
 }
 
 GLVolume* GPUMemMan::AllocOrGetVolume(Dataset* pDataset,
@@ -839,7 +839,7 @@ GLVolume* GPUMemMan::AllocOrGetVolume(Dataset* pDataset,
                   "aborting (MaxMem=%llukb, NeededMem=%llukb).",
                   m_SystemInfo->GetMaxUsableCPUMem()/1024,
                   iNeededCPUMemory/1024);
-          return nullptr;
+          return NULL;
         }
 
         DeleteArbitraryBrick(iShareGroupID);
@@ -866,10 +866,10 @@ GLVolume* GPUMemMan::AllocOrGetVolume(Dataset* pDataset,
                                                      m_vUploadHub,
                                                      iShareGroupID);
 
-  if (pNew3DTex->volume == nullptr) {
+  if (pNew3DTex->volume == NULL) {
     T_ERROR("Failed to create OpenGL resource for volume.");
     delete pNew3DTex;
-    return nullptr;
+    return NULL;
   }
   MESSAGE("texture(s) created.");
   pNew3DTex->iUserCount = 1;
@@ -999,7 +999,7 @@ GLFBOTex* GPUMemMan::GetFBO(GLenum minfilter, GLenum magfilter,
 
   if(!e->pFBOTex->Valid()) {
     T_ERROR("FBO creation failed!");
-    return nullptr;
+    return NULL;
   }
 
   // clear the buffer, on some GPUs new FBOs are not zeroed out
@@ -1060,9 +1060,9 @@ GLSLProgram* GPUMemMan::GetGLSLProgram(const ShaderDescriptor& sdesc,
   GLSLListElem* e = new GLSLListElem(m_MasterController, sdesc,
                                      iShareGroupID);
 
-  if(e->pGLSLProgram == nullptr) {
+  if(e->pGLSLProgram == NULL) {
     T_ERROR("Failed to create program!");
-    return nullptr;
+    return NULL;
   }
 
   m_vpGLSLList.push_back(e);
@@ -1073,7 +1073,7 @@ GLSLProgram* GPUMemMan::GetGLSLProgram(const ShaderDescriptor& sdesc,
 }
 
 void GPUMemMan::FreeGLSLProgram(GLSLProgram* pGLSLProgram) {
-  if (pGLSLProgram == nullptr) return;
+  if (pGLSLProgram == NULL) return;
 
   for (size_t i = 0;i<m_vpGLSLList.size();i++) {
     if (m_vpGLSLList[i]->pGLSLProgram == pGLSLProgram) {

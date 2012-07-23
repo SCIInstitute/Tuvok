@@ -58,11 +58,11 @@ using namespace tuvok;
 
 MasterController::MasterController() :
   m_bDeleteDebugOutOnExit(false),
-  m_pProvenance(nullptr),
+  m_pProvenance(NULL),
   m_bExperimentalFeatures(false),
   m_pLuaScript(new LuaScripting()),
   m_pMemReg(new LuaMemberReg(m_pLuaScript)),
-  m_pActiveRenderer(nullptr)
+  m_pActiveRenderer(NULL)
 {
   m_pSystemInfo   = new SystemInfo();
   m_pIOManager    = new IOManager();
@@ -94,19 +94,19 @@ void MasterController::Cleanup() {
   }
   m_vVolumeRenderer.clear();
   delete m_pSystemInfo;
-  m_pSystemInfo = nullptr;
+  m_pSystemInfo = NULL;
   delete m_pIOManager;
-  m_pIOManager = nullptr;
+  m_pIOManager = NULL;
   delete m_pGPUMemMan;
-  m_pGPUMemMan = nullptr;
+  m_pGPUMemMan = NULL;
   delete m_pScriptEngine;
-  m_pScriptEngine = nullptr;
-  m_pActiveRenderer = nullptr;
+  m_pScriptEngine = NULL;
+  m_pActiveRenderer = NULL;
 }
 
 
 void MasterController::AddDebugOut(AbstrDebugOut* debugOut) {
-  if (debugOut != nullptr) {
+  if (debugOut != NULL) {
     m_DebugOut.Other(_func_, "Disconnecting from this debug out");
 
     m_DebugOut.AddDebugOut(debugOut);
@@ -114,7 +114,7 @@ void MasterController::AddDebugOut(AbstrDebugOut* debugOut) {
     debugOut->Other(_func_, "Connected to this debug out");
   } else {
     m_DebugOut.Warning(_func_,
-                       "New debug is a nullptr pointer, ignoring it.");
+                       "New debug is a NULL pointer, ignoring it.");
   }
 }
 
@@ -192,11 +192,11 @@ MasterController::RequestNewVolumeRenderer(EVolumeRendererType eRendererType,
     m_DebugOut.Error(_func_,"DirectX 10 renderer not yet implemented."
                             "Please select OpenGL as the render API "
                             "in the settings dialog.");
-    return nullptr;
+    return NULL;
 
   default :
     m_DebugOut.Error(_func_, "Unsupported Volume renderer requested");
-    return nullptr;
+    return NULL;
   };
 
   m_DebugOut.Message(_func_, "Starting up new renderer (API=%s, Method=%s)",

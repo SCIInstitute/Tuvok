@@ -287,8 +287,8 @@ class AbstrRenderer: public Scriptable {
     virtual bool GetRenderCoordArrows() const {return m_bRenderCoordArrows;}
 
     virtual void Set2DPlanesIn3DView(bool bRenderPlanesIn3D,
-                                     RenderRegion* renderRegion=nullptr);
-    virtual bool Get2DPlanesIn3DView(RenderRegion* = nullptr) const {
+                                     RenderRegion* renderRegion=NULL);
+    virtual bool Get2DPlanesIn3DView(RenderRegion* = NULL) const {
       /// @todo: Make this bool a per 3d render region toggle.
       return m_bRenderPlanesIn3D;}
 
@@ -311,10 +311,10 @@ class AbstrRenderer: public Scriptable {
 
     void SetClipPlane(RenderRegion *renderRegion,
                       const ExtendedPlane& plane);
-    virtual bool IsClipPlaneEnabled(RenderRegion *renderRegion=nullptr);
-    virtual void EnableClipPlane(RenderRegion *renderRegion=nullptr);
-    virtual void DisableClipPlane(RenderRegion *renderRegion=nullptr);
-    virtual void ShowClipPlane(bool, RenderRegion *renderRegion=nullptr);
+    virtual bool IsClipPlaneEnabled(RenderRegion *renderRegion=NULL);
+    virtual void EnableClipPlane(RenderRegion *renderRegion=NULL);
+    virtual void DisableClipPlane(RenderRegion *renderRegion=NULL);
+    virtual void ShowClipPlane(bool, RenderRegion *renderRegion=NULL);
     void LuaShowClipPlane(bool bShown, LuaClassInstance inst);
     const ExtendedPlane& GetClipPlane() const;
 
@@ -682,7 +682,7 @@ class AbstrRenderer: public Scriptable {
     // light direction (for both)
     FLOATVECTOR3        m_vLightDir;
 
-    virtual void        ScheduleRecompose(RenderRegion *renderRegion=nullptr);
+    virtual void        ScheduleRecompose(RenderRegion *renderRegion=NULL);
     void                ComputeMinLODForCurrentView();
     void                ComputeMaxLODForCurrentView();
     virtual void        PlanFrame(RenderRegion3D& region);

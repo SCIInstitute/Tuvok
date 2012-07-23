@@ -44,7 +44,7 @@ using namespace tuvok;
 DXTexture1D::DXTexture1D(ID3D10Device* pd3dDevice, uint32_t iSize, DXGI_FORMAT format) :
   DXTexture(pd3dDevice, g_dx10Format[int(format)].m_iByteSize, false),
   m_iSize(iSize),
-  m_pTexture(nullptr)
+  m_pTexture(NULL)
 {
   // create texture and fill with zeros
   D3D10_TEXTURE1D_DESC texDesc = {
@@ -56,7 +56,7 @@ DXTexture1D::DXTexture1D(ID3D10Device* pd3dDevice, uint32_t iSize, DXGI_FORMAT f
     0, 0
   };
 
-  m_pd3dDevice->CreateTexture1D( &texDesc, nullptr, &m_pTexture);
+  m_pd3dDevice->CreateTexture1D( &texDesc, NULL, &m_pTexture);
 
   // create shader resource views
   D3D10_SHADER_RESOURCE_VIEW_DESC SRVDesc = {
@@ -70,7 +70,7 @@ DXTexture1D::DXTexture1D(ID3D10Device* pd3dDevice, uint32_t iSize, DXGI_FORMAT f
                          const void* pInitialData, bool bIsReadOnly) :
   DXTexture(pd3dDevice, g_dx10Format[int(format)].m_iByteSize, bIsReadOnly),
   m_iSize(iSize),
-  m_pTexture(nullptr)
+  m_pTexture(NULL)
 {
   assert(pInitialData || !bIsReadOnly);
 
@@ -90,7 +90,7 @@ DXTexture1D::DXTexture1D(ID3D10Device* pd3dDevice, uint32_t iSize, DXGI_FORMAT f
     0
   };
   m_pd3dDevice->CreateTexture1D( &texDesc,
-                                 pInitialData == nullptr ? nullptr : &vbInitDataTex,
+                                 pInitialData == NULL ? NULL : &vbInitDataTex,
                                  &m_pTexture);
 
   // create shader resource views
@@ -110,14 +110,14 @@ void DXTexture1D::SetData(const void *pData) {
   assert(!m_bIsReadOnly);
 
   // Create a staging resource to copy the data
-  ID3D10Texture1D* pStagingTexture = nullptr;
+  ID3D10Texture1D* pStagingTexture = NULL;
 
   D3D10_TEXTURE1D_DESC desc;
   m_pTexture->GetDesc(&desc);
   desc.Usage = D3D10_USAGE_STAGING;
   desc.BindFlags = 0;
   desc.CPUAccessFlags = D3D10_CPU_ACCESS_WRITE;
-  m_pd3dDevice->CreateTexture1D( &desc, nullptr, &pStagingTexture );
+  m_pd3dDevice->CreateTexture1D( &desc, NULL, &pStagingTexture );
 
   char* pcData = (char*)pData;
 

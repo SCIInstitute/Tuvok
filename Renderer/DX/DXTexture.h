@@ -62,8 +62,8 @@ class DXTexture : public DXObject {
                                         m_pd3dDevice(pd3dDevice),
                                         m_iSizePerElement(iSizePerElement),
                                         m_bIsReadOnly(bIsReadOnly),
-                                        m_pTexture_SRV(nullptr),
-                                        m_pSRVarBound(nullptr) {}
+                                        m_pTexture_SRV(NULL),
+                                        m_pSRVarBound(NULL) {}
     virtual ~DXTexture();
 
     virtual void Delete();

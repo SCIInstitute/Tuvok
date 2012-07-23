@@ -127,21 +127,21 @@ void GLVolume2DTex::CreateGLResources() {
   for (size_t i = 0;i<m_pTextures[0].size();i++){
     m_pTextures[0][i] = new GLTexture2D(m_iSizeZ, m_iSizeY, m_internalformat,
                                         m_format, m_type, m_iSizePerElement,
-                                        nullptr, m_iMagFilter, m_iMinFilter,
+                                        NULL, m_iMagFilter, m_iMinFilter,
                                         m_wrapZ, m_wrapY);
   }
   m_pTextures[1].resize(m_iSizeY);
   for (size_t i = 0;i<m_pTextures[1].size();i++){
     m_pTextures[1][i] = new GLTexture2D(m_iSizeX, m_iSizeZ, m_internalformat,
                                         m_format, m_type, m_iSizePerElement,
-                                        nullptr, m_iMagFilter, m_iMinFilter,
+                                        NULL, m_iMagFilter, m_iMinFilter,
                                         m_wrapX, m_wrapZ);
   }
   m_pTextures[2].resize(m_iSizeZ);
   for (size_t i = 0;i<m_pTextures[2].size();i++){
     m_pTextures[2][i] = new GLTexture2D(m_iSizeX, m_iSizeY, m_internalformat,
                                         m_format, m_type, m_iSizePerElement,
-                                        nullptr, m_iMagFilter, m_iMinFilter,
+                                        NULL, m_iMagFilter, m_iMinFilter,
                                         m_wrapX, m_wrapY);
   }
 }
@@ -153,7 +153,7 @@ void GLVolume2DTex::FreeGLResources() {
         m_pTextures[iDir][i]->Delete();
         delete m_pTextures[iDir][i];
       }
-      m_pTextures[iDir][i] = nullptr;
+      m_pTextures[iDir][i] = NULL;
     }
     m_pTextures[iDir].resize(0);
   }

@@ -50,7 +50,7 @@ public:
 
   ~LuaClassRegistration() {}
 
-  bool canRegister() const    {return (mPtr != nullptr);}
+  bool canRegister() const    {return (mPtr != NULL);}
 
   /// Registers a member function. Same parameters as
   /// LuaScripting::registerFunction but with the unqualifiedName parameter.

@@ -88,7 +88,7 @@ LuaStackRAII::~LuaStackRAII()
       os << "log.error([==[LuaStackRAII: unexpected stack size. Expected: ";
       os << stackTarget << ". Actual: " << stackTop << ".";
 
-      if (mWhere != nullptr)
+      if (mWhere != NULL)
       {
         os << " File: " << mWhere << ". Line: " << mLine << ".";
       }
