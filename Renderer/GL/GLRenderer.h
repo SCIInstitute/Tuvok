@@ -142,11 +142,13 @@ class GLRenderer : public AbstrRenderer {
     void RenderBBox(const FLOATVECTOR4 vColor,
                     const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vExtend);
     void RenderClipPlane(size_t iStereoID);
-    bool Execute3DFrame(RenderRegion3D& renderRegion, float& fMsecPassed,
+    virtual bool Execute3DFrame(RenderRegion3D& renderRegion, float& fMsecPassed,
                         bool& completedJob);
     void CopyImageToDisplayBuffer();
     void DrawLogo() const;
     void DrawBackGradient() const;
+
+    virtual bool Continue3DDraw();
 
     virtual bool IsVolumeResident(const BrickKey& key) const;
 

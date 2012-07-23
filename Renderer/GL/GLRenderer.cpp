@@ -538,6 +538,12 @@ void GLRenderer::RecomposeView(const RenderRegion& rgn)
   }
 }
 
+bool GLRenderer::Continue3DDraw() {
+  return (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame) ||
+         (m_iCurrentLODOffset > m_iMinLODForCurrentView) ||
+         this->decreaseScreenResNow;  
+}
+
 bool GLRenderer::Paint() {
   if (!AbstrRenderer::Paint()) return false;
 
@@ -615,10 +621,7 @@ bool GLRenderer::Paint() {
             this->msecPassedCurrentFrame += fMsecPassed;
           }
           // are we done rendering or do we need to render at higher quality?
-          region3D.redrawMask =
-            (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame) ||
-            (m_iCurrentLODOffset > m_iMinLODForCurrentView) ||
-            this->decreaseScreenResNow;
+          region3D.redrawMask = Continue3DDraw();
         } else if (renderRegions[i]->is2D()) {  // in a 2D view mode
           RenderRegion2D& region2D = *static_cast<RenderRegion2D*>(renderRegions[i]);
           justCompletedRegions[i] = Render2DView(region2D);
