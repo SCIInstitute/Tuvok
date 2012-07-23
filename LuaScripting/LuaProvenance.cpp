@@ -461,7 +461,7 @@ void LuaProvenance::issueUndoInternal()
     throw LuaProvenanceInvalidUndo(e.what(), e.where(), e.lineno());
   }
 
-  if (undoItem.childItems.get() != NULL)
+  if (undoItem.childItems.get() != nullptr)
   {
     // Iterate through all of the children, and undo those as well.
     // Note: Notice, we are undoing the parent first, then all of the children.
@@ -536,7 +536,7 @@ void LuaProvenance::issueRedo()
   // sets the flag is setLastItemAsAlsoRedoChildren).
   if (redoItem.alsoRedoChildren)
   {
-    if (redoItem.childItems.get() != NULL)
+    if (redoItem.childItems.get() != nullptr)
     {
       // Iterate through all of the children, and undo those as well.
       // Note: Notice, we are undoing the parent first, then all of the children.
@@ -600,7 +600,7 @@ void LuaProvenance::performUndoRedoOp(const string& funcName,
     if (isUndo)
     {
       // Check to see if we should not execute any undo.
-      lua_getfield(L, funTable, LuaScripting::TBL_MD_NULL_UNDO);
+      lua_getfield(L, funTable, LuaScripting::TBL_MD_nullptr_UNDO);
       if (!(lua_isnil(L, -1) == 0 && lua_toboolean(L, -1) == 1))
       {
         lua_pop(L, 1);
@@ -622,7 +622,7 @@ void LuaProvenance::performUndoRedoOp(const string& funcName,
     else
     {
       // Check for redo hook
-      lua_getfield(L, funTable, LuaScripting::TBL_MD_NULL_REDO);
+      lua_getfield(L, funTable, LuaScripting::TBL_MD_nullptr_REDO);
       if (!(lua_isnil(L, -1) == 0 && lua_toboolean(L, -1) == 1))
       {
         lua_pop(L, 1);
@@ -1239,7 +1239,7 @@ SUITE(LuaProvenanceTests)
     CHECK_EQUAL(0, i1);
   }
 
-  LuaScripting* sc = NULL;
+  LuaScripting* sc = nullptr;
 
   static void set_i1_s1_b1(int a, string b, bool c)
   {

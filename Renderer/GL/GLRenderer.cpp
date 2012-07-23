@@ -72,52 +72,52 @@ GLRenderer::GLRenderer(MasterController* pMasterController,
                 bDownSampleTo8Bits,
                 bDisableBorder),
   m_TargetBinder(pMasterController),
-  m_p1DTransTex(NULL),
-  m_p2DTransTex(NULL),
-  m_p2DData(NULL),
-  m_pFBO3DImageLast(NULL),
-  m_pFBOResizeQuickBlit(NULL),
-  m_pLogoTex(NULL),
-  m_pProgramIso(NULL),
-  m_pProgramColor(NULL),
-  m_pProgramHQMIPRot(NULL),
-  m_pGLVolume(NULL),
+  m_p1DTransTex(nullptr),
+  m_p2DTransTex(nullptr),
+  m_p2DData(nullptr),
+  m_pFBO3DImageLast(nullptr),
+  m_pFBOResizeQuickBlit(nullptr),
+  m_pLogoTex(nullptr),
+  m_pProgramIso(nullptr),
+  m_pProgramColor(nullptr),
+  m_pProgramHQMIPRot(nullptr),
+  m_pGLVolume(nullptr),
   m_bSortMeshBTF(false),
   m_GeoBuffer(0),
   m_iNumTransMeshes(0),
   m_iNumMeshes(0),
-  m_pProgramTrans(NULL),
-  m_pProgram1DTransSlice(NULL),
-  m_pProgram2DTransSlice(NULL),
-  m_pProgram1DTransSlice3D(NULL),
-  m_pProgram2DTransSlice3D(NULL),
-  m_pProgramMIPSlice(NULL),
-  m_pProgramTransMIP(NULL),
-  m_pProgramIsoCompose(NULL),
-  m_pProgramColorCompose(NULL),
-  m_pProgramCVCompose(NULL),
-  m_pProgramComposeAnaglyphs(NULL),
-  m_pProgramComposeScanlineStereo(NULL),
-  m_pProgramSBSStereo(NULL),
-  m_pProgramAFStereo(NULL),
-  m_pProgramBBox(NULL),
-  m_pProgramMeshFTB(NULL),
-  m_pProgramMeshBTF(NULL),
+  m_pProgramTrans(nullptr),
+  m_pProgram1DTransSlice(nullptr),
+  m_pProgram2DTransSlice(nullptr),
+  m_pProgram1DTransSlice3D(nullptr),
+  m_pProgram2DTransSlice3D(nullptr),
+  m_pProgramMIPSlice(nullptr),
+  m_pProgramTransMIP(nullptr),
+  m_pProgramIsoCompose(nullptr),
+  m_pProgramColorCompose(nullptr),
+  m_pProgramCVCompose(nullptr),
+  m_pProgramComposeAnaglyphs(nullptr),
+  m_pProgramComposeScanlineStereo(nullptr),
+  m_pProgramSBSStereo(nullptr),
+  m_pProgramAFStereo(nullptr),
+  m_pProgramBBox(nullptr),
+  m_pProgramMeshFTB(nullptr),
+  m_pProgramMeshBTF(nullptr),
   m_texFormat16(GL_RGBA16),
   m_texFormat32(GL_RGBA),
-  m_aDepthStorage(NULL)
+  m_aDepthStorage(nullptr)
 {
-  m_pProgram1DTrans[0]   = NULL;
-  m_pProgram1DTrans[1]   = NULL;
-  m_pProgram2DTrans[0]   = NULL;
-  m_pProgram2DTrans[1]   = NULL;
+  m_pProgram1DTrans[0]   = nullptr;
+  m_pProgram1DTrans[1]   = nullptr;
+  m_pProgram2DTrans[0]   = nullptr;
+  m_pProgram2DTrans[1]   = nullptr;
 
-  m_pFBO3DImageCurrent[0] = NULL;
-  m_pFBOIsoHit[0] = NULL;
-  m_pFBOCVHit[0] = NULL;
-  m_pFBO3DImageCurrent[1] = NULL;
-  m_pFBOIsoHit[1] = NULL;
-  m_pFBOCVHit[1] = NULL;
+  m_pFBO3DImageCurrent[0] = nullptr;
+  m_pFBOIsoHit[0] = nullptr;
+  m_pFBOCVHit[0] = nullptr;
+  m_pFBO3DImageCurrent[1] = nullptr;
+  m_pFBOIsoHit[1] = nullptr;
+  m_pFBOCVHit[1] = nullptr;
 }
 
 GLRenderer::~GLRenderer() {
@@ -202,7 +202,7 @@ bool GLRenderer::Initialize(std::shared_ptr<Context> ctx) {
     mm.Get2DTransFromFile(strPotential2DTransName, this,
                           &m_p2DTrans, &m_p2DTransTex,
                           m_pDataset->Get2DHistogram().GetFilledSize());
-    if(m_p2DTrans == NULL) {
+    if(m_p2DTrans == nullptr) {
       WARNING("Falling back to empty 2D TFqn...");
       mm.GetEmpty2DTrans(m_pDataset->Get2DHistogram().GetFilledSize(), this,
                          &m_p2DTrans, &m_p2DTransTex);
@@ -230,7 +230,7 @@ bool GLRenderer::Initialize(std::shared_ptr<Context> ctx) {
     newSwatch.pGradientStops.push_back(g3);
 
     m_p2DTrans->m_Swatches.push_back(newSwatch);
-    m_pMasterController->MemMan()->Changed2DTrans(NULL, m_p2DTrans);
+    m_pMasterController->MemMan()->Changed2DTrans(nullptr, m_p2DTrans);
   }
 
   for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
@@ -282,79 +282,79 @@ bool GLRenderer::LoadShaders(const string& volumeAccessFunction,
               m_pContext->GetShareGroupID());
 
   m_pProgramTrans = program(ShaderDescriptor::Create(m_vShaderSearchDirs,
-    "Transfer-VS.glsl", NULL,
-    "Transfer-FS.glsl", NULL)
+    "Transfer-VS.glsl", nullptr,
+    "Transfer-FS.glsl", nullptr)
   );
   m_pProgram1DTransSlice = program(ShaderDescriptor::Create(m_vShaderSearchDirs,
-    "Transfer-VS.glsl", NULL,
+    "Transfer-VS.glsl", nullptr,
     tfqn.c_str(), bias.c_str(), "lighting.glsl", "VRender1DProxy.glsl",
-    "1D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL)
+    "1D-slice-FS.glsl", volumeAccessFunction.c_str(), nullptr)
   );
   m_pProgram2DTransSlice = program(ShaderDescriptor::Create(m_vShaderSearchDirs,
-    "Transfer-VS.glsl", NULL,
-    "2D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL)
+    "Transfer-VS.glsl", nullptr,
+    "2D-slice-FS.glsl", volumeAccessFunction.c_str(), nullptr)
   );
   m_pProgramMIPSlice = program(ShaderDescriptor::Create(m_vShaderSearchDirs,
-    "Transfer-VS.glsl", NULL,
-    "MIP-slice-FS.glsl", volumeAccessFunction.c_str(), NULL)
+    "Transfer-VS.glsl", nullptr,
+    "MIP-slice-FS.glsl", volumeAccessFunction.c_str(), nullptr)
   );
   m_pProgram1DTransSlice3D = program(ShaderDescriptor::Create(
     m_vShaderSearchDirs,
-    "SlicesIn3D.glsl", NULL,
+    "SlicesIn3D.glsl", nullptr,
     tfqn.c_str(), bias.c_str(), "lighting.glsl", "VRender1DProxy.glsl",
-    "1D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL)
+    "1D-slice-FS.glsl", volumeAccessFunction.c_str(), nullptr)
   );
   m_pProgram2DTransSlice3D = program(ShaderDescriptor::Create(
     m_vShaderSearchDirs,
-    "SlicesIn3D.glsl", NULL,
-    "2D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL)
+    "SlicesIn3D.glsl", nullptr,
+    "2D-slice-FS.glsl", volumeAccessFunction.c_str(), nullptr)
   );
   m_pProgramTransMIP = program(ShaderDescriptor::Create(m_vShaderSearchDirs,
-    "Transfer-VS.glsl", NULL,
-    "Transfer-MIP-FS.glsl", NULL)
+    "Transfer-VS.glsl", nullptr,
+    "Transfer-MIP-FS.glsl", nullptr)
   );
   m_pProgramIsoCompose = program(ShaderDescriptor::Create(m_vShaderSearchDirs,
-    "Transfer-VS.glsl", NULL,
-    "Compose-FS.glsl", NULL)
+    "Transfer-VS.glsl", nullptr,
+    "Compose-FS.glsl", nullptr)
   );
   m_pProgramColorCompose = program(ShaderDescriptor::Create(m_vShaderSearchDirs,
-    "Transfer-VS.glsl", NULL,
-    "Compose-Color-FS.glsl", NULL)
+    "Transfer-VS.glsl", nullptr,
+    "Compose-Color-FS.glsl", nullptr)
   );
   m_pProgramCVCompose = program(ShaderDescriptor::Create(m_vShaderSearchDirs,
-    "Transfer-VS.glsl", NULL,
-    "Compose-CV-FS.glsl", NULL)
+    "Transfer-VS.glsl", nullptr,
+    "Compose-CV-FS.glsl", nullptr)
   );
   m_pProgramComposeAnaglyphs = program(ShaderDescriptor::Create(
     m_vShaderSearchDirs,
-    "Transfer-VS.glsl", NULL,
-    "Compose-Anaglyphs-FS.glsl", NULL)
+    "Transfer-VS.glsl", nullptr,
+    "Compose-Anaglyphs-FS.glsl", nullptr)
   );
   m_pProgramSBSStereo = program(ShaderDescriptor::Create(
     m_vShaderSearchDirs,
-    "Transfer-VS.glsl", NULL,
-    "Compose-SBS-FS.glsl", NULL)
+    "Transfer-VS.glsl", nullptr,
+    "Compose-SBS-FS.glsl", nullptr)
   );
   m_pProgramAFStereo = program(ShaderDescriptor::Create(m_vShaderSearchDirs,
-    "Transfer-VS.glsl", NULL,
-    "Compose-AF-FS.glsl", NULL)
+    "Transfer-VS.glsl", nullptr,
+    "Compose-AF-FS.glsl", nullptr)
   );
   m_pProgramComposeScanlineStereo = program(ShaderDescriptor::Create(
     m_vShaderSearchDirs,
-    "Transfer-VS.glsl", NULL,
-    "Compose-Scanline-FS.glsl", NULL)
+    "Transfer-VS.glsl", nullptr,
+    "Compose-Scanline-FS.glsl", nullptr)
   );
   m_pProgramBBox = program(ShaderDescriptor::Create(m_vShaderSearchDirs,
-    "BBox-VS.glsl", NULL,
-    "BBox-FS.glsl", NULL)
+    "BBox-VS.glsl", nullptr,
+    "BBox-FS.glsl", nullptr)
   );
   m_pProgramMeshFTB = program(ShaderDescriptor::Create(m_vShaderSearchDirs,
-    "Mesh-VS.glsl", NULL,
-    "Mesh-FS.glsl","FTB.glsl","lighting.glsl",NULL)
+    "Mesh-VS.glsl", nullptr,
+    "Mesh-FS.glsl","FTB.glsl","lighting.glsl",nullptr)
   );
   m_pProgramMeshBTF = program(ShaderDescriptor::Create(m_vShaderSearchDirs,
-    "Mesh-VS.glsl", NULL,
-    "Mesh-FS.glsl","BTF.glsl","lighting.glsl", NULL)
+    "Mesh-VS.glsl", nullptr,
+    "Mesh-FS.glsl","BTF.glsl","lighting.glsl", nullptr)
   );
 
   m_pProgramTrans->ConnectTextureID("texColor",0);
@@ -411,7 +411,7 @@ bool GLRenderer::LoadShaders(const string& volumeAccessFunction,
 void GLRenderer::CleanupShader(GLSLProgram** p) {
   if (*p) {
     m_pMasterController->MemMan()->FreeGLSLProgram(*p); 
-    *p =NULL;
+    *p =nullptr;
   }
 }
 
@@ -586,7 +586,7 @@ bool GLRenderer::Paint() {
       m_pFBO3DImageLast->FinishWrite();
 
       m_pMasterController->MemMan()->FreeFBO(m_pFBOResizeQuickBlit);
-      m_pFBOResizeQuickBlit = NULL;
+      m_pFBOResizeQuickBlit = nullptr;
     }
   } else {
     for (size_t i=0; i < renderRegions.size(); ++i) {
@@ -1017,7 +1017,7 @@ bool GLRenderer::BindVolumeTex(const BrickKey& bkey,
 bool GLRenderer::UnbindVolumeTex() {
   if(m_pGLVolume) {
     m_pMasterController->MemMan()->Release3DTexture(m_pGLVolume);
-    m_pGLVolume = NULL;
+    m_pGLVolume = nullptr;
     return true;
   } else {
     return false;
@@ -1555,7 +1555,7 @@ void GLRenderer::CopyImageToDisplayBuffer() {
 }
 
 void GLRenderer::DrawLogo() const {
-  if (m_pLogoTex == NULL) return;
+  if (m_pLogoTex == nullptr) return;
 
   FixedFunctionality();
 
@@ -1656,32 +1656,32 @@ void GLRenderer::Cleanup() {
 
   if (m_pFBO3DImageLast) {
     mm.FreeFBO(m_pFBO3DImageLast);
-    m_pFBO3DImageLast =NULL;
+    m_pFBO3DImageLast =nullptr;
   }
 
   if (m_pFBOResizeQuickBlit) {
     mm.FreeFBO(m_pFBOResizeQuickBlit);
-    m_pFBOResizeQuickBlit =NULL;
+    m_pFBOResizeQuickBlit =nullptr;
   }
 
   for (uint32_t i = 0;i<2;i++) {
     if (m_pFBO3DImageCurrent[i]) {
       mm.FreeFBO(m_pFBO3DImageCurrent[i]);
-      m_pFBO3DImageCurrent[i] = NULL;
+      m_pFBO3DImageCurrent[i] = nullptr;
     }
     if (m_pFBOIsoHit[i]) {
       mm.FreeFBO(m_pFBOIsoHit[i]);
-      m_pFBOIsoHit[i] = NULL;
+      m_pFBOIsoHit[i] = nullptr;
     }
     if (m_pFBOCVHit[i]) {
       mm.FreeFBO(m_pFBOCVHit[i]);
-      m_pFBOCVHit[i] = NULL;
+      m_pFBOCVHit[i] = nullptr;
     }
   }
 
   if (m_pLogoTex) {
     mm.FreeTexture(m_pLogoTex);
-    m_pLogoTex =NULL;
+    m_pLogoTex =nullptr;
   }
 
   // opengl may not be enabed yet so be careful calling gl functions
@@ -1696,24 +1696,24 @@ void GLRenderer::CreateOffscreenBuffers() {
   if (m_pFBO3DImageLast) {
     if (m_pFBOResizeQuickBlit) {
       mm.FreeFBO(m_pFBOResizeQuickBlit);
-      m_pFBOResizeQuickBlit = NULL;
+      m_pFBOResizeQuickBlit = nullptr;
     }
     m_pFBOResizeQuickBlit = m_pFBO3DImageLast;
-    m_pFBO3DImageLast = NULL;
+    m_pFBO3DImageLast = nullptr;
   }
 
   for (uint32_t i=0; i < 2; i++) {
     if (m_pFBO3DImageCurrent[i]) {    
       mm.FreeFBO(m_pFBO3DImageCurrent[i]);
-      m_pFBO3DImageCurrent[i] = NULL;
+      m_pFBO3DImageCurrent[i] = nullptr;
     }
     if (m_pFBOIsoHit[i]) {
       mm.FreeFBO(m_pFBOIsoHit[i]);
-      m_pFBOIsoHit[i] = NULL;
+      m_pFBOIsoHit[i] = nullptr;
     }
     if (m_pFBOCVHit[i]) {
       mm.FreeFBO(m_pFBOCVHit[i]);
-      m_pFBOCVHit[i] = NULL;
+      m_pFBOCVHit[i] = nullptr;
     }
   }
 
@@ -1768,8 +1768,8 @@ void GLRenderer::CreateOffscreenBuffers() {
                         break;
 
         default       : MESSAGE("Invalid Blending Precision");
-                        if (i==0) m_pFBO3DImageLast = NULL;
-                        m_pFBO3DImageCurrent[i] = NULL;
+                        if (i==0) m_pFBO3DImageLast = nullptr;
+                        m_pFBO3DImageCurrent[i] = nullptr;
                         break;
       }
       m_pFBOIsoHit[i]   = mm.GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP,
@@ -1978,29 +1978,29 @@ bool GLRenderer::LoadAndVerifyShader(GLSLProgram** program,
   va_start(args, strDirs);
   {
     const char* filename;
-    // We expect two NULLs; the first terminates the vertex shader list, the
+    // We expect two nullptrs; the first terminates the vertex shader list, the
     // latter terminates the fragment shader list.
     do {
       filename = va_arg(args, const char*);
-      if(filename != NULL) {
+      if(filename != nullptr) {
         std::string shader = find_shader(std::string(filename), false);
         if(shader == "") {
           WARNING("Could not find VS shader '%s'!", filename);
         }
         vertex.push_back(shader);
       }
-    } while(filename != NULL);
+    } while(filename != nullptr);
 
     do {
       filename = va_arg(args, const char*);
-      if(filename != NULL) {
+      if(filename != nullptr) {
         std::string shader = find_shader(std::string(filename), false);
         if(shader == "") {
           WARNING("Could not find FS shader '%s'!", filename);
         }
         frag.push_back(shader);
       }
-    } while(filename != NULL);
+    } while(filename != nullptr);
   }
   va_end(args);
 
@@ -2093,7 +2093,7 @@ bool GLRenderer::LoadAndVerifyShader(std::vector<std::string> vert,
   (*program) = mm.GetGLSLProgram(ShaderDescriptor(vert, frag),
                                  m_pContext->GetShareGroupID());
 
-  if((*program) == NULL || !(*program)->IsValid()) {
+  if((*program) == nullptr || !(*program)->IsValid()) {
     /// @todo fixme report *which* shaders!
     T_ERROR("Error loading shaders.");
     mm.FreeGLSLProgram(*program);
@@ -2291,7 +2291,7 @@ void GLRenderer::RenderOpaqueGeometry() {
   }
 }
 
-#define BUFFER_OFFSET(i) ((char *)NULL + (i))
+#define BUFFER_OFFSET(i) ((char *)nullptr + (i))
 
 struct MeshFormat {
   FLOATVECTOR3 m_vPos;
@@ -2641,7 +2641,7 @@ bool GLRenderer::LoadDataset(const string& strFilename) {
     return false;
   }
 
-  if (m_pProgram1DTrans[0] != NULL) SetDataDepShaderVars();
+  if (m_pProgram1DTrans[0] != nullptr) SetDataDepShaderVars();
 
   // convert meshes in dataset to RenderMeshes
   const vector<Mesh*>& meshVec = m_pDataset->GetMeshes();
@@ -2765,7 +2765,7 @@ void GLRenderer::SetLogoParams(std::string strLogoFilename, int iLogoPos) {
   GPUMemMan &mm = *(m_pMasterController->MemMan());
   if (m_pLogoTex) {
     mm.FreeTexture(m_pLogoTex);
-    m_pLogoTex =NULL;
+    m_pLogoTex =nullptr;
   }
   if (m_strLogoFilename != "")
     m_pLogoTex = mm.Load2DTextureFromFile(m_strLogoFilename, m_pContext->GetShareGroupID());
@@ -2869,12 +2869,12 @@ FLOATVECTOR3 GLRenderer::Pick(const UINTVECTOR2& mousePos) const
 }
 
 void GLRenderer::SaveEmptyDepthBuffer() {
-  if (m_aDepthStorage == NULL) return;
+  if (m_aDepthStorage == nullptr) return;
   for (size_t i = 0;i<m_vWinSize.area();i++) m_aDepthStorage[i] = 1.0f;
 }
 
 void GLRenderer::SaveDepthBuffer() {
-  if (m_aDepthStorage == NULL) return;
+  if (m_aDepthStorage == nullptr) return;
   glReadPixels(0, 0, m_vWinSize.x, m_vWinSize.y, GL_DEPTH_COMPONENT, GL_FLOAT,
                m_aDepthStorage);
 }
@@ -2973,7 +2973,7 @@ bool GLRenderer::CropDataset(const std::string& strTempDir, bool bKeepOldData) {
   if (!m_pDataset->Crop(p.Plane(),strTempDir,bKeepOldData)) return false;
 
   FileBackedDataset* fbd = dynamic_cast<FileBackedDataset*>(m_pDataset);
-  if (NULL != fbd)
+  if (nullptr != fbd)
   {
     LoadDataset(fbd->Filename());	
   }

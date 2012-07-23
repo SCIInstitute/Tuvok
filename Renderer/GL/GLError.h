@@ -49,7 +49,7 @@ namespace tuvok {
 class OutOfMemory : virtual public tuvok::Exception {
   public:
     explicit OutOfMemory(const char* e,
-                         const char *where=NULL, size_t ln=0)
+                         const char *where=nullptr, size_t ln=0)
       : tuvok::Exception(e, where, ln) { }
     virtual ~OutOfMemory() throw() { }
 };
@@ -63,7 +63,7 @@ class OutOfMemory : virtual public tuvok::Exception {
 class GLError : virtual public tuvok::Exception {
   public:
     explicit GLError(int glerr,
-                     const char *where=NULL, size_t ln=0) :
+                     const char *where=nullptr, size_t ln=0) :
       tuvok::Exception("OpenGL error", where, ln), glerrno(glerr) {}
     virtual ~GLError() throw() { }
 

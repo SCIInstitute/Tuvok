@@ -17,7 +17,7 @@ GLHashTable::GLHashTable(const UINTVECTOR3& maxBrickCount, uint32_t iTableSize, 
   m_maxBrickCount(maxBrickCount),
   m_iTableSize(iTableSize),
   m_iRehashCount(iRehashCount),
-  m_pHashTableTex(NULL)
+  m_pHashTableTex(nullptr)
 {
   m_rawData = std::shared_ptr<uint32_t>(
     new uint32_t[m_iTableSize], 
@@ -30,7 +30,7 @@ GLHashTable::~GLHashTable() {
 }
 
 void GLHashTable::InitGL() {
-  m_pHashTableTex = new GLTexture1D(m_iTableSize, GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT, 4, NULL);
+  m_pHashTableTex = new GLTexture1D(m_iTableSize, GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT, 4, nullptr);
 }
 
 UINTVECTOR4 GLHashTable::Int2Vector(uint32_t index) const {
@@ -102,7 +102,7 @@ void GLHashTable::FreeGL() {
   if (m_pHashTableTex) {
     m_pHashTableTex->Delete();
     delete m_pHashTableTex;
-    m_pHashTableTex = NULL;
+    m_pHashTableTex = nullptr;
   }
 }
 

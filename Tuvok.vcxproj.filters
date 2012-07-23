@@ -960,6 +960,9 @@
     <ClCompile Include="IO\LinesGeoConverter.cpp">
       <Filter>IO</Filter>
     </ClCompile>
+    <ClCompile Include="Renderer\GL\GLHashTable.cpp">
+      <Filter>Renderer\GL</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Basics\Appendix.h">
@@ -1712,9 +1715,6 @@
     <ClInclude Include="IO\expressions\constant.h">
       <Filter>IO\expressions</Filter>
     </ClInclude>
-    <ClInclude Include="IO\expressions\expr-template.h">
-      <Filter>IO\expressions</Filter>
-    </ClInclude>
     <ClInclude Include="IO\expressions\expression.h">
       <Filter>IO\expressions</Filter>
     </ClInclude>
@@ -1913,6 +1913,9 @@
     </ClInclude>
     <ClInclude Include="IO\LinesGeoConverter.h">
       <Filter>IO</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\GL\GLHashTable.h">
+      <Filter>Renderer\GL</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

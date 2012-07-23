@@ -1,38 +1,3 @@
-/*
-   For more information, please see: http://software.sci.utah.edu
-
-   The MIT License
-
-   Copyright (c) 2011 Interactive Visualization and Data Analysis Group.
-
-
-   Permission is hereby granted, free of charge, to any person obtaining a
-   copy of this software and associated documentation files (the "Software"),
-   to deal in the Software without restriction, including without limitation
-   the rights to use, copy, modify, merge, publish, distribute, sublicense,
-   and/or sell copies of the Software, and to permit persons to whom the
-   Software is furnished to do so, subject to the following conditions:
-
-   The above copyright notice and this permission notice shall be included
-   in all copies or substantial portions of the Software.
-
-   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-   THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-   DEALINGS IN THE SOFTWARE.
-*/
-
-//!    File   : GLVolumePool.h
-//!    Author : Jens Krueger
-//!             IVDA, MMCI, DFKI Saarbruecken
-//!             SCI Institute, University of Utah
-//!    Date   : November 2011
-//
-//!    Copyright (C) 2011 IVDA, MMCI, DFKI, SCI Institute
-#include <memory>
 #include <stdexcept>
 
 #include "GLVolumePool.h"
@@ -60,9 +25,9 @@ UINTVECTOR3 GetBrickSize(UINTVECTOR3, uint32_t, UINTVECTOR3, UINTVECTOR3,
 
 GLVolumePool::GLVolumePool(UINTVECTOR3 poolSize, UINTVECTOR3 brickSize,
                           GLint internalformat, GLenum format, GLenum type)
-  : m_StaticLODLUT(NULL),
-    m_PoolMetadataTexture(NULL),
-    m_PoolDataTexture(NULL),
+  : m_StaticLODLUT(nullptr),
+    m_PoolMetadataTexture(nullptr),
+    m_PoolDataTexture(nullptr),
     m_poolSize(poolSize),
     m_brickSize(brickSize),
     m_internalformat(internalformat),
@@ -181,7 +146,7 @@ UINTVECTOR3 GLVolumePool::FindNextPoolPosition() const {
     idx = increment(m_allocPos, logMax);
   } catch(const std::overflow_error&) {
     // we ran out of space.. what should we replace?
-    // whatever's at the top of the queue.
+    // whatever is at the top of the queue.
     const VolumePoolElemInfo& vei = m_BricksInPool.front();
     m_BricksInPool.front();
     return UINTVECTOR3(vei.m_vBrickID.x, vei.m_vBrickID.y, vei.m_vBrickID.z);
@@ -207,3 +172,30 @@ uint64_t GLVolumePool::GetCPUSize() const {
 uint64_t GLVolumePool::GetGPUSize() const {
   return GetCPUSize();
 }
+
+/*
+   For more information, please see: http://software.sci.utah.edu
+
+   The MIT License
+
+   Copyright (c) 2011 Interactive Visualization and Data Analysis Group.
+
+
+   Permission is hereby granted, free of charge, to any person obtaining a
+   copy of this software and associated documentation files (the "Software"),
+   to deal in the Software without restriction, including without limitation
+   the rights to use, copy, modify, merge, publish, distribute, sublicense,
+   and/or sell copies of the Software, and to permit persons to whom the
+   Software is furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included
+   in all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+   THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+   DEALINGS IN THE SOFTWARE.
+*/

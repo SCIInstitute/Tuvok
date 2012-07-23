@@ -194,7 +194,7 @@ private:
     /// undoredo stack state.
     void addChildItem(const UndoRedoItem& item)
     {
-      if (childItems.get() == NULL)
+      if (childItems.get() == nullptr)
       {
         childItems = std::shared_ptr<std::vector<UndoRedoItem> >(
             new std::vector<UndoRedoItem>());
@@ -209,7 +209,7 @@ private:
     std::shared_ptr<std::vector<int> > instCreations;
     void addInstCreation(int id)
     {
-      if (instCreations.get() == NULL)
+      if (instCreations.get() == nullptr)
       {
         instCreations = std::shared_ptr<std::vector<int> >(
             new std::vector<int>());
@@ -222,7 +222,7 @@ private:
     std::shared_ptr<std::vector<int> > instDeletions;
     void addInstDeletion(int id)
     {
-      if (instDeletions.get() == NULL)
+      if (instDeletions.get() == nullptr)
       {
         instDeletions = std::shared_ptr<std::vector<int> >(
             new std::vector<int>());

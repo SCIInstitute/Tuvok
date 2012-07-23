@@ -72,9 +72,9 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_bFirstDrawAfterResize(true),
   m_eBlendPrecision(BP_32BIT),
   m_bUseLighting(true),
-  m_pDataset(NULL),
-  m_p1DTrans(NULL),
-  m_p2DTrans(NULL),
+  m_pDataset(nullptr),
+  m_p1DTrans(nullptr),
+  m_p2DTrans(nullptr),
   m_fSampleRateModifier(1.0f),
   m_vIsoColor(0.5,0.5,0.5),
   m_vTextColor(1,1,1,1),
@@ -187,27 +187,27 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
 
 bool AbstrRenderer::Initialize(std::shared_ptr<Context> ctx) {
   m_pContext = ctx;
-  return m_pDataset != NULL;
+  return m_pDataset != nullptr;
 }
 
 bool AbstrRenderer::LoadDataset(const string& strFilename) {
-  if (m_pMasterController == NULL) return false;
+  if (m_pMasterController == nullptr) return false;
 
-  if (m_pMasterController->IOMan() == NULL) {
-    T_ERROR("Cannot load dataset because IOManager is NULL");
+  if (m_pMasterController->IOMan() == nullptr) {
+    T_ERROR("Cannot load dataset because IOManager is nullptr");
     return false;
   }
 
   if (m_pDataset)
   {
     m_pMasterController->MemMan()->FreeDataset(m_pDataset, this);
-    m_pLuaDatasetPtr->bindDataset(NULL);
+    m_pLuaDatasetPtr->bindDataset(nullptr);
   }
 
   m_pDataset = m_pMasterController->IOMan()->LoadDataset(strFilename,this);
   m_pLuaDatasetPtr->bindDataset(m_pDataset);
 
-  if (m_pDataset == NULL) {
+  if (m_pDataset == nullptr) {
     T_ERROR("IOManager call to load dataset failed.");
     return false;
   }
@@ -450,7 +450,7 @@ RenderRegion3D* AbstrRenderer::GetFirst3DRegion() {
     if (renderRegions[i]->is3D())
       return dynamic_cast<RenderRegion3D*>(renderRegions[i]);
   }
-  return NULL;
+  return nullptr;
 }
 
 LuaClassInstance AbstrRenderer::LuaGetFirst3DRegion() {
@@ -1506,7 +1506,7 @@ std::vector<LuaClassInstance> AbstrRenderer::LuaGetRenderRegions()
 
 void AbstrRenderer::RemoveMeshData(size_t index) {
   delete m_Meshes[index];
-  m_Meshes[index] = NULL;
+  m_Meshes[index] = nullptr;
   m_Meshes.erase(m_Meshes.begin()+index);
   Schedule3DWindowRedraws();
 }

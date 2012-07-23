@@ -1,38 +1,3 @@
-/*
-   For more information, please see: http://software.sci.utah.edu
-
-   The MIT License
-
-   Copyright (c) 2011 Interactive Visualization and Data Analysis Group.
-
-
-   Permission is hereby granted, free of charge, to any person obtaining a
-   copy of this software and associated documentation files (the "Software"),
-   to deal in the Software without restriction, including without limitation
-   the rights to use, copy, modify, merge, publish, distribute, sublicense,
-   and/or sell copies of the Software, and to permit persons to whom the
-   Software is furnished to do so, subject to the following conditions:
-
-   The above copyright notice and this permission notice shall be included
-   in all copies or substantial portions of the Software.
-
-   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-   THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-   DEALINGS IN THE SOFTWARE.
-*/
-
-//!    File   : GLTreeRaycaster.h
-//!    Author : Jens Krueger
-//!             IVDA, MMCI, DFKI Saarbruecken
-//!             SCI Institute, University of Utah
-//!    Date   : November 2011
-//
-//!    Copyright (C) 2011 IVDA, MMCI, DFKI, SCI Institute
-
 #pragma once
 
 #ifndef GLTREERAYCASTER_H
@@ -43,10 +8,14 @@
 
 class ExtendedPlane;
 
+
 namespace tuvok {
+  class GLHashTable;
+  class GLVolumePool;
+
 
   /** \class GLTreeRaycaster
-   * GPU Rayster.
+   * GPU Raycaster.
    *
    * GLTreeRaycaster is a GLSL-based raycaster for volumetric data */
   class GLTreeRaycaster : public GLRenderer {
@@ -64,27 +33,24 @@ namespace tuvok {
       virtual ~GLTreeRaycaster();
 
 
-      /// Can only use CV on scalar datasets.  There's nothing really preventing
-      /// its application to RGBA datasets, but shaders would need updating (and
-      /// they haven't been)
-      virtual bool SupportsClearView() {
-        return m_pDataset->GetComponentCount() == 1;
-      }
+      // this is work in  progress so before we start we disable all we can 
+      virtual bool SupportsClearView() {return false;}
+      virtual bool CanDoClipPlane() {return false;}
+
 
       virtual std::string ClearViewDisableReason() const {
-        if (m_pDataset->GetComponentCount() != 1) 
-          return "this dataset has more than one component";
-        return "";
+        return "this renderer is work in progress and clearview is simply not implemented yet";
       }
 
-
       virtual void DisableClipPlane(RenderRegion* renderRegion);
-
       virtual ERendererType GetRendererType() const {return RT_RC;}
 
-      virtual bool CanDoClipPlane() {return !m_bNoRCClipplanes;}
-
     protected:
+      GLHashTable*  m_pglHashTable;
+      GLVolumePool* m_pVolumePool;
+
+
+
       GLFBOTex*       m_pFBORayEntry;
       GLSLProgram*    m_pProgramRenderFrontFaces;
       GLSLProgram*    m_pProgramRenderFrontFacesNT;
@@ -131,3 +97,30 @@ namespace tuvok {
 } // tuvok namespace.
 
 #endif // GLTREERAYCASTER_H
+
+/*
+   For more information, please see: http://software.sci.utah.edu
+
+   The MIT License
+
+   Copyright (c) 2011 Interactive Visualization and Data Analysis Group.
+
+
+   Permission is hereby granted, free of charge, to any person obtaining a
+   copy of this software and associated documentation files (the "Software"),
+   to deal in the Software without restriction, including without limitation
+   the rights to use, copy, modify, merge, publish, distribute, sublicense,
+   and/or sell copies of the Software, and to permit persons to whom the
+   Software is furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included
+   in all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+   THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+   DEALINGS IN THE SOFTWARE.
+*/

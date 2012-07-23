@@ -149,8 +149,8 @@ private:
   bool    Initialize(void);
   GLuint  LoadShader(const char*, GLenum, GLSLPROGRAM_SOURCE src);
   bool    WriteInfoLog(const char*, GLuint, bool);
-  bool    CheckGLError(const char *pcError=NULL,
-                       const char *pcAdditional=NULL) const;
+  bool    CheckGLError(const char *pcError=nullptr,
+                       const char *pcAdditional=nullptr) const;
   GLenum get_type(const char *name) const;
   GLint get_location(const char *name) const;
   void CheckType(const char *name, GLenum type) const;

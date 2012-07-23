@@ -371,9 +371,9 @@ public:
   static const char* TBL_MD_NUM_PARAMS;   ///< Number of parameters accepted.
   static const char* TBL_MD_UNDO_FUNC;    ///< Non-nil if undo hook present.
   static const char* TBL_MD_REDO_FUNC;    ///< Non-nil if redo hook present.
-  static const char* TBL_MD_NULL_UNDO;    ///< If true, no undo function
+  static const char* TBL_MD_nullptr_UNDO;    ///< If true, no undo function
                                           ///< is called.
-  static const char* TBL_MD_NULL_REDO;    ///< If true, no redo function
+  static const char* TBL_MD_nullptr_REDO;    ///< If true, no redo function
                                           ///< is called.
   static const char* TBL_MD_PARAM_DESC;   ///< Additional parameter descriptions
                                           ///< table.
@@ -547,7 +547,7 @@ private:
   ///       at a particular fully qualified name.
   bool getFunctionTable(const std::string& fqName);
 
-  /// Creates a callable Lua table. classInstance can be NULL.
+  /// Creates a callable Lua table. classInstance can be nullptr.
   /// Leaves the table on the top of the Lua stack.
   void createCallableFuncTable(lua_CFunction proxyFunc, void* realFuncToCall);
 

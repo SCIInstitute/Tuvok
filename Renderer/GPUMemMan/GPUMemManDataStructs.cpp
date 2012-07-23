@@ -75,7 +75,7 @@ GLVolumeListElem::GLVolumeListElem(Dataset* _pDataset, const BrickKey& key,
   m_iShareGroupID(iShareGroupID)
 {
   // initialize the volumes to be null pointers.
-  volume = NULL;
+  volume = nullptr;
   if (!CreateTexture(vUploadHub) && volume) {
     FreeTexture();
   }
@@ -518,6 +518,6 @@ bool GLVolumeListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
 void GLVolumeListElem::FreeTexture() {
   if (volume) {
     delete volume;
-    volume = NULL;
+    volume = nullptr;
   }
 }

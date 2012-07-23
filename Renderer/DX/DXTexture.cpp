@@ -54,8 +54,8 @@ void DXTexture::Bind(ID3D10EffectShaderResourceVariable* pSRVar) {
 
 void DXTexture::UnBind() {
   if (m_pSRVarBound) {
-    m_pSRVarBound->SetResource( NULL );
-    m_pSRVarBound=NULL;
+    m_pSRVarBound->SetResource( nullptr );
+    m_pSRVarBound=nullptr;
   }
 }
 

@@ -53,7 +53,7 @@ public:
   ///                               that values should be removed from the
   ///                               stack.
   LuaStackRAII(lua_State* L, int finalRelStackHeight,
-               const char* where = NULL, int line = 0);
+               const char* where = nullptr, int line = 0);
 
   virtual ~LuaStackRAII();
 

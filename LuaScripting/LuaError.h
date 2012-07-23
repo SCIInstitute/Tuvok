@@ -54,7 +54,7 @@ class LuaError : public Exception
 {
 public:
 
-  explicit LuaError(const char* e, const char* where = NULL, size_t ln = 0)
+  explicit LuaError(const char* e, const char* where = nullptr, size_t ln = 0)
     : Exception(e, where, ln)
   {}
   virtual ~LuaError() throw() { }
@@ -65,7 +65,7 @@ public:
 class LuaFunBindError : public LuaError
 {
 public:
-  explicit LuaFunBindError(const char* e, const char* where = NULL,
+  explicit LuaFunBindError(const char* e, const char* where = nullptr,
                            size_t ln = 0)
     : LuaError(e, where, ln)
   {}
@@ -75,7 +75,7 @@ public:
 class LuaNonExistantFunction : public LuaError
 {
 public:
-  explicit LuaNonExistantFunction(const char* e, const char* where = NULL,
+  explicit LuaNonExistantFunction(const char* e, const char* where = nullptr,
                                   size_t ln = 0)
     : LuaError(e, where, ln)
   {}
@@ -85,7 +85,7 @@ public:
 class LuaInvalidFunSignature : public LuaError
 {
 public:
-  explicit LuaInvalidFunSignature(const char* e, const char* where = NULL,
+  explicit LuaInvalidFunSignature(const char* e, const char* where = nullptr,
                                   size_t ln = 0)
     : LuaError(e, where, ln)
   {}
@@ -95,7 +95,7 @@ public:
 class LuaProvenanceReenter : public LuaError
 {
 public:
-  explicit LuaProvenanceReenter(const char* e, const char* where = NULL,
+  explicit LuaProvenanceReenter(const char* e, const char* where = nullptr,
                                   size_t ln = 0)
     : LuaError(e, where, ln)
   {}
@@ -106,7 +106,7 @@ class LuaProvenanceInvalidUndoOrRedo : public LuaError
 {
 public:
   explicit LuaProvenanceInvalidUndoOrRedo(const char* e,
-                                          const char* where = NULL,
+                                          const char* where = nullptr,
                                           size_t ln = 0)
     : LuaError(e, where, ln)
   {}
@@ -116,7 +116,7 @@ public:
 class LuaProvenanceInvalidRedo : public LuaError
 {
 public:
-  explicit LuaProvenanceInvalidRedo(const char* e, const char* where = NULL,
+  explicit LuaProvenanceInvalidRedo(const char* e, const char* where = nullptr,
                                     size_t ln = 0)
     : LuaError(e, where, ln)
   {}
@@ -126,7 +126,7 @@ public:
 class LuaProvenanceInvalidUndo : public LuaError
 {
 public:
-  explicit LuaProvenanceInvalidUndo(const char* e, const char* where = NULL,
+  explicit LuaProvenanceInvalidUndo(const char* e, const char* where = nullptr,
                                     size_t ln = 0)
     : LuaError(e, where, ln)
   {}
@@ -136,7 +136,7 @@ public:
 class LuaProvenanceFailedUndo : public LuaError
 {
 public:
-  explicit LuaProvenanceFailedUndo(const char* e, const char* where = NULL,
+  explicit LuaProvenanceFailedUndo(const char* e, const char* where = nullptr,
                                    size_t ln = 0)
     : LuaError(e, where, ln)
   {}
@@ -146,7 +146,7 @@ public:
 class LuaInvalidType : public LuaError
 {
 public:
-  explicit LuaInvalidType(const char* e, const char* where = NULL,
+  explicit LuaInvalidType(const char* e, const char* where = nullptr,
                           size_t ln = 0)
     : LuaError(e, where, ln)
   {}
@@ -156,7 +156,7 @@ public:
 class LuaUnequalNumParams : public LuaError
 {
 public:
-  explicit LuaUnequalNumParams(const char* e, const char* where = NULL,
+  explicit LuaUnequalNumParams(const char* e, const char* where = nullptr,
                                size_t ln = 0)
     : LuaError(e, where, ln)
   {}
@@ -165,20 +165,20 @@ public:
 
 class LuaUndoFuncAlreadySet : public LuaError {
 public:
-  explicit LuaUndoFuncAlreadySet(const char* e, const char* where = NULL,
+  explicit LuaUndoFuncAlreadySet(const char* e, const char* where = nullptr,
                                  size_t ln = 0) : LuaError(e, where, ln) {}
 };
 
 class LuaRedoFuncAlreadySet : public LuaError {
 public:
-  explicit LuaRedoFuncAlreadySet(const char* e, const char* where = NULL,
+  explicit LuaRedoFuncAlreadySet(const char* e, const char* where = nullptr,
                                  size_t ln = 0) : LuaError(e, where, ln) {}
 };
 
 class LuaNonExistantClassInstancePointer : public LuaError {
 public:
   explicit LuaNonExistantClassInstancePointer(const char* e,
-                                              const char* where = NULL,
+                                              const char* where = nullptr,
                                               size_t ln = 0)
   : LuaError(e, where, ln) {}
 };

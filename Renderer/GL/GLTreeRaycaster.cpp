@@ -1,38 +1,3 @@
-/*
-   For more information, please see: http://software.sci.utah.edu
-
-   The MIT License
-
-   Copyright (c) 2011 Interactive Visualization and Data Analysis Group.
-
-
-   Permission is hereby granted, free of charge, to any person obtaining a
-   copy of this software and associated documentation files (the "Software"),
-   to deal in the Software without restriction, including without limitation
-   the rights to use, copy, modify, merge, publish, distribute, sublicense,
-   and/or sell copies of the Software, and to permit persons to whom the
-   Software is furnished to do so, subject to the following conditions:
-
-   The above copyright notice and this permission notice shall be included
-   in all copies or substantial portions of the Software.
-
-   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-   THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-   DEALINGS IN THE SOFTWARE.
-*/
-
-//!    File   : GLTreeRaycaster.h
-//!    Author : Jens Krueger
-//!             IVDA, MMCI, DFKI Saarbruecken
-//!             SCI Institute, University of Utah
-//!    Date   : November 2011
-//
-//!    Copyright (C) 2011 IVDA, MMCI, DFKI, SCI Institute
-
 #include "GLInclude.h"
 #include "GLTreeRaycaster.h"
 #include "GLFBOTex.h"
@@ -46,6 +11,9 @@
 #include "Renderer/TFScaling.h"
 #include "Basics/MathTools.h"
 
+#include "GLHashTable.h"
+#include "GLVolumePool.h"
+
 using namespace std;
 using namespace tuvok;
 
@@ -58,17 +26,22 @@ GLTreeRaycaster::GLTreeRaycaster(MasterController* pMasterController,
              bUseOnlyPowerOfTwo, 
              bDownSampleTo8Bits, 
              bDisableBorder),
-  m_pFBORayEntry(NULL),
-  m_pProgramRenderFrontFaces(NULL),
-  m_pProgramRenderFrontFacesNT(NULL),
-  m_pProgramIso2(NULL),
+
+  m_pglHashTable(nullptr),
+  m_pVolumePool(nullptr),
+
+  m_pFBORayEntry(nullptr),
+  m_pProgramRenderFrontFaces(nullptr),
+  m_pProgramRenderFrontFacesNT(nullptr),
+  m_pProgramIso2(nullptr),
   m_bNoRCClipplanes(bNoRCClipplanes)
 {
-  m_bSupportsMeshes = false; // for now we require full support 
-                             // otherweise we rather say no
+  m_bSupportsMeshes = false;
 }
 
 GLTreeRaycaster::~GLTreeRaycaster() {
+  delete m_pglHashTable; m_pglHashTable = nullptr;
+  delete  m_pVolumePool; m_pVolumePool = nullptr;
 }
 
 
@@ -85,13 +58,13 @@ void GLTreeRaycaster::Cleanup() {
 
   if (m_pFBORayEntry){
     m_pMasterController->MemMan()->FreeFBO(m_pFBORayEntry); 
-    m_pFBORayEntry = NULL;
+    m_pFBORayEntry = nullptr;
   }
 }
 
 void GLTreeRaycaster::CreateOffscreenBuffers() {
   GLRenderer::CreateOffscreenBuffers();
-  if (m_pFBORayEntry){m_pMasterController->MemMan()->FreeFBO(m_pFBORayEntry); m_pFBORayEntry = NULL;}
+  if (m_pFBORayEntry){m_pMasterController->MemMan()->FreeFBO(m_pFBORayEntry); m_pFBORayEntry = nullptr;}
   if (m_vWinSize.area() > 0) {
     m_pFBORayEntry = m_pMasterController->MemMan()->GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP, m_vWinSize.x, m_vWinSize.y, GL_RGBA16F_ARB, 2*4, m_pContext->GetShareGroupID(), false);
   }
@@ -140,73 +113,73 @@ bool GLTreeRaycaster::LoadShaders() {
 
   if(!LoadAndVerifyShader(&m_pProgramRenderFrontFaces, m_vShaderSearchDirs,
                           "GLTreeRaycaster-VS.glsl",
-                          NULL,
-                          "GLTreeRaycaster-frontfaces-FS.glsl", NULL) ||
+                          nullptr,
+                          "GLTreeRaycaster-frontfaces-FS.glsl", nullptr) ||
      !LoadAndVerifyShader(&m_pProgramRenderFrontFacesNT, m_vShaderSearchDirs,
                           "GLTreeRaycasterNoTransform-VS.glsl",
-                          NULL,
-                          "GLTreeRaycaster-frontfaces-FS.glsl", NULL) ||
+                          nullptr,
+                          "GLTreeRaycaster-frontfaces-FS.glsl", nullptr) ||
      !LoadAndVerifyShader(&m_pProgram1DTrans[0], m_vShaderSearchDirs,
                           "GLTreeRaycaster-VS.glsl",
-                          NULL,
+                          nullptr,
                           "Compositing.glsl",   // UnderCompositing
                           "clip-plane.glsl",    // ClipByPlane
                           "Volume3D.glsl",      // SampleVolume
                           tfqn.c_str(),         // VRender1D
                           bias.c_str(),
                           "VRender1DProxy.glsl",
-                          shaderNames[0],  NULL) ||
+                          shaderNames[0],  nullptr) ||
      !LoadAndVerifyShader(&m_pProgram1DTrans[1], m_vShaderSearchDirs,
                           "GLTreeRaycaster-VS.glsl",
-                          NULL,
+                          nullptr,
                           "Compositing.glsl",   // UnderCompositing
                           "clip-plane.glsl",    // ClipByPlane
                           "Volume3D.glsl",      // SampleVolume
                           "lighting.glsl",      // Lighting
                           tfqnLit.c_str(),      // VRender1DLit
-                          shaderNames[1], NULL) ||
+                          shaderNames[1], nullptr) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[0], m_vShaderSearchDirs,
                           "GLTreeRaycaster-VS.glsl",
-                          NULL,
+                          nullptr,
                           "Compositing.glsl",   // UnderCompositing
                           "clip-plane.glsl",    // ClipByPlane
                           "Volume3D.glsl",      // SampleVolume, ComputeGradient
-                          shaderNames[2], NULL) ||
+                          shaderNames[2], nullptr) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[1], m_vShaderSearchDirs,
                           "GLTreeRaycaster-VS.glsl",
-                          NULL,
+                          nullptr,
                           "Compositing.glsl",   // UnderCompositing
                           "clip-plane.glsl",    // ClipByPlane
                           "Volume3D.glsl",      // SampleVolume, ComputeGradient
                           "lighting.glsl",      // Lighting
-                          shaderNames[3], NULL) ||
+                          shaderNames[3], nullptr) ||
      !LoadAndVerifyShader(&m_pProgramIso, m_vShaderSearchDirs,
                           "GLTreeRaycaster-VS.glsl",
-                          NULL,
+                          nullptr,
                           "clip-plane.glsl",       // ClipByPlane
                           "RefineIsosurface.glsl", // RefineIsosurface
                           "Volume3D.glsl",        // SampleVolume, ComputeNormal
-                          shaderNames[6], NULL) ||
+                          shaderNames[6], nullptr) ||
      !LoadAndVerifyShader(&m_pProgramColor, m_vShaderSearchDirs,
                           "GLTreeRaycaster-VS.glsl",
-                          NULL,
+                          nullptr,
                           "clip-plane.glsl",       // ClipByPlane
                           "RefineIsosurface.glsl", // RefineIsosurface
                           "Volume3D.glsl",        // SampleVolume, ComputeNormal
-                          shaderNames[4], NULL) ||
+                          shaderNames[4], nullptr) ||
      !LoadAndVerifyShader(&m_pProgramIso2, m_vShaderSearchDirs,
                           "GLTreeRaycaster-VS.glsl",
-                          NULL,
+                          nullptr,
                           "clip-plane.glsl",       // ClipByPlane
                           "RefineIsosurface.glsl", // RefineIsosurface
                           "Volume3D.glsl",        // SampleVolume, ComputeNormal
-                          shaderNames[5], NULL) ||
+                          shaderNames[5], nullptr) ||
      !LoadAndVerifyShader(&m_pProgramHQMIPRot, m_vShaderSearchDirs,
                           "GLTreeRaycaster-VS.glsl",
-                          NULL,
+                          nullptr,
                           "Volume3D.glsl",      // SampleVolume
                           "GLTreeRaycaster-MIP-Rot-FS.glsl",
-                          NULL))
+                          nullptr))
   {
       Cleanup();
       T_ERROR("Error loading a shader.");
@@ -424,7 +397,7 @@ void GLTreeRaycaster::ClipPlaneToShader(const ExtendedPlane& clipPlane, int iSte
 
 void GLTreeRaycaster::Render3DPreLoop(const RenderRegion3D &) {
 
-  // render nearplane into buffer
+  // render near-plane into buffer
   if (m_iBricksRenderedInThisSubFrame == 0) {
     GPUState localState = m_BaseState;
     localState.enableBlend = false;
@@ -562,53 +535,12 @@ void GLTreeRaycaster::Render3DInLoop(const RenderRegion3D& renderRegion,
 
 void GLTreeRaycaster::RenderHQMIPPreLoop(RenderRegion2D &region) {
   GLRenderer::RenderHQMIPPreLoop(region);
-
-  m_pProgramHQMIPRot->Enable();
-  m_pProgramHQMIPRot->Set("vScreensize",float(m_vWinSize.x), float(m_vWinSize.y));
-  if (m_bOrthoView)
-    region.modelView[0] = m_maMIPRotation;
-  else
-    region.modelView[0] = m_maMIPRotation * m_mView[0];
-
-  region.modelView[0].setModelview();
+  // TODO
 }
 
 void GLTreeRaycaster::RenderHQMIPInLoop(const RenderRegion2D &renderRegion,
                                     const Brick& b) {
-
-  GPUState localState = m_BaseState;
-  localState.enableDepthTest = false;
-  localState.depthMask = false;
-  localState.enableCullFace = false;
-  localState.enableBlend = false;
-  m_pContext->GetStateManager()->Apply(localState);
-
-
-  // write frontfaces (ray entry points)
-  m_TargetBinder.Bind(m_pFBORayEntry);
-
-  m_pProgramRenderFrontFaces->Enable();
-  RenderBox(renderRegion, b.vCenter, b.vExtension, b.vTexcoordsMin,
-            b.vTexcoordsMax, false, 0);
-
-  m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);  // for MIP rendering "abuse" left-eye buffer for the itermediate results
-
-
-  localState.enableBlend = true;
-  localState.blendFuncSrc = BF_ONE;
-  localState.blendEquation = BE_MAX;
-  m_pContext->GetStateManager()->Apply(localState);
-
-  m_pProgramHQMIPRot->Enable();
-
-  FLOATVECTOR3 vVoxelSizeTexSpace = 1.0f/FLOATVECTOR3(b.vVoxelCount);
-  float fRayStep = (b.vExtension*vVoxelSizeTexSpace * 0.5f * 1.0f/m_fSampleRateModifier).minVal();
-  m_pProgramHQMIPRot->Set("fRayStepsize", fRayStep);
-
-  m_pFBORayEntry->Read(2);
-  RenderBox(renderRegion, b.vCenter, b.vExtension,b.vTexcoordsMin,
-            b.vTexcoordsMax, true, 0);
-  m_pFBORayEntry->FinishRead();
+  // TODO
 }
 
 void GLTreeRaycaster::StartFrame() {
@@ -698,3 +630,31 @@ void GLTreeRaycaster::DisableClipPlane(RenderRegion* renderRegion) {
   /// to be way out in left field, ensuring nothing will be clipped.
   ClipPlaneToShader(ExtendedPlane::FarawayPlane(),0,true);
 }
+
+
+/*
+   For more information, please see: http://software.sci.utah.edu
+
+   The MIT License
+
+   Copyright (c) 2011 Interactive Visualization and Data Analysis Group.
+
+
+   Permission is hereby granted, free of charge, to any person obtaining a
+   copy of this software and associated documentation files (the "Software"),
+   to deal in the Software without restriction, including without limitation
+   the rights to use, copy, modify, merge, publish, distribute, sublicense,
+   and/or sell copies of the Software, and to permit persons to whom the
+   Software is furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included
+   in all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+   THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+   DEALINGS IN THE SOFTWARE.
+*/
