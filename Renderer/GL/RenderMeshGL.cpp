@@ -293,8 +293,8 @@ void RenderMeshGL::UnrollArrays() {
 
 // generate the geometry for an isocahedron && fill m_Isocahedron.
 void RenderMeshGL::PrepareIsocahedron() {
-  const float X = .525731112119133606 / 500.0;
-  const float Z = .850650808352039932 / 500.0;
+  const float X = float(.525731112119133606 / 500.0);
+  const float Z = float(.850650808352039932 / 500.0);
   const GLfloat iso[12][3] = {
     {-X, 0.0, Z}, {X, 0.0, Z}, {-X, 0.0, -Z}, {X, 0.0, -Z},
     {0.0, Z, X}, {0.0, Z, -X}, {0.0, -Z, X}, {0.0, -Z, -X},
