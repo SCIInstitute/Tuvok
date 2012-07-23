@@ -110,7 +110,7 @@ typedef unsigned int flex_uint32_t;
 #endif
 
 /* Returned upon end-of-file. */
-#define YY_nullptr 0
+#define YY_NULL 0
 
 /* Promotes a possibly negative, possibly signed char to an unsigned
  * integer for use as an array index.  If the signed char is negative,
@@ -267,14 +267,14 @@ static YY_BUFFER_STATE * yy_buffer_stack = 0; /**< Stack as an array. */
  * future we want to put the buffer states in a more general
  * "scanner state".
  *
- * Returns the top of the stack, or nullptr.
+ * Returns the top of the stack, or NULL.
  */
 #define YY_CURRENT_BUFFER ( (yy_buffer_stack) \
                           ? (yy_buffer_stack)[(yy_buffer_stack_top)] \
-                          : nullptr)
+                          : NULL)
 
 /* Same as previous macro, but useful when we know that the buffer stack is not
- * nullptr or when we need an lvalue. For internal use only.
+ * NULL or when we need an lvalue. For internal use only.
  */
 #define YY_CURRENT_BUFFER_LVALUE (yy_buffer_stack)[(yy_buffer_stack_top)]
 
@@ -607,7 +607,7 @@ static int input (void );
 #define ECHO do { if (fwrite( yytext, yyleng, 1, yyout )) {} } while (0)
 #endif
 
-/* Gets input and stuffs it into "buf".  number of characters read, or YY_nullptr,
+/* Gets input and stuffs it into "buf".  number of characters read, or YY_NULL,
  * is returned in "result".
  */
 #ifndef YY_INPUT
@@ -648,7 +648,7 @@ static int input (void );
  * some compilers to complain about unreachable statements.
  */
 #ifndef yyterminate
-#define yyterminate() return YY_nullptr
+#define yyterminate() return YY_NULL
 #endif
 
 /* Number of entries by which start-condition stack grows. */
@@ -992,8 +992,8 @@ case YY_STATE_EOF(INITIAL):
 					 * yy_c_buf_p so that if some total
 					 * hoser (like flex itself) wants to
 					 * call the scanner after we return the
-					 * YY_nullptr, it'll still work - another
-					 * YY_nullptr will get returned.
+					 * YY_NULL, it'll still work - another
+					 * YY_NULL will get returned.
 					 */
 					(yy_c_buf_p) = (yytext_ptr) + YY_MORE_ADJ;
 
@@ -1482,7 +1482,7 @@ static void yy_load_buffer_state  (void)
  */
 void yypush_buffer_state (YY_BUFFER_STATE new_buffer )
 {
-    	if (new_buffer == nullptr)
+    	if (new_buffer == NULL)
 		return;
 
 	yyensure_buffer_stack();
@@ -1516,7 +1516,7 @@ void yypop_buffer_state (void)
 		return;
 
 	yy_delete_buffer(YY_CURRENT_BUFFER );
-	YY_CURRENT_BUFFER_LVALUE = nullptr;
+	YY_CURRENT_BUFFER_LVALUE = NULL;
 	if ((yy_buffer_stack_top) > 0)
 		--(yy_buffer_stack_top);
 
@@ -1800,13 +1800,13 @@ int yylex_destroy  (void)
     /* Pop the buffer stack, destroying each element. */
 	while(YY_CURRENT_BUFFER){
 		yy_delete_buffer(YY_CURRENT_BUFFER  );
-		YY_CURRENT_BUFFER_LVALUE = nullptr;
+		YY_CURRENT_BUFFER_LVALUE = NULL;
 		yypop_buffer_state();
 	}
 
 	/* Destroy the stack itself. */
 	yyfree((yy_buffer_stack) );
-	(yy_buffer_stack) = nullptr;
+	(yy_buffer_stack) = NULL;
 
     /* Reset the globals. This is important in a non-reentrant scanner so the next time
      * yylex() is called, initialization will occur. */
@@ -1915,7 +1915,7 @@ int main(int argc, char *argv[])
   }
   fprintf(stderr, "scanning [%s]\n", argv[1]);
   yyin = fopen(argv[1], "r");
-  if(yyin == nullptr) {
+  if(yyin == NULL) {
     perror("fopen");
     exit(-2);
   }
