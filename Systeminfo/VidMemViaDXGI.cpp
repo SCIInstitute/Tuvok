@@ -33,20 +33,20 @@ HRESULT GetVideoMemoryViaDXGI( HMONITOR hMonitor,
 
     if( DynamicDX::IsInitialized() )
     {
-        IDXGIFactory* pDXGIFactory = NULL;
+        IDXGIFactory* pDXGIFactory = nullptr;
         DynamicDX::CreateDXGIFactory( __uuidof( IDXGIFactory ), ( LPVOID* )&pDXGIFactory );
 
         for( int index = 0; ; ++index )
         {
             bool bFoundMatchingAdapter = false;
-            IDXGIAdapter* pAdapter = NULL;
+            IDXGIAdapter* pAdapter = nullptr;
             hr = pDXGIFactory->EnumAdapters( index, &pAdapter );
             if( FAILED( hr ) ) // DXGIERR_NOT_FOUND is expected when the end of the list is hit
                 break;
 
             for( int iOutput = 0; ; ++iOutput )
             {
-                IDXGIOutput* pOutput = NULL;
+                IDXGIOutput* pOutput = nullptr;
                 hr = pAdapter->EnumOutputs( iOutput, &pOutput );
                 if( FAILED( hr ) ) // DXGIERR_NOT_FOUND is expected when the end of the list is hit
                     break;

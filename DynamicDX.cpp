@@ -42,16 +42,16 @@
 
 using namespace std;
 
-DynamicDX::LPCREATEDXGIFACTORY DynamicDX::CreateDXGIFactory                     = NULL;
-DynamicDX::LPD3D10CREATEDEVICE DynamicDX::D3D10CreateDevice                     = NULL;
-DynamicDX::LPD3DX10CREATEEFFECTFROMFILEW DynamicDX::D3DX10CreateEffectFromFileW = NULL;
-DynamicDX::LPD3DX10CREATEEFFECTFROMFILEA DynamicDX::D3DX10CreateEffectFromFileA = NULL;
+DynamicDX::LPCREATEDXGIFACTORY DynamicDX::CreateDXGIFactory                     = nullptr;
+DynamicDX::LPD3D10CREATEDEVICE DynamicDX::D3D10CreateDevice                     = nullptr;
+DynamicDX::LPD3DX10CREATEEFFECTFROMFILEW DynamicDX::D3DX10CreateEffectFromFileW = nullptr;
+DynamicDX::LPD3DX10CREATEEFFECTFROMFILEA DynamicDX::D3DX10CreateEffectFromFileA = nullptr;
 
 int DynamicDX::m_iD3DX10Version           = 0;
 bool DynamicDX::m_bDynamicDXIsInitialized = false;
-HINSTANCE DynamicDX::m_hD3D10             = NULL;
-HINSTANCE DynamicDX::m_hDXGI              = NULL;
-HINSTANCE DynamicDX::m_hD3DX10            = NULL;
+HINSTANCE DynamicDX::m_hD3D10             = nullptr;
+HINSTANCE DynamicDX::m_hDXGI              = nullptr;
+HINSTANCE DynamicDX::m_hD3DX10            = nullptr;
 
 bool DynamicDX::InitializeDX() {
   if (m_bDynamicDXIsInitialized) return true;

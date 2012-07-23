@@ -141,16 +141,16 @@ public:
   virtual void Hint(IOHint hint, uint64_t offset, uint64_t length) const;
 
   static bool Copy(const std::string& strSource, const std::string& strTarget,
-                   uint64_t iSourceHeaderSkip=0, std::string* strMessage=NULL);
+                   uint64_t iSourceHeaderSkip=0, std::string* strMessage=nullptr);
   static bool Copy(const std::wstring& wstrSource,
                    const std::wstring& wstrTarget, uint64_t iSourceHeaderSkip=0,
-                   std::wstring* wstrMessage=NULL);
+                   std::wstring* wstrMessage=nullptr);
   static bool Compare(const std::string& strFirstFile,
                       const std::string& strSecondFile,
-                      std::string* strMessage=NULL);
+                      std::string* strMessage=nullptr);
   static bool Compare(const std::wstring& wstrFirstFile,
                       const std::wstring& wstrSecondFile,
-                      std::wstring* wstrMessage=NULL);
+                      std::wstring* wstrMessage=nullptr);
 protected:
   FILETYPE      m_StreamFile;
   std::string   m_strFilename;

@@ -46,7 +46,7 @@
 
 template <class T> class GridnD  {
   public:
-    GridnD<T>() : m_pData(NULL) {}
+    GridnD<T>() : m_pData(nullptr) {}
     virtual ~GridnD<T>() {delete [] this->m_pData;}
 
     T* GetDataPointer() {return this->m_pData;}

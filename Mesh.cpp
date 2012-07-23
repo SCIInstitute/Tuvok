@@ -386,7 +386,7 @@ std::vector<Mesh*> Mesh::PartitionMesh(size_t iMaxIndexCount, bool bOptimize) co
   if (source != this) delete source;
   std::vector<Mesh*> meshVec(basicMeshVec.size());
   for (size_t i = 0;i<meshVec.size();++i) {
-    meshVec[i] = new Mesh(basicMeshVec[i], m_KDTree != NULL, false, m_MeshDesc, m_meshType);
+    meshVec[i] = new Mesh(basicMeshVec[i], m_KDTree != nullptr, false, m_MeshDesc, m_meshType);
   }
   return meshVec;
 }

@@ -43,9 +43,9 @@
 
 
 Isosurface::Isosurface() :
-  vfVertices(NULL),
-  vfNormals(NULL),
-  viTriangles(NULL),
+  vfVertices(nullptr),
+  vfNormals(nullptr),
+  viTriangles(nullptr),
   iVertices(0),
   iTriangles(0)
 {}

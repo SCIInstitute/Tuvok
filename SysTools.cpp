@@ -144,8 +144,8 @@ namespace SysTools {
       CFStringRef cfFilename = CFStringCreateWithCString(kCFAllocatorDefault, RemoveExt(GetFilename(strFileName)).c_str(), CFStringGetSystemEncoding());
       CFStringRef cfExt = CFStringCreateWithCString(kCFAllocatorDefault, GetExt(GetFilename(strFileName)).c_str(), CFStringGetSystemEncoding());
 
-      CFURLRef    imageURL = CFBundleCopyResourceURL( CFBundleGetMainBundle(), cfFilename, cfExt, NULL );
-      if (imageURL == NULL) return "";
+      CFURLRef    imageURL = CFBundleCopyResourceURL( CFBundleGetMainBundle(), cfFilename, cfExt, nullptr );
+      if (imageURL == nullptr) return "";
       CFStringRef macPath = CFURLCopyFileSystemPath(imageURL, kCFURLPOSIXPathStyle);
       const char *pathPtr = CFStringGetCStringPtr(macPath, CFStringGetSystemEncoding());
       if (macPath != 0 && pathPtr != 0) {
@@ -343,7 +343,7 @@ namespace SysTools {
     if(PathCanonicalize(resolved, wide) == FALSE)
 #else
     char resolved[MAX_PATH_LENGTH];
-    if(realpath(path.c_str(), resolved) == NULL)
+    if(realpath(path.c_str(), resolved) == nullptr)
 #endif
     {
       std::ostringstream fn;
@@ -523,10 +523,10 @@ namespace SysTools {
 
   DIR* dirData=opendir(strDir.c_str());
 
-  if (dirData != NULL) {
+  if (dirData != nullptr) {
     struct dirent *inode;
 
-    while ((inode=readdir(dirData)) != NULL) {
+    while ((inode=readdir(dirData)) != nullptr) {
       string strFilenameLocal = inode->d_name;
       wstring wstrFilename(strFilenameLocal.begin(), strFilenameLocal.end());
       string strFilename = strDir + strFilenameLocal;
@@ -595,10 +595,10 @@ namespace SysTools {
 
   DIR* dirData=opendir(rootdir.c_str());
 
-  if (dirData != NULL) {
+  if (dirData != nullptr) {
     struct dirent *inode;
 
-    while ((inode=readdir(dirData)) != NULL) {
+    while ((inode=readdir(dirData)) != nullptr) {
       string strFilenameLocal = inode->d_name;
       string strFilename = rootdir + strFilenameLocal;
 
@@ -692,17 +692,17 @@ namespace SysTools {
 
   DIR* dirData=opendir(strDir.c_str());
 
-  if (dirData != NULL) {
+  if (dirData != nullptr) {
     struct dirent *finfo;
 
-    while ((finfo=readdir(dirData)) != NULL) {
+    while ((finfo=readdir(dirData)) != nullptr) {
       string strFilename = finfo->d_name;
       wstring wstrFilename(strFilename.begin(), strFilename.end());
       strFilename = strDir + strFilename;
 
       struct ::stat st;
       if (::stat(strFilename.c_str(), &st) != -1)
-        if (!S_ISDIR(st.st_mode) && !regexec(&preg, finfo->d_name, size_t(0), NULL, 0)) {
+        if (!S_ISDIR(st.st_mode) && !regexec(&preg, finfo->d_name, size_t(0), nullptr, 0)) {
           files.push_back(wstrFilename);
         }
     }
@@ -780,17 +780,17 @@ namespace SysTools {
 
   DIR* dirData=opendir(strDir.c_str());
 
-  if (dirData != NULL) {
+  if (dirData != nullptr) {
     struct dirent *finfo;
 
-    while ((finfo=readdir(dirData)) != NULL) {
+    while ((finfo=readdir(dirData)) != nullptr) {
       string strFilename = finfo->d_name;
       strFilename = strDir + strFilename;
 
       struct ::stat st;
       if (::stat(strFilename.c_str(), &st) != -1) {
         if (!S_ISDIR(st.st_mode) &&
-            !regexec(&preg, finfo->d_name, size_t(0), NULL, 0)) {
+            !regexec(&preg, finfo->d_name, size_t(0), nullptr, 0)) {
           files.push_back(std::string(strFilename.c_str()));
         }
       }
@@ -1003,7 +1003,7 @@ namespace SysTools {
     return true;
   #else
     char * pointer;
-    pointer = tmpnam(NULL);
+    pointer = tmpnam(nullptr);
     path = GetPath(std::string( pointer ));
     return true;
   #endif
@@ -1067,7 +1067,7 @@ namespace SysTools {
     }
     if (result)  {
       filename = szFile;
-      if (nFilterIndex != NULL) *nFilterIndex = ofn.nFilterIndex;
+      if (nFilterIndex != nullptr) *nFilterIndex = ofn.nFilterIndex;
       return true;
     } else {
       filename = "";
@@ -1112,7 +1112,7 @@ namespace SysTools {
     }
     if (result)  {
       filename = szFile;
-      if (nFilterIndex != NULL) *nFilterIndex = ofn.nFilterIndex;
+      if (nFilterIndex != nullptr) *nFilterIndex = ofn.nFilterIndex;
       return true;
     } else {
       filename = L"";

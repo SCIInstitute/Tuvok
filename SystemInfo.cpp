@@ -145,7 +145,7 @@ static uint64_t lnx_mem_proc() {
   }
 
   KeyValPair *mem_total = meminfo.GetData("MemTotal");
-  if(mem_total == NULL) {
+  if(mem_total == nullptr) {
     DBG("proc mem fs did not have a `MemTotal' entry.");
     return 0;
   }
@@ -182,7 +182,7 @@ uint64_t SystemInfo::ComputeCPUMemSize() {
       uint64_t phys = 0;
       int mib[2] = { CTL_HW, HW_MEMSIZE };
       size_t len = sizeof(phys);
-      if(sysctl(mib, sizeof(mib)/sizeof(mib[0]), &phys, &len, NULL, 0) != 0) {
+      if(sysctl(mib, sizeof(mib)/sizeof(mib[0]), &phys, &len, nullptr, 0) != 0) {
         perror("max memory query");
         return 0;
       }
@@ -211,7 +211,7 @@ uint64_t SystemInfo::ComputeCPUMemSize() {
   HRESULT GetVideoMemoryViaDXGI( HMONITOR hMonitor, SIZE_T* pDedicatedVideoMemory, SIZE_T* pDedicatedSystemMemory, SIZE_T* pSharedSystemMemory );
 
   #ifndef SAFE_RELEASE
-    #define SAFE_RELEASE(p)      { if (p) { (p)->Release(); (p)=NULL; } }
+    #define SAFE_RELEASE(p)      { if (p) { (p)->Release(); (p)=nullptr; } }
   #endif
 
   typedef IDirect3D9* ( WINAPI* LPDIRECT3DCREATE9 )( UINT  );
@@ -228,7 +228,7 @@ uint64_t SystemInfo::ComputeCPUMemSize() {
       return 0;
     }
 
-    IDirect3D9* pD3D9 = NULL;
+    IDirect3D9* pD3D9 = nullptr;
     pD3D9 = pDirect3DCreate9( D3D_SDK_VERSION );
     if( pD3D9 )
     {
