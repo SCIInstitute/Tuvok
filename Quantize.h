@@ -425,7 +425,7 @@ static bool Quantize(LargeRAWFile& InputData,
   // Reset the histogram.  We'll be quantizing the data.
   std::fill(aHist.begin(), aHist.end(), 0);
 
-  if(iBinCount != NULL) {
+  if(iBinCount != nullptr) {
     *iBinCount = bins_needed<T>(minmax);
     MESSAGE("We need %llu bins", static_cast<uint64_t>(*iBinCount));
   }

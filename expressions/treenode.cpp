@@ -78,7 +78,7 @@ Node* make_node(NodeType nt, ...)
     if(iter) {
       n->AddChild(iter);
     }
-  } while(iter != NULL);
+  } while(iter != nullptr);
   va_end(ap);
 
   return n;
@@ -92,7 +92,7 @@ static Node* node_factory(NodeType nt)
     case EXPR_BINARY:      return new BinaryExpression();
     case EXPR_CONDITIONAL: return new ConditionalExpression();
   }
-  return NULL;
+  return nullptr;
 }
 
 }}

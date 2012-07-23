@@ -83,7 +83,7 @@ TiffVolumeConverter::ConvertToRAW(const std::string& strSourceFilename,
   MESSAGE("Attempting to convert TiffVolume: %s", strSourceFilename.c_str());
 
   TIFF *tif = TIFFOpen(strSourceFilename.c_str(), "r");
-  if(tif == NULL) {
+  if(tif == nullptr) {
     T_ERROR("Could not open %s", strSourceFilename.c_str());
     return false;
   }
@@ -241,7 +241,7 @@ _malloc static uint8_t*
 tv_read_slice(TIFF *tif)
 {
 #ifdef TUVOK_NO_IO
-  return NULL;
+  return nullptr;
 #else
   uint8_t *slice;
   uint32_t width;
@@ -258,14 +258,14 @@ tv_read_slice(TIFF *tif)
     // Actually, this routine should handle it fine,
     // it's just that the caller and probably the rest
     // of Tuvok doesn't handle this well.
-    return NULL;
+    return nullptr;
   }
 
   const tsize_t slice_sz = width*height*(bpp/8)*components * sizeof(uint8_t);
   slice = static_cast<uint8_t*>(_TIFFmalloc(slice_sz));
-  if(slice == NULL) {
+  if(slice == nullptr) {
     T_ERROR("TIFFmalloc failed.");
-    return NULL;
+    return nullptr;
   }
 
   const tstrip_t n_strips = TIFFNumberOfStrips(tif);

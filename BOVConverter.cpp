@@ -80,7 +80,7 @@ bool BOVConverter::ConvertToRAW(
     return false;
   }
   KeyValPair *file = hdr.GetData("DATA_FILE");
-  const KeyValPair *size = find_header(hdr, "DATA SIZE", "DATA_SIZE", NULL);
+  const KeyValPair *size = find_header(hdr, "DATA SIZE", "DATA_SIZE", nullptr);
   KeyValPair *aspect_x = hdr.GetData("BRICK X_AXIS");
   KeyValPair *aspect_y = hdr.GetData("BRICK Y_AXIS");
   KeyValPair *aspect_z = hdr.GetData("BRICK Z_AXIS");
@@ -219,7 +219,7 @@ bool BOVConverter::ConvertToNative(const std::string& raw,
 static DataType
 bov_type(const KeyValueFileParser &kvp)
 {
-  const KeyValPair *format = NULL;
+  const KeyValPair *format = nullptr;
   DataType retval = UnknownType;
 
   // Search a list of strings until we find one.
@@ -228,11 +228,11 @@ bov_type(const KeyValueFileParser &kvp)
   };
   for(size_t i=0; i < sizeof(formats); ++i) {
     format = kvp.GetData(formats[i]);
-    if(format != NULL) { break; }
+    if(format != nullptr) { break; }
   }
 
   // Might not have found any of those.
-  if(format == NULL) {
+  if(format == nullptr) {
     T_ERROR("Could not determine data format.  "
             "Is this a BOV file?  Potentially corrupt.");
     return UnknownType;
@@ -267,7 +267,7 @@ bov_type(const KeyValueFileParser &kvp)
 
 // Given a list of strings, returns the first KeyValPair that exists.  Useful
 // since some bovs use "_" between words in a key, some don't...
-// The argument list must be NULL-terminated.
+// The argument list must be nullptr-terminated.
 static const KeyValPair *
 find_header(const KeyValueFileParser &kvp, const char *s, ...)
 {
@@ -285,5 +285,5 @@ find_header(const KeyValueFileParser &kvp, const char *s, ...)
       if(ret) { return ret; }
     }
   va_end(args);
-  return NULL;
+  return nullptr;
 }

@@ -328,7 +328,7 @@ bool I3MConverter::ConvertToNative(const std::string& strRawFilename,
 
   FLOATVECTOR3 vfDownSampleFactor = FLOATVECTOR3(vVolumeSize)/float(MAX_I3M_VOLSIZE);
 
-  unsigned char* pDenseData = NULL;
+  unsigned char* pDenseData = nullptr;
   UINT64VECTOR3 vI3MVolumeSize;
   if (vfDownSampleFactor.x <= 1 && vfDownSampleFactor.y <= 1 && vfDownSampleFactor.z <= 1) {
     // volume is small enougth -> simply read the data into the array

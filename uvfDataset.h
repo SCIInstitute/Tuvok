@@ -64,10 +64,10 @@ namespace tuvok {
   public:
   	Timestep() : 
       m_fMaxGradMagnitude(0), 
-      m_pVolumeDataBlock(NULL),
-      m_pHist1DDataBlock(NULL), 
-      m_pHist2DDataBlock(NULL),
-      m_pMaxMinData(NULL)
+      m_pVolumeDataBlock(nullptr),
+      m_pHist1DDataBlock(nullptr), 
+      m_pHist2DDataBlock(nullptr),
+      m_pMaxMinData(nullptr)
     {}  
     float                        m_fMaxGradMagnitude;
     const DataBlock*             m_pVolumeDataBlock; ///< data
@@ -160,7 +160,7 @@ public:
                                           const UINT64VECTOR3& vBrickSize,
                                           const UINT64VECTOR3& vBrickOffset,
                                           void* pUserContext),
-                        void *pUserContext= NULL,
+                        void *pUserContext= nullptr,
                         uint64_t iOverlap=0) const;
 
   virtual const std::vector<std::pair<std::string, std::string> > GetMetadata() const;

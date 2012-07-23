@@ -126,7 +126,7 @@ void G3D::write(const std::string & file, const GeometrySoA * const geometry, co
 		{
 			writeHeader(fs, geometry->info, &vertexType);
 			writeIndices(fs, geometry->indices, geometry->info);
-			float * vertices = NULL;
+			float * vertices = nullptr;
 			convertVertices(geometry->vertexAttributes, vertices, geometry->info);
 			writeVertices(fs, vertices, geometry->info);
 			cleanVertices(vertices);
@@ -222,7 +222,7 @@ void G3D::readVertices(std::fstream & fs, std::vector<float*> & vertexAttributes
 {
 	for (uint32_t i=0; i<info.attributeSemantics.size(); ++i) 
 	{
-		vertexAttributes.push_back(NULL);
+		vertexAttributes.push_back(nullptr);
 		uint32_t attributeFloats = floats(info.attributeSemantics.at(i));
 		vertexAttributes.at(i) = new float[info.numberVertices * attributeFloats];
 		fs.read((char*)vertexAttributes.at(i), info.numberVertices * attributeFloats * sizeof(float));
@@ -240,7 +240,7 @@ void G3D::convertVertices(const float * const vertices, std::vector<float*> & ve
 	uint32_t i = 0;
 	for (std::vector<uint32_t>::const_iterator it=info.attributeSemantics.begin(); it!=info.attributeSemantics.end(); ++it)
 	{
-		vertexAttributes.push_back(NULL);
+		vertexAttributes.push_back(nullptr);
 		uint32_t attributeFloats = floats(*it);
 		vertexAttributes.at(i) = new float[info.numberVertices * attributeFloats];
 		++i;
@@ -274,7 +274,7 @@ void G3D::read(const std::string & file, GeometrySoA * const geometry)
 		{
 			geometry->info.vertexType = SoA;
 			readIndices(fs, geometry->indices, geometry->info);
-			float * vertices = NULL;
+			float * vertices = nullptr;
 			readVertices(fs, vertices, geometry->info);
 			convertVertices(vertices, geometry->vertexAttributes, geometry->info);
 			cleanVertices(vertices);
@@ -286,13 +286,13 @@ void G3D::read(const std::string & file, GeometrySoA * const geometry)
 void G3D::cleanIndices(uint32_t * indices)
 {
 	delete [] indices;
-	indices = NULL;
+	indices = nullptr;
 }
 
 void G3D::cleanVertices(float * vertices)
 {
 	delete [] vertices;
-	vertices = NULL;
+	vertices = nullptr;
 }
 
 void G3D::cleanVertices(std::vector<float*> & vertexAttributes)
@@ -306,7 +306,7 @@ void G3D::clean(GeometryAoS * geometry)
 	cleanIndices(geometry->indices);
 	cleanVertices(geometry->vertices);
 	geometry->info.attributeSemantics.clear();
-	geometry = NULL;
+	geometry = nullptr;
 }
 
 void G3D::clean(GeometrySoA * geometry)
@@ -314,7 +314,7 @@ void G3D::clean(GeometrySoA * geometry)
 	cleanIndices(geometry->indices);
 	cleanVertices(geometry->vertexAttributes);
 	geometry->info.attributeSemantics.clear();
-	geometry = NULL;
+	geometry = nullptr;
 }
 
 void G3D::print(const Geometry * const geometry, std::ostream & output)

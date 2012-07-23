@@ -331,7 +331,7 @@ void TransferFunction1D::GetShortArray(unsigned short** psData,
   // bail out immediately if we've got no data
   if(vColorData.empty()) { return; }
 
-  if (*psData == NULL) *psData = new unsigned short[vColorData.size()*4];
+  if (*psData == nullptr) *psData = new unsigned short[vColorData.size()*4];
 
   unsigned short *psDataIterator = *psData;
   for (size_t i = 0;i<vColorData.size();i++) {
@@ -351,7 +351,7 @@ void TransferFunction1D::GetFloatArray(float** pfData) const {
   // bail out immediately if we've got no data
   if(vColorData.empty()) { return; }
 
-  if (*pfData == NULL) *pfData = new float[4*vColorData.size()];
+  if (*pfData == nullptr) *pfData = new float[4*vColorData.size()];
   memcpy(*pfData, &pfData[0], sizeof(float)*4*vColorData.size());
 }
 

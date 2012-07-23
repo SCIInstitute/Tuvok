@@ -986,12 +986,12 @@ bool RAWConverter::ExtractGZIPDataset(const string& strFilename,
   f_compressed = fopen(strFilename.c_str(), "rb");
   f_inflated = fopen(strUncompressedFile.c_str(), "wb");
 
-  if(f_compressed == NULL) {
+  if(f_compressed == nullptr) {
     T_ERROR("Could not open %s", strFilename.c_str());
     fclose(f_inflated);
     return false;
   }
-  if(f_inflated == NULL) {
+  if(f_inflated == nullptr) {
     T_ERROR("Could not open %s", strUncompressedFile.c_str());
     fclose(f_compressed);
     return false;
@@ -1117,12 +1117,12 @@ bool RAWConverter::ExtractBZIP2Dataset(const string& strFilename,
   FILE *f_compressed = fopen(strFilename.c_str(), "rb");
   FILE *f_inflated = fopen(strUncompressedFile.c_str(), "wb");
 
-  if(f_compressed == NULL) {
+  if(f_compressed == nullptr) {
     T_ERROR("Could not open %s", strFilename.c_str());
     fclose(f_inflated);
     return false;
   }
-  if(f_inflated == NULL) {
+  if(f_inflated == nullptr) {
     T_ERROR("Could not open %s", strUncompressedFile.c_str());
     fclose(f_compressed);
     return false;
@@ -1136,7 +1136,7 @@ bool RAWConverter::ExtractBZIP2Dataset(const string& strFilename,
     return false;
   }
 
-  bzf = BZ2_bzReadOpen(&bz_err, f_compressed, 0, 0, NULL, 0);
+  bzf = BZ2_bzReadOpen(&bz_err, f_compressed, 0, 0, nullptr, 0);
   if(bz_err_test(bz_err)) {
     T_ERROR("Bzip library error occurred; bailing.");
     fclose(f_inflated);

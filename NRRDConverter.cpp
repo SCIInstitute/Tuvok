@@ -104,7 +104,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
   }
 
   KeyValPair* kvpType = parser.GetData("TYPE");
-  if (kvpType == NULL) {
+  if (kvpType == nullptr) {
     T_ERROR("Could not open find token \"type\" in file %s", strSourceFilename.c_str());
     return false;
   } else {
@@ -186,7 +186,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
   }
 
   KeyValPair* kvpSizes = parser.GetData("SIZES");
-  if (kvpSizes == NULL) {
+  if (kvpSizes == nullptr) {
     T_ERROR("Could not open find token \"sizes\" in file %s", strSourceFilename.c_str());
     return false;
   } else {
@@ -205,7 +205,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
   }
 
   KeyValPair* kvpDim = parser.GetData("DIMENSION");
-  if (kvpDim == NULL) {
+  if (kvpDim == nullptr) {
     T_ERROR("Could not open find token \"dimension\" in file %s", strSourceFilename.c_str());
     return false;
   } else {
@@ -221,7 +221,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
 
   KeyValPair* kvpDataFile1 = parser.GetData("DATA FILE");
   KeyValPair* kvpDataFile2 = parser.GetData("DATAFILE");
-  if (kvpDataFile1 == NULL && kvpDataFile2 == NULL) {
+  if (kvpDataFile1 == nullptr && kvpDataFile2 == nullptr) {
     iHeaderSkip = uint64_t(parser.GetStopPos());
     strRAWFile = strSourceFilename;
     bDetachedHeader = false;
@@ -246,7 +246,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
   }
 
   KeyValPair* kvpSpacings = parser.GetData("SPACINGS");
-  if (kvpSpacings != NULL) {
+  if (kvpSpacings != nullptr) {
     size_t j = 0;
     for (size_t i = 0;i<kvpSizes->vuiValue.size();i++) {
       if (kvpSpacings->vfValue.size() <= i) break;
@@ -259,7 +259,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
   
   try {
     KeyValPair* kvpSpaceDirs = parser.GetData("SPACE DIRECTIONS");
-    if (kvpSpaceDirs != NULL) {
+    if (kvpSpaceDirs != nullptr) {
       std::vector<std::string> dirs = kvpSpaceDirs->vstrValue;
         
       if (dirs.size() == 3) {
@@ -311,21 +311,21 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
   int iLineSkip = 0;
   int iByteSkip = 0;
   KeyValPair* kvpLineSkip1 = parser.GetData("LINE SKIP");
-  if (kvpLineSkip1 != NULL) iLineSkip = kvpLineSkip1->iValue;
+  if (kvpLineSkip1 != nullptr) iLineSkip = kvpLineSkip1->iValue;
 
   KeyValPair* kvpLineSkip2 = parser.GetData("LINESKIP");
-  if (kvpLineSkip2 != NULL) {
-    if (kvpLineSkip1 != NULL && iLineSkip != kvpLineSkip2->iValue)
+  if (kvpLineSkip2 != nullptr) {
+    if (kvpLineSkip1 != nullptr && iLineSkip != kvpLineSkip2->iValue)
       WARNING( "Found different 'line skip' and 'lineskip' fields, using 'lineskip'.");
     iLineSkip = kvpLineSkip2->iValue;
   }
 
   KeyValPair* kvpByteSkip1 = parser.GetData("BYTE SKIP");
-  if (kvpByteSkip1 != NULL) iByteSkip = kvpByteSkip1->iValue;
+  if (kvpByteSkip1 != nullptr) iByteSkip = kvpByteSkip1->iValue;
 
   KeyValPair* kvpByteSkip2 = parser.GetData("BYTESKIP");
-  if (kvpByteSkip2 != NULL) {
-    if (kvpByteSkip1 != NULL && iByteSkip != kvpByteSkip2->iValue)
+  if (kvpByteSkip2 != nullptr) {
+    if (kvpByteSkip1 != nullptr && iByteSkip != kvpByteSkip2->iValue)
       WARNING( "Found different 'byte skip' and 'byteskip' fields, using 'byteskip'.");
     iByteSkip = kvpByteSkip2->iValue;
   }
@@ -363,12 +363,12 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
   }
 
   KeyValPair* kvpEndian = parser.GetData("ENDIAN");
-  if (kvpEndian != NULL && kvpEndian->strValueUpper == "BIG") bBigEndian = true;
+  if (kvpEndian != nullptr && kvpEndian->strValueUpper == "BIG") bBigEndian = true;
 
   bConvertEndianess = bBigEndian != EndianConvert::IsBigEndian();
 
   KeyValPair* kvpEncoding = parser.GetData("ENCODING");
-  if (kvpEncoding == NULL) {
+  if (kvpEncoding == nullptr) {
     T_ERROR("Could not find token \"encoding\" in file %s",
           strSourceFilename.c_str());
     return false;

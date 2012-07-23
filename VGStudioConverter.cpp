@@ -74,7 +74,7 @@ bool VGStudioConverter::ConvertToRAW(const std::string& strSourceFilename,
 
   if (parser.FileReadable())  {
     KeyValPair* fileformat = parser.GetData("FILEFORMAT");
-    if (fileformat == NULL) {
+    if (fileformat == nullptr) {
       T_ERROR("Tag 'fileformat' not found!");
       return false;
     }
@@ -84,7 +84,7 @@ bool VGStudioConverter::ConvertToRAW(const std::string& strSourceFilename,
     }
 
     KeyValPair* filename = parser.GetData("NAME");
-    if (filename == NULL) {
+    if (filename == nullptr) {
       T_ERROR("Tag 'name' not found!");
       return false;
     }
@@ -92,14 +92,14 @@ bool VGStudioConverter::ConvertToRAW(const std::string& strSourceFilename,
                           SysTools::GetFilename(filename->strValue);
 
     KeyValPair* resolution = parser.GetData("SIZE");
-    if (resolution == NULL || resolution->vuiValue.size() != 3) {
+    if (resolution == nullptr || resolution->vuiValue.size() != 3) {
       T_ERROR("Tag 'size' not found!");
       return false;
     }
     vVolumeSize = UINT64VECTOR3(resolution->vuiValue);
 
     KeyValPair* bitsperelement = parser.GetData("BITSPERELEMENT");
-    if (bitsperelement == NULL) {
+    if (bitsperelement == nullptr) {
       T_ERROR("Tag 'bitsperelement' not found!");
       return false;
     }
@@ -107,7 +107,7 @@ bool VGStudioConverter::ConvertToRAW(const std::string& strSourceFilename,
 
     KeyValPair* datatype = parser.GetData("DATATYPE");
 
-    if (datatype == NULL) {
+    if (datatype == nullptr) {
       T_ERROR("Tag 'datatype' not found!");
       return false;
     }

@@ -84,7 +84,7 @@ StkConverter::ConvertToRAW(const std::string& strSourceFilename,
               strSourceFilename.c_str());
 
   TIFF *tif = TIFFOpen(strSourceFilename.c_str(), "r");
-  if(tif == NULL) {
+  if(tif == nullptr) {
     dbg.Error(_func_, "Could not open %s", strSourceFilename.c_str());
     return false;
   }

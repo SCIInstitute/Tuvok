@@ -46,10 +46,10 @@ namespace io {
 /// Generic base for a failed open
 class DSOpenFailed : virtual public IOException {
   public:
-    DSOpenFailed(std::string s, const char* where=NULL,
+    DSOpenFailed(std::string s, const char* where=nullptr,
                  size_t ln=0) : IOException(s, where, ln) {}
     DSOpenFailed(std::string filename, std::string s,
-                 const char* where=NULL, size_t ln=0)
+                 const char* where=nullptr, size_t ln=0)
                  : IOException(s, where, ln),
                    file(filename) {}
     virtual ~DSOpenFailed() throw() {}
@@ -64,10 +64,10 @@ class DSOpenFailed : virtual public IOException {
 /// something went wrong in the parse process of a file
 class DSParseFailed : virtual public DSOpenFailed {
   public:
-    DSParseFailed(std::string err, const char* where=NULL,
+    DSParseFailed(std::string err, const char* where=nullptr,
                   size_t ln=0) : DSOpenFailed(err, where, ln) {}
     DSParseFailed(std::string f, std::string s,
-                  const char* where=NULL, size_t ln=0)
+                  const char* where=nullptr, size_t ln=0)
                   : DSOpenFailed(f, s, where, ln) {}
     virtual ~DSParseFailed() throw() {}
 };
@@ -77,7 +77,7 @@ class DSParseFailed : virtual public DSOpenFailed {
 /// file was invalid.
 class DSVerificationFailed : virtual public DSOpenFailed {
   public:
-    DSVerificationFailed(std::string s, const char* where=NULL,
+    DSVerificationFailed(std::string s, const char* where=nullptr,
                          size_t ln=0) : DSOpenFailed(s, where, ln) {}
     virtual ~DSVerificationFailed() throw() {}
 };
@@ -87,7 +87,7 @@ class DSBricksOversized : virtual public DSOpenFailed {
   public:
     DSBricksOversized(std::string s,
                       size_t bsz,
-                      const char* where=NULL,
+                      const char* where=nullptr,
                       size_t ln=0)
                       : DSOpenFailed(s, where, ln),
                         brick_size(bsz) {}
