@@ -64,7 +64,7 @@ public:
   Dataset* Create(const std::string&, uint64_t, bool) const throw(DSOpenFailed);
 
   /// Identify the reader which can read the given file.
-  /// @return The dataset if we find a match, or nullptr if not.
+  /// @return The dataset if we find a match, or NULL if not.
   const std::weak_ptr<Dataset> Reader(const std::string&) const;
 
   void AddReader(std::shared_ptr<Dataset>);

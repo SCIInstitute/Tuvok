@@ -85,7 +85,7 @@ public:
 
 	struct Geometry
 	{
-		Geometry() : indices(nullptr) {}
+		Geometry() : indices(NULL) {}
 		GeometryInfo info;
 
 		uint32_t * indices;
@@ -93,7 +93,7 @@ public:
 
 	struct GeometryAoS : Geometry
 	{
-		GeometryAoS() : Geometry(), vertices(nullptr)
+		GeometryAoS() : Geometry(), vertices(NULL)
 		{
 			info.vertexType = AoS;
 		}
@@ -141,7 +141,7 @@ public:
 	static void clean(GeometrySoA * geometry);
 
 private:
-	static void writeHeader(std::fstream & fs, const GeometryInfo & info, const uint32_t * const vertexType = nullptr);
+	static void writeHeader(std::fstream & fs, const GeometryInfo & info, const uint32_t * const vertexType = NULL);
 	static void writeIndices(std::fstream & fs, const uint32_t * const indices, const GeometryInfo & info);
 	static void writeVertices(std::fstream & fs, const float * const vertices, const GeometryInfo & info);
 	static void writeVertices(std::fstream & fs, const std::vector<float*> & vertexAttributes, const GeometryInfo & info);

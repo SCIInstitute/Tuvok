@@ -136,12 +136,12 @@ namespace {
 }
 
 IOManager::IOManager() :
-  m_pFinalConverter(nullptr),
+  m_pFinalConverter(NULL),
   m_dsFactory(new io::DSFactory()),
   m_iMaxBrickSize(DEFAULT_BRICKSIZE),
   m_iBrickOverlap(DEFAULT_BRICKOVERLAP),
   m_iIncoresize(m_iMaxBrickSize*m_iMaxBrickSize*m_iMaxBrickSize),
-  m_LoadDS(nullptr)
+  m_LoadDS(NULL)
 {
   m_vpGeoConverters.push_back(new LinesGeoConverter());
   m_vpGeoConverters.push_back(new PLYGeoConverter());
@@ -1212,7 +1212,7 @@ UVFDataset* IOManager::ConvertDataset(FileStackInfo* pStack,
                                       const bool bQuantizeTo8Bit) const {
   if (!ConvertDataset(pStack, strTargetFilename, strTempDir, iMaxBrickSize,
                       iBrickOverlap,bQuantizeTo8Bit)) {
-    return nullptr;
+    return NULL;
   }
   return dynamic_cast<UVFDataset*>(LoadDataset(strTargetFilename, requester));
 }
@@ -1226,7 +1226,7 @@ UVFDataset* IOManager::ConvertDataset(const string& strFilename,
                                       const bool bQuantizeTo8Bit) const {
   if (!ConvertDataset(strFilename, strTargetFilename, strTempDir, false,
                       iMaxBrickSize, iBrickOverlap,bQuantizeTo8Bit)) {
-    return nullptr;
+    return NULL;
   }
   return dynamic_cast<UVFDataset*>(LoadDataset(strTargetFilename, requester));
 }
@@ -1428,7 +1428,7 @@ bool IOManager::ExtractIsosurface(const tuvok::UVFDataset* pSourceData,
 
   AbstrGeoConverter* conv = GetGeoConverterForExt(SysTools::ToLowerCase(SysTools::GetExt(strTargetFilename)),true, false);
   
-  if (conv == nullptr) {
+  if (conv == NULL) {
     T_ERROR("Unknown Mesh Format.");
     return false;
   }
@@ -1513,7 +1513,7 @@ bool IOManager::ExportMesh(const Mesh* mesh,
                            const std::string& strTargetFilename) {
   AbstrGeoConverter* conv = GetGeoConverterForExt(SysTools::ToLowerCase(SysTools::GetExt(strTargetFilename)),true, false);
 
-  if (conv == nullptr) {
+  if (conv == NULL) {
     T_ERROR("Unknown Mesh Format.");
     return false;
   }
@@ -1526,7 +1526,7 @@ bool IOManager::ExportDataset(const UVFDataset* pSourceData, uint64_t iLODlevel,
                               const string& strTempDir) const {
   // find the right converter to handle the output
   string strExt = SysTools::ToUpperCase(SysTools::GetExt(strTargetFilename));
-  AbstrConverter* pExporter = nullptr;
+  AbstrConverter* pExporter = NULL;
   for (size_t i = 0;i<m_vpConverters.size();i++) {
     const vector<string>& vStrSupportedExt = m_vpConverters[i]->SupportedExt();
     for (size_t j = 0;j<vStrSupportedExt.size();j++) {
@@ -1767,7 +1767,7 @@ AbstrConverter* IOManager::GetConverterForExt(std::string ext,
       }
     }
   }
-  return nullptr;
+  return NULL;
 }
 
 
@@ -1783,7 +1783,7 @@ AbstrGeoConverter* IOManager::GetGeoConverterForExt(std::string ext,
       }
     }
   }
-  return nullptr;
+  return NULL;
 }
 
 string IOManager::GetLoadGeoDialogString() const {
@@ -1996,7 +1996,7 @@ const RasterDataBlock* GetFirstRDB(const UVF& uvf)
       return dynamic_cast<const RasterDataBlock*>(uvf.GetDataBlock(i));
     }
   }
-  return nullptr;
+  return NULL;
 }
 
 namespace {
@@ -2414,7 +2414,7 @@ IOManager::EvaluateExpression(const char* expr,
     // Received this exception when using datasets that were converted to the
     // octree based UVF format (happens with experimental features enabled in
     // settings -- see RAWConverter::ConvertRAWDataset(...) ).
-    if (rdb1 == nullptr) {
+    if (rdb1 == NULL) {
       throw tuvok::io::IOException("No raster data blocks present in the "
                                    "first volume.",
                                    __FILE__, __LINE__);

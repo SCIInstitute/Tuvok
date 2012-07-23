@@ -72,7 +72,7 @@ bool QVISConverter::ConvertToRAW(const std::string& strSourceFilename,
 
   if (parser.FileReadable())  {
     KeyValPair* format = parser.GetData("FORMAT");
-    if (format == nullptr)
+    if (format == NULL)
       return false;
     else {
       // The "CHAR" here is correct; QVis cannot store signed 8bit data.
@@ -107,14 +107,14 @@ bool QVISConverter::ConvertToRAW(const std::string& strSourceFilename,
     }
 
     KeyValPair* objectfilename = parser.GetData("OBJECTFILENAME");
-    if (objectfilename == nullptr) {
+    if (objectfilename == NULL) {
       WARNING("This is not a valid QVIS dat file.");
       return false;
     } else
         strIntermediateFile = objectfilename->strValue;
 
     KeyValPair* resolution = parser.GetData("RESOLUTION");
-    if (resolution == nullptr || resolution->vuiValue.size() != 3) {
+    if (resolution == NULL || resolution->vuiValue.size() != 3) {
       WARNING("This is not a valid QVIS dat file.");
       return false;
     } else
@@ -125,7 +125,7 @@ bool QVISConverter::ConvertToRAW(const std::string& strSourceFilename,
       bConvertEndianess = !bConvertEndianess;
 
     KeyValPair* sliceThickness = parser.GetData("SLICETHICKNESS");
-    if (sliceThickness == nullptr || sliceThickness->vuiValue.size() != 3) {
+    if (sliceThickness == NULL || sliceThickness->vuiValue.size() != 3) {
       WARNING("This is not a valid QVIS dat file.");
       vVolumeAspect = FLOATVECTOR3(1,1,1);
     } else {

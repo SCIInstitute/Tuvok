@@ -183,7 +183,7 @@ KeyValPair* KeyValueFileParser::GetData(const string&  strKey,
     for (uint32_t i = 0;i<m_vecTokens.size();i++)
       if (m_vecTokens[i].strKey == strKey) return &m_vecTokens[i];
   }
-  return nullptr;
+  return NULL;
 }
 
 KeyValPair* KeyValueFileParser::GetData(const wstring& wstrKey,
@@ -197,7 +197,7 @@ KeyValPair* KeyValueFileParser::GetData(const wstring& wstrKey,
     for (uint32_t i = 0;i<m_vecTokens.size();i++)
       if (m_vecTokens[i].wstrKey == wstrKey) return &m_vecTokens[i];
   }
-  return nullptr;
+  return NULL;
 }
 
 struct matching_keys : public std::binary_function<std::string,
@@ -221,7 +221,7 @@ const KeyValPair* KeyValueFileParser::GetData(const std::string& strKey,
                       std::bind1st(matching_keys(), key));
 
   if(iter == m_vecTokens.end()) {
-    return nullptr;
+    return NULL;
   }
   return &(*iter);
 }

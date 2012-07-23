@@ -937,7 +937,7 @@ bool ExtendedOctreeConverter::Atalasify(ExtendedOctree &tree,
     const TOCEntry t = {(e.m_vTOC.end()-1)->m_iLength+(e.m_vTOC.end()-1)->m_iOffset, iUncompressedBrickSize, CT_NONE, iUncompressedBrickSize, atlasSize};
     e.m_vTOC.push_back(t);
 
-    WriteBrickToDisk(e, pData, iBrick, nullptr, eCompression);
+    WriteBrickToDisk(e, pData, iBrick, NULL, eCompression);
   }
 
 
@@ -1047,7 +1047,7 @@ bool ExtendedOctreeConverter::DeAtalasify(const ExtendedOctree &tree,
     const TOCEntry t = {(e.m_vTOC.end()-1)->m_iLength+(e.m_vTOC.end()-1)->m_iOffset, iUncompressedBrickSize, CT_NONE, iUncompressedBrickSize, UINTVECTOR2(0,0)};
     e.m_vTOC.push_back(t);
 
-    WriteBrickToDisk(e, pData, iBrick, nullptr, eCompression);
+    WriteBrickToDisk(e, pData, iBrick, NULL, eCompression);
   }
 
 

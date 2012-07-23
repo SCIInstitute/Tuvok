@@ -93,7 +93,7 @@ struct j_implementation : public JPEG::j_impl {
     jpg.err = jpeg_std_error(&(this->jerr));
     jpg.err->error_exit = jpg_error;
     jpeg_create_decompress(&jpg);
-    jpeg_stdio_src(&jpg, nullptr);
+    jpeg_stdio_src(&jpg, NULL);
 
     this->jinfo = jpg;
   };
@@ -172,10 +172,10 @@ const char* JPEG::data()
 {
 #ifdef TUVOK_NO_IO
   T_ERROR("IO library not compiled in; not implemented!");
-  return nullptr;
+  return NULL;
 #else
   // If the JPEG isn't valid, we can't load anything from it; just bail.
-  if(!this->valid()) { return nullptr; }
+  if(!this->valid()) { return NULL; }
 
   // Need a buffer for the image data.
   this->buffer.resize(this->size());
@@ -184,7 +184,7 @@ const char* JPEG::data()
 
   {
 
-    JSAMPLE *jbuffer = nullptr;
+    JSAMPLE *jbuffer = NULL;
     const size_t row_sz = this->w * this->bpp;
     jbuffer = new JSAMPLE[row_sz];
 
@@ -207,7 +207,7 @@ const char* JPEG::data()
   }
   // This would happen in our destructor anyway, but we might as clean up ASAP.
   delete this->jpeg_impl;
-  this->jpeg_impl = nullptr;
+  this->jpeg_impl = NULL;
 
   return &this->buffer.at(0);
 #endif // TUVOK_NO_IO

@@ -46,7 +46,7 @@ public:
     default constructor, flags this CacheEntry as unused
   */
   CacheEntry() :
-    m_pData(nullptr),
+    m_pData(NULL),
     m_bDirty(false),
     m_index(std::numeric_limits<size_t>::max()),
     m_iAccess(0),
@@ -71,7 +71,7 @@ public:
     if (m_size != size) {
       assert(!m_bDirty);
       delete [] m_pData;
-      m_pData = nullptr;
+      m_pData = NULL;
     }
 
     m_size = size;
@@ -151,7 +151,7 @@ public:
     m_iOverlap(iOverlap),
     m_iMemLimit(iMemLimit),
     m_iCacheAccessCounter(0),
-    m_pBrickStatVec(nullptr)
+    m_pBrickStatVec(NULL)
     {}
 
   /**
@@ -166,7 +166,7 @@ public:
     @param vVolumeAspect the aspect ratio of the input volume
     @param targetFile the target file for the processed data
     @param iOutOffset bytes to precede the data in the target file
-    @param stats pointer to a vector to store the statistics of each brick, can be set to nullptr to disable statistics computation
+    @param stats pointer to a vector to store the statistics of each brick, can be set to NULL to disable statistics computation
     @param compression the desired compression method, defaults to none (=CT_NONE)
     @return true if the conversion succeeded, the main reason for failure would be a disk I/O issue
   */
@@ -175,7 +175,7 @@ public:
                uint64_t iComponentCount, const UINT64VECTOR3& vVolumeSize,
                const DOUBLEVECTOR3& vVolumeAspect,
                const std::string& targetFile, uint64_t iOutOffset,
-               BrickStatVec* stats = nullptr,
+               BrickStatVec* stats = NULL,
                COMPORESSION_TYPE compression=CT_NONE);
 
   /**
@@ -190,7 +190,7 @@ public:
     @param vVolumeAspect the aspect ratio of the input volume
     @param pLargeRAWOutFile a large raw-file pointer to the target file for the processed data
     @param iOutOffset bytes to precede the data in the target file
-    @param stats pointer to a vector to store the statistics of each brick, can be set to nullptr to disable statistics computation
+    @param stats pointer to a vector to store the statistics of each brick, can be set to NULL to disable statistics computation
     @param compression the desired compression method, defaults to none (=CT_NONE)
     @return  true if the conversion succeeded, the main reason for failure would be a disk I/O issue
   */
@@ -199,7 +199,7 @@ public:
                uint64_t iComponentCount, const UINT64VECTOR3& vVolumeSize,
                const DOUBLEVECTOR3& vVolumeAspect,
                LargeRAWFile_ptr pLargeRAWOutFile, uint64_t iOutOffset,
-               BrickStatVec* stats = nullptr,
+               BrickStatVec* stats = NULL,
                COMPORESSION_TYPE compression= CT_NONE);
   /**
     Call this method from a second thread during the conversion to check on the progress of the operation
@@ -367,7 +367,7 @@ private:
   /// last timestamp used to access the brickCache
   uint64_t m_iCacheAccessCounter;
 
-  /// if not nullptr then the statistics for each brick are stored in this vector
+  /// if not NULL then the statistics for each brick are stored in this vector
   BrickStatVec* m_pBrickStatVec;
 
   /**

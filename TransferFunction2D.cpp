@@ -43,18 +43,18 @@ using namespace std;
 
 TransferFunction2D::TransferFunction2D() :
   m_iSize(0,0),
-  m_pColorData(nullptr),
-  m_pPixelData(nullptr),
-  m_pRCanvas(nullptr),
+  m_pColorData(NULL),
+  m_pPixelData(NULL),
+  m_pRCanvas(NULL),
   m_bUseCachedData(false)
 {
 }
 
 TransferFunction2D::TransferFunction2D(const std::string& filename):
   m_iSize(0,0),
-  m_pColorData(nullptr),
-  m_pPixelData(nullptr),
-  m_pRCanvas(nullptr),
+  m_pColorData(NULL),
+  m_pPixelData(NULL),
+  m_pRCanvas(NULL),
   m_bUseCachedData(false)
 {
   Load(filename);
@@ -62,9 +62,9 @@ TransferFunction2D::TransferFunction2D(const std::string& filename):
 
 TransferFunction2D::TransferFunction2D(const VECTOR2<size_t>& iSize):
   m_iSize(iSize),
-  m_pColorData(nullptr),
-  m_pPixelData(nullptr),
-  m_pRCanvas(nullptr),
+  m_pColorData(NULL),
+  m_pPixelData(NULL),
+  m_pRCanvas(NULL),
   m_bUseCachedData(false)
 {
   Resize(m_iSize);
@@ -217,7 +217,7 @@ bool TransferFunction2D::Save(const std::string& filename) const {
 }
 
 void TransferFunction2D::GetByteArray(unsigned char** pcData) {
-  if (*pcData == nullptr) *pcData = new unsigned char[m_iSize.area()*4];
+  if (*pcData == NULL) *pcData = new unsigned char[m_iSize.area()*4];
 
   size_t iSize = m_iSize.area();
   unsigned char *pcSourceDataIterator = RenderTransferFunction8Bit();
@@ -237,7 +237,7 @@ void TransferFunction2D::GetByteArray(unsigned char** pcData) {
 
 void TransferFunction2D::GetByteArray(unsigned char** pcData,
                                       unsigned char cUsedRange) {
-  if (*pcData == nullptr) *pcData = new unsigned char[m_iSize.area()*4];
+  if (*pcData == NULL) *pcData = new unsigned char[m_iSize.area()*4];
 
   float fScale = 255.0f/float(cUsedRange);
 
@@ -262,7 +262,7 @@ void TransferFunction2D::GetByteArray(unsigned char** pcData,
 
 void TransferFunction2D::GetShortArray(unsigned short** psData,
                                        unsigned short sUsedRange) {
-  if (*psData == nullptr) *psData = new unsigned short[m_iSize.area()*4];
+  if (*psData == NULL) *psData = new unsigned short[m_iSize.area()*4];
 
   RenderTransferFunction();
   unsigned short *psDataIterator = *psData;
@@ -277,7 +277,7 @@ void TransferFunction2D::GetShortArray(unsigned short** psData,
 }
 
 void TransferFunction2D::GetFloatArray(float** pfData) {
-  if (*pfData == nullptr) *pfData = new float[4*m_iSize.area()];
+  if (*pfData == NULL) *pfData = new float[4*m_iSize.area()];
 
   RenderTransferFunction();
   memcpy(*pfData, m_pColorData->GetDataPointer(), 4*sizeof(float)*m_iSize.area());
@@ -290,14 +290,14 @@ INTVECTOR2 TransferFunction2D::Normalized2Offscreen(FLOATVECTOR2 vfCoord, VECTOR
 
 unsigned char* TransferFunction2D::RenderTransferFunction8Bit() {
   VECTOR2<size_t> vRS = GetRenderSize();
-  if (m_pColorData == nullptr) m_pColorData = new ColorData2D(m_iSize);
-  if (m_pPixelData == nullptr) m_pPixelData = new unsigned char[4*m_iSize.area()];
+  if (m_pColorData == NULL) m_pColorData = new ColorData2D(m_iSize);
+  if (m_pPixelData == NULL) m_pPixelData = new unsigned char[4*m_iSize.area()];
 
 #ifndef TUVOK_NO_QT
-  if (m_pRCanvas == nullptr)   m_pRCanvas   = new QImage(int(vRS.x), int(vRS.y),
+  if (m_pRCanvas == NULL)   m_pRCanvas   = new QImage(int(vRS.x), int(vRS.y),
                                                       QImage::Format_ARGB32);
 
-  if (m_pPixelData != nullptr && m_bUseCachedData) return m_pPixelData;
+  if (m_pPixelData != NULL && m_bUseCachedData) return m_pPixelData;
 
   m_pRCanvas->fill(0);
 
@@ -450,7 +450,7 @@ bool TFPolygon::Load(ifstream& file) {
       file >> pGradientStops[i].second[j];
     }
   }
-  return file != nullptr;
+  return file != NULL;
 }
 
 void TFPolygon::Save(ofstream& file) const {

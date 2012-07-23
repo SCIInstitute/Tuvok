@@ -89,7 +89,7 @@ public:
                                 const uint64_t iTargetBrickSize,
                                 const uint64_t iTargetBrickOverlap,
                                 UVFTables::ElementSemanticTable eType=UVFTables::ES_UNDEFINED,
-                                KVPairs* pKVPairs = nullptr,
+                                KVPairs* pKVPairs = NULL,
                                 const bool bQuantizeTo8Bit=false);
 
   static bool ExtractGZIPDataset(const std::string& strFilename,

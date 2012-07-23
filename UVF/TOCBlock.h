@@ -33,7 +33,7 @@ public:
                             std::shared_ptr<MaxMinDataBlock>
                               pMaxMinDatBlock =
                                 std::shared_ptr<MaxMinDataBlock>(),
-                            AbstrDebugOut* pDebugOut=nullptr);
+                            AbstrDebugOut* pDebugOut=NULL);
   bool FlatDataToBrickedLOD(LargeRAWFile_ptr pSourceData,
                             const std::string& strTempFile,
                             ExtendedOctree::COMPONENT_TYPE eType,
@@ -46,25 +46,25 @@ public:
                             std::shared_ptr<MaxMinDataBlock>
                               pMaxMinDatBlock =
                                 std::shared_ptr<MaxMinDataBlock>(),
-                            AbstrDebugOut* pDebugOut=nullptr);
+                            AbstrDebugOut* pDebugOut=NULL);
 
   bool BrickedLODToFlatData(uint64_t iLoD,
                             const std::string& strTargetFile,
-                            bool bAppend = false, AbstrDebugOut* pDebugOut=nullptr) const;
+                            bool bAppend = false, AbstrDebugOut* pDebugOut=NULL) const;
 
   bool BrickedLODToFlatData(uint64_t iLoD,
                             LargeRAWFile_ptr pTargetFile,
-                            bool bAppend = false, AbstrDebugOut* pDebugOut=nullptr) const;
+                            bool bAppend = false, AbstrDebugOut* pDebugOut=NULL) const;
 
 
   bool ApplyFunction(uint64_t iLoD,
                      bool (*brickFunc)(void* pData,
                                     const UINT64VECTOR3& vBrickSize,
                                     const UINT64VECTOR3& vBrickOffset,
-                                    void* pUserContext) = nullptr,
-                     void* pUserContext = nullptr,
+                                    void* pUserContext) = NULL,
+                     void* pUserContext = NULL,
                      uint32_t iOverlap=0,
-                     AbstrDebugOut* pDebugOut=nullptr) const;
+                     AbstrDebugOut* pDebugOut=NULL) const;
 
   void GetData(uint8_t* pData, UINT64VECTOR4 coordinates) const;
 

@@ -52,9 +52,9 @@ namespace tuvok {
 UVFDataset::UVFDataset(const std::string& strFilename, uint64_t iMaxAcceptableBricksize, bool bVerify, bool bMustBeSameVersion) :
   FileBackedDataset(strFilename),
   m_bToCBlock(false),
-  m_pKVDataBlock(nullptr),
+  m_pKVDataBlock(NULL),
   m_bIsSameEndianness(true),
-  m_pDatasetFile(nullptr),
+  m_pDatasetFile(NULL),
   m_CachedRange(make_pair(+1,-1)),
   m_iMaxAcceptableBricksize(iMaxAcceptableBricksize)
 {
@@ -64,9 +64,9 @@ UVFDataset::UVFDataset(const std::string& strFilename, uint64_t iMaxAcceptableBr
 UVFDataset::UVFDataset() :
   FileBackedDataset(""),
   m_bToCBlock(false),
-  m_pKVDataBlock(nullptr),
+  m_pKVDataBlock(NULL),
   m_bIsSameEndianness(true),
-  m_pDatasetFile(nullptr),
+  m_pDatasetFile(NULL),
   m_CachedRange(make_pair(+1,-1)),
   m_iMaxAcceptableBricksize(DEFAULT_BRICKSIZE)
 {
@@ -223,15 +223,15 @@ void UVFDataset::Close() {
   for(std::vector<Timestep*>::iterator ts = m_timesteps.begin();
       ts != m_timesteps.end(); ++ts) {
     delete *ts;
-    *ts = nullptr;
+    *ts = NULL;
   }
   m_timesteps.clear();
 
   m_TriSoupBlocks.clear();
   DeleteMeshes();
 
-  m_pKVDataBlock= nullptr;
-  m_pDatasetFile= nullptr;
+  m_pKVDataBlock= NULL;
+  m_pDatasetFile= NULL;
   m_bIsOpen= false;
 }
 
@@ -617,7 +617,7 @@ void UVFDataset::FindSuitableDataBlocks() {
                      (m_pDatasetFile->GetDataBlock(iBlocks));
         break;
       case UVFTables::BS_KEY_VALUE_PAIRS:
-        if(m_pKVDataBlock != nullptr) {
+        if(m_pKVDataBlock != NULL) {
           WARNING("Multiple Key-Value pair blocks; using first!");
           continue;
         }
@@ -686,10 +686,10 @@ void UVFDataset::FindSuitableDataBlocks() {
 /// @todo fixme (hack): we only look at the first timestep for the
 /// histograms.  should really set a vector of histograms, one per timestep.
 void UVFDataset::GetHistograms(size_t) {
-  m_pHist1D = nullptr;
+  m_pHist1D = NULL;
 
   Timestep* ts = m_timesteps[0];
-  if (ts->m_pHist1DDataBlock != nullptr) {
+  if (ts->m_pHist1DDataBlock != NULL) {
     const std::vector<uint64_t>& vHist1D = ts->m_pHist1DDataBlock->GetHistogram();
 
     m_pHist1D = new Histogram1D(std::min<size_t>(vHist1D.size(),
@@ -751,8 +751,8 @@ void UVFDataset::GetHistograms(size_t) {
     }
   }
 
-  m_pHist2D = nullptr;
-  if (ts->m_pHist2DDataBlock != nullptr) {
+  m_pHist2D = NULL;
+  if (ts->m_pHist2DDataBlock != NULL) {
     const std::vector< std::vector<uint64_t> >& vHist2D =
       ts->m_pHist2DDataBlock->GetHistogram();
 
@@ -1076,7 +1076,7 @@ void UVFDataset::ComputeRange() {
   // If we're missing MaxMin data for any timestep, we don't have maxmin data.
   bool have_maxmin_data = true;
   for(size_t tsi=0; tsi < m_timesteps.size(); ++tsi) {
-    if(m_timesteps[tsi]->m_pMaxMinData == nullptr) {
+    if(m_timesteps[tsi]->m_pMaxMinData == NULL) {
       WARNING("Missing acceleration structure for timestep %u",
               static_cast<unsigned>(tsi));
       have_maxmin_data = false;
@@ -1156,7 +1156,7 @@ InternalMaxMinElement UVFDataset::MaxMinForKey(const BrickKey &k) const {
 bool UVFDataset::ContainsData(const BrickKey &k, double isoval) const
 {
   // if we have no max min data we have to assume that every block is visible
-  if(nullptr == m_timesteps[std::get<0>(k)]->m_pMaxMinData) {return true;}
+  if(NULL == m_timesteps[std::get<0>(k)]->m_pMaxMinData) {return true;}
   const InternalMaxMinElement maxMinElement = MaxMinForKey(k);
   return (isoval <= maxMinElement.maxScalar);
 }
@@ -1164,7 +1164,7 @@ bool UVFDataset::ContainsData(const BrickKey &k, double isoval) const
 bool UVFDataset::ContainsData(const BrickKey &k, double fMin,double fMax) const
 {
   // if we have no max min data we have to assume that every block is visible
-  if(nullptr == m_timesteps[std::get<0>(k)]->m_pMaxMinData) {return true;}
+  if(NULL == m_timesteps[std::get<0>(k)]->m_pMaxMinData) {return true;}
   const InternalMaxMinElement maxMinElement = MaxMinForKey(k);
   return (fMax >= maxMinElement.minScalar && fMin <= maxMinElement.maxScalar);
 }
@@ -1172,7 +1172,7 @@ bool UVFDataset::ContainsData(const BrickKey &k, double fMin,double fMax) const
 bool UVFDataset::ContainsData(const BrickKey &k, double fMin,double fMax, double fMinGradient,double fMaxGradient) const
 {
   // if we have no max min data we have to assume that every block is visible
-  if(nullptr == m_timesteps[std::get<0>(k)]->m_pMaxMinData) {return true;}
+  if(NULL == m_timesteps[std::get<0>(k)]->m_pMaxMinData) {return true;}
   const InternalMaxMinElement maxMinElement = MaxMinForKey(k);
   return (fMax >= maxMinElement.minScalar &&
           fMin <= maxMinElement.maxScalar)

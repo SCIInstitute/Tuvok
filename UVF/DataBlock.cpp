@@ -102,7 +102,7 @@ bool DataBlock::Verify(uint64_t iSizeofData, std::string* pstrProblem) const {
   uint64_t iCorrectSize = ComputeDataSize();
   bool bResult = iCorrectSize == iSizeofData;
 
-  if (pstrProblem != nullptr)  {
+  if (pstrProblem != NULL)  {
     stringstream s;
     s << "DataBlock::Verify: size mismatch. Should be " << iCorrectSize << " but parameter was " << iSizeofData << ".";
     *pstrProblem = s.str();

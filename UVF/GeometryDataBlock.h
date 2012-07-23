@@ -53,7 +53,7 @@ public:
   virtual ~GeometryDataBlock();
 
   virtual bool Verify(uint64_t iSizeofData,
-                      std::string* pstrProblem = nullptr) const;
+                      std::string* pstrProblem = NULL) const;
   virtual uint64_t ComputeDataSize() const;
 
   std::vector< float > GetVertices() const;

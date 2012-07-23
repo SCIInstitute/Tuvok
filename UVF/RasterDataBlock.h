@@ -90,8 +90,8 @@ public:
   virtual ~RasterDataBlock();
 
   virtual bool Verify(uint64_t iSizeofData,
-                      std::string* pstrProblem = nullptr) const;
-  virtual bool Verify(std::string* pstrProblem = nullptr) const;
+                      std::string* pstrProblem = NULL) const;
+  virtual bool Verify(std::string* pstrProblem = NULL) const;
 
   std::vector<UVFTables::DomainSemanticTable> ulDomainSemantics;
   std::vector<double> dDomainTransformation;
@@ -109,7 +109,7 @@ public:
   std::vector<std::vector<bool> > bSignedElement;
   uint64_t ulOffsetToDataBlock;
 
-  virtual uint64_t ComputeDataSize() const {return ComputeDataSize(nullptr);}
+  virtual uint64_t ComputeDataSize() const {return ComputeDataSize(NULL);}
   virtual uint64_t ComputeDataSize(std::string* pstrProblem) const;
   virtual uint64_t ComputeHeaderSize() const;
 
@@ -188,16 +188,16 @@ public:
 
   bool BrickedLODToFlatData(const std::vector<uint64_t>& vLOD,
                             const std::string& strTargetFile,
-                            bool bAppend = false, AbstrDebugOut* pDebugOut=nullptr) const;
+                            bool bAppend = false, AbstrDebugOut* pDebugOut=NULL) const;
 
   bool ApplyFunction(const std::vector<uint64_t>& vLOD,
                      bool (*brickFunc)(void* pData, 
                                     const UINT64VECTOR3& vBrickSize,
                                     const UINT64VECTOR3& vBrickOffset,
                                     void* pUserContext),
-                     void* pUserContext = nullptr,
+                     void* pUserContext = NULL,
                      uint64_t iOverlap=0,
-                     AbstrDebugOut* pDebugOut=nullptr) const;
+                     AbstrDebugOut* pDebugOut=NULL) const;
 
   const std::vector<uint64_t> LargestSingleBrickLODBrickIndex() const;
   const std::vector<uint64_t>& LargestSingleBrickLODBrickSize() const;
@@ -214,7 +214,7 @@ public:
                        std::vector<DOUBLEVECTOR4>& fMinMax),
     std::shared_ptr<MaxMinDataBlock> pMaxMinDatBlock =
       std::shared_ptr<MaxMinDataBlock>(),
-    AbstrDebugOut* pDebugOut=nullptr
+    AbstrDebugOut* pDebugOut=NULL
   );
   bool FlatDataToBrickedLOD(
     LargeRAWFile_ptr pSourceData, const std::string& strTempFile,
@@ -224,7 +224,7 @@ public:
                        std::vector<DOUBLEVECTOR4>& fMinMax),
     std::shared_ptr<MaxMinDataBlock> pMaxMinDatBlock =
       std::shared_ptr<MaxMinDataBlock>(),
-    AbstrDebugOut* pDebugOut=nullptr
+    AbstrDebugOut* pDebugOut=NULL
   );
 
   void AllocateTemp(const std::string& strTempFile,
@@ -290,7 +290,7 @@ protected:
                  void (*combineFunc)(const std::vector<uint64_t> &vSource,
                                      uint64_t iTarget, const void* pIn,
                                      void* pOut),
-                 AbstrDebugOut* pDebugOut=nullptr, uint64_t iLODLevel=0,
+                 AbstrDebugOut* pDebugOut=NULL, uint64_t iLODLevel=0,
                  uint64_t iMaxLODLevel=0);
 
   uint64_t ComputeDataSizeAndOffsetTables();
@@ -377,7 +377,7 @@ template <typename T, int LoD=FINEST_RESOLUTION>
 class LODBrickIterator : public std::iterator<std::input_iterator_tag, T> {
   public:
     /// Constructs an end-of-stream iterator.
-    LODBrickIterator(): rdb(nullptr), brick(0), iter(0), eos(true) {}
+    LODBrickIterator(): rdb(NULL), brick(0), iter(0), eos(true) {}
 
     /// Constructs an iterator which is at the start of the DS.
     LODBrickIterator(const RasterDataBlock* b) : rdb(b), brick(0), iter(0),

@@ -70,7 +70,7 @@ bool KitwareConverter::ConvertToRAW(const std::string& strSourceFilename,
     KeyValPair* dimsize        = parser.GetData("DIMSIZE");
     KeyValPair* ElementSpacing = parser.GetData("ELEMENTSPACING");
     KeyValPair* BigEndianFlag  = parser.GetData("ELEMENTBYTEORDERMSB");
-    if (BigEndianFlag == nullptr) BigEndianFlag = parser.GetData("BINARYDATABYTEORDERMSB");
+    if (BigEndianFlag == NULL) BigEndianFlag = parser.GetData("BINARYDATABYTEORDERMSB");
     KeyValPair* ElementType    = parser.GetData("ELEMENTTYPE");
     KeyValPair* CompressedData = parser.GetData("COMPRESSEDDATA");
     KeyValPair* BinaryData      = parser.GetData("BINARYDATA");
@@ -85,22 +85,22 @@ bool KitwareConverter::ConvertToRAW(const std::string& strSourceFilename,
       return false;
     }
 
-    if (ElementDataFile == nullptr) {
+    if (ElementDataFile == NULL) {
       T_ERROR("Unable to find 'ElementDataFile' tag in file %s.", strSourceFilename.c_str());
       return false;
     }
 
-    if (dimsize == nullptr) {
+    if (dimsize == NULL) {
       T_ERROR("Unable to find 'DimSize' tag in file %s.", strSourceFilename.c_str());
       return false;
     }
 
-    if (ElementType == nullptr) {
+    if (ElementType == NULL) {
       T_ERROR("Unable to find 'ElementType' tag in file %s.", strSourceFilename.c_str());
       return false;
     }
 
-    if (BigEndianFlag == nullptr) {
+    if (BigEndianFlag == NULL) {
       MESSAGE("Unable to find 'ElementByteOrderMSB' or 'BinaryDataByteOrderMSB' tags in file %s assuming little endian data.", strSourceFilename.c_str());
       bConvertEndianess = EndianConvert::IsBigEndian();
     } else {
@@ -146,7 +146,7 @@ bool KitwareConverter::ConvertToRAW(const std::string& strSourceFilename,
     }
 
 
-    if (ElementNumberOfChannels == nullptr) {
+    if (ElementNumberOfChannels == NULL) {
       MESSAGE("Unable to find 'ElementNumberOfChannels' tag in file '%s'; "
               "assuming scalar data.", strSourceFilename.c_str());
       iComponentCount = 1;
@@ -163,7 +163,7 @@ bool KitwareConverter::ConvertToRAW(const std::string& strSourceFilename,
 
     uint32_t iDims = static_cast<uint32_t>(dimsize->vuiValue.size());
 
-    if (dims == nullptr) {
+    if (dims == NULL) {
       WARNING("Unable to find 'NDims' tag in file %s relying on 'DimSize' tag.", strSourceFilename.c_str());
     } else {
       if (iDims != dims->uiValue) {
@@ -180,7 +180,7 @@ bool KitwareConverter::ConvertToRAW(const std::string& strSourceFilename,
     vVolumeSize = UINT64VECTOR3(dimsize->vuiValue, 1);
     vVolumeAspect = FLOATVECTOR3(ElementSpacing->vfValue,1.0f);
 
-    if (Position != nullptr) {
+    if (Position != NULL) {
       for (size_t i = 0;i<ElementSpacing->vfValue.size();i++) {
         if (ElementSpacing->vfValue[i] != 0.0f) {
           WARNING("Ignoring non zero position.");
@@ -190,7 +190,7 @@ bool KitwareConverter::ConvertToRAW(const std::string& strSourceFilename,
     }
 
     // TODO: find a non binary MHD payload file and figure out its format
-    if (BinaryData != nullptr) {
+    if (BinaryData != NULL) {
       if(BinaryData->strValueUpper == "FALSE") {
         T_ERROR("Currently only binary MHD data supported.");
         return false;
@@ -198,7 +198,7 @@ bool KitwareConverter::ConvertToRAW(const std::string& strSourceFilename,
     }
 
     // TODO: find a compressed MHD payload file and figure out its format
-    if (CompressedData != nullptr) {
+    if (CompressedData != NULL) {
       if(CompressedData->strValueUpper == "TRUE") {
         T_ERROR("Currently only uncompressed MHD data supported.");
         return false;
@@ -208,7 +208,7 @@ bool KitwareConverter::ConvertToRAW(const std::string& strSourceFilename,
 
     strIntermediateFile = SysTools::GetPath(strSourceFilename) + strIntermediateFile;
 
-    if (HeaderSize != nullptr) {
+    if (HeaderSize != NULL) {
       if (dimsize->iValue != -1 ) { // size -1 means compute header size automatically
         iHeaderSkip = dimsize->uiValue;
       } else {
