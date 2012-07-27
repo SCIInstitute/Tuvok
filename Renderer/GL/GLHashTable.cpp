@@ -13,11 +13,12 @@
 
 using namespace tuvok;
 
-GLHashTable::GLHashTable(const UINTVECTOR3& maxBrickCount, uint32_t iTableSize, uint32_t iRehashCount) :
+GLHashTable::GLHashTable(const UINTVECTOR3& maxBrickCount, uint32_t iTableSize, uint32_t iRehashCount, bool bUseGLCore) :
   m_maxBrickCount(maxBrickCount),
   m_iTableSize(iTableSize),
   m_iRehashCount(iRehashCount),
-  m_pHashTableTex(NULL)
+  m_pHashTableTex(NULL),
+  m_bUseGLCore(bUseGLCore)
 {
   m_rawData = std::shared_ptr<uint32_t>(
     new uint32_t[m_iTableSize], 
@@ -52,6 +53,8 @@ void GLHashTable::Enable(uint32_t iMountPoint) {
 }
 
 std::vector<UINTVECTOR4> GLHashTable::GetData() {
+
+  // need to figure out if this is needed
 // GL(glMemoryBarrier(GL_ALL_BARRIER_BITS));
 
   m_pHashTableTex->GetData(m_rawData);
@@ -71,8 +74,12 @@ void GLHashTable::ClearData() {
 std::string GLHashTable::GetShaderFragment(uint32_t iMountPoint) {
   std::stringstream ss;
 
-  ss << "#version 420 compatibility" << std::endl
-     << "" << std::endl
+  if (m_bUseGLCore)
+    ss << "#version 420 core" << std::endl;  
+  else
+    ss << "#version 420 compatibility" << std::endl;
+
+  ss << "" << std::endl
      << "layout(binding = " << iMountPoint << ", size1x32) coherent uniform uimage1D hashTable;" << std::endl
      << "" << std::endl
      << "uint Serialize(uvec4 bd) {" << std::endl

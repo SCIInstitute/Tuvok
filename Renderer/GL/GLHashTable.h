@@ -14,7 +14,7 @@ class GLTexture1D;
 
 class GLHashTable : public GLObject {
   public:
-    GLHashTable(const UINTVECTOR3& maxBrickCount, uint32_t iTableSize=211, uint32_t iRehashCount=10); 
+    GLHashTable(const UINTVECTOR3& maxBrickCount, uint32_t iTableSize=211, uint32_t iRehashCount=10, bool bUseGLCore=false); 
     virtual ~GLHashTable();
 
     void InitGL();
@@ -34,6 +34,7 @@ class GLHashTable : public GLObject {
     uint32_t m_iRehashCount;
     GLTexture1D* m_pHashTableTex;
     std::shared_ptr<uint32_t> m_rawData;
+    bool m_bUseGLCore;
 
     UINTVECTOR4 Int2Vector(uint32_t index) const;
 };
@@ -45,7 +46,7 @@ class GLHashTable : public GLObject {
 /*
    The MIT License
 
-   Copyright (c) 2012 Interactive Visualiyation and Data Analysis Group,
+   Copyright (c) 2012 Interactive Visualization and Data Analysis Group,
    Saarland University
 
 
