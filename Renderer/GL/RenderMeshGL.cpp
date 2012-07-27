@@ -178,8 +178,8 @@ void RenderMeshGL::RenderOpaqueGeometry() {
     for(VertVec::const_iterator v = this->m_Data.m_vertices.begin();
         v != this->m_Data.m_vertices.end(); ++v) {
       glTranslatef((*v)[0], (*v)[1], (*v)[2]);
-      GL(glDrawArrays(GL_TRIANGLES, 0, m_Isocahedron.size() *
-                      m_Isocahedron[0].size() * m_Isocahedron[0][0].size()));
+      GL(glDrawArrays(GL_TRIANGLES, 0, GLsizei(m_Isocahedron.size() *
+                      m_Isocahedron[0].size() * m_Isocahedron[0][0].size())));
       glTranslatef(-(*v)[0], -(*v)[1], -(*v)[2]);
     }
 
