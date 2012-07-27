@@ -52,6 +52,10 @@ TvkGLXContext::TvkGLXContext(uint32_t w, uint32_t h, uint8_t,
                              bool visible) :
   xi(new struct xinfo())
 {
+#ifndef NDEBUG
+  // Enable X debugging.
+  _Xdebug = 1;
+#endif
   // if you *really* require a specific value... just hack this class
   // to your liking.  You probably want to add those parameters to x_connect
   // and use them there.
