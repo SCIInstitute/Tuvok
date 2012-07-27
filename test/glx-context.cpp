@@ -120,6 +120,11 @@ x_connect(uint32_t width, uint32_t height, bool dbl_buffer, bool visible)
                                      AllocNone);
   xw_attr.event_mask = StructureNotifyMask | ExposureMask;
 
+  // X will create BadValue exceptions if these aren't true... much easier to
+  // debug via asserts.
+  assert(rv.visual->depth > 0);
+  assert(width > 0);
+  assert(height > 0);
   rv.win = XCreateWindow(rv.display, parent, 0,0, width,height, 0,
                          rv.visual->depth,
                          InputOutput, rv.visual->visual,
