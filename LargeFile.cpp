@@ -34,6 +34,10 @@
 # include <windows.h>
 #endif
 
+#ifdef DETECTED_OS_APPLE
+# include <unistd.h>
+#endif
+
 #ifndef NDEBUG
 # include <iostream>
 # define DEBUG(...) do { std::cerr << __VA_ARGS__ << "\n"; } while(0)

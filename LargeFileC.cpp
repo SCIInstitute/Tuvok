@@ -25,6 +25,8 @@
    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
    DEALINGS IN THE SOFTWARE.
 */
+#include "StdDefines.h"
+
 #include <cassert>
 #include <cstdio>
 #include <errno.h>
@@ -40,6 +42,9 @@
 # define DEBUG(...) do { std::cerr << __VA_ARGS__ << "\n"; } while(0)
 #else
 # define DEBUG(...) do { /* nothing, debug msg removed. */ } while(0)
+#endif
+#ifdef DETECTED_OS_APPLE
+# include <unistd.h>
 #endif
 #include "LargeFileC.h"
 
