@@ -147,7 +147,7 @@ StkConverter::ConvertToRAW(const std::string& strSourceFilename,
 bool
 StkConverter::ConvertToNative(const std::string&, const std::string&,
                               uint64_t, uint64_t, uint64_t, bool, bool, UINT64VECTOR3,
-                              FLOATVECTOR3, bool)
+                              FLOATVECTOR3, bool, bool)
 {
   return false;
 }
