@@ -85,6 +85,8 @@ public:
   Brick& operator=( const Brick& a )
   {
     this->vCenter = a.vCenter;
+    this->vTexcoordsMin = a.vTexcoordsMin;
+    this->vTexcoordsMax = a.vTexcoordsMax;
     this->vExtension = a.vExtension;
     this->vVoxelCount = a.vVoxelCount;
     this->vCoords = a.vCoords;
@@ -97,6 +99,8 @@ public:
 
   Brick( const Brick& a ) :
     vCenter(a.vCenter),
+    vTexcoordsMin(a.vTexcoordsMin),
+    vTexcoordsMax(a.vTexcoordsMax),
     vExtension(a.vExtension),
     vVoxelCount(a.vVoxelCount),
     vCoords(a.vCoords),

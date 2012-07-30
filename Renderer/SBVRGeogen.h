@@ -50,6 +50,7 @@ namespace tuvok {
    4D vertex info (either used as 3D texccords or 4d color)
   */
   #define AS_TEXCOORD 2
+#pragma pack(push, 1)
   class VERTEX_FORMAT
   {
   public:
@@ -102,6 +103,7 @@ namespace tuvok {
     FLOATVECTOR3 m_vNormal;
     bool m_bClip;
   };
+#pragma pack(pop)
 
   /** \class SBVRGeoGen
    * Geometry generation for the slice-based volume renderer. */
