@@ -53,12 +53,12 @@ TvkAGLContext::TvkAGLContext(uint32_t, uint32_t, uint8_t color_bits,
     AGL_NONE,
   };
   if(double_buffer && !visible) {
-    attribs[sizeof(attribs) - 2] = AGL_DOUBLEBUFFER;
-    attribs[sizeof(attribs) - 1] = AGL_OFFSCREEN;
+    attribs[sizeof(attribs)/sizeof(GLint) - 2] = AGL_DOUBLEBUFFER;
+    attribs[sizeof(attribs)/sizeof(GLint) - 1] = AGL_OFFSCREEN;
   } else if(double_buffer) {
-    attribs[sizeof(attribs) - 2] = AGL_DOUBLEBUFFER;
+    attribs[sizeof(attribs)/sizeof(GLint) - 2] = AGL_DOUBLEBUFFER;
   } else if(!visible) {
-    attribs[sizeof(attribs) - 2] = AGL_OFFSCREEN;
+    attribs[sizeof(attribs)/sizeof(GLint) - 2] = AGL_OFFSCREEN;
   }
   AGLPixelFormat pix;
   pix = aglCreatePixelFormat(attribs);
