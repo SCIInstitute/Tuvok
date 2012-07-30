@@ -122,7 +122,7 @@ public:
   }
   static std::string getSignature(const std::string& funcName)
   { return LuaStrictStack<Ret>::getTypeStr() + " " + getSigNoReturn(funcName); }
-  static void constructTypesTable(lua_State* L, int tblIndex)
+  static void constructTypesTable(lua_State*, int)
   {}
 
   virtual void pushParamsToStack(lua_State*) const   {}
