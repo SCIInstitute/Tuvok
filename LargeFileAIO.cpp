@@ -165,10 +165,16 @@ void LargeFileAIO::wr(const std::shared_ptr<const void>& data,
     // allocate a new buffer and hold on to that.
     int8_t* buf = new int8_t[len];
     ::memcpy(buf, data.get(), len);
+#ifdef __clang__
+    saved_data = std::shared_ptr<const void>(
+      buf, nonstd::DeleteArray<const void>()
+    );
+#else
     const void* bufv = static_cast<const void*>(buf);
     saved_data = std::shared_ptr<const void>(
       bufv, nonstd::DeleteArray<const void>()
     );
+#endif
   } else {
     saved_data = std::shared_ptr<const void>(data);
   }
