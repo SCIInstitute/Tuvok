@@ -80,7 +80,7 @@ namespace tuvok {
       virtual void EnableClipPlane(RenderRegion *renderRegion);
       virtual void DisableClipPlane(RenderRegion *renderRegion);
 
-      virtual ERendererType GetRendererType() {return RT_SBVR;}
+      virtual ERendererType GetRendererType() const {return RT_SBVR;}
 
       bool GetUse3DTexture() const {return m_bUse3DTexture;}
       void SetUse3DTexture(bool bUse3DTexture);
@@ -106,7 +106,7 @@ namespace tuvok {
       void RenderProxyGeometry3D() const;
       virtual void CleanupShaders();
 
-      virtual void ComposeSurfaceImage(RenderRegion& renderRegion,
+      virtual void ComposeSurfaceImage(const RenderRegion& renderRegion,
                                        int iStereoID);
       virtual void UpdateLightParamsInShaders();
   

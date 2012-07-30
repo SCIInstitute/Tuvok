@@ -78,6 +78,36 @@ public:
   {
   }
 
+#ifdef __clang__
+  // The following constructors/operators are necessary due to clang bug:
+  // http://llvm.org/bugs/show_bug.cgi?id=11921
+  // When apple updates libc++, we can get rid of these.
+  Brick& operator=( const Brick& a )
+  {
+    this->vCenter = a.vCenter;
+    this->vExtension = a.vExtension;
+    this->vVoxelCount = a.vVoxelCount;
+    this->vCoords = a.vCoords;
+    BrickKey key = a.kBrick;
+    this->kBrick = key;
+    this->fDistance = a.fDistance;
+    this->bIsEmpty = a.bIsEmpty;
+    return *this;
+  }
+
+  Brick( const Brick& a ) :
+    vCenter(a.vCenter),
+    vExtension(a.vExtension),
+    vVoxelCount(a.vVoxelCount),
+    vCoords(a.vCoords),
+    fDistance(a.fDistance),
+    bIsEmpty(a.bIsEmpty)
+  {
+    BrickKey key = a.kBrick;
+    this->kBrick = key;
+  }
+#endif
+
   Brick(uint32_t x, uint32_t y, uint32_t z,
         uint32_t iSizeX, uint32_t iSizeY, uint32_t iSizeZ,
         const BrickKey& k) :

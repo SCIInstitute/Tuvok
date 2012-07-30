@@ -238,7 +238,12 @@ bool GLVolumeListElem::Replace(Dataset* _pDataset,
   if(!volume) { return false; }
 
   pDataset = _pDataset;
+#ifdef __clang__
+  BrickKey tmpKey = key;
+  m_Key = tmpKey;
+#else
   m_Key    = key;
+#endif
   m_bIsPaddedToPowerOfTwo  = bIsPaddedToPowerOfTwo;
   m_bIsDownsampledTo8Bits  = bIsDownsampledTo8Bits;
   m_bDisableBorder         = bDisableBorder;

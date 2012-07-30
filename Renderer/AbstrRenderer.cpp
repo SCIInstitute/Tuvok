@@ -998,7 +998,12 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
     b.vExtension = bmd.extents * vScale;
     b.vCenter = bmd.center * vScale;
     b.vVoxelCount = bmd.n_voxels;
+#ifndef __clang__
     b.kBrick = brick->first;
+#else
+    BrickKey key = brick->first;
+    b.kBrick = key;
+#endif
 
     bool needed = false;
     for(std::vector<RenderRegion*>::const_iterator reg = renderRegions.begin();

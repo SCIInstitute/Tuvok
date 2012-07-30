@@ -652,7 +652,7 @@ bool GLSBVR2D::LoadDataset(const string& strFilename) {
   } else return false;
 }
 
-void GLSBVR2D::ComposeSurfaceImage(RenderRegion& renderRegion, int iStereoID) {
+void GLSBVR2D::ComposeSurfaceImage(const RenderRegion& renderRegion, int iStereoID) {
   GLRenderer::ComposeSurfaceImage(renderRegion, iStereoID);
 }
 
