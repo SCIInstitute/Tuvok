@@ -84,7 +84,18 @@ std::shared_ptr<const void> LargeFileMMap::rd(uint64_t offset,
   /* Our shared_ptr here is a bit sketch.  We give them a pointer, but if
    * 'this' dies we'll kill the mmap, thereby invalidating the pointer.  So,
    * umm.. don't do that. */
+#ifdef __clang__
+  // Clang has an issue in its libc++ where an allocator is created using the
+  // type of the first parameter (in this case, begin), and if the type is
+  // 'const', then duplicate member functions will be created in std::allocator.
+  // In this case, the address function:
+  // const char * address ...
+  // const const char * address ... (this gets reduced to the above, presumably)
+  std::shared_ptr<const void> mem(const_cast<char*>(begin), 
+                                  nonstd::null_deleter());
+#else
   std::shared_ptr<const void> mem(begin, nonstd::null_deleter());
+#endif
 
   this->bytes_read = end - begin;
   /* Note that we don't actually use the 'length' parameter.  We really can't.
