@@ -300,7 +300,7 @@ add_brick(ExternalDataset &ds, const BrickKey& bk,
 }; // anonymous namespace.
 
 
-void ExternalDataset::AddBrick(const BrickKey& bk, const BrickMD& md,
+void ExternalDataset::AddBrickData(const BrickKey& bk, const BrickMD& md,
                                const std::shared_ptr<double> data,
                                size_t len, double dMin, double dMax)
 {
@@ -309,7 +309,7 @@ void ExternalDataset::AddBrick(const BrickKey& bk, const BrickMD& md,
   Recalculate1DHistogram();
 }
 
-void ExternalDataset::AddBrick(const BrickKey& bk, const BrickMD& md,
+void ExternalDataset::AddBrickData(const BrickKey& bk, const BrickMD& md,
                                const std::shared_ptr<float> data,
                                size_t len, float fMin, float fMax)
 {
@@ -318,7 +318,7 @@ void ExternalDataset::AddBrick(const BrickKey& bk, const BrickMD& md,
   Recalculate1DHistogram();
 }
 
-void ExternalDataset::AddBrick(const BrickKey& bk, const BrickMD& md,
+void ExternalDataset::AddBrickData(const BrickKey& bk, const BrickMD& md,
                                const std::shared_ptr<unsigned char> data,
                                size_t len,
                                unsigned char ubmin, unsigned char ubmax)
@@ -328,7 +328,7 @@ void ExternalDataset::AddBrick(const BrickKey& bk, const BrickMD& md,
   Recalculate1DHistogram();
 }
 
-void ExternalDataset::AddBrick(const BrickKey& bk, const BrickMD& md,
+void ExternalDataset::AddBrickData(const BrickKey& bk, const BrickMD& md,
                                const std::shared_ptr<short> data,
                                size_t len, short sMin, short sMax)
 {
@@ -337,7 +337,7 @@ void ExternalDataset::AddBrick(const BrickKey& bk, const BrickMD& md,
   Recalculate1DHistogram();
 }
 
-void ExternalDataset::AddBrick(const BrickKey& bk, const BrickMD& md,
+void ExternalDataset::AddBrickData(const BrickKey& bk, const BrickMD& md,
                                const std::shared_ptr<unsigned short> data,
                                size_t len,
                                unsigned short usMin, unsigned short usMax)

@@ -100,19 +100,19 @@ public:
   /// leftmost, bottom, closest brick, and (NX, NY, NZ) being the rightmost,
   /// topmost, farthest brick.
   ///@{
-  void AddBrick(const BrickKey&, const BrickMD&,
+  void AddBrickData(const BrickKey&, const BrickMD&,
                 const std::shared_ptr<double>, size_t len,
                 double fMin, double fMax);
-  void AddBrick(const BrickKey&, const BrickMD&,
+  void AddBrickData(const BrickKey&, const BrickMD&,
                 const std::shared_ptr<float>, size_t len,
                 float fMin, float fMax);
-  void AddBrick(const BrickKey&, const BrickMD&,
+  void AddBrickData(const BrickKey&, const BrickMD&,
                 const std::shared_ptr<unsigned char>, size_t len,
                 unsigned char ubMin, unsigned char ubMax);
-  void AddBrick(const BrickKey&, const BrickMD&,
+  void AddBrickData(const BrickKey&, const BrickMD&,
                 const std::shared_ptr<short>, size_t len,
                 short sMin, short sMax);
-  void AddBrick(const BrickKey&, const BrickMD&,
+  void AddBrickData(const BrickKey&, const BrickMD&,
                 const std::shared_ptr<unsigned short>, size_t len,
                 unsigned short sMin, unsigned short sMax);
   ///@}
