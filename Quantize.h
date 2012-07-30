@@ -250,8 +250,8 @@ struct UnsignedHistogram {
 /// Takes policies to tell it how to access data && notify external entities of
 /// progress.
 template <typename T, size_t sz,
-          template <typename T> class DataSrc,
-          template <typename T, size_t> class Histogram,
+          template <typename T_> class DataSrc,
+          template <typename T_, size_t> class Histogram,
           class Progress>
 std::pair<T,T> io_minmax(DataSrc<T> ds, Histogram<T, sz> histogram,
                          const Progress& progress, uint64_t iSize,
