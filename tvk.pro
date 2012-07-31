@@ -199,6 +199,7 @@ HEADERS += \
            IO/UVF/ExtendedOctree/ExtendedOctree.h \
            IO/UVF/ExtendedOctree/ExtendedOctreeConverter.h \
            IO/UVF/ExtendedOctree/VolumeTools.h \
+           IO/UVF/TTIFFWriter/TTIFFWriter.h \
            IO/VariantArray.h \
            IO/VFFConverter.h \
            IO/XML3DGeoConverter.h \
@@ -250,6 +251,7 @@ HEADERS += \
            Renderer/GL/QtGLContext.h \
            Renderer/GL/RenderMeshGL.h \
            Renderer/GL/GLVolumePool.h \
+           Renderer/GL/GLFBO.h \
            Renderer/GPUMemMan/GPUMemManDataStructs.h \
            Renderer/GPUMemMan/GPUMemMan.h \
            Renderer/GPUObject.h \
@@ -486,6 +488,7 @@ SOURCES += \
            IO/UVF/ExtendedOctree/ExtendedOctree.cpp \
            IO/UVF/ExtendedOctree/ExtendedOctreeConverter.cpp \
            IO/UVF/ExtendedOctree/VolumeTools.cpp \
+           IO/UVF/TTIFFWriter/TTIFFWriter.cpp \
            IO/VariantArray.cpp \
            IO/VFFConverter.cpp \
            IO/XML3DGeoConverter.cpp \
@@ -524,7 +527,8 @@ SOURCES += \
            Renderer/GL/GLVolume3DTex.cpp \
            Renderer/GL/RenderMeshGL.cpp \   
            Renderer/GL/GLTreeRaycaster.cpp \
-           Renderer/GL/GLVolumePool.cpp \                   
+           Renderer/GL/GLVolumePool.cpp \
+           Renderer/GL/GLFBO.cpp \
            Renderer/GPUMemMan/GPUMemMan.cpp \
            Renderer/GPUMemMan/GPUMemManDataStructs.cpp \
            Renderer/SBVRGeogen.cpp \

@@ -43,31 +43,47 @@
 
 using namespace tuvok;
 
-/// Reads the image into an in-memory buffer.  Image data is 32bpp RGBA.
-void GLFrameCapture::CaptureSingleFrame(std::vector<unsigned char>& image) const
-{
-  GLint viewport[4];
-  glGetIntegerv(GL_VIEWPORT, viewport);
-
-  image.resize(viewport[2]*viewport[3]*4);
-  glPixelStorei(GL_PACK_ALIGNMENT, 1);
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-  glReadPixels(0,0,viewport[2],viewport[3],GL_RGBA,GL_UNSIGNED_BYTE,&image.at(0));
-}
 
 bool GLFrameCapture::CaptureSingleFrame(const std::string& strFilename, bool bPreserveTransparency) const {
   GLint viewport[4];
   glGetIntegerv(GL_VIEWPORT, viewport);
 
-  unsigned char *image = new unsigned char[viewport[2]*viewport[3]*4];
-  GL(glPixelStorei(GL_PACK_ALIGNMENT, 1));
-  GL(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
-  GL(glReadPixels(0,0,viewport[2],viewport[3],GL_RGBA,GL_UNSIGNED_BYTE,image));
+  // for TIFF capture in 16 bit 
+  std::string extension = SysTools::ToLowerCase(SysTools::GetExt(strFilename));  
+  if (extension == "tif" || extension == "tiff") {
+    // testing new here to avoid a crash when 
+    // trying to capture 4k images on a 32 bit build
+    std::vector<uint16_t> image;
+    try {
+      image.resize(viewport[2]*viewport[3]*4);
+    } catch (...) {
+      image.clear();
+    }
+    if ( image.empty() ) return false;
+ 
+    GL(glPixelStorei(GL_PACK_ALIGNMENT, 1));
+    GL(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
+    GL(glReadPixels(0,0,viewport[2],viewport[3],GL_RGBA,GL_UNSIGNED_SHORT,&image[0]));
 
-  bool bResult = SaveImage(strFilename, UINTVECTOR2(viewport[2], viewport[3]), image, bPreserveTransparency);
-  delete[] image;
+    return SaveImage(strFilename, UINTVECTOR2(viewport[2], viewport[3]), image, bPreserveTransparency);
+  } else {
+    // testing new here to avoid a crash when 
+    // trying to capture 4k images on a 32 bit build
+    std::vector<uint8_t> image;
+    try {
+      image.resize(viewport[2]*viewport[3]*4);
+    } catch (...) {
+      image.clear();
+    }
+    if ( image.empty() ) return false;
+ 
+    GL(glPixelStorei(GL_PACK_ALIGNMENT, 1));
+    GL(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
+    GL(glReadPixels(0,0,viewport[2],viewport[3],GL_RGBA,GL_UNSIGNED_BYTE,&image[0]));
 
-  return bResult;
+    return SaveImage(strFilename, UINTVECTOR2(viewport[2], viewport[3]), image, bPreserveTransparency);
+
+  }
 }
 
 bool GLFrameCapture::CaptureSingleFrame(const std::string& filename,

@@ -527,6 +527,7 @@
     <ClCompile Include="IO\AmiraConverter.cpp" />
     <ClCompile Include="IO\Images\StackExporter.cpp" />
     <ClCompile Include="IO\LinesGeoConverter.cpp" />
+    <ClCompile Include="IO\TTIFFWriter\TTIFFWriter.cpp" />
     <ClCompile Include="IO\UVF\ExtendedOctree\ExtendedOctree.cpp" />
     <ClCompile Include="IO\UVF\ExtendedOctree\ExtendedOctreeConverter.cpp" />
     <ClCompile Include="IO\UVF\ExtendedOctree\VolumeTools.cpp" />
@@ -547,6 +548,7 @@
     <ClCompile Include="Renderer\GL\GLCommon.cpp" />
     <ClCompile Include="Renderer\GL\GLHashTable.cpp" />
     <ClCompile Include="Renderer\GL\GLTreeRaycaster.cpp" />
+    <ClCompile Include="Renderer\GL\GLVBO.cpp" />
     <ClCompile Include="Renderer\GL\GLVolumePool.cpp" />
     <ClCompile Include="Renderer\RenderMesh.cpp" />
     <ClCompile Include="Renderer\RenderRegion.cpp" />
@@ -1314,6 +1316,7 @@
     <ClInclude Include="IO\AmiraConverter.h" />
     <ClInclude Include="IO\Images\StackExporter.h" />
     <ClInclude Include="IO\LinesGeoConverter.h" />
+    <ClInclude Include="IO\TTIFFWriter\TTIFFWriter.h" />
     <ClInclude Include="IO\UVF\ExtendedOctree\ExtendedOctree.h" />
     <ClInclude Include="IO\UVF\ExtendedOctree\ExtendedOctreeConverter.h" />
     <ClInclude Include="IO\UVF\ExtendedOctree\VolumeTools.h" />
@@ -1340,6 +1343,7 @@
     <ClInclude Include="Renderer\GL\GLContext.h" />
     <ClInclude Include="Renderer\GL\GLHashTable.h" />
     <ClInclude Include="Renderer\GL\GLTreeRaycaster.h" />
+    <ClInclude Include="Renderer\GL\GLVBO.h" />
     <ClInclude Include="Renderer\GL\GLVolumePool.h" />
     <ClInclude Include="Renderer\GL\QtGLContext.h" />
     <ClInclude Include="Renderer\RenderMesh.h" />

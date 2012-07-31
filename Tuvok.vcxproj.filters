@@ -118,6 +118,9 @@
     <Filter Include="LuaScripting\TuvokSpecific">
       <UniqueIdentifier>{c1103421-38e0-4390-b8a5-bbc892417c77}</UniqueIdentifier>
     </Filter>
+    <Filter Include="IO\TTIFFWriter">
+      <UniqueIdentifier>{5d62b647-22a5-486f-a9ba-53f204ad07d6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Basics\Appendix.cpp">
@@ -962,6 +965,12 @@
     </ClCompile>
     <ClCompile Include="Renderer\GL\GLHashTable.cpp">
       <Filter>Renderer\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\GL\GLVBO.cpp">
+      <Filter>Renderer\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\TTIFFWriter\TTIFFWriter.cpp">
+      <Filter>IO\TTIFFWriter</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1916,6 +1925,12 @@
     </ClInclude>
     <ClInclude Include="Renderer\GL\GLHashTable.h">
       <Filter>Renderer\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\GL\GLVBO.h">
+      <Filter>Renderer\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\TTIFFWriter\TTIFFWriter.h">
+      <Filter>IO\TTIFFWriter</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
