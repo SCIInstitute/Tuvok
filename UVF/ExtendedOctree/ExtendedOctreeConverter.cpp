@@ -503,7 +503,7 @@ void ExtendedOctreeConverter::SetBrick(uint8_t* pData, ExtendedOctree &tree, uin
   CopyBrickToBrick:
 
   Copies (parts) of one brick into another. This routine is used to fill the
-  overlap regions. Index Magic explained in he function.
+  overlap regions. Index Magic explained in the function.
 */
 void ExtendedOctreeConverter::CopyBrickToBrick(std::vector<uint8_t>& vSourceData, const UINT64VECTOR3& sourceBrickSize,
                                                std::vector<uint8_t>& vTargetData, const UINT64VECTOR3& targetBrickSize,
