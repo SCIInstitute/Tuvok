@@ -109,8 +109,10 @@ void GLVolumePool::CreateGLResources() {
   m_PoolDataTexture = new GLTexture3D(m_poolSize.x, m_poolSize.y, m_poolSize.z,
                                       m_internalformat, m_format, m_type,
                                       bytes_per_elem(m_type));
-  // we should really query GL_MAX_TEXTURE_SIZE, but for now ...
-  const uint32_t max_texture_size = 4096;
+  int gpumax; 
+  GL(glGetIntegerv(GL_MAX_TEXTURE_SIZE, &gpumax));
+  const uint32_t max_texture_size = std::min(4096, gpumax);
+
   m_PoolMetadataTexture = new GLTexture2D(
     max_texture_size, max_texture_size, GL_LUMINANCE,
     GL_LUMINANCE, GL_UNSIGNED_INT, 4
