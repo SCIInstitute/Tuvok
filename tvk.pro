@@ -504,7 +504,6 @@ SOURCES += \
            Renderer/AbstrRenderer.cpp \
            Renderer/Context.cpp \
            Renderer/CullingLOD.cpp \
-           Renderer/FrameCapture.cpp \
            Renderer/ShaderDescriptor.cpp \
            Renderer/GL/GLCommon.cpp \
            Renderer/GL/GLHashTable.cpp \

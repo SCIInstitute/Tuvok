@@ -593,7 +593,6 @@
     <ClCompile Include="IO\DSFactory.cpp" />
     <ClCompile Include="IO\ExternalDataset.cpp" />
     <ClCompile Include="IO\FileBackedDataset.cpp" />
-    <ClCompile Include="Renderer\FrameCapture.cpp" />
     <ClCompile Include="IO\gzio.c" />
     <ClCompile Include="IO\IOManager.cpp" />
     <ClCompile Include="IO\TransferFunction1D.cpp" />

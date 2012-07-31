@@ -303,9 +303,6 @@
     <ClCompile Include="IO\FileBackedDataset.cpp">
       <Filter>IO</Filter>
     </ClCompile>
-    <ClCompile Include="Renderer\FrameCapture.cpp">
-      <Filter>IO</Filter>
-    </ClCompile>
     <ClCompile Include="IO\gzio.c">
       <Filter>IO</Filter>
     </ClCompile>
