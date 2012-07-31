@@ -251,7 +251,7 @@ HEADERS += \
            Renderer/GL/QtGLContext.h \
            Renderer/GL/RenderMeshGL.h \
            Renderer/GL/GLVolumePool.h \
-           Renderer/GL/GLFBO.h \
+           Renderer/GL/GLVBO.h \
            Renderer/GPUMemMan/GPUMemManDataStructs.h \
            Renderer/GPUMemMan/GPUMemMan.h \
            Renderer/GPUObject.h \
@@ -528,7 +528,7 @@ SOURCES += \
            Renderer/GL/RenderMeshGL.cpp \   
            Renderer/GL/GLTreeRaycaster.cpp \
            Renderer/GL/GLVolumePool.cpp \
-           Renderer/GL/GLFBO.cpp \
+           Renderer/GL/GLVBO.cpp \
            Renderer/GPUMemMan/GPUMemMan.cpp \
            Renderer/GPUMemMan/GPUMemManDataStructs.cpp \
            Renderer/SBVRGeogen.cpp \
