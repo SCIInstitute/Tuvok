@@ -541,13 +541,9 @@ namespace SysTools {
   }
 #endif
 
-    vector<wstring> completeSubDirs;
+    vector<wstring> completeSubDirs(subDirs.size());
     for (size_t i = 0;i<subDirs.size();i++) {
       completeSubDirs.push_back(rootdir+subDirs[i]);
-      vector<wstring> subSubDirs = GetSubDirList(rootdir+subDirs[i]);
-      for (size_t j = 0;j<subSubDirs.size();j++) {
-        completeSubDirs.push_back(subSubDirs[j]);
-      }
     }
 
     return completeSubDirs;
@@ -557,7 +553,6 @@ namespace SysTools {
   vector<string> GetSubDirList(const string& dir) {
     vector<string> subDirs;
     string rootdir;
-
 
 #ifdef _WIN32
     stringstream s;
@@ -612,13 +607,9 @@ namespace SysTools {
   }
 #endif
 
-    vector<string> completeSubDirs;
+    vector<string> completeSubDirs(subDirs.size());
     for (size_t i = 0;i<subDirs.size();i++) {
       completeSubDirs.push_back(rootdir+subDirs[i]);
-      vector<string> subSubDirs = GetSubDirList(rootdir+subDirs[i]);
-      for (size_t j = 0;j<subSubDirs.size();j++) {
-        completeSubDirs.push_back(subSubDirs[j]);
-      }
     }
     return completeSubDirs;
   }
