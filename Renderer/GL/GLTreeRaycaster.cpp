@@ -75,7 +75,8 @@ bool GLTreeRaycaster::LoadShaders() {
     T_ERROR("Error in parent call -> aborting");
     return false;
   }
-
+  return true;
+/*
   const char* shaderNames[7];
   if (m_bNoRCClipplanes) {
    shaderNames[0] = "GLTreeRaycaster-1D-FS-NC.glsl";
@@ -227,71 +228,7 @@ bool GLTreeRaycaster::LoadShaders() {
     ClipPlaneToShader(ExtendedPlane::FarawayPlane(),0,true);
     return true;
   }
-
-}
-
-void GLTreeRaycaster::SetBrickDepShaderVars(const RenderRegion3D&,
-                                        const Brick& currentBrick,
-                                        size_t iCurrentBrick) {
-  FLOATVECTOR3 vVoxelSizeTexSpace;
-  if (m_bUseOnlyPowerOfTwo)  {
-    UINTVECTOR3 vP2VoxelCount(MathTools::NextPow2(currentBrick.vVoxelCount.x),
-      MathTools::NextPow2(currentBrick.vVoxelCount.y),
-      MathTools::NextPow2(currentBrick.vVoxelCount.z));
-
-    vVoxelSizeTexSpace = 1.0f/FLOATVECTOR3(vP2VoxelCount);
-  } else {
-    vVoxelSizeTexSpace = 1.0f/FLOATVECTOR3(currentBrick.vVoxelCount);
-  }
-
-  float fSampleRateModifier = m_fSampleRateModifier /
-    (this->decreaseSamplingRateNow ? m_fSampleDecFactor : 1.0f);
-
-  float fRayStep = (currentBrick.vExtension*vVoxelSizeTexSpace * 0.5f * 1.0f/fSampleRateModifier).minVal();
-  float fStepScale = 1.0f/fSampleRateModifier * (FLOATVECTOR3(m_pDataset->GetDomainSize())/FLOATVECTOR3(m_pDataset->GetDomainSize(static_cast<size_t>(m_iCurrentLOD)))).maxVal();
-
-  switch (m_eRenderMode) {
-    case RM_1DTRANS    :  {
-      m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Set("fStepScale", fStepScale);
-      m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Set("fRayStepsize", fRayStep);
-      if (m_bUseLighting)
-        m_pProgram1DTrans[1]->Set("vVoxelStepsize",
-          vVoxelSizeTexSpace.x, vVoxelSizeTexSpace.y, vVoxelSizeTexSpace.z
-        );
-      break;
-    }
-    case RM_2DTRANS    :  {
-      m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->Set("fStepScale", fStepScale);
-      m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->Set("vVoxelStepsize",
-        vVoxelSizeTexSpace.x, vVoxelSizeTexSpace.y, vVoxelSizeTexSpace.z
-      );
-      m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->Set("fRayStepsize", fRayStep);
-      break;
-    }
-    case RM_ISOSURFACE : {
-      GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1)
-                              ? m_pProgramIso
-                              : m_pProgramColor;
-      if (m_bDoClearView) {
-        m_pProgramIso2->Enable();
-        m_pProgramIso2->Set("vVoxelStepsize",
-          vVoxelSizeTexSpace.x, vVoxelSizeTexSpace.y, vVoxelSizeTexSpace.z
-        );
-        m_pProgramIso2->Set("fRayStepsize", fRayStep);
-        m_pProgramIso2->Set("iTileID", int(iCurrentBrick));
-        shader->Enable();
-        shader->Set("iTileID", int(iCurrentBrick));
-      }
-      shader->Set("vVoxelStepsize",
-        vVoxelSizeTexSpace.x, vVoxelSizeTexSpace.y, vVoxelSizeTexSpace.z
-      );
-      shader->Set("fRayStepsize", fRayStep);
-      break;
-    }
-    case RM_INVALID:
-      T_ERROR("Invalid rendermode set");
-      break;
-  }
+  */
 }
 
 void GLTreeRaycaster::RenderBox(const RenderRegion& renderRegion,
@@ -433,103 +370,9 @@ void GLTreeRaycaster::Render3DPreLoop(const RenderRegion3D &) {
 
 }
 
-void GLTreeRaycaster::Render3DInLoop(const RenderRegion3D& renderRegion,
-                                 size_t iCurrentBrick, int iStereoID) {
-
-
-  m_pContext->GetStateManager()->Apply(m_BaseState);
-                                                                    
-  const Brick& b = (iStereoID == 0) ? m_vCurrentBrickList[iCurrentBrick] : m_vLeftEyeBrickList[iCurrentBrick];
-
-  if (m_iBricksRenderedInThisSubFrame == 0 && m_eRenderMode == RM_ISOSURFACE){
-    m_TargetBinder.Bind(m_pFBOIsoHit[iStereoID], 0, m_pFBOIsoHit[iStereoID], 1);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    if (m_bDoClearView) {
-      m_TargetBinder.Bind(m_pFBOCVHit[iStereoID], 0, m_pFBOCVHit[iStereoID], 1);
-      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    }
-  }
-
-  if (b.bIsEmpty) return;
-
-  GPUState localState = m_BaseState;
-  localState.enableBlend = false;
-  localState.depthMask = false;
-  localState.enableCullFace = true;
-  m_pContext->GetStateManager()->Apply(localState);
-  
-
-  renderRegion.modelView[iStereoID].setModelview();
-  m_mProjection[iStereoID].setProjection();
-
-  if (m_bClipPlaneOn) ClipPlaneToShader(m_ClipPlane, iStereoID);
-
-  // write frontfaces (ray entry points)
-  m_TargetBinder.Bind(m_pFBORayEntry);
-  m_pProgramRenderFrontFaces->Enable();
-  RenderBox(renderRegion, b.vCenter, b.vExtension,
-            b.vTexcoordsMin, b.vTexcoordsMax,
-            false, iStereoID);
-
-/*
-  float* vec = new float[m_pFBORayEntry->Width()*m_pFBORayEntry->Height()*4];
-  m_pFBORayEntry->ReadBackPixels(0,0,m_pFBORayEntry->Width(),m_pFBORayEntry->Height(), vec);
-  delete [] vec;
-*/
-
-  if (m_eRenderMode == RM_ISOSURFACE) {
-    m_pContext->GetStateManager()->SetDepthMask(true);
-
-    m_TargetBinder.Bind(m_pFBOIsoHit[iStereoID], 0, m_pFBOIsoHit[iStereoID], 1);
-
-    GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
-    shader->Enable();
-    SetBrickDepShaderVars(renderRegion, b, iCurrentBrick);
-    m_pFBORayEntry->Read(2);
-    RenderBox(renderRegion, b.vCenter, b.vExtension,
-              b.vTexcoordsMin, b.vTexcoordsMax,
-              true, iStereoID);
-    m_pFBORayEntry->FinishRead();
-
-    if (m_bDoClearView) {
-      m_TargetBinder.Bind(m_pFBOCVHit[iStereoID], 0, m_pFBOCVHit[iStereoID], 1);
-
-      m_pProgramIso2->Enable();
-      m_pFBORayEntry->Read(2);
-      m_pFBOIsoHit[iStereoID]->Read(4, 0);
-      m_pFBOIsoHit[iStereoID]->Read(5, 1);
-      RenderBox(renderRegion, b.vCenter, b.vExtension,
-                b.vTexcoordsMin, b.vTexcoordsMax,
-                true, iStereoID);
-      m_pFBOIsoHit[iStereoID]->FinishRead(1);
-      m_pFBOIsoHit[iStereoID]->FinishRead(0);
-      m_pFBORayEntry->FinishRead();
-    }
-
-  } else {
-    m_TargetBinder.Bind(m_pFBO3DImageCurrent[iStereoID]);
-
-    // do the raycasting
-    switch (m_eRenderMode) {
-      case RM_1DTRANS    :  m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Enable();
-                            break;
-      case RM_2DTRANS    :  m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->Enable();
-                            break;
-      default            :  T_ERROR("Invalid rendermode set");
-                            break;
-    }
-
-    m_pContext->GetStateManager()->SetEnableBlend(true);
-
-    SetBrickDepShaderVars(renderRegion, b, iCurrentBrick);
-
-    m_pFBORayEntry->Read(2);
-    RenderBox(renderRegion, b.vCenter, b.vExtension,
-              b.vTexcoordsMin, b.vTexcoordsMax,
-              true, iStereoID);
-    m_pFBORayEntry->FinishRead();
-  }
-  m_TargetBinder.Unbind();
+void GLTreeRaycaster::Render3DInLoop(const RenderRegion3D& ,
+                                 size_t , int ) {
+  // TODO
 }
 
 
@@ -539,13 +382,16 @@ void GLTreeRaycaster::RenderHQMIPPreLoop(RenderRegion2D &region) {
 }
 
 void GLTreeRaycaster::RenderHQMIPInLoop(const RenderRegion2D &,
-                                        const Brick&) {
+                                    const Brick& ) {
   // TODO
 }
 
 void GLTreeRaycaster::StartFrame() {
   GLRenderer::StartFrame();
+  return;
 
+  // TODO
+  /*
   FLOATVECTOR2 vfWinSize = FLOATVECTOR2(m_vWinSize);
   switch (m_eRenderMode) {
     case RM_1DTRANS    :  m_pProgram1DTrans[0]->Enable();
@@ -576,6 +422,7 @@ void GLTreeRaycaster::StartFrame() {
     default    :          T_ERROR("Invalid rendermode set");
                           break;
   }
+  */
 }
 
 void GLTreeRaycaster::SetDataDepShaderVars() {
@@ -623,14 +470,35 @@ FLOATMATRIX4 GLTreeRaycaster::ComputeEyeToTextureMatrix(const RenderRegion &rend
   return m;
 }
 
-
-void GLTreeRaycaster::DisableClipPlane(RenderRegion* renderRegion) {
-  AbstrRenderer::DisableClipPlane(renderRegion);
-  /// We always clip against the plane in the shader, so initialize the plane
-  /// to be way out in left field, ensuring nothing will be clipped.
-  ClipPlaneToShader(ExtendedPlane::FarawayPlane(),0,true);
+bool GLTreeRaycaster::Continue3DDraw() {
+  // TODO
+  return false;
 }
 
+
+void GLTreeRaycaster::PlanFrame(RenderRegion3D& ) {
+  typedef std::vector<RenderRegion*>::iterator r_iter;
+  for(r_iter r = renderRegions.begin(); r != renderRegions.end(); ++r) {
+    RenderRegion& rr = **r;
+    if(rr.isBlank) {
+      rr.modelView[0] = rr.rotation * rr.translation * m_mView[0];
+      if(m_bDoStereoRendering) {
+        rr.modelView[1] = rr.rotation * rr.translation * m_mView[1];
+      }
+    }
+  }
+
+
+  // TODO
+
+}
+
+bool GLTreeRaycaster::Execute3DFrame(RenderRegion3D&,float& , bool& completedJob) {
+  
+  // TODO
+  completedJob = true;
+  return true;
+}
 
 /*
    For more information, please see: http://software.sci.utah.edu

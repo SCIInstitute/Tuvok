@@ -42,25 +42,21 @@ namespace tuvok {
         return "this renderer is work in progress and clearview is simply not implemented yet";
       }
 
-      virtual void DisableClipPlane(RenderRegion* renderRegion);
       virtual ERendererType GetRendererType() const {return RT_RC;}
 
     protected:
       GLHashTable*  m_pglHashTable;
       GLVolumePool* m_pVolumePool;
 
-
+      bool Continue3DDraw();
+      void PlanFrame(RenderRegion3D& region);
+      bool Execute3DFrame(RenderRegion3D& renderRegion,float& fMsecPassed, bool& completedJob);
 
       GLFBOTex*       m_pFBORayEntry;
       GLSLProgram*    m_pProgramRenderFrontFaces;
       GLSLProgram*    m_pProgramRenderFrontFacesNT;
       GLSLProgram*    m_pProgramIso2;
       bool            m_bNoRCClipplanes;
-
-      /** Sets variables related to bricks in the shader. */
-      void SetBrickDepShaderVars(const RenderRegion3D& region,
-                                 const Brick& currentBrick,
-                                 size_t iCurrentBrick);
 
       virtual void CreateOffscreenBuffers();
       void RenderBox(const RenderRegion& renderRegion,
@@ -93,6 +89,7 @@ namespace tuvok {
   
       /** Deallocates GPU memory allocated during the rendering process. */
       virtual void Cleanup();
+
   };
 } // tuvok namespace.
 
