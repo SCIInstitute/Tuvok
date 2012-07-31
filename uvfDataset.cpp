@@ -1483,7 +1483,7 @@ bool UVFDataset::Crop( const PLANE<float>& plane, const std::string& strTempDir,
   std::string strSource = SysTools::GetFilename(Filename());
 
   if (!RAWConverter::ConvertRAWDataset(strTempRawFilename, strTempFilename, strTempDir, 0,
-    GetBitWidth(), GetComponentCount(), 1, !IsSameEndianness(), GetIsSigned(), GetIsFloat(),
+    GetBitWidth(), size_t(GetComponentCount()), 1, !IsSameEndianness(), GetIsSigned(), GetIsFloat(),
     GetDomainSize(), FLOATVECTOR3(GetScale()), strDesc, strSource, 
     Controller::Instance().IOMan()->GetMaxBrickSize(), 
     Controller::Instance().IOMan()->GetBrickOverlap())) {

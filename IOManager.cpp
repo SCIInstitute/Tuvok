@@ -971,7 +971,7 @@ bool IOManager::MergeDatasets(const vector <string>& strFilenames,
     const uint64_t timesteps = 1;
     bTargetCreated = RAWConverter::ConvertRAWDataset(
         strMergedFile, strTargetFilename, strTempDir, 0,
-        iComponentSizeG, iComponentCountG, timesteps, bConvertEndianessG,
+        size_t(iComponentSizeG), iComponentCountG, timesteps, bConvertEndianessG,
         bSignedG, bIsFloatG, vVolumeSizeG, vVolumeAspectG, strTitleG,
         SysTools::GetFilename(strMergedFile), m_iMaxBrickSize,
         m_iBrickOverlap);

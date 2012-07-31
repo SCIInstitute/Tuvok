@@ -1528,7 +1528,7 @@ bool RAWConverter::ConvertToUVF(const std::list<std::string>& files,
 
   bool bUVFCreated = ConvertRAWDataset(merged_fn, strTargetFilename,
                                        strTempDir, *header_skip.begin(),
-                                       iComponentSize,
+                                       size_t(iComponentSize),
                                        iComponentCount,
                                        files.size(),
                                        bConvertEndianess,
