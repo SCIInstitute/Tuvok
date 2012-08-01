@@ -475,7 +475,7 @@ bool GLTreeRaycaster::Continue3DDraw() {
   return false;
 }
 
-bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& region3D) {
+bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& ) {
   // TODO
 
   return true;
