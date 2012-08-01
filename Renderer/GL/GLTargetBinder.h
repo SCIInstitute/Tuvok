@@ -38,6 +38,7 @@
 #ifndef GLTARGETBINDER_H
 #define GLTARGETBINDER_H
 
+#include <cstdlib>
 #include <vector>
 #include "../../StdTuvokDefines.h"
 
