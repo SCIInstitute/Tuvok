@@ -109,6 +109,7 @@ class GLRenderer : public AbstrRenderer {
     virtual void FixedFunctionality() const;
     virtual void SyncStateManager();
    
+    void CopyImageToDisplayBuffer();
   protected:
     GLTargetBinder  m_TargetBinder;
     GLTexture1D*    m_p1DTransTex;
@@ -144,7 +145,6 @@ class GLRenderer : public AbstrRenderer {
     void RenderClipPlane(size_t iStereoID);
     virtual bool Execute3DFrame(RenderRegion3D& renderRegion, float& fMsecPassed,
                         bool& completedJob);
-    void CopyImageToDisplayBuffer();
     void DrawLogo() const;
     void DrawBackGradient() const;
 
