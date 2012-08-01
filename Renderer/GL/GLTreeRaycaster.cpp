@@ -475,29 +475,11 @@ bool GLTreeRaycaster::Continue3DDraw() {
   return false;
 }
 
-
-void GLTreeRaycaster::PlanFrame(RenderRegion3D& ) {
-  typedef std::vector<RenderRegion*>::iterator r_iter;
-  for(r_iter r = renderRegions.begin(); r != renderRegions.end(); ++r) {
-    RenderRegion& rr = **r;
-    if(rr.isBlank) {
-      rr.modelView[0] = rr.rotation * rr.translation * m_mView[0];
-      if(m_bDoStereoRendering) {
-        rr.modelView[1] = rr.rotation * rr.translation * m_mView[1];
-      }
-    }
-  }
-
-
+bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& region3D) {
   // TODO
 
-}
-
-bool GLTreeRaycaster::Execute3DFrame(RenderRegion3D&,float& , bool& completedJob) {
-  
-  // TODO
-  completedJob = true;
   return true;
+
 }
 
 /*

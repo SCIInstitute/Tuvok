@@ -49,8 +49,7 @@ namespace tuvok {
       GLVolumePool* m_pVolumePool;
 
       bool Continue3DDraw();
-      void PlanFrame(RenderRegion3D& region);
-      bool Execute3DFrame(RenderRegion3D& renderRegion,float& fMsecPassed, bool& completedJob);
+      virtual bool Render3DRegion(RenderRegion3D& region3D);
 
       GLFBOTex*       m_pFBORayEntry;
       GLSLProgram*    m_pProgramRenderFrontFaces;

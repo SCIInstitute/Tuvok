@@ -544,6 +544,23 @@ bool GLRenderer::Continue3DDraw() {
          this->decreaseScreenResNow;  
 }
 
+bool GLRenderer::Render3DRegion(RenderRegion3D& region3D) {
+  PlanFrame(region3D);
+
+  // decreaseScreenResNow could have changed after calling PlanFrame.
+  SetRenderTargetArea(region3D, this->decreaseScreenResNow);
+
+  // execute the frame
+  float fMsecPassed = 0.0f;
+  bool bJobDone = false;
+  if (!Execute3DFrame(region3D, fMsecPassed, bJobDone) ) {
+    T_ERROR("Could not execute the 3D frame, aborting.");
+    return false;
+  }
+  this->msecPassedCurrentFrame += fMsecPassed;
+  return bJobDone;
+}
+
 bool GLRenderer::Paint() {
   if (!AbstrRenderer::Paint()) return false;
 
@@ -595,9 +612,21 @@ bool GLRenderer::Paint() {
       m_pFBOResizeQuickBlit = NULL;
     }
   } else {
+
+
+
     for (size_t i=0; i < renderRegions.size(); ++i) {
       if (renderRegions[i]->redrawMask) {
         SetRenderTargetArea(*renderRegions[i], this->decreaseScreenResNow);
+
+        if(renderRegions[i]->isBlank) {
+          renderRegions[i]->modelView[0] = renderRegions[i]->rotation * renderRegions[i]->translation * m_mView[0];
+          if(m_bDoStereoRendering) {
+            renderRegions[i]->modelView[1] = renderRegions[i]->rotation * renderRegions[i]->translation * m_mView[1];
+          }
+        }
+
+
         if (renderRegions[i]->is3D()) {
           RenderRegion3D &region3D = *static_cast<RenderRegion3D*>
                                                  (renderRegions[i]);
@@ -605,20 +634,7 @@ bool GLRenderer::Paint() {
             Recompose3DView(region3D);
             justCompletedRegions[i] = true;
           } else {
-            PlanFrame(region3D);
-
-            // decreaseScreenResNow could have changed after calling PlanFrame.
-            SetRenderTargetArea(region3D, this->decreaseScreenResNow);
-
-            // execute the frame
-            float fMsecPassed = 0.0f;
-            bool bJobDone = false;
-            if (!Execute3DFrame(region3D, fMsecPassed, bJobDone) ) {
-              T_ERROR("Could not execute the 3D frame, aborting.");
-              return false;
-            }
-            justCompletedRegions[i] = static_cast<char>(bJobDone);
-            this->msecPassedCurrentFrame += fMsecPassed;
+            justCompletedRegions[i] = Render3DRegion(region3D);
           }
           // are we done rendering or do we need to render at higher quality?
           region3D.redrawMask = Continue3DDraw();

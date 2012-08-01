@@ -183,6 +183,8 @@ class GLRenderer : public AbstrRenderer {
                                      std::vector<std::string> frag,
                                      GLSLProgram**) const;
 
+    virtual bool Render3DRegion(RenderRegion3D& region3D);
+
     void GeometryPreRender();
     void GeometryPostRender();
 
