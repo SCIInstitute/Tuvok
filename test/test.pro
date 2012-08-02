@@ -19,6 +19,9 @@ unix:CONFIG(debug, debug|release) {
   QMAKE_CXXFLAGS += -D_GLIBCXX_DEBUG
   LIBS += -lGLU
 }
+macx:QMAKE_CXXFLAGS += -mmacosx-version-min=10.7
+macx:QMAKE_CFLAGS += -mmacosx-version-min=10.7
+macx:LIBS        += -mmacosx-version-min=10.7
 
 # If this is a 10.5 machine, build for both x86 and x86_64.  Not
 # the best idea (there's no guarantee the machine will have a

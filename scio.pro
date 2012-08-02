@@ -17,6 +17,7 @@ unix:QMAKE_CXXFLAGS += -std=c++0x
 unix:QMAKE_CXXFLAGS += -fno-strict-aliasing
 unix:QMAKE_CFLAGS += -fno-strict-aliasing
 
+
 # Find the location of QtGui's prl file, and include it here so we can look at
 # the QMAKE_PRL_CONFIG variable.
 TEMP = $$[QT_INSTALL_LIBS] libQtGui.prl

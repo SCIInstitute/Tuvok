@@ -11,6 +11,9 @@ win32:LIBS       += shlwapi.lib
 unix:QMAKE_CXXFLAGS += -std=c++0x
 unix:QMAKE_CXXFLAGS += -fno-strict-aliasing
 unix:QMAKE_CFLAGS += -fno-strict-aliasing
+macx:QMAKE_CXXFLAGS += -mmacosx-version-min=10.7
+macx:QMAKE_CFLAGS += -mmacosx-version-min=10.7
+macx:LIBS        += -framework CoreFoundation -mmacosx-version-min=10.7
 QTPLUGIN -= qgif qjpeg qtiff
 
 include(flex.pri)
