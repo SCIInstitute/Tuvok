@@ -2131,5 +2131,14 @@
     <None Include="Shaders\VRender1D-BScale.glsl">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="Shaders\GLTreeRaycaster-VS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\GLTreeRaycaster-1D-FS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\GLTreeRaycaster-frontfaces-FS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

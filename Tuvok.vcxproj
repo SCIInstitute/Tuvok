@@ -1603,6 +1603,9 @@
     <None Include="Shaders\GLSBVR-Mesh-VS.glsl" />
     <None Include="Shaders\GLSBVR-MIP-Rot-FS.glsl" />
     <None Include="Shaders\GLSBVR-VS.glsl" />
+    <None Include="Shaders\GLTreeRaycaster-1D-FS.glsl" />
+    <None Include="Shaders\GLTreeRaycaster-frontfaces-FS.glsl" />
+    <None Include="Shaders\GLTreeRaycaster-VS.glsl" />
     <None Include="Shaders\lighting.glsl" />
     <None Include="Shaders\Mesh-FS.glsl" />
     <None Include="Shaders\Mesh-VS.glsl" />
