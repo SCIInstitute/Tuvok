@@ -868,7 +868,7 @@ void GLSLProgram::ConnectTextureID(const string& name,
   try {
     GLint location = get_location(name.c_str());
     CheckSamplerType(name.c_str());
-    glUniform1i(location,iUnit);    
+    GL(glUniform1i(location,iUnit));
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name.c_str());
     return;
@@ -897,7 +897,7 @@ void GLSLProgram::Set(const char *name, float x) const {
   try {
     GLint location = get_location(name);    
     CheckType(name, GL_FLOAT);
-    glUniform1f(location,x);    
+    GL(glUniform1f(location,x));    
     MESSAGE("Set uniform %s to %g", name, x);
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
@@ -909,7 +909,7 @@ void GLSLProgram::Set(const char *name, float x, float y) const {
   try {
     GLint location = get_location(name);
     CheckType(name, GL_FLOAT_VEC2);
-    glUniform2f(location,x,y);    
+    GL(glUniform2f(location,x,y));    
     MESSAGE("Set uniform %s to (%g,%g)", name, x, y);
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
@@ -921,7 +921,7 @@ void GLSLProgram::Set(const char *name, float x, float y, float z) const {
   try {
     GLint location = get_location(name);
     CheckType(name, GL_FLOAT_VEC3);
-    glUniform3f(location,x,y,z);    
+    GL(glUniform3f(location,x,y,z));
     MESSAGE("Set uniform %s to (%g,%g,%g)", name, x, y, z);
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
@@ -933,7 +933,7 @@ void GLSLProgram::Set(const char *name, float x, float y, float z, float w) cons
   try {
     GLint location = get_location(name);
     CheckType(name, GL_FLOAT_VEC4);
-    glUniform4f(location,x,y,z,w);    
+    GL(glUniform4f(location,x,y,z,w));
     MESSAGE("Set uniform %s to (%g,%g,%g,%g)", name, x, y, z, w);
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
@@ -946,13 +946,13 @@ void GLSLProgram::Set(const char *name, const float *m, size_t size, bool bTrans
     GLint location = get_location(name);
     switch (size) {
       case 2 : CheckType(name, GL_FLOAT_MAT2);
-               glUniformMatrix2fv(location,1,bTranspose,m); 
+               GL(glUniformMatrix2fv(location,1,bTranspose,m)); 
                break;
       case 3 : CheckType(name, GL_FLOAT_MAT3);
-               glUniformMatrix3fv(location,1,bTranspose,m);
+               GL(glUniformMatrix3fv(location,1,bTranspose,m));
                break;
       case 4 : CheckType(name, GL_FLOAT_MAT4);
-               glUniformMatrix4fv(location,1,bTranspose,m);
+               GL(glUniformMatrix4fv(location,1,bTranspose,m));
                break;
       default: T_ERROR("Invalid size (%i) when setting matrix %s.", (int)size, name); return;
     }
@@ -966,7 +966,7 @@ void GLSLProgram::Set(const char *name, int x) const {
   try {
     GLint location = get_location(name);
     CheckType(name, GL_INT);
-    glUniform1i(location,x);    
+    GL(glUniform1i(location,x));
     MESSAGE("Set uniform %s to %d", name, x);
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
@@ -978,7 +978,7 @@ void GLSLProgram::Set(const char *name, int x, int y) const {
   try {
     GLint location = get_location(name);
     CheckType(name, GL_INT_VEC2);
-    glUniform2i(location,x,y);    
+    GL(glUniform2i(location,x,y));
     MESSAGE("Set uniform %s to (%d,%d)", name, x, y);
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
@@ -990,7 +990,7 @@ void GLSLProgram::Set(const char *name, int x, int y, int z) const {
   try {
     GLint location = get_location(name);
     CheckType(name, GL_INT_VEC3);
-    glUniform3i(location,x,y,z);    
+    GL(glUniform3i(location,x,y,z));
     MESSAGE("Set uniform %s to (%d,%d,%d)", name, x, y, z);
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
@@ -1002,7 +1002,7 @@ void GLSLProgram::Set(const char *name, int x, int y, int z, int w) const {
   try {
     GLint location = get_location(name);
     CheckType(name, GL_INT_VEC4);
-    glUniform4i(location,x,y,z,w);    
+    GL(glUniform4i(location,x,y,z,w));    
     MESSAGE("Set uniform %s to (%d,%d,%d,%d)", name, x, y, z, w);
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
@@ -1024,7 +1024,7 @@ void GLSLProgram::Set(const char *name, bool x) const {
   try {
     GLint location = get_location(name);
     CheckType(name, GL_BOOL);
-    glUniform1i(location,x?1:0);
+    GL(glUniform1i(location,x?1:0));
     MESSAGE("Set uniform %s to %s", name, x ? "true" : "false");
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
@@ -1036,7 +1036,7 @@ void GLSLProgram::Set(const char *name, bool x, bool y) const {
   try {
     GLint location = get_location(name);
     CheckType(name, GL_BOOL_VEC2);
-    glUniform2i(location,x?1:0,y?1:0);    
+    GL(glUniform2i(location,x?1:0,y?1:0));    
     MESSAGE("Set uniform %s to (%s,%s)", name, x ? "true" : "false",
                                                y ? "true" : "false");
   } catch(GLError gl) {
@@ -1049,7 +1049,7 @@ void GLSLProgram::Set(const char *name, bool x, bool y, bool z) const {
   try {
     GLint location = get_location(name);
     CheckType(name, GL_BOOL_VEC3);
-    glUniform3i(location,x?1:0,y?1:0,z?1:0);    
+    GL(glUniform3i(location,x?1:0,y?1:0,z?1:0));    
     MESSAGE("Set uniform %s to (%s,%s,%s)", name, x ? "true" : "false",
                                                   y ? "true" : "false",
                                                   z ? "true" : "false");
@@ -1063,7 +1063,7 @@ void GLSLProgram::Set(const char *name, bool x, bool y, bool z, bool w) const {
   try {
     GLint location = get_location(name);
     CheckType(name, GL_BOOL_VEC4);
-    glUniform4i(location,x?1:0,y?1:0,z?1:0,w?1:0);    
+    GL(glUniform4i(location,x?1:0,y?1:0,z?1:0,w?1:0));    
     MESSAGE("Set uniform %s to (%s,%s,%s,%s)", name, x ? "true" : "false",
                                                      y ? "true" : "false",
                                                      z ? "true" : "false",
