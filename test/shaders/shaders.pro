@@ -13,7 +13,6 @@ QMAKE_LIBDIR     += ../../Build ../../IO/expressions
 QT               += opengl
 LIBS             += -lTuvok -ltuvokexpr -lz
 unix:LIBS        += -lGL -lX11
-macx:LIBS        += -lX11 -framework CoreFoundation
 unix:QMAKE_CXXFLAGS += -std=c++0x
 unix:QMAKE_CXXFLAGS += -fno-strict-aliasing -g
 unix:QMAKE_CFLAGS += -fno-strict-aliasing -g
@@ -26,6 +25,10 @@ for(d, gludirs) {
     LIBS += $${d}/libGLU.a
   }
 }
+
+macx:QMAKE_CXXFLAGS += -mmacosx-version-min=10.7
+macx:QMAKE_CFLAGS += -mmacosx-version-min=10.7
+macx:LIBS        += -lX11 -framework CoreFoundation -mmacosx-version-min=10.7
 
 ### Should we link Qt statically or as a shared lib?
 # Find the location of QtGui's prl file, and include it here so we can look at
