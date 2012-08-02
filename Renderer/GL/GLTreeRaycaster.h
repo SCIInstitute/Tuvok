@@ -12,6 +12,7 @@ class ExtendedPlane;
 namespace tuvok {
   class GLHashTable;
   class GLVolumePool;
+  class GLVBO;
 
 
   /** \class GLTreeRaycaster
@@ -48,43 +49,37 @@ namespace tuvok {
       GLHashTable*  m_pglHashTable;
       GLVolumePool* m_pVolumePool;
 
-      bool Continue3DDraw();
-      virtual bool Render3DRegion(RenderRegion3D& region3D);
-
-      GLFBOTex*       m_pFBORayEntry;
-      GLSLProgram*    m_pProgramRenderFrontFaces;
-      GLSLProgram*    m_pProgramRenderFrontFacesNT;
-      GLSLProgram*    m_pProgramIso2;
-      bool            m_bNoRCClipplanes;
-
-      virtual void CreateOffscreenBuffers();
-      void RenderBox(const RenderRegion& renderRegion,
-                     const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vExtend,
-                     const FLOATVECTOR3& vMinCoords, const FLOATVECTOR3& vMaxCoords,
-                     bool bCullBack, int iStereoID) const;
-
-      virtual void Render3DPreLoop(const RenderRegion3D& region);
-      virtual void Render3DInLoop(const RenderRegion3D& renderRegion,
-                                  size_t iCurrentBrick, int iStereoID);
-
-      virtual void RenderHQMIPPreLoop(RenderRegion2D &region);
-      virtual void RenderHQMIPInLoop(const RenderRegion2D &renderRegion, const Brick& b);
-
-      /// Set the clip plane input variable in the shader.
-      void ClipPlaneToShader(const ExtendedPlane &clipPlane, int iStereoID=0, bool bForce = false);
-
-      virtual void StartFrame();
-      virtual void SetDataDepShaderVars();
-
-      FLOATMATRIX4 ComputeEyeToTextureMatrix(const RenderRegion &renderRegion,
-                                             FLOATVECTOR3 p1, FLOATVECTOR3 t1,
-                                             FLOATVECTOR3 p2, FLOATVECTOR3 t2,
-                                             int iStereoID) const;
       /** Loads GLSL vertex and fragment shaders. */
       virtual bool LoadShaders();
 
       /** Deallocates Shaders */
       virtual void CleanupShaders();
+
+      /** Called once at startup to initialize constant GL data*/
+      bool Initialize(std::shared_ptr<Context> ctx);
+
+      bool Continue3DDraw();
+      virtual bool Render3DRegion(RenderRegion3D& region3D);
+
+      void RenderBox(const RenderRegion& renderRegion, bool bCullBack, 
+                     int iStereoID, GLSLProgram* shader) const;
+
+      // all functions below are not "guaranteed" yet
+      // (ask Jens if you want to know what that means :-)
+
+
+      GLVBO*          m_pBBoxVBO;
+      GLFBOTex*       m_pFBORayEntry;
+      GLSLProgram*    m_pProgramRenderFrontFaces;
+      bool            m_bNoRCClipplanes;
+
+      virtual void CreateOffscreenBuffers();
+
+      virtual void StartFrame();
+      virtual void SetDataDepShaderVars();
+
+      FLOATMATRIX4 ComputeEyeToModelMatrix(const RenderRegion &renderRegion,
+                                           int iStereoID) const;
   
       /** Deallocates GPU memory allocated during the rendering process. */
       virtual void Cleanup();

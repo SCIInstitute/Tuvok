@@ -13,6 +13,7 @@
 
 #include "GLHashTable.h"
 #include "GLVolumePool.h"
+#include "GLVBO.h"
 
 using namespace std;
 using namespace tuvok;
@@ -29,11 +30,9 @@ GLTreeRaycaster::GLTreeRaycaster(MasterController* pMasterController,
 
   m_pglHashTable(NULL),
   m_pVolumePool(NULL),
-
+  m_pBBoxVBO(NULL),
   m_pFBORayEntry(NULL),
   m_pProgramRenderFrontFaces(NULL),
-  m_pProgramRenderFrontFacesNT(NULL),
-  m_pProgramIso2(NULL),
   m_bNoRCClipplanes(bNoRCClipplanes)
 {
   m_bSupportsMeshes = false;
@@ -49,8 +48,6 @@ void GLTreeRaycaster::CleanupShaders() {
   GLRenderer::CleanupShaders();
 
   CleanupShader(&m_pProgramRenderFrontFaces);
-  CleanupShader(&m_pProgramRenderFrontFacesNT);
-  CleanupShader(&m_pProgramIso2);
 }
 
 void GLTreeRaycaster::Cleanup() {
@@ -60,6 +57,12 @@ void GLTreeRaycaster::Cleanup() {
     m_pMasterController->MemMan()->FreeFBO(m_pFBORayEntry); 
     m_pFBORayEntry = NULL;
   }
+
+  if (m_pBBoxVBO) {
+    delete m_pBBoxVBO;
+    m_pBBoxVBO = NULL;
+  }
+
 }
 
 void GLTreeRaycaster::CreateOffscreenBuffers() {
@@ -70,11 +73,77 @@ void GLTreeRaycaster::CreateOffscreenBuffers() {
   }
 }
 
+bool GLTreeRaycaster::Initialize(std::shared_ptr<Context> ctx) {
+  if (!GLRenderer::Initialize(ctx)) {
+    T_ERROR("Error in parent call -> aborting");
+    return false;
+  }
+
+  // init bbox vbo
+  FLOATVECTOR3 vCenter, vExtend;
+  GetVolumeAABB(vCenter, vExtend);
+
+  FLOATVECTOR3 vMinPoint, vMaxPoint;
+  vMinPoint = (vCenter - vExtend/2.0);
+  vMaxPoint = (vCenter + vExtend/2.0);
+
+  m_pBBoxVBO = new GLVBO();
+  std::vector<FLOATVECTOR3> posData;
+  // BACK
+  posData.push_back(FLOATVECTOR3(vMaxPoint.x, vMinPoint.y, vMinPoint.z));
+  posData.push_back(FLOATVECTOR3(vMinPoint.x, vMinPoint.y, vMinPoint.z));
+  posData.push_back(FLOATVECTOR3(vMinPoint.x, vMaxPoint.y, vMinPoint.z));
+  posData.push_back(FLOATVECTOR3(vMaxPoint.x, vMaxPoint.y, vMinPoint.z));
+  // FRONT
+  posData.push_back(FLOATVECTOR3(vMaxPoint.x, vMaxPoint.y, vMaxPoint.z));
+  posData.push_back(FLOATVECTOR3(vMinPoint.x, vMaxPoint.y, vMaxPoint.z));
+  posData.push_back(FLOATVECTOR3(vMinPoint.x, vMinPoint.y, vMaxPoint.z));
+  posData.push_back(FLOATVECTOR3(vMaxPoint.x, vMinPoint.y, vMaxPoint.z));
+  // LEFT
+  posData.push_back(FLOATVECTOR3(vMinPoint.x, vMaxPoint.y, vMinPoint.z));
+  posData.push_back(FLOATVECTOR3(vMinPoint.x, vMinPoint.y, vMinPoint.z));
+  posData.push_back(FLOATVECTOR3(vMinPoint.x, vMinPoint.y, vMaxPoint.z));
+  posData.push_back(FLOATVECTOR3(vMinPoint.x, vMaxPoint.y, vMaxPoint.z));
+  // RIGHT
+  posData.push_back(FLOATVECTOR3(vMaxPoint.x, vMaxPoint.y, vMaxPoint.z));
+  posData.push_back(FLOATVECTOR3(vMaxPoint.x, vMinPoint.y, vMaxPoint.z));
+  posData.push_back(FLOATVECTOR3(vMaxPoint.x, vMinPoint.y, vMinPoint.z));
+  posData.push_back(FLOATVECTOR3(vMaxPoint.x, vMaxPoint.y, vMinPoint.z));
+  // BOTTOM
+  posData.push_back(FLOATVECTOR3(vMaxPoint.x, vMinPoint.y, vMaxPoint.z));
+  posData.push_back(FLOATVECTOR3(vMinPoint.x, vMinPoint.y, vMaxPoint.z));
+  posData.push_back(FLOATVECTOR3(vMinPoint.x, vMinPoint.y, vMinPoint.z));
+  posData.push_back(FLOATVECTOR3(vMaxPoint.x, vMinPoint.y, vMinPoint.z));
+  // TOP
+  posData.push_back(FLOATVECTOR3(vMaxPoint.x, vMaxPoint.y, vMinPoint.z));
+  posData.push_back(FLOATVECTOR3(vMinPoint.x, vMaxPoint.y, vMinPoint.z));
+  posData.push_back(FLOATVECTOR3(vMinPoint.x, vMaxPoint.y, vMaxPoint.z));
+  posData.push_back(FLOATVECTOR3(vMaxPoint.x, vMaxPoint.y, vMaxPoint.z));
+
+  // write into fbo
+  m_pBBoxVBO->AddVertexData(posData);
+
+  return true;
+}
+
 bool GLTreeRaycaster::LoadShaders() {
   if (!GLRenderer::LoadShaders()) {
     T_ERROR("Error in parent call -> aborting");
     return false;
   }
+
+  if(!LoadAndVerifyShader(&m_pProgramRenderFrontFaces, m_vShaderSearchDirs,
+                          "GLTreeRaycaster-VS.glsl",
+                          NULL,
+                          "GLTreeRaycaster-frontfaces-FS.glsl", NULL))
+  {
+      Cleanup();
+      T_ERROR("Error loading a shader.");
+      return false;
+  } else {
+
+  }
+
   return true;
 /*
   const char* shaderNames[7];
@@ -231,160 +300,21 @@ bool GLTreeRaycaster::LoadShaders() {
   */
 }
 
-void GLTreeRaycaster::RenderBox(const RenderRegion& renderRegion,
-                            const FLOATVECTOR3& vCenter,
-                            const FLOATVECTOR3& vExtend,
-                            const FLOATVECTOR3& vMinCoords,
-                            const FLOATVECTOR3& vMaxCoords, bool bCullBack,
-                            int iStereoID) const  {
+void GLTreeRaycaster::RenderBox(const RenderRegion& renderRegion, bool bCullBack, 
+                                int iStereoID, GLSLProgram* shader) const  {
   
   m_pContext->GetStateManager()->SetCullState(bCullBack ? CULL_FRONT : CULL_BACK);
 
-  FLOATVECTOR3 vMinPoint, vMaxPoint;
-  vMinPoint = (vCenter - vExtend/2.0);
-  vMaxPoint = (vCenter + vExtend/2.0);
+  shader->Enable();
+  shader->Set("mEyeToModel", ComputeEyeToModelMatrix(renderRegion, iStereoID), 4, false); 
+  shader->Set("mModelView", renderRegion.modelView[iStereoID], 4, false); 
+  shader->Set("mModelViewProjection", renderRegion.modelView[iStereoID]*m_mProjection[iStereoID], 4, false); 
 
-  // \todo compute this only once per brick
-  FLOATMATRIX4 m = ComputeEyeToTextureMatrix(renderRegion,
-                                             FLOATVECTOR3(vMaxPoint.x, vMaxPoint.y, vMaxPoint.z),
-                                             FLOATVECTOR3(vMaxCoords.x, vMaxCoords.y, vMaxCoords.z),
-                                             FLOATVECTOR3(vMinPoint.x, vMinPoint.y, vMinPoint.z),
-                                             FLOATVECTOR3(vMinCoords.x, vMinCoords.y, vMinCoords.z),
-                                             iStereoID);
-
-  m.setTextureMatrix();
-
-  glBegin(GL_QUADS);
-    // BACK
-    glVertex3f(vMaxPoint.x, vMinPoint.y, vMinPoint.z);
-    glVertex3f(vMinPoint.x, vMinPoint.y, vMinPoint.z);
-    glVertex3f(vMinPoint.x, vMaxPoint.y, vMinPoint.z);
-    glVertex3f(vMaxPoint.x, vMaxPoint.y, vMinPoint.z);
-    // FRONT
-    glVertex3f(vMaxPoint.x, vMaxPoint.y, vMaxPoint.z);
-    glVertex3f(vMinPoint.x, vMaxPoint.y, vMaxPoint.z);
-    glVertex3f(vMinPoint.x, vMinPoint.y, vMaxPoint.z);
-    glVertex3f(vMaxPoint.x, vMinPoint.y, vMaxPoint.z);
-    // LEFT
-    glVertex3f(vMinPoint.x, vMaxPoint.y, vMinPoint.z);
-    glVertex3f(vMinPoint.x, vMinPoint.y, vMinPoint.z);
-    glVertex3f(vMinPoint.x, vMinPoint.y, vMaxPoint.z);
-    glVertex3f(vMinPoint.x, vMaxPoint.y, vMaxPoint.z);
-    // RIGHT
-    glVertex3f(vMaxPoint.x, vMaxPoint.y, vMaxPoint.z);
-    glVertex3f(vMaxPoint.x, vMinPoint.y, vMaxPoint.z);
-    glVertex3f(vMaxPoint.x, vMinPoint.y, vMinPoint.z);
-    glVertex3f(vMaxPoint.x, vMaxPoint.y, vMinPoint.z);
-    // BOTTOM
-    glVertex3f(vMaxPoint.x, vMinPoint.y, vMaxPoint.z);
-    glVertex3f(vMinPoint.x, vMinPoint.y, vMaxPoint.z);
-    glVertex3f(vMinPoint.x, vMinPoint.y, vMinPoint.z);
-    glVertex3f(vMaxPoint.x, vMinPoint.y, vMinPoint.z);
-    // TOP
-    glVertex3f(vMaxPoint.x, vMaxPoint.y, vMinPoint.z);
-    glVertex3f(vMinPoint.x, vMaxPoint.y, vMinPoint.z);
-    glVertex3f(vMinPoint.x, vMaxPoint.y, vMaxPoint.z);
-    glVertex3f(vMaxPoint.x, vMaxPoint.y, vMaxPoint.z);
-  glEnd();
+  m_pBBoxVBO->Bind();
+  m_pBBoxVBO->Draw(GL_QUADS);
+  m_pBBoxVBO->UnBind();
 }
 
-
-/// Set the clip plane input variable in the shader.
-void GLTreeRaycaster::ClipPlaneToShader(const ExtendedPlane& clipPlane, int iStereoID, bool bForce) {
-  if (m_bNoRCClipplanes) return;
-
-  vector<GLSLProgram*> vCurrentShader;
-
-  if (bForce) {
-    vCurrentShader.push_back(m_pProgram1DTrans[0]);
-    vCurrentShader.push_back(m_pProgram1DTrans[1]);
-    vCurrentShader.push_back(m_pProgram2DTrans[0]);
-    vCurrentShader.push_back(m_pProgram2DTrans[1]);
-    vCurrentShader.push_back(m_pProgramIso);
-    vCurrentShader.push_back(m_pProgramColor);
-    vCurrentShader.push_back(m_pProgramIso2);
-  } else {
-    switch (m_eRenderMode) {
-      case RM_1DTRANS    :  vCurrentShader.push_back(m_pProgram1DTrans[m_bUseLighting ? 1 : 0]);
-                            break;
-      case RM_2DTRANS    :  vCurrentShader.push_back(m_pProgram2DTrans[m_bUseLighting ? 1 : 0]);
-                            break;
-      case RM_ISOSURFACE :  if (m_pDataset->GetComponentCount() == 1)
-                              vCurrentShader.push_back(m_pProgramIso);
-                            else
-                              vCurrentShader.push_back(m_pProgramColor);
-                            if (m_bDoClearView) vCurrentShader.push_back(m_pProgramIso2);
-                            break;
-      default    :          T_ERROR("Invalid rendermode set");
-                            break;
-    }
-  }
-
-  if (bForce || m_bClipPlaneOn) {
-    ExtendedPlane plane(clipPlane);
-
-    plane.Transform(m_mView[iStereoID], false);
-    for (size_t i = 0;i<vCurrentShader.size();i++) {
-      vCurrentShader[i]->Enable();
-      vCurrentShader[i]->Set("vClipPlane", plane.x(), plane.y(),
-                                                        plane.z(), plane.d());
-    }
-  }
-}
-
-void GLTreeRaycaster::Render3DPreLoop(const RenderRegion3D &) {
-
-  // render near-plane into buffer
-  if (m_iBricksRenderedInThisSubFrame == 0) {
-    GPUState localState = m_BaseState;
-    localState.enableBlend = false;
-    localState.depthMask = false;
-    localState.enableDepthTest  = false;
-    m_pContext->GetStateManager()->Apply(localState);
-
-    m_TargetBinder.Bind(m_pFBORayEntry);
-  
-    FLOATMATRIX4 mInvProj = m_mProjection[0].inverse();
-    mInvProj.setProjection();
-    m_pProgramRenderFrontFacesNT->Enable();
-
-    glBegin(GL_QUADS);
-      glVertex3d(-1.0,  1.0, -0.5);
-      glVertex3d( 1.0,  1.0, -0.5);
-      glVertex3d( 1.0, -1.0, -0.5);
-      glVertex3d(-1.0, -1.0, -0.5);
-    glEnd();
-
-    m_TargetBinder.Unbind();
-  }
-
-  switch (m_eRenderMode) {
-    case RM_1DTRANS    :  m_p1DTransTex->Bind(1);
-                          break;
-    case RM_2DTRANS    :  m_p2DTransTex->Bind(1);
-                          break;
-    case RM_ISOSURFACE :  break;
-    default    :          T_ERROR("Invalid rendermode set");
-                          break;
-  }
-
-}
-
-void GLTreeRaycaster::Render3DInLoop(const RenderRegion3D& ,
-                                 size_t , int ) {
-  // TODO
-}
-
-
-void GLTreeRaycaster::RenderHQMIPPreLoop(RenderRegion2D &region) {
-  GLRenderer::RenderHQMIPPreLoop(region);
-  // TODO
-}
-
-void GLTreeRaycaster::RenderHQMIPInLoop(const RenderRegion2D &,
-                                    const Brick& ) {
-  // TODO
-}
 
 void GLTreeRaycaster::StartFrame() {
   GLRenderer::StartFrame();
@@ -426,7 +356,7 @@ void GLTreeRaycaster::StartFrame() {
 }
 
 void GLTreeRaycaster::SetDataDepShaderVars() {
-  GLRenderer::SetDataDepShaderVars();
+/*  GLRenderer::SetDataDepShaderVars();
   if (m_eRenderMode == RM_ISOSURFACE && m_bDoClearView) {
     m_pProgramIso2->Enable();
     m_pProgramIso2->Set("fIsoval", static_cast<float>
@@ -441,33 +371,23 @@ void GLTreeRaycaster::SetDataDepShaderVars() {
     m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Set("TFuncBias", bias_scale.first);
     m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Set("fTransScale", bias_scale.second);
   }
-
+  */
 }
 
 
-FLOATMATRIX4 GLTreeRaycaster::ComputeEyeToTextureMatrix(const RenderRegion &renderRegion,
-                                                    FLOATVECTOR3 p1, FLOATVECTOR3 t1,
-                                                    FLOATVECTOR3 p2, FLOATVECTOR3 t2,
-                                                    int iStereoID) const {
-  FLOATMATRIX4 m;
+FLOATMATRIX4 GLTreeRaycaster::ComputeEyeToModelMatrix(const RenderRegion &renderRegion,
+                                                        int iStereoID) const {
 
-  FLOATMATRIX4 mInvModelView = renderRegion.modelView[iStereoID].inverse();
+  FLOATVECTOR3 vCenter, vExtend;
+  GetVolumeAABB(vCenter, vExtend);
 
-  FLOATVECTOR3 vTrans1 = -p1;
-  FLOATVECTOR3 vScale  = (t2-t1) / (p2-p1);
-  FLOATVECTOR3 vTrans2 =  t1;
+  FLOATMATRIX4 mTrans, mScale, mNormalize;
 
-  FLOATMATRIX4 mTrans1;
-  FLOATMATRIX4 mScale;
-  FLOATMATRIX4 mTrans2;
+  mTrans.Translation(-vCenter);
+  mScale.Scaling(1.0f/vExtend);
+  mNormalize.Translation(0.5f, 0.5f, 0.5f);
 
-  mTrans1.Translation(vTrans1.x,vTrans1.y,vTrans1.z);
-  mScale.Scaling(vScale.x,vScale.y,vScale.z);
-  mTrans2.Translation(vTrans2.x,vTrans2.y,vTrans2.z);
-
-  m = mInvModelView * mTrans1 * mScale * mTrans2;
-
-  return m;
+  return renderRegion.modelView[iStereoID].inverse() * mTrans * mScale * mNormalize;
 }
 
 bool GLTreeRaycaster::Continue3DDraw() {
@@ -475,11 +395,24 @@ bool GLTreeRaycaster::Continue3DDraw() {
   return false;
 }
 
-bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& ) {
-  // TODO
+bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
+  // reset state
+  GPUState localState = m_BaseState;
+  localState.enableBlend = false;
+  m_pContext->GetStateManager()->Apply(localState);
+  
+  // bind output render target (DEBUG)
+  m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+  // render frontfaces of bbox
+  RenderBox(rr, true, 0, m_pProgramRenderFrontFaces);
+
+  // done rendering
+  m_TargetBinder.Unbind();
+
+  // nothig can go wrong here
   return true;
-
 }
 
 /*
