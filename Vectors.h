@@ -905,6 +905,8 @@ public:
                                        << m.m41 << '\t' << m.m42 << '\t' << m.m43 << '\t' << m.m44 ; return os;}
 
   operator T*(void) {return &m11;}
+  operator const T*(void) const  {return &m11;}
+
   const T *operator *(void) const {return &m11;}
   T *operator *(void) {return &m11;}
 
