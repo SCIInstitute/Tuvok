@@ -1671,6 +1671,8 @@ void GLRenderer::DrawBackGradient() const {
 }
 
 void GLRenderer::Cleanup() {
+  m_TargetBinder.Unbind(); // make sure nothing is bound before we delete the buffers
+
   GPUMemMan& mm = *(m_pMasterController->MemMan());
 
   if (m_pFBO3DImageLast) {
@@ -1710,6 +1712,8 @@ void GLRenderer::Cleanup() {
 }
 
 void GLRenderer::CreateOffscreenBuffers() {
+  m_TargetBinder.Unbind(); // make sure nothing is bound before we delete the buffers
+
   GPUMemMan &mm = *(Controller::Instance().MemMan());
 
   if (m_pFBO3DImageLast) {
