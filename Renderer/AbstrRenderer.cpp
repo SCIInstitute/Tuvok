@@ -1068,7 +1068,7 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
   return vBrickList;
 }
 
-void AbstrRenderer::GetVolumeAABB(FLOATVECTOR3& vCenter, FLOATVECTOR3& vExtend) {
+void AbstrRenderer::GetVolumeAABB(FLOATVECTOR3& vCenter, FLOATVECTOR3& vExtend) const {
   UINT64VECTOR3 vDomainSize = m_pDataset->GetDomainSize();
   FLOATVECTOR3 vScale = FLOATVECTOR3(m_pDataset->GetScale());
   

@@ -529,7 +529,7 @@ class AbstrRenderer: public Scriptable {
     void SetRenderRegions(const std::vector<RenderRegion*>&);
     void LuaSetRenderRegions(std::vector<LuaClassInstance>);
     std::vector<LuaClassInstance> LuaGetRenderRegions();
-    void GetVolumeAABB(FLOATVECTOR3& vCenter, FLOATVECTOR3& vExtend);
+    void GetVolumeAABB(FLOATVECTOR3& vCenter, FLOATVECTOR3& vExtend) const;
 
     virtual void ScanForNewMeshes() {}
     virtual void RemoveMeshData(size_t index);
