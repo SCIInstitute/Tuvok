@@ -26,10 +26,9 @@ for(d, gludirs) {
 unix:QMAKE_CXXFLAGS += -std=c++0x
 unix:QMAKE_CXXFLAGS += -fno-strict-aliasing -g
 unix:QMAKE_CFLAGS += -fno-strict-aliasing -g
-
-macx:QMAKE_CXXFLAGS += -mmacosx-version-min=10.7
+macx:QMAKE_CXXFLAGS += -stdlib=libc++ -mmacosx-version-min=10.7
 macx:QMAKE_CFLAGS += -mmacosx-version-min=10.7
-macx:LIBS        += -framework CoreFoundation -mmacosx-version-min=10.7
+macx:LIBS        += -stdlib=libc++ -framework CoreFoundation -mmacosx-version-min=10.7
 
 ### Should we link Qt statically or as a shared lib?
 # Find the location of QtCore's prl file, and include it here so we can look at
