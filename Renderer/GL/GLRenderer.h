@@ -164,15 +164,15 @@ class GLRenderer : public AbstrRenderer {
 
     virtual bool Render3DView(const RenderRegion3D& renderRegion, float& fMsecPassed);
     virtual void Render3DPreLoop(const RenderRegion3D &) { };
-    virtual void Render3DInLoop(const RenderRegion3D& renderRegion,
-                                size_t iCurentBrick, int iStereoID) = 0;
+    virtual void Render3DInLoop(const RenderRegion3D& ,
+                                size_t , int ) {};
     virtual void Render3DPostLoop() {}
     virtual void ComposeSurfaceImage(const RenderRegion& renderRegion, int iStereoID);
     virtual void RecomposeView(const RenderRegion&);
     virtual void Recompose3DView(const RenderRegion3D& renderRegion);
 
     virtual void RenderHQMIPPreLoop(RenderRegion2D& region);
-    virtual void RenderHQMIPInLoop(const RenderRegion2D& renderRegion, const Brick& b) = 0;
+    virtual void RenderHQMIPInLoop(const RenderRegion2D& , const Brick&) {}
     virtual void RenderHQMIPPostLoop() {}
 
     virtual void CreateOffscreenBuffers();
