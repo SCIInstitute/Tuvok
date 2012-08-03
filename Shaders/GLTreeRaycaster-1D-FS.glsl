@@ -1,9 +1,15 @@
 #version 420 core
 
-in vec3 vEyePos;
+// import hastable function
+uint Hash(uvec4 bd);
 
-void main() {
-   gl_FragColor = vec4(vEyePos.x, vEyePos.y, vEyePos.x, 1.0);
+uniform sampler2D rayEntryPoint;
+layout(pixel_center_integer) in vec4 gl_FragCoord;
+
+void main()
+{
+  ivec2 screenpos = ivec2(gl_FragCoord.xy);
+  gl_FragColor = texelFetch(rayEntryPoint, screenpos,0);
 }
 
 

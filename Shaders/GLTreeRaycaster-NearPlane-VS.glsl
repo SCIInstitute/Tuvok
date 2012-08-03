@@ -1,11 +1,16 @@
 #version 420 core
 
 layout (location=0) in vec3 vertexPosition;
-uniform mat4x4 mModelViewProjection;
+
+uniform mat4x4 mInvProjection;
+
+out vec3 vEyePos;
 
 void main(void)
 {
-  gl_Position = mModelViewProjection * vec4(vertexPosition, 1.0);
+  gl_Position = vec4(vertexPosition, 1.0);
+  vec4 near = (mInvProjection * vec4(vertexPosition.x,vertexPosition.y,-1,1));
+  vEyePos = near.xyz/near.w;
 }
 
 
