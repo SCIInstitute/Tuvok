@@ -135,6 +135,8 @@ public:
   ///@}
   virtual uint64_t GetNumberOfTimesteps() const;
 
+  UINT64VECTOR3 GetBrickLayout(size_t lod, size_t ts) const;
+
   // Global Data
   float MaxGradientMagnitude() const;
   virtual UINTVECTOR3 GetMaxBrickSize() const;

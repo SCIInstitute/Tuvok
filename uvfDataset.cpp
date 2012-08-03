@@ -570,6 +570,17 @@ BrickTable::size_type UVFDataset::GetBrickCount(size_t lod, size_t iTs) const
   }
 }
 
+UINT64VECTOR3 UVFDataset::GetBrickLayout(const size_t lod, const size_t iTs) const {
+  if (m_bToCBlock) {
+    const TOCTimestep* ts = static_cast<TOCTimestep*>(m_timesteps[iTs]);
+    return ts->GetDB()->GetBrickCount(lod);
+  } else {
+    const RDTimestep* ts = static_cast<RDTimestep*>(m_timesteps[iTs]);
+    return ts->m_vaBrickCount[lod];
+  }
+}
+
+
 UINT64VECTOR3 UVFDataset::GetDomainSize(const size_t lod, const size_t iTs) const
 {
   if (m_bToCBlock) {
