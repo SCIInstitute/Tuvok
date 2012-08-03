@@ -1478,7 +1478,7 @@ void GLRenderer::PostSubframe(const RenderRegion& renderRegion)
     renderRegion.modelView[i].setModelview();
     GeometryPostRender();
     PlaneIn3DPostRender();
-    RenderClipPlane(i);
+    RenderClipPlane(EStereoID(i));
   }
   m_TargetBinder.Unbind();
 }
@@ -1943,7 +1943,28 @@ void GLRenderer::SetBlendPrecision(EBlendPrecision eBlendPrecision) {
   }
 }
 
-static std::string find_shader(std::string file, bool subdirs)
+
+std::string GLRenderer::FindFileInDirs(const std::string& file, const std::vector<std::string> strDirs,bool subdirs) const {
+  if (SysTools::FileExists(file)) return file;
+
+  // not in the current dir!
+  // iterate through all directories, looking for the file in them.
+  for (size_t i = 0;i<strDirs.size();i++) {
+    if(!SysTools::FileExists(strDirs[i])) {
+      // skip nonexistend directories
+      continue;
+    }
+
+    string searchFile = strDirs[i] + "/" + file ;
+    if (FindFile(searchFile, subdirs) != "") {
+      return searchFile;
+    }
+  }
+  return "";
+}
+
+
+std::string GLRenderer::FindFile(const std::string& file, bool subdirs) const
 {
 #ifdef DETECTED_OS_APPLE
   if (SysTools::FileExists(SysTools::GetFromResourceOnMac(file))) {
@@ -1953,21 +1974,25 @@ static std::string find_shader(std::string file, bool subdirs)
   }
 #endif
 
-  // if it doesn't exist, try our subdirs.
-  if(!SysTools::FileExists(file) && subdirs) {
-    std::vector<std::string> dirs = SysTools::GetSubDirList(
-      Controller::Instance().SysInfo()->GetProgramPath()
-    );
-    dirs.push_back(Controller::Instance().SysInfo()->GetProgramPath());
+  if(!SysTools::FileExists(file)) {
+    
+    // if it doesn't exist but we allow subdir search, try harder
+    if(subdirs) {
+      std::vector<std::string> dirs = SysTools::GetSubDirList(
+        Controller::Instance().SysInfo()->GetProgramPath()
+      );
+      dirs.push_back(Controller::Instance().SysInfo()->GetProgramPath());
 
-    std::string raw_fn = SysTools::GetFilename(file);
-    for(std::vector<std::string>::const_iterator d = dirs.begin();
-        d != dirs.end(); ++d) {
-      std::string testfn = *d + "/" + raw_fn;
-      if(SysTools::FileExists(testfn)) {
-        return testfn;
+      std::string raw_fn = SysTools::GetFilename(file);
+      for(std::vector<std::string>::const_iterator d = dirs.begin();
+          d != dirs.end(); ++d) {
+        std::string testfn = *d + "/" + raw_fn;
+        if(SysTools::FileExists(testfn)) {
+          return testfn;
+        }
       }
     }
+
     WARNING("Could not find '%s'", file.c_str());
     return "";
   }
@@ -2003,28 +2028,24 @@ bool GLRenderer::LoadAndVerifyShader(GLSLProgram** program,
     const char* filename;
     // We expect two NULLs; the first terminates the vertex shader list, the
     // latter terminates the fragment shader list.
-    do {
-      filename = va_arg(args, const char*);
-      if(filename != NULL) {
-        std::string shader = find_shader(std::string(filename), false);
-        if(shader == "") {
-          WARNING("Could not find VS shader '%s'!", filename);
-        }
-        vertex.push_back(shader);
-      }
-    } while(filename != NULL);
 
-    do {
-      filename = va_arg(args, const char*);
-      if(filename != NULL) {
-        std::string shader = find_shader(std::string(filename), false);
-        if(shader == "") {
-          WARNING("Could not find FS shader '%s'!", filename);
-        }
-        frag.push_back(shader);
+    while(NULL != (filename = va_arg(args, const char*)) ) {
+      std::string shader = FindFileInDirs(std::string(filename), strDirs, false);
+      if(shader == "") {
+        WARNING("Could not find VS shader '%s'!", filename);
       }
-    } while(filename != NULL);
+      vertex.push_back(shader);
+    }
+
+    while(NULL != (filename = va_arg(args, const char*)) ) {
+      std::string shader = FindFileInDirs(std::string(filename), strDirs, false);
+      if(shader == "") {
+        WARNING("Could not find FS shader '%s'!", filename);
+      } 
+      frag.push_back(shader);
+    }
   }
+
   va_end(args);
 
   if(!vertex.empty() && !frag.empty() &&
@@ -2033,62 +2054,6 @@ bool GLRenderer::LoadAndVerifyShader(GLSLProgram** program,
     return LoadAndVerifyShader(vertex, frag, program);
   }
 
-  // now iterate through all directories, looking for our shaders in them.
-  for (size_t i = 0;i<strDirs.size();i++) {
-    if(!SysTools::FileExists(strDirs[i])) {
-      continue;
-    }
-
-    std::vector<std::string> fullVS(vertex.size());
-    std::vector<std::string> fullFS(frag.size());
-
-    // prepend the directory name, if needed.
-    for(size_t j=0; j < fullVS.size(); ++j) {
-      if(SysTools::FileExists(vertex[j])) {
-        fullVS[j] = vertex[j];
-      } else {
-        fullVS[j] = strDirs[i] + "/" + vertex[j];
-      }
-    }
-    // if any of those files don't exist, skip this directory.
-    if(fullVS.empty() || !all_exist(fullVS.begin(), fullVS.end())) {
-      WARNING("Not all vertex shaders present in %s, skipping...",
-              strDirs[i].c_str());
-      continue;
-    }
-
-    // prepend the directory to the fragment shader path, if needed.
-    for(size_t j=0; j < fullFS.size(); ++j) {
-      if(SysTools::FileExists(frag[j])) {
-        fullFS[j] = frag[j];
-      } else {
-        fullFS[j] = strDirs[i] + "/" + frag[j];
-      }
-    }
-
-    // if any of those files don't exist, skip this directory.
-    if(fullFS.empty() || !all_exist(fullFS.begin(), fullFS.end())) {
-      WARNING("Not all fragment shaders present in %s, skipping...",
-              strDirs[i].c_str());
-      continue;
-    }
-
-    if (LoadAndVerifyShader(fullVS, fullFS, program)) {
-      return true;
-    }
-  }
-
-  {
-    std::ostringstream shaders;
-    shaders << "Shaders [VS: ";
-    std::copy(vertex.begin(), vertex.end(),
-              std::ostream_iterator<std::string>(shaders, ", "));
-    shaders << " FS: ";
-    std::copy(frag.begin(), frag.end(),
-              std::ostream_iterator<std::string>(shaders, ", "));
-    shaders << "] not found!";
-    T_ERROR("%s", shaders.str().c_str());
-  }
   return false;
 }
 
@@ -2098,7 +2063,7 @@ bool GLRenderer::LoadAndVerifyShader(std::vector<std::string> vert,
 {
   for(std::vector<std::string>::iterator v = vert.begin(); v != vert.end(); ++v)
   {
-    *v = find_shader(*v, false);
+    *v = FindFile(*v, false);
     if(v->empty()) {
       WARNING("We'll need to search for vertex shader '%s'...", v->c_str());
     }
@@ -2106,7 +2071,7 @@ bool GLRenderer::LoadAndVerifyShader(std::vector<std::string> vert,
       
   for(std::vector<std::string>::iterator f = frag.begin(); f != frag.end();
       ++f) {
-    *f = find_shader(*f, false);
+    *f = FindFile(*f, false);
     if(f->empty()) {
       WARNING("We'll need to search for fragment shader '%s'...", f->c_str());
     }
@@ -2580,7 +2545,7 @@ void GLRenderer::RenderPlanesIn3D(bool bDepthPassOnly) {
  * The plane logic is mostly handled by ExtendedPlane::Quad: though we only
  * need the plane's normal to clip things, we store an orthogonal vector for
  * the plane's surface specifically to make rendering the plane easy. */
-void GLRenderer::RenderClipPlane(size_t iStereoID)
+void GLRenderer::RenderClipPlane(EStereoID eStereoID)
 {
   /* Bail if the user doesn't want to use or see the plane. */
   if(!m_bClipPlaneOn || !m_bClipPlaneDisplayed) { return ; }
@@ -2589,7 +2554,7 @@ void GLRenderer::RenderClipPlane(size_t iStereoID)
   FLOATVECTOR4 vColorBorder(1.0f,1.0f,0.0f,1.0f);
 
   ExtendedPlane transformed(m_ClipPlane);
-  m_mView[iStereoID].setModelview();
+  m_mView[size_t(eStereoID)].setModelview();
 
   FixedFunctionality();
   GPUState localState = m_BaseState;	
@@ -2687,10 +2652,10 @@ void GLRenderer::Recompose3DView(const RenderRegion3D& renderRegion) {
     renderRegion.modelView[i].setModelview();
     GeometryPreRender();
     PlaneIn3DPreRender();
-    ComposeSurfaceImage(renderRegion, int(i));
+    ComposeSurfaceImage(renderRegion, EStereoID(i));
     GeometryPostRender();
     PlaneIn3DPostRender();
-    RenderClipPlane(i);
+    RenderClipPlane(EStereoID(i));
   }
   m_TargetBinder.Unbind();
 }
@@ -2773,7 +2738,7 @@ bool GLRenderer::Render3DView(const RenderRegion3D& renderRegion,
      
       for (size_t i = 0;i<iStereoBufferCount;i++) {
         m_TargetBinder.Bind(m_pFBO3DImageCurrent[i]);
-        ComposeSurfaceImage(renderRegion, int(i));
+        ComposeSurfaceImage(renderRegion, EStereoID(i));
       } 
 
       m_TargetBinder.Unbind();
@@ -2795,15 +2760,15 @@ void GLRenderer::SetLogoParams(std::string strLogoFilename, int iLogoPos) {
   ScheduleCompleteRedraw();
 }
 
-void GLRenderer::ComposeSurfaceImage(const RenderRegion &renderRegion, int iStereoID) {
+void GLRenderer::ComposeSurfaceImage(const RenderRegion &renderRegion, EStereoID eStereoID) {
   GPUState localState = m_BaseState;
   localState.enableTex[0] = TEX_2D;
   localState.enableTex[1] = TEX_2D;
   localState.enableBlend = false;
   m_pContext->GetStateManager()->Apply(localState);
 
-  m_pFBOIsoHit[iStereoID]->Read(0, 0);
-  m_pFBOIsoHit[iStereoID]->Read(1, 1);
+  m_pFBOIsoHit[size_t(eStereoID)]->Read(0, 0);
+  m_pFBOIsoHit[size_t(eStereoID)]->Read(1, 1);
 
   FLOATVECTOR3 d = m_cDiffuse.xyz()*m_cDiffuse.w;
 
@@ -2816,12 +2781,12 @@ void GLRenderer::ComposeSurfaceImage(const RenderRegion &renderRegion, int iSter
     m_pProgramCVCompose->Set("vCVParam",m_fCVSize,
                                           m_fCVContextScale, m_fCVBorderScale);
 
-    FLOATVECTOR4 transPos = m_vCVPos * renderRegion.modelView[iStereoID];
+    FLOATVECTOR4 transPos = m_vCVPos * renderRegion.modelView[size_t(eStereoID)];
     m_pProgramCVCompose->Set("vCVPickPos", transPos.x,
                                                         transPos.y,
                                                         transPos.z);
-    m_pFBOCVHit[iStereoID]->Read(2, 0);
-    m_pFBOCVHit[iStereoID]->Read(3, 1);
+    m_pFBOCVHit[size_t(eStereoID)]->Read(2, 0);
+    m_pFBOCVHit[size_t(eStereoID)]->Read(3, 1);
   } else {
     if(this->ColorData()) {
       m_pProgramColorCompose->Enable();
@@ -2844,12 +2809,12 @@ void GLRenderer::ComposeSurfaceImage(const RenderRegion &renderRegion, int iSter
   glEnd();
 
   if (m_bDoClearView) {
-    m_pFBOCVHit[iStereoID]->FinishRead(0);
-    m_pFBOCVHit[iStereoID]->FinishRead(1);
+    m_pFBOCVHit[size_t(eStereoID)]->FinishRead(0);
+    m_pFBOCVHit[size_t(eStereoID)]->FinishRead(1);
   } 
 
-  m_pFBOIsoHit[iStereoID]->FinishRead(1);
-  m_pFBOIsoHit[iStereoID]->FinishRead(0);
+  m_pFBOIsoHit[size_t(eStereoID)]->FinishRead(1);
+  m_pFBOIsoHit[size_t(eStereoID)]->FinishRead(0);
 }
 
 

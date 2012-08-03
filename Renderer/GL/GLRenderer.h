@@ -142,7 +142,7 @@ class GLRenderer : public AbstrRenderer {
     void RenderBBox(const FLOATVECTOR4 vColor = FLOATVECTOR4(1,0,0,1));
     void RenderBBox(const FLOATVECTOR4 vColor,
                     const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vExtend);
-    void RenderClipPlane(size_t iStereoID);
+    void RenderClipPlane(EStereoID eStereoID);
     virtual bool Execute3DFrame(RenderRegion3D& renderRegion, float& fMsecPassed,
                         bool& completedJob);
     void DrawLogo() const;
@@ -167,7 +167,7 @@ class GLRenderer : public AbstrRenderer {
     virtual void Render3DInLoop(const RenderRegion3D& ,
                                 size_t , int ) {};
     virtual void Render3DPostLoop() {}
-    virtual void ComposeSurfaceImage(const RenderRegion& renderRegion, int iStereoID);
+    virtual void ComposeSurfaceImage(const RenderRegion& renderRegion, EStereoID eStereoID);
     virtual void RecomposeView(const RenderRegion&);
     virtual void Recompose3DView(const RenderRegion3D& renderRegion);
 
@@ -176,6 +176,8 @@ class GLRenderer : public AbstrRenderer {
     virtual void RenderHQMIPPostLoop() {}
 
     virtual void CreateOffscreenBuffers();
+    std::string FindFile(const std::string& file, bool subdirs) const;
+    std::string FindFileInDirs(const std::string& file, const std::vector<std::string> strDirs,bool subdirs) const;
     virtual bool LoadAndVerifyShader(GLSLProgram**,
                                      const std::vector<std::string> strDirs,
                                      ...);

@@ -101,17 +101,17 @@ class GLRaycaster : public GLRenderer {
     void RenderBox(const RenderRegion& renderRegion,
                    const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vExtend,
                    const FLOATVECTOR3& vMinCoords, const FLOATVECTOR3& vMaxCoords,
-                   bool bCullBack, int iStereoID) const;
+                   bool bCullBack, EStereoID eStereoID) const;
 
     virtual void Render3DPreLoop(const RenderRegion3D& region);
     virtual void Render3DInLoop(const RenderRegion3D& renderRegion,
-                                size_t iCurrentBrick, int iStereoID);
+                                size_t iCurrentBrick, EStereoID eStereoID);
 
     virtual void RenderHQMIPPreLoop(RenderRegion2D &region);
     virtual void RenderHQMIPInLoop(const RenderRegion2D &renderRegion, const Brick& b);
 
     /// Set the clip plane input variable in the shader.
-    void ClipPlaneToShader(const ExtendedPlane &clipPlane, int iStereoID=0, bool bForce = false);
+    void ClipPlaneToShader(const ExtendedPlane &clipPlane, EStereoID eStereoID=SI_LEFT_OR_MONO, bool bForce = false);
 
     virtual void StartFrame();
     virtual void SetDataDepShaderVars();
@@ -119,7 +119,7 @@ class GLRaycaster : public GLRenderer {
     FLOATMATRIX4 ComputeEyeToTextureMatrix(const RenderRegion &renderRegion,
                                            FLOATVECTOR3 p1, FLOATVECTOR3 t1,
                                            FLOATVECTOR3 p2, FLOATVECTOR3 t2,
-                                           int iStereoID) const;
+                                           EStereoID eStereoID) const;
     /** Loads GLSL vertex and fragment shaders. */
     virtual bool LoadShaders();
 

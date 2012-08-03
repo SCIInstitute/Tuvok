@@ -126,9 +126,9 @@ class DXRenderer : public AbstrRenderer {
 
     virtual bool Render3DView();
     virtual void Render3DPreLoop() {};
-    virtual void Render3DInLoop(size_t iCurentBrick, int iStereoID) = 0;
+    virtual void Render3DInLoop(size_t iCurentBrick, EStereoID eStereoID) = 0;
     virtual void Render3DPostLoop() {}
-    virtual void ComposeSurfaceImage(int iStereoID);
+    virtual void ComposeSurfaceImage(EStereoID eStereoID);
     virtual void Recompose3DView(const tuvok::RenderRegion3D& renderRegion);
 
     virtual void RenderHQMIPInLoop(const Brick& b) = 0;

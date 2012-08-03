@@ -356,7 +356,7 @@ void DXRenderer::SetLogoParams(std::string strLogoFilename, int iLogoPos) {
   // TODO
 }
 
-void DXRenderer::ComposeSurfaceImage(int iStereoID) {
+void DXRenderer::ComposeSurfaceImage(EStereoID eStereoID) {
 }
 
 bool DXRenderer::IsVolumeResident(const BrickKey& key) const{

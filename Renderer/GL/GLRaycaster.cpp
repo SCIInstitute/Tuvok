@@ -250,7 +250,7 @@ bool GLRaycaster::LoadShaders() {
 
     /// We always clip against the plane in the shader, so initialize the plane
     /// to be way out in left field, ensuring nothing will be clipped.
-    ClipPlaneToShader(ExtendedPlane::FarawayPlane(),0,true);
+    ClipPlaneToShader(ExtendedPlane::FarawayPlane(), SI_LEFT_OR_MONO, true);
     return true;
   }
 
@@ -324,7 +324,7 @@ void GLRaycaster::RenderBox(const RenderRegion& renderRegion,
                             const FLOATVECTOR3& vExtend,
                             const FLOATVECTOR3& vMinCoords,
                             const FLOATVECTOR3& vMaxCoords, bool bCullBack,
-                            int iStereoID) const  {
+                            EStereoID eStereoID) const  {
   
   m_pContext->GetStateManager()->SetCullState(bCullBack ? CULL_FRONT : CULL_BACK);
 
@@ -338,7 +338,7 @@ void GLRaycaster::RenderBox(const RenderRegion& renderRegion,
                                              FLOATVECTOR3(vMaxCoords.x, vMaxCoords.y, vMaxCoords.z),
                                              FLOATVECTOR3(vMinPoint.x, vMinPoint.y, vMinPoint.z),
                                              FLOATVECTOR3(vMinCoords.x, vMinCoords.y, vMinCoords.z),
-                                             iStereoID);
+                                             eStereoID);
 
   m.setTextureMatrix();
 
@@ -378,7 +378,7 @@ void GLRaycaster::RenderBox(const RenderRegion& renderRegion,
 
 
 /// Set the clip plane input variable in the shader.
-void GLRaycaster::ClipPlaneToShader(const ExtendedPlane& clipPlane, int iStereoID, bool bForce) {
+void GLRaycaster::ClipPlaneToShader(const ExtendedPlane& clipPlane, EStereoID eStereoID, bool bForce) {
   if (m_bNoRCClipplanes) return;
 
   vector<GLSLProgram*> vCurrentShader;
@@ -411,7 +411,7 @@ void GLRaycaster::ClipPlaneToShader(const ExtendedPlane& clipPlane, int iStereoI
   if (bForce || m_bClipPlaneOn) {
     ExtendedPlane plane(clipPlane);
 
-    plane.Transform(m_mView[iStereoID], false);
+    plane.Transform(m_mView[size_t(eStereoID)], false);
     for (size_t i = 0;i<vCurrentShader.size();i++) {
       vCurrentShader[i]->Enable();
       vCurrentShader[i]->Set("vClipPlane", plane.x(), plane.y(),
@@ -459,18 +459,18 @@ void GLRaycaster::Render3DPreLoop(const RenderRegion3D &) {
 }
 
 void GLRaycaster::Render3DInLoop(const RenderRegion3D& renderRegion,
-                                 size_t iCurrentBrick, int iStereoID) {
+                                 size_t iCurrentBrick, EStereoID eStereoID) {
 
 
   m_pContext->GetStateManager()->Apply(m_BaseState);
                                                                     
-  const Brick& b = (iStereoID == 0) ? m_vCurrentBrickList[iCurrentBrick] : m_vLeftEyeBrickList[iCurrentBrick];
+  const Brick& b = (eStereoID == SI_LEFT_OR_MONO) ? m_vCurrentBrickList[iCurrentBrick] : m_vLeftEyeBrickList[iCurrentBrick];
 
   if (m_iBricksRenderedInThisSubFrame == 0 && m_eRenderMode == RM_ISOSURFACE){
-    m_TargetBinder.Bind(m_pFBOIsoHit[iStereoID], 0, m_pFBOIsoHit[iStereoID], 1);
+    m_TargetBinder.Bind(m_pFBOIsoHit[size_t(eStereoID)], 0, m_pFBOIsoHit[size_t(eStereoID)], 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     if (m_bDoClearView) {
-      m_TargetBinder.Bind(m_pFBOCVHit[iStereoID], 0, m_pFBOCVHit[iStereoID], 1);
+      m_TargetBinder.Bind(m_pFBOCVHit[size_t(eStereoID)], 0, m_pFBOCVHit[size_t(eStereoID)], 1);
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
   }
@@ -484,17 +484,17 @@ void GLRaycaster::Render3DInLoop(const RenderRegion3D& renderRegion,
   m_pContext->GetStateManager()->Apply(localState);
   
 
-  renderRegion.modelView[iStereoID].setModelview();
-  m_mProjection[iStereoID].setProjection();
+  renderRegion.modelView[size_t(eStereoID)].setModelview();
+  m_mProjection[size_t(eStereoID)].setProjection();
 
-  if (m_bClipPlaneOn) ClipPlaneToShader(m_ClipPlane, iStereoID);
+  if (m_bClipPlaneOn) ClipPlaneToShader(m_ClipPlane, eStereoID);
 
   // write frontfaces (ray entry points)
   m_TargetBinder.Bind(m_pFBORayEntry);
   m_pProgramRenderFrontFaces->Enable();
   RenderBox(renderRegion, b.vCenter, b.vExtension,
             b.vTexcoordsMin, b.vTexcoordsMax,
-            false, iStereoID);
+            false, eStereoID);
 
 /*
   float* vec = new float[m_pFBORayEntry->Width()*m_pFBORayEntry->Height()*4];
@@ -505,7 +505,7 @@ void GLRaycaster::Render3DInLoop(const RenderRegion3D& renderRegion,
   if (m_eRenderMode == RM_ISOSURFACE) {
     m_pContext->GetStateManager()->SetDepthMask(true);
 
-    m_TargetBinder.Bind(m_pFBOIsoHit[iStereoID], 0, m_pFBOIsoHit[iStereoID], 1);
+    m_TargetBinder.Bind(m_pFBOIsoHit[size_t(eStereoID)], 0, m_pFBOIsoHit[size_t(eStereoID)], 1);
 
     GLSLProgram* shader = this->ColorData() ? m_pProgramColor : m_pProgramIso;
     shader->Enable();
@@ -513,26 +513,26 @@ void GLRaycaster::Render3DInLoop(const RenderRegion3D& renderRegion,
     m_pFBORayEntry->Read(2);
     RenderBox(renderRegion, b.vCenter, b.vExtension,
               b.vTexcoordsMin, b.vTexcoordsMax,
-              true, iStereoID);
+              true, eStereoID);
     m_pFBORayEntry->FinishRead();
 
     if (m_bDoClearView) {
-      m_TargetBinder.Bind(m_pFBOCVHit[iStereoID], 0, m_pFBOCVHit[iStereoID], 1);
+      m_TargetBinder.Bind(m_pFBOCVHit[size_t(eStereoID)], 0, m_pFBOCVHit[size_t(eStereoID)], 1);
 
       m_pProgramIso2->Enable();
       m_pFBORayEntry->Read(2);
-      m_pFBOIsoHit[iStereoID]->Read(4, 0);
-      m_pFBOIsoHit[iStereoID]->Read(5, 1);
+      m_pFBOIsoHit[size_t(eStereoID)]->Read(4, 0);
+      m_pFBOIsoHit[size_t(eStereoID)]->Read(5, 1);
       RenderBox(renderRegion, b.vCenter, b.vExtension,
                 b.vTexcoordsMin, b.vTexcoordsMax,
-                true, iStereoID);
-      m_pFBOIsoHit[iStereoID]->FinishRead(1);
-      m_pFBOIsoHit[iStereoID]->FinishRead(0);
+                true, eStereoID);
+      m_pFBOIsoHit[size_t(eStereoID)]->FinishRead(1);
+      m_pFBOIsoHit[size_t(eStereoID)]->FinishRead(0);
       m_pFBORayEntry->FinishRead();
     }
 
   } else {
-    m_TargetBinder.Bind(m_pFBO3DImageCurrent[iStereoID]);
+    m_TargetBinder.Bind(m_pFBO3DImageCurrent[size_t(eStereoID)]);
 
     // do the raycasting
     switch (m_eRenderMode) {
@@ -551,7 +551,7 @@ void GLRaycaster::Render3DInLoop(const RenderRegion3D& renderRegion,
     m_pFBORayEntry->Read(2);
     RenderBox(renderRegion, b.vCenter, b.vExtension,
               b.vTexcoordsMin, b.vTexcoordsMax,
-              true, iStereoID);
+              true, eStereoID);
     m_pFBORayEntry->FinishRead();
   }
   m_TargetBinder.Unbind();
@@ -587,7 +587,7 @@ void GLRaycaster::RenderHQMIPInLoop(const RenderRegion2D &renderRegion,
 
   m_pProgramRenderFrontFaces->Enable();
   RenderBox(renderRegion, b.vCenter, b.vExtension, b.vTexcoordsMin,
-            b.vTexcoordsMax, false, 0);
+            b.vTexcoordsMax, false, SI_LEFT_OR_MONO);
 
   m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);  // for MIP rendering "abuse" left-eye buffer for the itermediate results
 
@@ -605,7 +605,7 @@ void GLRaycaster::RenderHQMIPInLoop(const RenderRegion2D &renderRegion,
 
   m_pFBORayEntry->Read(2);
   RenderBox(renderRegion, b.vCenter, b.vExtension,b.vTexcoordsMin,
-            b.vTexcoordsMax, true, 0);
+            b.vTexcoordsMax, true, SI_LEFT_OR_MONO);
   m_pFBORayEntry->FinishRead();
 }
 
@@ -669,10 +669,10 @@ void GLRaycaster::SetDataDepShaderVars() {
 FLOATMATRIX4 GLRaycaster::ComputeEyeToTextureMatrix(const RenderRegion &renderRegion,
                                                     FLOATVECTOR3 p1, FLOATVECTOR3 t1,
                                                     FLOATVECTOR3 p2, FLOATVECTOR3 t2,
-                                                    int iStereoID) const {
+                                                    EStereoID eStereoID) const {
   FLOATMATRIX4 m;
 
-  FLOATMATRIX4 mInvModelView = renderRegion.modelView[iStereoID].inverse();
+  FLOATMATRIX4 mInvModelView = renderRegion.modelView[size_t(eStereoID)].inverse();
 
   FLOATVECTOR3 vTrans1 = -p1;
   FLOATVECTOR3 vScale  = (t2-t1) / (p2-p1);
@@ -696,5 +696,5 @@ void GLRaycaster::DisableClipPlane(RenderRegion* renderRegion) {
   AbstrRenderer::DisableClipPlane(renderRegion);
   /// We always clip against the plane in the shader, so initialize the plane
   /// to be way out in left field, ensuring nothing will be clipped.
-  ClipPlaneToShader(ExtendedPlane::FarawayPlane(),0,true);
+  ClipPlaneToShader(ExtendedPlane::FarawayPlane(),SI_LEFT_OR_MONO,true);
 }

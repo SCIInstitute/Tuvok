@@ -94,7 +94,7 @@ namespace tuvok {
 
       virtual void Render3DPreLoop(const RenderRegion3D& region);
       virtual void Render3DInLoop(const RenderRegion3D& renderRegion,
-                                  size_t iCurrentBrick, int iStereoID);
+                                  size_t iCurrentBrick, EStereoID eStereoID);
 
       virtual void RenderHQMIPPreLoop(RenderRegion2D& renderRegion);
       virtual void RenderHQMIPInLoop(const RenderRegion2D& renderRegion,

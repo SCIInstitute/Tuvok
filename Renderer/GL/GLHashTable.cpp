@@ -54,7 +54,7 @@ void GLHashTable::Enable(uint32_t iMountPoint) {
 
 std::vector<UINTVECTOR4> GLHashTable::GetData() {
 
-  // need to figure out if this is needed
+  // TODO:  need to figure out if this is needed
 // GL(glMemoryBarrier(GL_ALL_BARRIER_BITS));
 
   m_pHashTableTex->GetData(m_rawData);

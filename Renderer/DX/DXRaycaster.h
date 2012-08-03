@@ -65,7 +65,7 @@ class DXRaycaster : public DXRenderer {
     virtual ERendererType GetRendererType() {return RT_RC;}
 
   protected:
-    virtual void Render3DInLoop(size_t iCurrentBrick, int iStereoID);
+    virtual void Render3DInLoop(size_t iCurrentBrick, EStereoID eStereoID);
     virtual void RenderHQMIPInLoop(const Brick& b);
     virtual void UpdateLightParamsInShaders();
 };

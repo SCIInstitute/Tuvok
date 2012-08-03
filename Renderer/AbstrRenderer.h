@@ -166,6 +166,13 @@ class AbstrRenderer: public Scriptable {
       SM_AF,            // alternating frame
       SM_INVALID
     };
+
+    enum EStereoID {
+      SI_LEFT_OR_MONO = 0,
+      SI_RIGHT = 1,
+      SI_INVALID
+    };
+
     virtual ERendererType GetRendererType() const {return RT_INVALID;}
 
     enum ERenderMode {

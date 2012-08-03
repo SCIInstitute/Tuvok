@@ -55,7 +55,7 @@ DXSBVR::~DXSBVR() {
 }
 
 #pragma warning(disable:4100) // disable "unused parameter" warning for now
-void DXSBVR::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
+void DXSBVR::Render3DInLoop(size_t iCurrentBrick, EStereoID eStereoID) {
 
 }
 
