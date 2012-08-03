@@ -143,7 +143,6 @@ public:
   /// manager from paging out shaders, the 1 is basically only to
   /// detect memory leaks
   virtual uint64_t GetGPUSize() const {return 1;}
-  static bool m_bGLUseARB;
 
 private:
   bool    Initialize(void);
@@ -160,8 +159,8 @@ private:
   bool                m_bInitialized;
   bool                m_bEnabled;
   GLuint              m_hProgram;
-  static bool         m_bGlewInitialized;
   static bool         m_bGLChecked;
+  static bool         m_bGLUseARB;
   texMap              m_mBindings;
 };
 

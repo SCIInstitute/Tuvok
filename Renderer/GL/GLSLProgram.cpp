@@ -51,9 +51,7 @@
 using namespace tuvok;
 using namespace std;
 
-/// GL Extension Wrangler (glew) is initialized on first instantiation
-bool GLSLProgram::m_bGlewInitialized=true;
-bool GLSLProgram::m_bGLChecked=false;      ///< GL extension check
+bool GLSLProgram::m_bGLChecked=false;       ///< use pre GL 2.0 syntax
 bool GLSLProgram::m_bGLUseARB=false;       ///< use pre GL 2.0 syntax
 
 // Abstract out the basic ARB/OGL 2.0 shader API differences.  Does not attempt
@@ -260,25 +258,6 @@ GLSLProgram::operator GLuint(void) const {
  * \see m_bGlewInitialized
  */
 bool GLSLProgram::Initialize(void) {
-  if (!m_bGlewInitialized) {
-    GLenum err = glewInit();
-    if(err != GLEW_OK) {
-      T_ERROR("GLEW initialization failed: %s", glewGetErrorString(err));
-    } else {
-      m_bGlewInitialized=true;
-    }
-  }
-  // just in case someone wants to handle GLEW himself (by setting the
-  // static var to true) but failed to do so properly
-#ifdef GLSL_DEBUG
-  else {
-    if (glMultiTexCoord2f==NULL) {
-      T_ERROR("GLEW must be initialized.  "
-              "Set GLSLProgram::m_bGlewInitialized = false "
-              "in GLSLProgram.cpp if you want this class to do it for you");
-    }
-  }
-#endif
 
   if (!m_bGLChecked) {
     MESSAGE("Initializing OpenGL on a: %s",
