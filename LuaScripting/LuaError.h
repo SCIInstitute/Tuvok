@@ -41,7 +41,7 @@
 #include <string>
 
 #ifndef LUASCRIPTING_NO_TUVOK
-#include "../Basics/TuvokException.h"
+#include "Basics/TuvokException.h"
 #else
 #include "NoTuvok/LuaTuvokException.h"
 #endif
