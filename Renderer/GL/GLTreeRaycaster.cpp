@@ -11,6 +11,8 @@
 #include "Renderer/TFScaling.h"
 #include "Basics/MathTools.h"
 
+#include "IO/uvfDataset.h"
+
 #include "GLHashTable.h"
 #include "GLVolumePool.h"
 #include "GLVBO.h"
@@ -31,13 +33,40 @@ GLTreeRaycaster::GLTreeRaycaster(MasterController* pMasterController,
   m_pglHashTable(NULL),
   m_pVolumePool(NULL),
   m_pBBoxVBO(NULL),
+  m_pNearPlaneQuad(NULL),
   m_pFBORayEntry(NULL),
   m_pProgramRenderFrontFaces(NULL),
-  m_bNoRCClipplanes(bNoRCClipplanes)
+  m_pProgramRenderFrontFacesNearPlane(NULL),
+  m_pProgramRayCast1D(NULL),
+  m_bNoRCClipplanes(bNoRCClipplanes),
+  m_pToCDataset(NULL),
+  m_bConverged(false)
 {
+  // a member of the parent class, henced it's initialized here
   m_bSupportsMeshes = false;
 }
 
+
+bool GLTreeRaycaster::LoadDataset(const string& strFilename) {
+  if(!AbstrRenderer::LoadDataset(strFilename)) {
+    return false;
+  }
+
+  UVFDataset* pUVFDataset = dynamic_cast<UVFDataset*>(m_pDataset);
+  if (!m_pDataset) {
+    T_ERROR("'Currently, this renderer works only with UVF datasets.");
+    return false;
+  }
+
+  if (!pUVFDataset->IsTOCBlock()) {
+    T_ERROR("'Currently, this renderer works only with UVF datasets in ExtendedOctree format.");
+    return false;
+  }
+
+  m_pToCDataset = pUVFDataset;
+
+  return true;
+}
 GLTreeRaycaster::~GLTreeRaycaster() {
   delete m_pglHashTable; m_pglHashTable = NULL;
   delete  m_pVolumePool; m_pVolumePool = NULL;
@@ -48,6 +77,8 @@ void GLTreeRaycaster::CleanupShaders() {
   GLRenderer::CleanupShaders();
 
   CleanupShader(&m_pProgramRenderFrontFaces);
+  CleanupShader(&m_pProgramRenderFrontFacesNearPlane);
+  CleanupShader(&m_pProgramRayCast1D);
 }
 
 void GLTreeRaycaster::Cleanup() {
@@ -58,11 +89,16 @@ void GLTreeRaycaster::Cleanup() {
     m_pFBORayEntry = NULL;
   }
 
-  if (m_pBBoxVBO) {
-    delete m_pBBoxVBO;
-    m_pBBoxVBO = NULL;
-  }
+  delete m_pBBoxVBO;
+  m_pBBoxVBO = NULL;
+  delete m_pNearPlaneQuad;
+  m_pNearPlaneQuad = NULL;
 
+  if (m_pglHashTable) {
+    m_pglHashTable->FreeGL();
+    delete m_pglHashTable;
+    m_pglHashTable = NULL;
+  }
 }
 
 void GLTreeRaycaster::CreateOffscreenBuffers() {
@@ -74,10 +110,22 @@ void GLTreeRaycaster::CreateOffscreenBuffers() {
 }
 
 bool GLTreeRaycaster::Initialize(std::shared_ptr<Context> ctx) {
+  m_pglHashTable = new GLHashTable(UINTVECTOR3( m_pToCDataset->GetBrickLayout(0, 0)) );
+  m_pglHashTable->InitGL();
+
   if (!GLRenderer::Initialize(ctx)) {
     T_ERROR("Error in parent call -> aborting");
     return false;
   }
+  
+  // init near plane vbo
+  m_pNearPlaneQuad = new GLVBO();
+  std::vector<FLOATVECTOR3> posData;
+  posData.push_back(FLOATVECTOR3(-1.0f,  1.0f, -0.5f));
+  posData.push_back(FLOATVECTOR3( 1.0f,  1.0f, -0.5f));
+  posData.push_back(FLOATVECTOR3( 1.0f, -1.0f, -0.5f));
+  posData.push_back(FLOATVECTOR3(-1.0f, -1.0f, -0.5f));
+  m_pNearPlaneQuad->AddVertexData(posData);
 
   // init bbox vbo
   FLOATVECTOR3 vCenter, vExtend;
@@ -88,7 +136,7 @@ bool GLTreeRaycaster::Initialize(std::shared_ptr<Context> ctx) {
   vMaxPoint = (vCenter + vExtend/2.0);
 
   m_pBBoxVBO = new GLVBO();
-  std::vector<FLOATVECTOR3> posData;
+  posData.clear();
   // BACK
   posData.push_back(FLOATVECTOR3(vMaxPoint.x, vMinPoint.y, vMinPoint.z));
   posData.push_back(FLOATVECTOR3(vMinPoint.x, vMinPoint.y, vMinPoint.z));
@@ -119,8 +167,6 @@ bool GLTreeRaycaster::Initialize(std::shared_ptr<Context> ctx) {
   posData.push_back(FLOATVECTOR3(vMinPoint.x, vMaxPoint.y, vMinPoint.z));
   posData.push_back(FLOATVECTOR3(vMinPoint.x, vMaxPoint.y, vMaxPoint.z));
   posData.push_back(FLOATVECTOR3(vMaxPoint.x, vMaxPoint.y, vMaxPoint.z));
-
-  // write into fbo
   m_pBBoxVBO->AddVertexData(posData);
 
   return true;
@@ -132,17 +178,31 @@ bool GLTreeRaycaster::LoadShaders() {
     return false;
   }
 
+  std::vector<std::string> vs, fs;
+  vs.push_back(FindFileInDirs("GLTreeRaycaster-VS.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLTreeRaycaster-1D-FS.glsl", m_vShaderSearchDirs, false));
+  ShaderDescriptor sd(vs, fs);
+  sd.AddFragmentShaderString(m_pglHashTable->GetShaderFragment(5));
+  m_pProgramRayCast1D = m_pMasterController->MemMan()->GetGLSLProgram(sd, m_pContext->GetShareGroupID());
+
   if(!LoadAndVerifyShader(&m_pProgramRenderFrontFaces, m_vShaderSearchDirs,
-                          "GLTreeRaycaster-VS.glsl",
+                          "GLTreeRaycaster-entry-VS.glsl",
                           NULL,
-                          "GLTreeRaycaster-frontfaces-FS.glsl", NULL))
+                          "GLTreeRaycaster-frontfaces-FS.glsl", NULL) ||
+     !LoadAndVerifyShader(&m_pProgramRenderFrontFacesNearPlane, m_vShaderSearchDirs,
+                          "GLTreeRaycaster-NearPlane-VS.glsl",
+                          NULL,
+                          "GLTreeRaycaster-frontfaces-FS.glsl", NULL) ||
+     !m_pProgramRayCast1D->IsValid())
   {
       Cleanup();
       T_ERROR("Error loading a shader.");
       return false;
   } else {
-
+    m_pProgramRayCast1D->ConnectTextureID("rayEntryPoint",0);
   }
+
+
 
   return true;
 /*
@@ -300,15 +360,13 @@ bool GLTreeRaycaster::LoadShaders() {
   */
 }
 
-void GLTreeRaycaster::RenderBox(const RenderRegion& renderRegion, bool bCullBack, 
-                                int iStereoID, GLSLProgram* shader) const  {
+void GLTreeRaycaster::RenderBox(const RenderRegion& renderRegion, STATE_CULL cull, 
+                                EStereoID eStereoID, GLSLProgram* shader) const  {
   
-  m_pContext->GetStateManager()->SetCullState(bCullBack ? CULL_FRONT : CULL_BACK);
+  m_pContext->GetStateManager()->SetCullState(cull);
 
   shader->Enable();
-  shader->Set("mEyeToModel", ComputeEyeToModelMatrix(renderRegion, iStereoID), 4, false); 
-  shader->Set("mModelView", renderRegion.modelView[iStereoID], 4, false); 
-  shader->Set("mModelViewProjection", renderRegion.modelView[iStereoID]*m_mProjection[iStereoID], 4, false); 
+  shader->Set("mModelViewProjection", renderRegion.modelView[size_t(eStereoID)]*m_mProjection[size_t(eStereoID)], 4, false); 
 
   m_pBBoxVBO->Bind();
   m_pBBoxVBO->Draw(GL_QUADS);
@@ -376,7 +434,7 @@ void GLTreeRaycaster::SetDataDepShaderVars() {
 
 
 FLOATMATRIX4 GLTreeRaycaster::ComputeEyeToModelMatrix(const RenderRegion &renderRegion,
-                                                        int iStereoID) const {
+                                                      EStereoID eStereoID) const {
 
   FLOATVECTOR3 vCenter, vExtend;
   GetVolumeAABB(vCenter, vExtend);
@@ -387,32 +445,81 @@ FLOATMATRIX4 GLTreeRaycaster::ComputeEyeToModelMatrix(const RenderRegion &render
   mScale.Scaling(1.0f/vExtend);
   mNormalize.Translation(0.5f, 0.5f, 0.5f);
 
-  return renderRegion.modelView[iStereoID].inverse() * mTrans * mScale * mNormalize;
+  return renderRegion.modelView[size_t(eStereoID)].inverse() * mTrans * mScale * mNormalize;
 }
 
 bool GLTreeRaycaster::Continue3DDraw() {
-  // TODO
-  return false;
+  return !m_bConverged;
+}
+
+void GLTreeRaycaster::FillRayEntryBuffer(RenderRegion3D& rr, EStereoID eStereoID) {
+  // bind output render target (DEBUG, should be front face texture)
+  m_TargetBinder.Bind(m_pFBORayEntry);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  // render nearplane into buffer
+  GPUState localState = m_BaseState;
+  localState.enableBlend = false;
+  localState.depthMask = false;
+  localState.enableDepthTest  = false;
+  m_pContext->GetStateManager()->Apply(localState);  
+
+
+  m_pProgramRenderFrontFacesNearPlane->Enable();
+  m_pProgramRenderFrontFacesNearPlane->Set("mEyeToModel", ComputeEyeToModelMatrix(rr, eStereoID), 4, false); 
+  m_pProgramRenderFrontFacesNearPlane->Set("mInvProjection", m_mProjection[size_t(eStereoID)].inverse(), 4, false); 
+  
+  m_pNearPlaneQuad->Bind();
+  m_pNearPlaneQuad->Draw(GL_QUADS);
+  m_pNearPlaneQuad->UnBind();
+  
+  // render bbox's front faces into buffer
+  m_pContext->GetStateManager()->SetEnableCullFace(true);
+  m_pContext->GetStateManager()->SetCullState(CULL_BACK);
+
+  m_pProgramRenderFrontFaces->Enable();
+  m_pProgramRenderFrontFaces->Set("mEyeToModel", ComputeEyeToModelMatrix(rr, eStereoID), 4, false); 
+  m_pProgramRenderFrontFaces->Set("mModelView", rr.modelView[size_t(eStereoID)], 4, false); 
+  m_pProgramRenderFrontFaces->Set("mModelViewProjection", rr.modelView[size_t(eStereoID)]*m_mProjection[size_t(eStereoID)], 4, false); 
+
+  m_pBBoxVBO->Bind();
+  m_pBBoxVBO->Draw(GL_QUADS);
+  m_pBBoxVBO->UnBind();
+
 }
 
 bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
+  // for DEBUG render always MONO
+  EStereoID eStereoID = SI_LEFT_OR_MONO;
+
   // reset state
   GPUState localState = m_BaseState;
   localState.enableBlend = false;
   m_pContext->GetStateManager()->Apply(localState);
   
-  // bind output render target (DEBUG)
-  m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
+  // compute the ray entry first
+  FillRayEntryBuffer(rr,eStereoID);
+
+  // prepare hastable
+  m_pglHashTable->ClearData();
+  m_pglHashTable->Enable(5);
+
+  // do raycasting
+  m_TargetBinder.Bind(m_pFBO3DImageCurrent[size_t(eStereoID)]);
+  m_pFBORayEntry->Read(0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  RenderBox(rr, CULL_FRONT, eStereoID, m_pProgramRayCast1D);
+  m_pFBORayEntry->FinishRead(0);
 
-  // render frontfaces of bbox
-  RenderBox(rr, true, 0, m_pProgramRenderFrontFaces);
-
-  // done rendering
+  // done rendering for now
   m_TargetBinder.Unbind();
 
+  // evaluate hastable
+  std::vector<UINTVECTOR4> hash = m_pglHashTable->GetData();
+  m_bConverged = !hash.empty();
+
   // nothig can go wrong here
-  return true;
+  return m_bConverged;
 }
 
 /*

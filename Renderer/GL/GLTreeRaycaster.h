@@ -13,6 +13,7 @@ namespace tuvok {
   class GLHashTable;
   class GLVolumePool;
   class GLVBO;
+  class UVFDataset;
 
 
   /** \class GLTreeRaycaster
@@ -46,8 +47,16 @@ namespace tuvok {
       virtual ERendererType GetRendererType() const {return RT_RC;}
 
     protected:
-      GLHashTable*  m_pglHashTable;
-      GLVolumePool* m_pVolumePool;
+      GLHashTable*    m_pglHashTable;
+      GLVolumePool*   m_pVolumePool;
+      GLVBO*          m_pNearPlaneQuad;
+      GLVBO*          m_pBBoxVBO;
+      GLFBOTex*       m_pFBORayEntry;
+      GLSLProgram*    m_pProgramRenderFrontFaces;
+      GLSLProgram*    m_pProgramRenderFrontFacesNearPlane;
+      GLSLProgram*    m_pProgramRayCast1D;
+      UVFDataset*     m_pToCDataset;
+      bool            m_bConverged;
 
       /** Loads GLSL vertex and fragment shaders. */
       virtual bool LoadShaders();
@@ -61,28 +70,27 @@ namespace tuvok {
       bool Continue3DDraw();
       virtual bool Render3DRegion(RenderRegion3D& region3D);
 
-      void RenderBox(const RenderRegion& renderRegion, bool bCullBack, 
-                     int iStereoID, GLSLProgram* shader) const;
+      void FillRayEntryBuffer(RenderRegion3D& rr, EStereoID eStereoID);
+      void RenderBox(const RenderRegion& renderRegion, STATE_CULL cull, 
+                     EStereoID eStereoID, GLSLProgram* shader) const;
+
+      virtual void CreateOffscreenBuffers();
+
+      FLOATMATRIX4 ComputeEyeToModelMatrix(const RenderRegion &renderRegion,
+                                           EStereoID eStereoID) const;
+  
+      /** Deallocates GPU memory allocated during the rendering process. */
+      virtual void Cleanup();
+
+      bool LoadDataset(const std::string& strFilename);
 
       // all functions below are not "guaranteed" yet
       // (ask Jens if you want to know what that means :-)
 
-
-      GLVBO*          m_pBBoxVBO;
-      GLFBOTex*       m_pFBORayEntry;
-      GLSLProgram*    m_pProgramRenderFrontFaces;
       bool            m_bNoRCClipplanes;
-
-      virtual void CreateOffscreenBuffers();
 
       virtual void StartFrame();
       virtual void SetDataDepShaderVars();
-
-      FLOATMATRIX4 ComputeEyeToModelMatrix(const RenderRegion &renderRegion,
-                                           int iStereoID) const;
-  
-      /** Deallocates GPU memory allocated during the rendering process. */
-      virtual void Cleanup();
 
   };
 } // tuvok namespace.
