@@ -2140,5 +2140,11 @@
     <None Include="Shaders\GLTreeRaycaster-frontfaces-FS.glsl">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="Shaders\GLTreeRaycaster-NearPlane-VS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\GLTreeRaycaster-entry-VS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
