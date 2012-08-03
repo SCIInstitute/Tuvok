@@ -38,9 +38,9 @@ GLTreeRaycaster::GLTreeRaycaster(MasterController* pMasterController,
   m_pProgramRenderFrontFaces(NULL),
   m_pProgramRenderFrontFacesNearPlane(NULL),
   m_pProgramRayCast1D(NULL),
-  m_bNoRCClipplanes(bNoRCClipplanes),
   m_pToCDataset(NULL),
-  m_bConverged(false)
+  m_bConverged(false),
+  m_bNoRCClipplanes(bNoRCClipplanes)
 {
   // a member of the parent class, henced it's initialized here
   m_bSupportsMeshes = false;
