@@ -1968,9 +1968,9 @@ std::string GLRenderer::FindFile(const std::string& file, bool subdirs) const
 {
 #ifdef DETECTED_OS_APPLE
   if (SysTools::FileExists(SysTools::GetFromResourceOnMac(file))) {
-    file = SysTools::GetFromResourceOnMac(file);
+    std::string res = SysTools::GetFromResourceOnMac(file);
     MESSAGE("Found %s in bundle, using that.", file.c_str());
-    return file;
+    return res;
   }
 #endif
 
