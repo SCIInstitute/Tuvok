@@ -36,6 +36,7 @@
   \date    August 2008
 */
 #include "GLFBOTex.h"
+#include "GLCommon.h"
 #include <Controller/Controller.h>
 
 #ifdef WIN32
@@ -57,7 +58,7 @@ bool  GLFBOTex::m_bInitialized = true;
 
 GLFBOTex::GLFBOTex(MasterController* pMasterController, GLenum minfilter,
                    GLenum magfilter, GLenum wrapmode, GLsizei width,
-                   GLsizei height, GLenum intformat,
+                   GLsizei height, GLenum intformat, GLenum format, GLenum type, 
                    bool bHaveDepth, int iNumBuffers) :
   m_pMasterController(pMasterController),
   m_iSizeX(width),
@@ -67,7 +68,9 @@ GLFBOTex::GLFBOTex(MasterController* pMasterController, GLenum minfilter,
   m_LastDepthTextUnit(0),
   m_iNumBuffers(iNumBuffers),
   m_LastAttachment(NULL),
-  m_intformat(intformat)
+  m_intformat(intformat),
+  m_format(format),
+  m_type(type)
 {
   if (width<1) width=1;
   if (height<1) height=1;
@@ -106,7 +109,7 @@ GLFBOTex::GLFBOTex(MasterController* pMasterController, GLenum minfilter,
   }
 
   while(glGetError() != GL_NO_ERROR) { ; } // clear error state.
-  if (!initTextures(minfilter,magfilter,wrapmode,width,height,intformat)) 
+  if (!initTextures(minfilter,magfilter,wrapmode,width,height,intformat, format, type)) 
   {
       T_ERROR("GL Error during texture creation!");
       GL(glDeleteTextures(m_iNumBuffers,m_hTexture));
@@ -174,7 +177,7 @@ GLFBOTex::~GLFBOTex(void) {
  */
 bool GLFBOTex::initTextures(GLenum minfilter, GLenum magfilter,
                             GLenum wrapmode, GLsizei width, GLsizei height,
-                            GLenum intformat) {
+                            GLenum intformat, GLenum format, GLenum type) {
   MESSAGE("Initializing %u 2D texture(s) of size %ux%u (MinFilter=%#x "
           "MinFilter=%#x WrapMode=%#x, IntFormat=%#x)",
           static_cast<unsigned>(m_iNumBuffers),
@@ -197,7 +200,7 @@ bool GLFBOTex::initTextures(GLenum minfilter, GLenum magfilter,
       case GL_LINEAR_MIPMAP_LINEAR:
         do {
           GL_RET(glTexImage2D(GL_TEXTURE_2D, level, intformat, width, height, 0,
-                       GL_RGBA, GL_UNSIGNED_BYTE, NULL));
+                       format, type, NULL));
           width/=2;
           height/=2;
           if (width==0 && height>0) width=1;
@@ -207,7 +210,7 @@ bool GLFBOTex::initTextures(GLenum minfilter, GLenum magfilter,
         break;
       default:
         GL_RET(glTexImage2D(GL_TEXTURE_2D, 0, intformat, width, height, 0,
-                            GL_RGBA, GL_UNSIGNED_BYTE, NULL));
+                            format, type, NULL));
         break;
     }
   }
@@ -372,4 +375,27 @@ void GLFBOTex::ReadBackPixels(int x, int y, int sX, int sY, void* pData) {
   GL(glReadBuffer(GL_COLOR_ATTACHMENT0_EXT));
   GL(glReadPixels(x, y, sX, sY, GL_RGBA, GL_FLOAT, pData));
   FinishWrite(0);
+}
+
+uint64_t GLFBOTex::GetCPUSize() const {
+    return EstimateCPUSize(m_iSizeX, m_iSizeY, GLCommon::gl_byte_width(m_format) * GLCommon::gl_components(m_format),
+                           m_hDepthBuffer!=0, m_iNumBuffers);
+}
+
+uint64_t GLFBOTex::GetGPUSize() const {
+    return EstimateGPUSize(m_iSizeX, m_iSizeY, GLCommon::gl_byte_width(m_format) * GLCommon::gl_components(m_format),
+                           m_hDepthBuffer!=0, m_iNumBuffers);
+}
+
+uint64_t GLFBOTex::EstimateCPUSize(GLsizei width, GLsizei height,
+                                  size_t iSizePerElement,
+                                  bool bHaveDepth, int iNumBuffers) {
+    return iNumBuffers*width*height*iSizePerElement +
+           ((bHaveDepth) ? width*height*4 : 0);
+}
+uint64_t GLFBOTex::EstimateGPUSize(GLsizei width, GLsizei height,
+                              size_t iSizePerElement,
+                              bool bHaveDepth, int iNumBuffers) {
+  return EstimateCPUSize(width, height, iSizePerElement, bHaveDepth,
+                          iNumBuffers);
 }

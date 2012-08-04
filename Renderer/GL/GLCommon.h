@@ -5,8 +5,11 @@
 #include "StdTuvokDefines.h"
 #include <GL/glew.h>
 
-size_t gl_components(GLenum format);
-size_t gl_byte_width(GLenum gltype);
+namespace GLCommon {
+  size_t gl_internal_bit_size(GLenum internalformat);
+  size_t gl_components(GLenum format);
+  size_t gl_byte_width(GLenum gltype);
+}
 
 /*
    For more information, please see: http://software.sci.utah.edu

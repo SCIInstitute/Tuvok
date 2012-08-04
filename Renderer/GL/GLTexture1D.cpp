@@ -106,8 +106,8 @@ std::shared_ptr<const void> GLTexture1D::GetData()
   GL(glBindTexture(GL_TEXTURE_1D, m_iGLID));
 
   std::shared_ptr<uint8_t> data(
-    new uint8_t[gl_components(m_format) * 
-                gl_byte_width(m_type) * 
+    new uint8_t[GLCommon::gl_components(m_format) * 
+                GLCommon::gl_byte_width(m_type) * 
                 m_iSize], 
     nonstd::DeleteArray<uint8_t>()
   );

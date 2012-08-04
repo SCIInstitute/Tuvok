@@ -74,10 +74,10 @@ class GLTexture2D : public GLTexture {
     std::shared_ptr<const void> GetData();
 
     virtual uint64_t GetCPUSize() const {
-      return uint64_t(m_iSizeX*m_iSizeY*SizePerElement()/8);
+      return uint64_t(m_iSizeX*m_iSizeY*SizePerElement());
     }
     virtual uint64_t GetGPUSize() const {
-      return uint64_t(m_iSizeX*m_iSizeY*SizePerElement()/8);
+      return uint64_t(m_iSizeX*m_iSizeY*SizePerElement());
     }
 
     UINTVECTOR2 GetSize() const {

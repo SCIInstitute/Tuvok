@@ -115,6 +115,7 @@ class GPUMemMan {
 
     GLFBOTex* GetFBO(GLenum minfilter, GLenum magfilter, GLenum wrapmode,
                      GLsizei width, GLsizei height, GLenum intformat,
+                     GLenum format, GLenum type,
                      int iShareGroupID, 
                      bool bHaveDepth=false, int iNumBuffers=1);
     void FreeFBO(GLFBOTex* pFBO);

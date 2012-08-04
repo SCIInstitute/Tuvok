@@ -50,7 +50,8 @@ class GLFBOTex : public GLObject {
 public:
   GLFBOTex(MasterController* pMasterController, GLenum minfilter,
            GLenum magfilter, GLenum wrapmode, GLsizei width, GLsizei height,
-           GLenum intformat, bool bHaveDepth=false, int iNumBuffers=1);
+           GLenum intformat, GLenum format, GLenum type,
+           bool bHaveDepth=false, int iNumBuffers=1);
   virtual ~GLFBOTex(void);
   virtual void SetViewport();
   virtual void Write(unsigned int iTargetBuffer=0, int iBuffer=0,
@@ -64,27 +65,15 @@ public:
   virtual operator GLuint*(void) { return m_hTexture; }
 
   /// \todo check how much mem an FBO really occupies
-  virtual uint64_t GetCPUSize() const {
-    return EstimateCPUSize(m_iSizeX, m_iSizeY, GLTexture::SizePerElement(m_intformat)/8,
-                           m_hDepthBuffer!=0, m_iNumBuffers);
-  }
-  virtual uint64_t GetGPUSize() const {
-    return EstimateGPUSize(m_iSizeX, m_iSizeY, GLTexture::SizePerElement(m_intformat)/8,
-                           m_hDepthBuffer!=0, m_iNumBuffers);
-  }
+  virtual uint64_t GetCPUSize() const;
+  virtual uint64_t GetGPUSize() const;
 
   static uint64_t EstimateCPUSize(GLsizei width, GLsizei height,
-                                  unsigned int iSizePerElement,
-                                  bool bHaveDepth=false, int iNumBuffers=1) {
-    return iNumBuffers*width*height*iSizePerElement +
-           ((bHaveDepth) ? width*height*4 : 0);
-  }
+                                  size_t iSizePerElement,
+                                  bool bHaveDepth=false, int iNumBuffers=1);
   static uint64_t EstimateGPUSize(GLsizei width, GLsizei height,
-                                  unsigned int iSizePerElement,
-                                  bool bHaveDepth=false, int iNumBuffers=1) {
-    return EstimateCPUSize(width, height, iSizePerElement, bHaveDepth,
-                           iNumBuffers);
-  }
+                                  size_t iSizePerElement,
+                                  bool bHaveDepth=false, int iNumBuffers=1);
 
   bool Valid() const { return m_hFBO != 0; }
 
@@ -112,11 +101,14 @@ private:
   int                 m_iNumBuffers;
   GLenum*             m_LastAttachment;
   GLenum              m_intformat;
+  GLenum              m_format;
+  GLenum              m_type;
 
   bool CheckFBO(const char* method);
   void initFBO(void);
   bool initTextures(GLenum minfilter, GLenum magfilter, GLenum wrapmode,
-                    GLsizei width, GLsizei height, GLenum intformat);
+                    GLsizei width, GLsizei height, GLenum intformat,
+                    GLenum format, GLenum type);
 };
 } // tuvok namespace
 #endif  // TUVOK_GLFBOTEX_H_

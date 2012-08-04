@@ -35,6 +35,7 @@
 
 #include "GLVolume2DTex.h"
 #include "GLTexture2D.h"
+#include "GLCommon.h"
 #include <cstring> // for memcpy
 
 using namespace tuvok;
@@ -173,16 +174,18 @@ void GLVolume2DTex::SetData(const void *voxels) {
   )];
   size_t sliceElemCount = m_iSizeY*m_iSizeX;
 
+  size_t elemtSize = GLCommon::gl_byte_width(m_format) * GLCommon::gl_components(m_format);
+
   for (size_t i = 0;i<m_pTextures[0].size();i++){
     size_t targetPos = 0;
     size_t sourcePos = 0;
     for (size_t y = 0;y<m_iSizeY;y++) {
       for (size_t z = 0;z<m_iSizeZ;z++) {
         // compute position in source array
-        sourcePos = (i+y*m_iSizeX+z*sliceElemCount)*GLTexture::SizePerElement(m_internalformat)/8;
+        sourcePos = (i+y*m_iSizeX+z*sliceElemCount)*elemtSize;
         // copy one element into the target buffer
-        memcpy(copyBuffer+targetPos,charPtr+sourcePos,GLTexture::SizePerElement(m_internalformat)/8);
-        targetPos += GLTexture::SizePerElement(m_internalformat)/8;
+        memcpy(copyBuffer+targetPos,charPtr+sourcePos,elemtSize);
+        targetPos += elemtSize;
       }
     }
     // copy into 2D texture slice
@@ -195,10 +198,10 @@ void GLVolume2DTex::SetData(const void *voxels) {
     for (size_t z = 0;z<m_iSizeZ;z++) {
       for (size_t x = 0;x<m_iSizeX;x++) {
         // compute position in source array
-        sourcePos = (x+i*m_iSizeX+z*sliceElemCount)*GLTexture::SizePerElement(m_internalformat)/8;
+        sourcePos = (x+i*m_iSizeX+z*sliceElemCount)*elemtSize;
         // copy one element into the target buffer
-        memcpy(copyBuffer+targetPos,charPtr+sourcePos,GLTexture::SizePerElement(m_internalformat)/8);
-        targetPos += GLTexture::SizePerElement(m_internalformat)/8;
+        memcpy(copyBuffer+targetPos,charPtr+sourcePos,elemtSize);
+        targetPos += elemtSize;
       }
     }
     // copy into 2D texture slice

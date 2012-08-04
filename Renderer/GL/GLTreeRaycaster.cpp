@@ -182,38 +182,42 @@ void GLTreeRaycaster::Cleanup() {
 
 
 void recreateFBO(GLFBOTex*& fbo, std::shared_ptr<Context> pContext,
-                 const UINTVECTOR2& ws, GLenum intformat) {
+                 const UINTVECTOR2& ws, GLenum intformat, 
+                 GLenum format, GLenum type) {
     if (fbo)
       Controller::Instance().MemMan()->FreeFBO(fbo); 
 
     fbo = Controller::Instance().MemMan()->GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP, ws.x,
-      ws.y, intformat, pContext->GetShareGroupID(), false);
+      ws.y, intformat, format, type, pContext->GetShareGroupID(), false);
 }
 
 void GLTreeRaycaster::CreateOffscreenBuffers() {
   GLRenderer::CreateOffscreenBuffers();
 
-  GLenum intformat;
+  GLenum intformat, format;
   switch (m_eBlendPrecision) {
-    case BP_8BIT  : intformat = GL_RGBA8;
-                    break;
-    case BP_16BIT : intformat = m_texFormat16;
-                    break;
-    case BP_32BIT : intformat = m_texFormat32;
-                    break;
-    default       : MESSAGE("Invalid Blending Precision");
-                    return;
-  }
+      case BP_8BIT  : intformat = GL_RGBA8;
+                      format = GL_UNSIGNED_BYTE;
+                      break;
+      case BP_16BIT : intformat = m_texFormat16;
+                      format = GL_HALF_FLOAT;
+                      break;
+      case BP_32BIT : intformat = m_texFormat32;
+                      format = GL_FLOAT;
+                      break;
+      default       : MESSAGE("Invalid Blending Precision");
+                      return;
+    }
 
   if (m_vWinSize.area() > 0) {
     for_each(m_pFBORayStart.begin(), m_pFBORayStart.end(), 
-      bind(recreateFBO, _1, m_pContext ,m_vWinSize, GL_RGBA16F_ARB));
+      bind(recreateFBO, _1, m_pContext ,m_vWinSize, GL_RGBA16F, GL_HALF_FLOAT, GL_RGBA));
     for_each(m_pFBORayStartNext.begin(), m_pFBORayStartNext.end(), 
-      bind(recreateFBO, _1, m_pContext ,m_vWinSize, GL_RGBA16F_ARB));
+      bind(recreateFBO, _1, m_pContext ,m_vWinSize, GL_RGBA16F, GL_HALF_FLOAT, GL_RGBA));
     for_each(m_pFBOResumeColor.begin(), m_pFBOResumeColor.end(), 
-      bind(recreateFBO, _1, m_pContext ,m_vWinSize, intformat));
+      bind(recreateFBO, _1, m_pContext ,m_vWinSize, intformat, format, GL_RGBA));
     for_each(m_pFBOResumeColorNext.begin(), m_pFBOResumeColorNext.end(), 
-      bind(recreateFBO, _1, m_pContext ,m_vWinSize, intformat));
+      bind(recreateFBO, _1, m_pContext ,m_vWinSize, intformat, format, GL_RGBA));
   }
 }
 

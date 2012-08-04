@@ -946,7 +946,8 @@ void GPUMemMan::MemSizesChanged() {
 
 GLFBOTex* GPUMemMan::GetFBO(GLenum minfilter, GLenum magfilter,
                             GLenum wrapmode, GLsizei width, GLsizei height,
-                            GLenum intformat, int iShareGroupID,
+                            GLenum intformat, GLenum format, GLenum type,
+                            int iShareGroupID,
                             bool bHaveDepth, int iNumBuffers) {
   MESSAGE("Creating new FBO of size %i x %i", int(width), int(height));
 
@@ -956,9 +957,8 @@ GLFBOTex* GPUMemMan::GetFBO(GLenum minfilter, GLenum magfilter,
   // if we are running out of mem, kick out bricks to create room for the FBO
   while (m_iAllocatedCPUMemory + m_iCPUMemEstimate >
          m_SystemInfo->GetMaxUsableCPUMem() && m_vpTex3DList.size() > 0) {
-    MESSAGE("Not enough memory for FBO %i x %i (%ubit * %i), "
-            "paging out bricks ...", int(width), int(height),
-            GLTexture::SizePerElement(intformat), iNumBuffers);
+    MESSAGE("Not enough memory for FBO %i x %i x %i, "
+            "paging out bricks ...", int(width), int(height), iNumBuffers);
 
     // search for best brick to replace with this brick
     uint64_t iMinTargetFrameCounter;
@@ -994,6 +994,7 @@ GLFBOTex* GPUMemMan::GetFBO(GLenum minfilter, GLenum magfilter,
 
   FBOListElem* e = new FBOListElem(m_MasterController, minfilter, magfilter,
                                    wrapmode, width, height, intformat,
+                                   format, type,
                                    bHaveDepth, iNumBuffers, iShareGroupID);
 
   if(!e->pFBOTex->Valid()) {

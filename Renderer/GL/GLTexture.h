@@ -80,8 +80,6 @@ class GLTexture : public GLObject {
     /** \return The OpenGL identifier for this texture. */
     GLuint GetGLID() const {return m_iGLID;}
 
-    static GLsizei SizePerElement(GLint internalformat);
-
   protected:
     GLuint  m_iGLID;
     GLint  m_iMagFilter;
@@ -90,9 +88,7 @@ class GLTexture : public GLObject {
     GLenum m_format;
     GLenum m_type;
 
-    GLsizei SizePerElement() const {
-      return SizePerElement(m_internalformat);
-    }
+    size_t SizePerElement() const;
 
 };
 }
