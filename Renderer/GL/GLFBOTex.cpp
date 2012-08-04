@@ -379,12 +379,12 @@ void GLFBOTex::ReadBackPixels(int x, int y, int sX, int sY, void* pData) {
 }
 
 uint64_t GLFBOTex::GetCPUSize() const {
-    return EstimateCPUSize(m_iSizeX, m_iSizeY, GLCommon::gl_byte_width(m_format) * GLCommon::gl_components(m_format),
+    return EstimateCPUSize(m_iSizeX, m_iSizeY, GLCommon::gl_byte_width(m_type) * GLCommon::gl_components(m_format),
                            m_hDepthBuffer!=0, m_iNumBuffers);
 }
 
 uint64_t GLFBOTex::GetGPUSize() const {
-    return EstimateGPUSize(m_iSizeX, m_iSizeY, GLCommon::gl_byte_width(m_format) * GLCommon::gl_components(m_format),
+    return EstimateGPUSize(m_iSizeX, m_iSizeY, GLCommon::gl_byte_width(m_type) * GLCommon::gl_components(m_format),
                            m_hDepthBuffer!=0, m_iNumBuffers);
 }
 

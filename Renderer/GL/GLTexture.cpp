@@ -78,5 +78,5 @@ void GLTexture::SetFilter(GLint iMagFilter, GLint iMinFilter) {
 }
 
 size_t GLTexture::SizePerElement() const {
-  return GLCommon::gl_byte_width(m_format) * GLCommon::gl_components(m_format);
+  return GLCommon::gl_byte_width(m_type) * GLCommon::gl_components(m_format);
 }

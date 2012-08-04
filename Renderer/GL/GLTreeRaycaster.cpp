@@ -194,16 +194,16 @@ void recreateFBO(GLFBOTex*& fbo, std::shared_ptr<Context> pContext,
 void GLTreeRaycaster::CreateOffscreenBuffers() {
   GLRenderer::CreateOffscreenBuffers();
 
-  GLenum intformat, format;
+  GLenum intformat, type;
   switch (m_eBlendPrecision) {
       case BP_8BIT  : intformat = GL_RGBA8;
-                      format = GL_UNSIGNED_BYTE;
+                      type = GL_UNSIGNED_BYTE;
                       break;
       case BP_16BIT : intformat = m_texFormat16;
-                      format = GL_HALF_FLOAT;
+                      type = GL_HALF_FLOAT;
                       break;
       case BP_32BIT : intformat = m_texFormat32;
-                      format = GL_FLOAT;
+                      type = GL_FLOAT;
                       break;
       default       : MESSAGE("Invalid Blending Precision");
                       return;
@@ -211,13 +211,13 @@ void GLTreeRaycaster::CreateOffscreenBuffers() {
 
   if (m_vWinSize.area() > 0) {
     for_each(m_pFBORayStart.begin(), m_pFBORayStart.end(), 
-      bind(recreateFBO, _1, m_pContext ,m_vWinSize, GL_RGBA16F, GL_HALF_FLOAT, GL_RGBA));
+      bind(recreateFBO, _1, m_pContext ,m_vWinSize, GL_RGBA16F, GL_RGBA, GL_HALF_FLOAT));
     for_each(m_pFBORayStartNext.begin(), m_pFBORayStartNext.end(), 
-      bind(recreateFBO, _1, m_pContext ,m_vWinSize, GL_RGBA16F, GL_HALF_FLOAT, GL_RGBA));
+      bind(recreateFBO, _1, m_pContext ,m_vWinSize, GL_RGBA16F, GL_RGBA, GL_HALF_FLOAT));
     for_each(m_pFBOResumeColor.begin(), m_pFBOResumeColor.end(), 
-      bind(recreateFBO, _1, m_pContext ,m_vWinSize, intformat, format, GL_RGBA));
+      bind(recreateFBO, _1, m_pContext ,m_vWinSize, intformat, GL_RGBA, type));
     for_each(m_pFBOResumeColorNext.begin(), m_pFBOResumeColorNext.end(), 
-      bind(recreateFBO, _1, m_pContext ,m_vWinSize, intformat, format, GL_RGBA));
+      bind(recreateFBO, _1, m_pContext ,m_vWinSize, intformat, GL_RGBA, type));
   }
 }
 

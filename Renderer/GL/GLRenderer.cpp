@@ -1734,16 +1734,16 @@ void GLRenderer::CreateOffscreenBuffers() {
   if (m_vWinSize.area() > 0) {
     MESSAGE("Creating FBOs...");
 
-    GLenum intformat, format;
+    GLenum intformat, type;
     switch (m_eBlendPrecision) {
       case BP_8BIT  : intformat = GL_RGBA8;
-                      format = GL_UNSIGNED_BYTE;
+                      type = GL_UNSIGNED_BYTE;
                       break;
       case BP_16BIT : intformat = m_texFormat16;
-                      format = GL_HALF_FLOAT;
+                      type = GL_HALF_FLOAT;
                       break;
       case BP_32BIT : intformat = m_texFormat32;
-                      format = GL_FLOAT;
+                      type = GL_FLOAT;
                       break;
       default       : MESSAGE("Invalid Blending Precision");
                       return;
@@ -1753,7 +1753,7 @@ void GLRenderer::CreateOffscreenBuffers() {
       if (i==0) {
         m_pFBO3DImageLast = mm.GetFBO(GL_NEAREST, GL_NEAREST,
                                       GL_CLAMP, m_vWinSize.x,
-                                      m_vWinSize.y, intformat, format, GL_RGBA,
+                                      m_vWinSize.y, intformat, GL_RGBA, type,
                                       m_pContext->GetShareGroupID(), true);
       }
       m_pFBO3DImageCurrent[i] = mm.GetFBO(GL_NEAREST,
@@ -1761,17 +1761,17 @@ void GLRenderer::CreateOffscreenBuffers() {
                                           GL_CLAMP,
                                           m_vWinSize.x,
                                           m_vWinSize.y,
-                                          intformat, format, GL_RGBA,
+                                          intformat, GL_RGBA, type,
                                           m_pContext->GetShareGroupID(), true);
 
       m_pFBOIsoHit[i]   = mm.GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP,
                                     m_vWinSize.x, m_vWinSize.y, m_texFormat32,
-                                    GL_FLOAT, GL_RGBA,
+                                    GL_RGBA, GL_FLOAT, 
                                     m_pContext->GetShareGroupID(), true, 2);
 
       m_pFBOCVHit[i]    = mm.GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP,
                                     m_vWinSize.x, m_vWinSize.y, m_texFormat16,
-                                    GL_HALF_FLOAT, GL_RGBA,
+                                    GL_RGBA, GL_HALF_FLOAT,
                                     m_pContext->GetShareGroupID(), true, 2);
     }
   }

@@ -174,7 +174,7 @@ void GLVolume2DTex::SetData(const void *voxels) {
   )];
   size_t sliceElemCount = m_iSizeY*m_iSizeX;
 
-  size_t elemtSize = GLCommon::gl_byte_width(m_format) * GLCommon::gl_components(m_format);
+  size_t elemtSize = GLCommon::gl_byte_width(m_type) * GLCommon::gl_components(m_format);
 
   for (size_t i = 0;i<m_pTextures[0].size();i++){
     size_t targetPos = 0;
