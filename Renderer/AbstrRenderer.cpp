@@ -372,7 +372,7 @@ void AbstrRenderer::SetIsoValueRelative(float isorel) {
     minmax.second = std::pow(2.0,
                              static_cast<double>(m_pDataset->GetBitWidth()));
   }
-  float newiso = MathTools::lerp<float,float>(isorel, 0.0, 1.0,
+  float newiso = MathTools::lerp<float,float>(isorel, 0.0f, 1.0f,
                                               minmax.first, minmax.second);
   this->SetIsoValue(newiso);
 }
