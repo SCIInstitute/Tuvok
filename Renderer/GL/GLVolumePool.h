@@ -11,16 +11,21 @@
 #include "GLTexture3D.h"
 
 namespace tuvok {
-  struct PoolSlotData {
+  class PoolSlotData {
+  public:
     PoolSlotData(const UINTVECTOR3& vPositionInPool) :
       m_vPositionInPool(vPositionInPool),
       m_iBrickID(-1),
       m_iTimeOfCreation(0)
     {}
 
-    const UINTVECTOR3 m_vPositionInPool;
+    const UINTVECTOR3& PositionInPool() const {return m_vPositionInPool;}
+
     int32_t     m_iBrickID;
     uint64_t    m_iTimeOfCreation;
+  private:
+    UINTVECTOR3 m_vPositionInPool;
+    PoolSlotData();
   };
 
   struct BrickElemInfo {
