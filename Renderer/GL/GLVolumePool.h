@@ -14,9 +14,9 @@ namespace tuvok {
   class PoolSlotData {
   public:
     PoolSlotData(const UINTVECTOR3& vPositionInPool) :
-      m_vPositionInPool(vPositionInPool),
       m_iBrickID(-1),
-      m_iTimeOfCreation(0)
+      m_iTimeOfCreation(0),
+      m_vPositionInPool(vPositionInPool)
     {}
 
     const UINTVECTOR3& PositionInPool() const {return m_vPositionInPool;}
