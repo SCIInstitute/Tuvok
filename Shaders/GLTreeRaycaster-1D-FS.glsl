@@ -1,9 +1,9 @@
 #version 420 core
 
-// import hastable function
-uint Hash(uvec4 bd);
+// import VolumePool functions
 
-uniform sampler2D rayEntryPoint;
+layout(binding=0) uniform sampler2D rayEntryPoint;
+
 layout(pixel_center_integer) in vec4 gl_FragCoord;
 
 void main()
