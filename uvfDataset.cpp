@@ -272,6 +272,7 @@ void UVFDataset::ComputeMetaData(size_t timestep) {
         vBrickCorner.x += bmd.extents.x;
       }
     }
+    m_aMaxBrickSize = UINTVECTOR3(pVolumeDataBlock->GetMaxBricksize());
   } else {
     std::vector<double> vfScale;
     RDTimestep* ts = static_cast<RDTimestep*>(m_timesteps[timestep]);
@@ -924,13 +925,13 @@ UINT64VECTOR4 UVFDataset::KeyToTOCVector(const BrickKey &k) const {
   if (m_bToCBlock) {
     const TOCTimestep* ts = static_cast<TOCTimestep*>(m_timesteps[std::get<0>(k)]);
 
-    uint64_t iLOD = std::get<1>(k);
-    uint64_t iLinearIndex = std::get<2>(k);
-    UINT64VECTOR3 iBricks = ts->GetDB()->GetBrickCount(iLOD);
+    const uint64_t iLOD = std::get<1>(k);
+    const uint64_t iLinearIndex = std::get<2>(k);
+    const UINT64VECTOR3 iBricks = ts->GetDB()->GetBrickCount(iLOD);
 
-    uint64_t x = iLinearIndex % iBricks.x;
-    uint64_t y = (iLinearIndex % (iBricks.x*iBricks.y)) / iBricks.x;
-    uint64_t z = iLinearIndex / (iBricks.x*iBricks.y); 
+    const uint64_t x = iLinearIndex % iBricks.x;
+    const uint64_t y = (iLinearIndex % (iBricks.x*iBricks.y)) / iBricks.x;
+    const uint64_t z = iLinearIndex / (iBricks.x*iBricks.y); 
 
     return UINT64VECTOR4(x,y,z,iLOD);
   } else {
