@@ -42,14 +42,11 @@
 using namespace tuvok;
 
 GLTexture1D::GLTexture1D(uint32_t iSize, GLint internalformat, GLenum format,
-                         GLenum type,  uint32_t iSizePerElement,
+                         GLenum type,
                          const GLvoid *pixels, GLint iMagFilter, GLint iMinFilter,
                          GLint wrap) :
-  GLTexture(iSizePerElement, iMagFilter, iMinFilter),
-  m_iSize(GLuint(iSize)),
-  m_internalformat(internalformat),
-  m_format(format),
-  m_type(type)
+  GLTexture(internalformat, format, type, iMagFilter, iMinFilter),
+  m_iSize(GLuint(iSize))
 {
   GL(glGenTextures(1, &m_iGLID));
   GL(glBindTexture(GL_TEXTURE_1D, m_iGLID));

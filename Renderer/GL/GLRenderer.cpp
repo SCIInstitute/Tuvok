@@ -626,7 +626,6 @@ bool GLRenderer::Paint() {
           }
         }
 
-
         if (renderRegions[i]->is3D()) {
           RenderRegion3D &region3D = *static_cast<RenderRegion3D*>
                                                  (renderRegions[i]);
@@ -1199,15 +1198,7 @@ bool GLRenderer::Render2DView(RenderRegion2D& renderRegion) {
       // other geometry such as meshes anyway
       if (m_vCurrentBrickList[iBrickIndex].bIsEmpty) continue;
 
-      // convert 3D variables to the more general ND scheme used in the memory
-      // manager, i.e. convert 3-vectors to stl vectors
-      vector<uint64_t> vLOD; vLOD.push_back(m_iCurrentLOD);
-      vector<uint64_t> vBrick;
-      vBrick.push_back(m_vCurrentBrickList[iBrickIndex].vCoords.x);
-      vBrick.push_back(m_vCurrentBrickList[iBrickIndex].vCoords.y);
-      vBrick.push_back(m_vCurrentBrickList[iBrickIndex].vCoords.z);
       const BrickKey &key = m_vCurrentBrickList[iBrickIndex].kBrick;
-
       // get the 3D texture from the memory manager
 
       if (!BindVolumeTex(key,0)) {
@@ -1742,66 +1733,40 @@ void GLRenderer::CreateOffscreenBuffers() {
 
   if (m_vWinSize.area() > 0) {
     MESSAGE("Creating FBOs...");
+
+    GLenum intformat;
+    switch (m_eBlendPrecision) {
+      case BP_8BIT  : intformat = GL_RGBA8;
+                      break;
+      case BP_16BIT : intformat = m_texFormat16;
+                      break;
+      case BP_32BIT : intformat = m_texFormat32;
+                      break;
+      default       : MESSAGE("Invalid Blending Precision");
+                      return;
+    }
+
     for (uint32_t i = 0;i<2;i++) {
-      switch (m_eBlendPrecision) {
-        case BP_8BIT  : if (i==0) {
-                          m_pFBO3DImageLast = mm.GetFBO(GL_NEAREST, GL_NEAREST,
-                                                        GL_CLAMP, m_vWinSize.x,
-                                                        m_vWinSize.y, GL_RGBA8,
-                                                        4, m_pContext->GetShareGroupID(), true);
-                        }
-                        m_pFBO3DImageCurrent[i] = mm.GetFBO(GL_NEAREST,
-                                                            GL_NEAREST,
-                                                            GL_CLAMP,
-                                                            m_vWinSize.x,
-                                                            m_vWinSize.y,
-                                                            GL_RGBA8, 4, m_pContext->GetShareGroupID(), true);
-                        break;
-
-        case BP_16BIT : if (i==0) {
-                          m_pFBO3DImageLast = mm.GetFBO(GL_NEAREST, GL_NEAREST,
-                                                        GL_CLAMP, m_vWinSize.x,
-                                                        m_vWinSize.y,
-                                                        m_texFormat16, 2*4,
-                                                        m_pContext->GetShareGroupID(), true);
-                        }
-                        m_pFBO3DImageCurrent[i] = mm.GetFBO(GL_NEAREST,
-                                                            GL_NEAREST,
-                                                            GL_CLAMP,
-                                                            m_vWinSize.x,
-                                                            m_vWinSize.y,
-                                                            m_texFormat16,
-                                                            2*4, m_pContext->GetShareGroupID(), true);
-                        break;
-
-        case BP_32BIT : if (i==0) {
-                          m_pFBO3DImageLast = mm.GetFBO(GL_NEAREST, GL_NEAREST,
-                                                        GL_CLAMP, m_vWinSize.x,
-                                                        m_vWinSize.y,
-                                                        m_texFormat32, 4*4,
-                                                        m_pContext->GetShareGroupID(), true);
-                        }
-                        m_pFBO3DImageCurrent[i] = mm.GetFBO(GL_NEAREST,
-                                                            GL_NEAREST,
-                                                            GL_CLAMP,
-                                                            m_vWinSize.x,
-                                                            m_vWinSize.y,
-                                                            m_texFormat32,
-                                                            4*4, m_pContext->GetShareGroupID(), true);
-                        break;
-
-        default       : MESSAGE("Invalid Blending Precision");
-                        if (i==0) m_pFBO3DImageLast = NULL;
-                        m_pFBO3DImageCurrent[i] = NULL;
-                        break;
+      if (i==0) {
+        m_pFBO3DImageLast = mm.GetFBO(GL_NEAREST, GL_NEAREST,
+                                      GL_CLAMP, m_vWinSize.x,
+                                      m_vWinSize.y, intformat,
+                                      m_pContext->GetShareGroupID(), true);
       }
+      m_pFBO3DImageCurrent[i] = mm.GetFBO(GL_NEAREST,
+                                          GL_NEAREST,
+                                          GL_CLAMP,
+                                          m_vWinSize.x,
+                                          m_vWinSize.y,
+                                          intformat, m_pContext->GetShareGroupID(), true);
+
       m_pFBOIsoHit[i]   = mm.GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP,
                                     m_vWinSize.x, m_vWinSize.y, m_texFormat32,
-                                    4*4, m_pContext->GetShareGroupID(), true, 2);
+                                    m_pContext->GetShareGroupID(), true, 2);
 
       m_pFBOCVHit[i]    = mm.GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP,
                                     m_vWinSize.x, m_vWinSize.y, m_texFormat16,
-                                    2*4, m_pContext->GetShareGroupID(), true, 2);
+                                    m_pContext->GetShareGroupID(), true, 2);
     }
   }
 }
@@ -2687,7 +2652,7 @@ bool GLRenderer::Render3DView(const RenderRegion3D& renderRegion,
       return false;
     }
 
-    Render3DInLoop(renderRegion, size_t(m_iBricksRenderedInThisSubFrame),0);
+    Render3DInLoop(renderRegion, size_t(m_iBricksRenderedInThisSubFrame), SI_LEFT_OR_MONO);
     if (m_bDoStereoRendering) {
       if (m_vLeftEyeBrickList[size_t(m_iBricksRenderedInThisSubFrame)].kBrick !=
           m_vCurrentBrickList[size_t(m_iBricksRenderedInThisSubFrame)].kBrick) {
@@ -2702,7 +2667,7 @@ bool GLRenderer::Render3DView(const RenderRegion3D& renderRegion,
         }
       }
 
-      Render3DInLoop(renderRegion, size_t(m_iBricksRenderedInThisSubFrame),1);
+      Render3DInLoop(renderRegion, size_t(m_iBricksRenderedInThisSubFrame),SI_RIGHT);
     }
 
     // release the 3D texture

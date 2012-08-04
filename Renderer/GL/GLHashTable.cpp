@@ -18,7 +18,8 @@ GLHashTable::GLHashTable(const UINTVECTOR3& maxBrickCount, uint32_t iTableSize, 
   m_iTableSize(iTableSize),
   m_iRehashCount(iRehashCount),
   m_pHashTableTex(NULL),
-  m_bUseGLCore(bUseGLCore)
+  m_bUseGLCore(bUseGLCore),
+  m_iMountPoint(0)
 {
   m_rawData = std::shared_ptr<uint32_t>(
     new uint32_t[m_iTableSize], 
@@ -31,7 +32,7 @@ GLHashTable::~GLHashTable() {
 }
 
 void GLHashTable::InitGL() {
-  m_pHashTableTex = new GLTexture1D(m_iTableSize, GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT, 4, NULL);
+  m_pHashTableTex = new GLTexture1D(m_iTableSize, GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT, NULL);
 }
 
 UINTVECTOR4 GLHashTable::Int2Vector(uint32_t index) const {
@@ -48,9 +49,11 @@ UINTVECTOR4 GLHashTable::Int2Vector(uint32_t index) const {
   return coords;
 }
 
-void GLHashTable::Enable(uint32_t iMountPoint) { 
-  GL(glBindImageTexture(iMountPoint, m_pHashTableTex->GetGLID(), 0, false, 0, GL_READ_WRITE, GL_R32UI));
+
+void GLHashTable::Enable() { 
+  GL(glBindImageTexture(m_iMountPoint, m_pHashTableTex->GetGLID(), 0, false, 0, GL_READ_WRITE, GL_R32UI));
 }
+
 
 std::vector<UINTVECTOR4> GLHashTable::GetData() {
 
@@ -72,6 +75,7 @@ void GLHashTable::ClearData() {
 }
 
 std::string GLHashTable::GetShaderFragment(uint32_t iMountPoint) {
+  m_iMountPoint = iMountPoint;
   std::stringstream ss;
 
   if (m_bUseGLCore)

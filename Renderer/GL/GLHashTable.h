@@ -21,7 +21,7 @@ class GLHashTable : public GLObject {
     void FreeGL();
 
     std::string GetShaderFragment(uint32_t iMountPoint=0);
-    void Enable(uint32_t iMountPoint=0);
+    void Enable();
     std::vector<UINTVECTOR4> GetData();
     void ClearData();
 
@@ -35,6 +35,7 @@ class GLHashTable : public GLObject {
     GLTexture1D* m_pHashTableTex;
     std::shared_ptr<uint32_t> m_rawData;
     bool m_bUseGLCore;
+    uint32_t m_iMountPoint;
 
     UINTVECTOR4 Int2Vector(uint32_t index) const;
 };

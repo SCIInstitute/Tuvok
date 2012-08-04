@@ -40,7 +40,7 @@ using namespace tuvok;
 
 GLVolume3DTex::GLVolume3DTex() :
   GLVolume(0, 0, 0, 0, 0, 0,
-           0, NULL, GL_NEAREST, GL_NEAREST,
+           NULL, GL_NEAREST, GL_NEAREST,
            GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE,
            GL_CLAMP_TO_EDGE),
   m_pTexture(NULL)
@@ -49,7 +49,6 @@ GLVolume3DTex::GLVolume3DTex() :
 
 GLVolume3DTex::GLVolume3DTex(uint32_t iSizeX, uint32_t iSizeY, uint32_t iSizeZ,
                              GLint internalformat, GLenum format, GLenum type,
-                             uint32_t iSizePerElement,
                              const GLvoid *voxels,
                              GLint iMagFilter,
                              GLint iMinFilter,
@@ -57,11 +56,11 @@ GLVolume3DTex::GLVolume3DTex(uint32_t iSizeX, uint32_t iSizeY, uint32_t iSizeZ,
                              GLint wrapY,
                              GLint wrapZ) :
   GLVolume(iSizeX, iSizeY, iSizeZ, internalformat, format, type,
-           iSizePerElement, voxels, iMagFilter, iMinFilter,wrapX,
+           voxels, iMagFilter, iMinFilter,wrapX,
            wrapY, wrapZ),
   m_pTexture(new GLTexture3D(iSizeX,  iSizeY,  iSizeZ,
                              internalformat,  format,  type,
-                             iSizePerElement, voxels, iMagFilter,
+                             voxels, iMagFilter,
                              iMinFilter, wrapX, wrapY, wrapZ))
 {
 }

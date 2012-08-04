@@ -39,7 +39,6 @@ using namespace tuvok;
 
 GLVolume::GLVolume(uint32_t , uint32_t , uint32_t ,
                     GLint , GLenum , GLenum ,
-                    uint32_t ,
                     const GLvoid *,
                     GLint iMagFilter,
                     GLint iMinFilter,

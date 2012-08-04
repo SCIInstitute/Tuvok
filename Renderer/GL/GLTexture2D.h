@@ -48,8 +48,7 @@ namespace tuvok {
 class GLTexture2D : public GLTexture {
   public:
     GLTexture2D(uint32_t iSizeX, uint32_t iSizeY, GLint internalformat,
-                GLenum format, GLenum type, uint32_t iSizePerElement,
-                const GLvoid *pixels = 0,
+                GLenum format, GLenum type, const GLvoid *pixels = 0,
                 GLint iMagFilter = GL_NEAREST, GLint iMinFilter = GL_NEAREST,
                 GLint wrapX = GL_CLAMP_TO_EDGE, GLint wrapY = GL_CLAMP_TO_EDGE
     );
@@ -75,10 +74,10 @@ class GLTexture2D : public GLTexture {
     std::shared_ptr<const void> GetData();
 
     virtual uint64_t GetCPUSize() const {
-      return uint64_t(m_iSizeX*m_iSizeY*m_iSizePerElement);
+      return uint64_t(m_iSizeX*m_iSizeY*SizePerElement()/8);
     }
     virtual uint64_t GetGPUSize() const {
-      return uint64_t(m_iSizeX*m_iSizeY*m_iSizePerElement);
+      return uint64_t(m_iSizeX*m_iSizeY*SizePerElement()/8);
     }
 
     UINTVECTOR2 GetSize() const {
@@ -88,9 +87,6 @@ class GLTexture2D : public GLTexture {
   protected:
     GLuint m_iSizeX;
     GLuint m_iSizeY;
-    GLint  m_internalformat;
-    GLenum m_format;
-    GLenum m_type;
 };
 
 }

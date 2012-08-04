@@ -56,10 +56,10 @@ class GLTexture : public GLObject {
     /** Constructs an invalid texture.
      * A texture is created with an invalid GL identifier.  No data are
      * pushed to the GPU.  Derived classes are expected to generate the
-     * texture in their constructor[s].
-     * @param iSizePerElement bits per texel.  Used to track memory size of the
-                              texture. */
-    GLTexture(uint32_t iSizePerElement, GLint iMagFilter,GLint iMinFilter);
+     * texture in their constructor[s]. */
+    GLTexture(GLint internalformat, GLenum format,
+                     GLenum type, GLint iMagFilter,
+                     GLint iMinFilter);
     virtual ~GLTexture();
 
     /** Removes this texture from the OpenGL context. */
@@ -80,11 +80,19 @@ class GLTexture : public GLObject {
     /** \return The OpenGL identifier for this texture. */
     GLuint GetGLID() const {return m_iGLID;}
 
+    static GLsizei SizePerElement(GLint internalformat);
+
   protected:
     GLuint  m_iGLID;
-    uint32_t  m_iSizePerElement;
     GLint  m_iMagFilter;
     GLint  m_iMinFilter;
+    GLint  m_internalformat;
+    GLenum m_format;
+    GLenum m_type;
+
+    GLsizei SizePerElement() const {
+      return SizePerElement(m_internalformat);
+    }
 
 };
 }

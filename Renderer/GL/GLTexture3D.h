@@ -48,7 +48,6 @@ class GLTexture3D : public GLTexture {
   public:
     GLTexture3D(uint32_t iSizeX, uint32_t iSizeY, uint32_t iSizeZ,
                 GLint internalformat, GLenum format, GLenum type,
-                uint32_t iSizePerElement,
                 const GLvoid *pixels = 0,
                 GLint iMagFilter = GL_NEAREST,
                 GLint iMinFilter = GL_NEAREST,
@@ -75,10 +74,10 @@ class GLTexture3D : public GLTexture {
                  const void *pixels, bool bRestoreBinding=true);
 
     virtual uint64_t GetCPUSize() const {
-      return uint64_t(m_iSizeX*m_iSizeY*m_iSizeZ*m_iSizePerElement);
+      return uint64_t(m_iSizeX*m_iSizeY*m_iSizeZ*SizePerElement()/8);
     }
     virtual uint64_t GetGPUSize() const {
-      return uint64_t(m_iSizeX*m_iSizeY*m_iSizeZ*m_iSizePerElement);
+      return uint64_t(m_iSizeX*m_iSizeY*m_iSizeZ*SizePerElement()/8);
     }
 
     UINTVECTOR3 GetSize() const {
@@ -90,9 +89,6 @@ class GLTexture3D : public GLTexture {
     GLuint m_iSizeX;
     GLuint m_iSizeY;
     GLuint m_iSizeZ;
-    GLint  m_internalformat;
-    GLenum m_format;
-    GLenum m_type;
 };
 };
 #endif // GLTEXTURE3D_H

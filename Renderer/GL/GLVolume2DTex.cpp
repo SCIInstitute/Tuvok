@@ -43,7 +43,6 @@ using namespace std;
 
 GLVolume2DTex::GLVolume2DTex(uint32_t iSizeX, uint32_t iSizeY, uint32_t iSizeZ,
                              GLint internalformat, GLenum format, GLenum type,
-                             uint32_t iSizePerElement,
                              const GLvoid *voxels,
                              GLint iMagFilter,
                              GLint iMinFilter,
@@ -51,7 +50,7 @@ GLVolume2DTex::GLVolume2DTex(uint32_t iSizeX, uint32_t iSizeY, uint32_t iSizeZ,
                              GLint wrapY,
                              GLint wrapZ) :
   GLVolume(iSizeX, iSizeY, iSizeZ, internalformat, format, type,
-           iSizePerElement, voxels, iMagFilter, iMinFilter,wrapX,
+           voxels, iMagFilter, iMinFilter,wrapX,
            wrapY, wrapZ),
   m_iSizeX(iSizeX),
   m_iSizeY(iSizeY),
@@ -59,7 +58,6 @@ GLVolume2DTex::GLVolume2DTex(uint32_t iSizeX, uint32_t iSizeY, uint32_t iSizeZ,
   m_internalformat(internalformat),
   m_format(format),
   m_type(type),
-  m_iSizePerElement(iSizePerElement),
   m_wrapX(wrapX),
   m_wrapY(wrapY),
   m_wrapZ(wrapZ),
@@ -78,7 +76,6 @@ GLVolume2DTex::GLVolume2DTex() :
       m_internalformat(0),
       m_format(0),
       m_type(0),
-      m_iSizePerElement(0),
       m_wrapX(GL_CLAMP_TO_EDGE),
       m_wrapY(GL_CLAMP_TO_EDGE),
       m_wrapZ(GL_CLAMP_TO_EDGE),
@@ -126,21 +123,21 @@ void GLVolume2DTex::CreateGLResources() {
   m_pTextures[0].resize(m_iSizeX);
   for (size_t i = 0;i<m_pTextures[0].size();i++){
     m_pTextures[0][i] = new GLTexture2D(m_iSizeZ, m_iSizeY, m_internalformat,
-                                        m_format, m_type, m_iSizePerElement,
+                                        m_format, m_type, 
                                         NULL, m_iMagFilter, m_iMinFilter,
                                         m_wrapZ, m_wrapY);
   }
   m_pTextures[1].resize(m_iSizeY);
   for (size_t i = 0;i<m_pTextures[1].size();i++){
     m_pTextures[1][i] = new GLTexture2D(m_iSizeX, m_iSizeZ, m_internalformat,
-                                        m_format, m_type, m_iSizePerElement,
+                                        m_format, m_type, 
                                         NULL, m_iMagFilter, m_iMinFilter,
                                         m_wrapX, m_wrapZ);
   }
   m_pTextures[2].resize(m_iSizeZ);
   for (size_t i = 0;i<m_pTextures[2].size();i++){
     m_pTextures[2][i] = new GLTexture2D(m_iSizeX, m_iSizeY, m_internalformat,
-                                        m_format, m_type, m_iSizePerElement,
+                                        m_format, m_type, 
                                         NULL, m_iMagFilter, m_iMinFilter,
                                         m_wrapX, m_wrapY);
   }
@@ -182,10 +179,10 @@ void GLVolume2DTex::SetData(const void *voxels) {
     for (size_t y = 0;y<m_iSizeY;y++) {
       for (size_t z = 0;z<m_iSizeZ;z++) {
         // compute position in source array
-        sourcePos = (i+y*m_iSizeX+z*sliceElemCount)*m_iSizePerElement;
+        sourcePos = (i+y*m_iSizeX+z*sliceElemCount)*GLTexture::SizePerElement(m_internalformat)/8;
         // copy one element into the target buffer
-        memcpy(copyBuffer+targetPos,charPtr+sourcePos,m_iSizePerElement);
-        targetPos += m_iSizePerElement;
+        memcpy(copyBuffer+targetPos,charPtr+sourcePos,GLTexture::SizePerElement(m_internalformat)/8);
+        targetPos += GLTexture::SizePerElement(m_internalformat)/8;
       }
     }
     // copy into 2D texture slice
@@ -198,10 +195,10 @@ void GLVolume2DTex::SetData(const void *voxels) {
     for (size_t z = 0;z<m_iSizeZ;z++) {
       for (size_t x = 0;x<m_iSizeX;x++) {
         // compute position in source array
-        sourcePos = (x+i*m_iSizeX+z*sliceElemCount)*m_iSizePerElement;
+        sourcePos = (x+i*m_iSizeX+z*sliceElemCount)*GLTexture::SizePerElement(m_internalformat)/8;
         // copy one element into the target buffer
-        memcpy(copyBuffer+targetPos,charPtr+sourcePos,m_iSizePerElement);
-        targetPos += m_iSizePerElement;
+        memcpy(copyBuffer+targetPos,charPtr+sourcePos,GLTexture::SizePerElement(m_internalformat)/8);
+        targetPos += GLTexture::SizePerElement(m_internalformat)/8;
       }
     }
     // copy into 2D texture slice

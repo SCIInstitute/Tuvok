@@ -234,11 +234,11 @@ namespace tuvok {
     FBOListElem(MasterController* pMasterController, GLenum minfilter,
                 GLenum magfilter, GLenum wrapmode,
                 GLsizei width, GLsizei height, GLenum intformat,
-                uint32_t iSizePerElement, bool bHaveDepth, 
+                bool bHaveDepth, 
                 int iNumBuffers, int iShareGroupID) :
       pFBOTex(new GLFBOTex(pMasterController, minfilter, magfilter,
                            wrapmode, width, height, intformat, 
-                           iSizePerElement, bHaveDepth, iNumBuffers)),
+                           bHaveDepth, iNumBuffers)),
       m_iShareGroupID(iShareGroupID)
     {}
 

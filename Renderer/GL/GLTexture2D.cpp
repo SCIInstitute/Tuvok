@@ -43,16 +43,13 @@
 using namespace tuvok;
 
 GLTexture2D::GLTexture2D(uint32_t iSizeX, uint32_t iSizeY, GLint internalformat,
-                         GLenum format, GLenum type, uint32_t iSizePerElement,
+                         GLenum format, GLenum type,
                          const GLvoid *pixels,
                          GLint iMagFilter, GLint iMinFilter,
                          GLint wrapX, GLint wrapY) :
-  GLTexture(iSizePerElement, iMagFilter, iMinFilter),
+  GLTexture(internalformat, format, type, iMagFilter, iMinFilter),
   m_iSizeX(GLuint(iSizeX)),
-  m_iSizeY(GLuint(iSizeY)),
-  m_internalformat(internalformat),
-  m_format(format),
-  m_type(type)
+  m_iSizeY(GLuint(iSizeY))
 {
   GLint prevTex;
   GL(glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTex));

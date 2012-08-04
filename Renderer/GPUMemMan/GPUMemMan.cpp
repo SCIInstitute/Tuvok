@@ -314,7 +314,7 @@ GLTexture2D* GPUMemMan::Load2DTextureFromFile(const string& strFilename, int iSh
   QImage glimage = QGLWidget::convertToGLFormat(image);
 
   GLTexture2D* tex = new GLTexture2D(glimage.width(),glimage.height(),
-                                     GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 4,
+                                     GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE,
                                      glimage.bits());
 
   m_iAllocatedGPUMemory += tex->GetGPUSize();
@@ -381,7 +381,7 @@ void GPUMemMan::GetEmpty1DTrans(size_t iSize, AbstrRenderer* requester,
   std::vector<unsigned char> vTFData;
   (*ppTransferFunction1D)->GetByteArray(vTFData);
   *tex = new GLTexture1D(uint32_t((*ppTransferFunction1D)->GetSize()), GL_RGBA8,
-                         GL_RGBA, GL_UNSIGNED_BYTE, 4, &vTFData.at(0));
+                         GL_RGBA, GL_UNSIGNED_BYTE, &vTFData.at(0));
 
   m_iAllocatedGPUMemory += (*tex)->GetGPUSize();
   m_iAllocatedCPUMemory += (*tex)->GetCPUSize();
@@ -404,7 +404,7 @@ void GPUMemMan::Get1DTransFromFile(const string& strFilename,
   std::vector<unsigned char> vTFData;
   (*ppTransferFunction1D)->GetByteArray(vTFData);
   *tex = new GLTexture1D(uint32_t((*ppTransferFunction1D)->GetSize()), GL_RGBA8,
-                         GL_RGBA, GL_UNSIGNED_BYTE, 4, &vTFData.at(0));
+                         GL_RGBA, GL_UNSIGNED_BYTE, &vTFData.at(0));
 
   m_iAllocatedGPUMemory += (*tex)->GetGPUSize();
   m_iAllocatedCPUMemory += (*tex)->GetCPUSize();
@@ -426,7 +426,7 @@ GPUMemMan::SetExternal1DTrans(const std::vector<unsigned char>& rgba,
   tf1d->Set(rgba);
 
   GLTexture1D *tex = new GLTexture1D(static_cast<uint32_t>(tf1d->GetSize()),
-                                     GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 4,
+                                     GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE,
                                      &rgba.at(0));
   m_iAllocatedGPUMemory += tex->GetGPUSize();
   m_iAllocatedCPUMemory += tex->GetCPUSize();
@@ -511,7 +511,7 @@ void GPUMemMan::GetEmpty2DTrans(const VECTOR2<size_t>& iSize,
   unsigned char* pcData = NULL;
   (*ppTransferFunction2D)->GetByteArray(&pcData);
   *tex = new GLTexture2D(uint32_t(iSize.x), uint32_t(iSize.y), GL_RGBA8, GL_RGBA,
-                         GL_UNSIGNED_BYTE, 4, pcData);
+                         GL_UNSIGNED_BYTE, pcData);
   delete [] pcData;
 
   m_iAllocatedGPUMemory += (*tex)->GetGPUSize();
@@ -546,7 +546,7 @@ void GPUMemMan::Get2DTransFromFile(const string& strFilename,
   (*ppTransferFunction2D)->GetByteArray(&pcData);
   *tex = new GLTexture2D(uint32_t((*ppTransferFunction2D)->GetSize().x),
                          uint32_t((*ppTransferFunction2D)->GetSize().y),
-                         GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE,4,pcData);
+                         GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE,pcData);
   delete [] pcData;
 
   m_iAllocatedGPUMemory += (*tex)->GetGPUSize();
@@ -946,20 +946,19 @@ void GPUMemMan::MemSizesChanged() {
 
 GLFBOTex* GPUMemMan::GetFBO(GLenum minfilter, GLenum magfilter,
                             GLenum wrapmode, GLsizei width, GLsizei height,
-                            GLenum intformat, uint32_t iSizePerElement, int iShareGroupID,
+                            GLenum intformat, int iShareGroupID,
                             bool bHaveDepth, int iNumBuffers) {
   MESSAGE("Creating new FBO of size %i x %i", int(width), int(height));
 
   uint64_t m_iCPUMemEstimate = GLFBOTex::EstimateCPUSize(width, height,
-                                                       iSizePerElement,
-                                                       bHaveDepth, iNumBuffers);
+                                                         bHaveDepth, iNumBuffers);
 
   // if we are running out of mem, kick out bricks to create room for the FBO
   while (m_iAllocatedCPUMemory + m_iCPUMemEstimate >
          m_SystemInfo->GetMaxUsableCPUMem() && m_vpTex3DList.size() > 0) {
     MESSAGE("Not enough memory for FBO %i x %i (%ubit * %i), "
             "paging out bricks ...", int(width), int(height),
-            iSizePerElement, iNumBuffers);
+            GLTexture::SizePerElement(intformat), iNumBuffers);
 
     // search for best brick to replace with this brick
     uint64_t iMinTargetFrameCounter;
@@ -995,7 +994,7 @@ GLFBOTex* GPUMemMan::GetFBO(GLenum minfilter, GLenum magfilter,
 
   FBOListElem* e = new FBOListElem(m_MasterController, minfilter, magfilter,
                                    wrapmode, width, height, intformat,
-                                   iSizePerElement, bHaveDepth, iNumBuffers, iShareGroupID);
+                                   bHaveDepth, iNumBuffers, iShareGroupID);
 
   if(!e->pFBOTex->Valid()) {
     T_ERROR("FBO creation failed!");

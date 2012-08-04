@@ -48,7 +48,6 @@ namespace tuvok {
     public:
       GLVolume2DTex(uint32_t iSizeX, uint32_t iSizeY, uint32_t iSizeZ,
                     GLint internalformat, GLenum format, GLenum type,
-                    uint32_t iSizePerElement,
                     const GLvoid *voxels = 0,
                     GLint iMagFilter = GL_NEAREST,
                     GLint iMinFilter = GL_NEAREST,
@@ -80,7 +79,6 @@ namespace tuvok {
       GLint  m_internalformat;
       GLenum m_format;
       GLenum m_type;
-      uint32_t m_iSizePerElement;
       GLint  m_wrapX;
       GLint  m_wrapY;
       GLint  m_wrapZ;

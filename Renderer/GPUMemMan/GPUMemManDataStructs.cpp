@@ -475,14 +475,14 @@ bool GLVolumeListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
       volume = new GLVolume2DTex(uint32_t(vSize[0]), uint32_t(vSize[1]),
                                      uint32_t(vSize[2]),
                                      glInternalformat, glFormat, glType,
-                                     uint32_t(iBitWidth/8*iCompCount), pRawData,
+                                     pRawData,
                                      GL_LINEAR, GL_LINEAR,
                                      clamp, clamp, clamp);
     } else {
       volume = new GLVolume3DTex(uint32_t(vSize[0]), uint32_t(vSize[1]),
                                      uint32_t(vSize[2]),
                                      glInternalformat, glFormat, glType,
-                                     uint32_t(iBitWidth/8*iCompCount), pRawData,
+                                     pRawData,
                                      GL_LINEAR, GL_LINEAR,
                                      clamp, clamp, clamp);
     }
@@ -495,7 +495,6 @@ bool GLVolumeListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
     if (m_bEmulate3DWith2DStacks) {
       volume = new GLVolume2DTex(vPaddedSize[0], vPaddedSize[1], vPaddedSize[2],
                                      glInternalformat, glFormat, glType,
-                                     uint32_t(iBitWidth/8*iCompCount),
                                      pPaddedData.get(),
                                      GL_LINEAR, GL_LINEAR,
                                      m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
@@ -504,7 +503,6 @@ bool GLVolumeListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
     } else {
       volume = new GLVolume3DTex(vPaddedSize[0], vPaddedSize[1], vPaddedSize[2],
                                      glInternalformat, glFormat, glType,
-                                     uint32_t(iBitWidth/8*iCompCount),
                                      pPaddedData.get(),
                                      GL_LINEAR, GL_LINEAR,
                                      m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,

@@ -4,120 +4,113 @@
 #define GLVOLUMEPOOL_H
 
 #include "StdTuvokDefines.h"
-#include <map>
-#include <deque>
+#include <list>
 
-#include "Basics/TuvokHT.h"
 #include "GLInclude.h"
-#include "GLTexture1D.h"
 #include "GLTexture2D.h"
 #include "GLTexture3D.h"
 
 namespace tuvok {
-  class ExtendedOctreeInfo {
-    public:
-      static UINTVECTOR3 GetLODCount(UINTVECTOR3 inputSize,
-                                     UINTVECTOR3 innerBricksize,
-                                     uint32_t overlap);
-      static UINTVECTOR3 GetLODSize(uint32_t iLOD, UINTVECTOR3 inputSize,
-                                    UINTVECTOR3 innerBricksize,
-                                    uint32_t overlap);
-      static UINTVECTOR3 GetBrickSize(UINTVECTOR3 iBrickIndex, uint32_t iLOD,
-                                      UINTVECTOR3 inputSize,
-                                      UINTVECTOR3 innerBricksize,
-                                      uint32_t overlap);
+  struct PoolSlotData {
+    PoolSlotData(const UINTVECTOR3& vPositionInPool) :
+      m_vPositionInPool(vPositionInPool),
+      m_iBrickID(-1),
+      m_iTimeOfCreation(0)
+    {}
+
+    const UINTVECTOR3 m_vPositionInPool;
+    int32_t     m_iBrickID;
+    uint64_t    m_iTimeOfCreation;
   };
 
-  class TypeDescriptor {
-    public:
-      TypeDescriptor(bool sgned, uint8_t bw) : is_signed(sgned),
-                                               bit_width(bw) { }
-    private:
-      bool is_signed;
-      uint8_t bit_width;
-  };
-
-  class BrickElemInfo {
-  public:
-    BrickElemInfo(UINTVECTOR4 vBrickID, UINTVECTOR3 vVoxelSize,
-                  FLOATVECTOR3 vTopLeft, FLOATVECTOR3 vBottomRight,
-                  uint32_t nComponents, TypeDescriptor td) :
+  struct BrickElemInfo {
+    BrickElemInfo(const UINTVECTOR4& vBrickID, const UINTVECTOR3& vVoxelSize) :
       m_vBrickID(vBrickID),
-      m_vVoxelSize(vVoxelSize),
-      m_vTopLeft(vTopLeft),
-      m_vBottomRight(vBottomRight),
-      m_Components(nComponents),
-      m_Type(td)
+      m_vVoxelSize(vVoxelSize)
     {}
 
     UINTVECTOR4    m_vBrickID;
     UINTVECTOR3    m_vVoxelSize;
-    FLOATVECTOR3   m_vTopLeft;
-    FLOATVECTOR3   m_vBottomRight;
-    uint32_t       m_Components;
-    TypeDescriptor m_Type;
   };
 
   struct VolumePoolElemInfo : public BrickElemInfo {
     VolumePoolElemInfo(const BrickElemInfo& bei,
-                       const UINTVECTOR3& vPoolCoordinates, int iPriority) :
+                       const UINTVECTOR3& vPoolCoordinates) :
         BrickElemInfo(bei),
         m_vPoolCoordinates(vPoolCoordinates),
-        m_iPriority(iPriority)
+        m_iPriority(0)
     {}
 
     bool operator<(const VolumePoolElemInfo& vei) const {
       return this->m_iPriority < vei.m_iPriority;
     }
 
+    void Age() {
+      m_iPriority++;
+    }
+
+    void Renew() {
+      m_iPriority = 0;
+    }
+
     UINTVECTOR3 m_vPoolCoordinates;
-    int m_iPriority;
+    uint64_t m_iPriority;
   };
 
   class GLVolumePool : public GLObject {
     public:
-      GLVolumePool(UINTVECTOR3 poolSize, UINTVECTOR3 brickSize,
-                   GLint internalformat, GLenum format, GLenum type);
-
-      GLVolumePool(UINTVECTOR3 inputSize, UINTVECTOR3 innerBricksize,
-                   uint32_t overlap, const UINTVECTOR3& poolTexSize,
-                   const UINTVECTOR3& brickSize,
-                   GLint internalformat, GLenum format, GLenum type,
-                   uint32_t iSizePerElement);
+      GLVolumePool(const UINTVECTOR3& poolSize, const UINTVECTOR3& maxBrickSize,
+                   const UINTVECTOR3& overlap, const UINTVECTOR3& volumeSize,
+                   GLint internalformat, GLenum format, GLenum type, 
+                   bool bUseGLCore=true);
+      virtual ~GLVolumePool();
 
       bool UploadBrick(const BrickElemInfo& metaData, void* pData);
+      void UploadMetaData();
       bool IsBrickResident(const UINTVECTOR4& vBrickID) const;
-      void BindTexures(unsigned int iMetaTextureUnit,
-                       unsigned int iDataTextureUnit) const;
+      void BindTexures() const;
 
-      virtual ~GLVolumePool();
+      std::string GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t iDataTextureUnit);
+
       virtual uint64_t GetCPUSize() const;
       virtual uint64_t GetGPUSize() const;
 
     protected:
-      Hash<UINTVECTOR4, BrickElemInfo>::Table m_BrickHash;
-      /// @todo replace this by a priority queue
-      std::deque<VolumePoolElemInfo> m_BricksInPool;
-      GLTexture1D* m_StaticLODLUT;
+      
+      std::list<VolumePoolElemInfo> m_BricksInPool;
       GLTexture2D* m_PoolMetadataTexture;
       GLTexture3D* m_PoolDataTexture;
       UINTVECTOR3 m_poolSize;
-      UINTVECTOR2 m_metaTexSize;
-      UINTVECTOR3 m_brickSize;
+      UINTVECTOR3 m_maxBrickSize;
+      UINTVECTOR3 m_overlap;
+      UINTVECTOR3 m_volumeSize;
       GLint m_internalformat;
       GLenum m_format;
       GLenum m_type;
 
-      // where we should allocate next from the allocator.  These coordinates
-      // are logical; the first brick is at <0,0,0>, the second at <0,0,1>,
-      // etc.
+      uint32_t m_iMetaTextureUnit;
+      uint32_t m_iDataTextureUnit;
+      bool m_bUseGLCore;
+
+      UINTVECTOR2 m_metaTexSize;
+
+
+      std::vector<FLOATVECTOR4> m_brickMetaData;
+      std::vector<PoolSlotData> m_PoolSlotData;
+      std::vector<uint32_t> m_vLoDOffsetTable;
+
+/*
+      Hash<UINTVECTOR4, BrickElemInfo>::Table m_BrickHash;
       UINTVECTOR3 m_allocPos;
+
+*/
 
       void CreateGLResources();
       void FreeGLResources();
 
       UINTVECTOR3 FindNextPoolPosition() const;
-      void UpdateMetadataTexture();
+      void UpdateMetadata();
+      uint32_t GetIntegerBrickID(const UINTVECTOR4& vBrickID) const;
   };
 }
 #endif // GLVOLUMEPOOL_H

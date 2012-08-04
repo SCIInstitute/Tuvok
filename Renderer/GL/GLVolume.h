@@ -47,7 +47,6 @@ namespace tuvok {
     public:
       GLVolume(uint32_t iSizeX, uint32_t iSizeY, uint32_t iSizeZ,
                GLint internalformat, GLenum format, GLenum type,
-               uint32_t iSizePerElement,
                const GLvoid *pixels = 0,
                GLint iMagFilter = GL_NEAREST,
                GLint iMinFilter = GL_NEAREST,

@@ -165,7 +165,7 @@ class GLRenderer : public AbstrRenderer {
     virtual bool Render3DView(const RenderRegion3D& renderRegion, float& fMsecPassed);
     virtual void Render3DPreLoop(const RenderRegion3D &) { };
     virtual void Render3DInLoop(const RenderRegion3D& ,
-                                size_t , int ) {};
+                                size_t , EStereoID ) {};
     virtual void Render3DPostLoop() {}
     virtual void ComposeSurfaceImage(const RenderRegion& renderRegion, EStereoID eStereoID);
     virtual void RecomposeView(const RenderRegion&);
@@ -254,9 +254,10 @@ class GLRenderer : public AbstrRenderer {
     GLSLProgram*    m_pProgramMeshFTB;
     GLSLProgram*    m_pProgramMeshBTF;
 
-  private:
     GLenum          m_texFormat16; ///< 16bit internal texture format to use
     GLenum          m_texFormat32; ///< 32bit internal texture format to use
+
+  private:
     float*          m_aDepthStorage;
 
     void SetBrickDepShaderVarsSlice(const UINTVECTOR3& vVoxelCount) const;

@@ -46,7 +46,7 @@ namespace tuvok {
 class GLTexture1D : public GLTexture {
   public:
     GLTexture1D(uint32_t iSize, GLint internalformat, GLenum format,
-                GLenum type, uint32_t iSizePerElement, const void *pixels = 0,
+                GLenum type, const void *pixels = 0,
                 GLint iMagFilter = GL_NEAREST, GLint iMinFilter = GL_NEAREST,
                 GLint wrap = GL_CLAMP_TO_EDGE);
     virtual ~GLTexture1D() {}
@@ -68,10 +68,10 @@ class GLTexture1D : public GLTexture {
                  bool bRestoreBinding=true);
 
     virtual uint64_t GetCPUSize() const {
-      return uint64_t(m_iSize*m_iSizePerElement);
+      return uint64_t(m_iSize*SizePerElement()/8);
     }
     virtual uint64_t GetGPUSize() const {
-      return uint64_t(m_iSize*m_iSizePerElement);
+      return uint64_t(m_iSize*SizePerElement()/8);
     }
 
     uint32_t GetSize() const {return uint32_t(m_iSize);}
@@ -81,9 +81,6 @@ class GLTexture1D : public GLTexture {
 
   protected:
     GLuint m_iSize;
-    GLint  m_internalformat;
-    GLenum m_format;
-    GLenum m_type;
 };
 }
 #endif // GLTEXTURE1D_H

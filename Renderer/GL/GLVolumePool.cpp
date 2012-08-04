@@ -1,42 +1,135 @@
-#include <stdexcept>
+#include <sstream>
 
 #include "GLVolumePool.h"
+#include "Basics/MathTools.h"
 
 using namespace tuvok;
 
-UINTVECTOR3 ExtendedOctreeInfo::GetLODCount(UINTVECTOR3, UINTVECTOR3,
-                                            uint32_t) {
-  // TODO
-  return UINTVECTOR3();
+static uint32_t GetLoDCount(const UINTVECTOR3& volumeSize) {
+  uint32_t maxP2 = MathTools::NextPow2( volumeSize.maxVal() );
+  return MathTools::Log2(maxP2);
 }
 
-UINTVECTOR3 ExtendedOctreeInfo::GetLODSize(uint32_t, UINTVECTOR3, UINTVECTOR3,
-                                           uint32_t) {
-  // TODO
-  return UINTVECTOR3();
+static UINTVECTOR3 GetLoDSize(const UINTVECTOR3& volumeSize, uint32_t iLoD) {
+  UINTVECTOR3 vLoDSize(uint32_t(ceil(double(volumeSize.x)/MathTools::Pow2(iLoD))), 
+                       uint32_t(ceil(double(volumeSize.y)/MathTools::Pow2(iLoD))),
+                       uint32_t(ceil(double(volumeSize.z)/MathTools::Pow2(iLoD))));
+  return vLoDSize;
 }
 
-UINTVECTOR3 GetBrickSize(UINTVECTOR3, uint32_t, UINTVECTOR3, UINTVECTOR3,
-                         uint32_t) {
-  // TODO
-  return UINTVECTOR3();
+static UINTVECTOR3 GetBrickLayout(const UINTVECTOR3& volumeSize, const UINTVECTOR3& maxBrickSize, uint32_t iLoD) {
+  UINTVECTOR3 baseBrickCount(uint32_t(ceil(double(volumeSize.x)/maxBrickSize.x)), 
+                             uint32_t(ceil(double(volumeSize.y)/maxBrickSize.y)),
+                             uint32_t(ceil(double(volumeSize.z)/maxBrickSize.z)));
+  return GetLoDSize(baseBrickCount, iLoD);
 }
 
 
-GLVolumePool::GLVolumePool(UINTVECTOR3 poolSize, UINTVECTOR3 brickSize,
-                          GLint internalformat, GLenum format, GLenum type)
-  : m_StaticLODLUT(NULL),
-    m_PoolMetadataTexture(NULL),
+GLVolumePool::GLVolumePool(const UINTVECTOR3& poolSize, const UINTVECTOR3& maxBrickSize,
+                           const UINTVECTOR3& overlap, const UINTVECTOR3& volumeSize,
+                           GLint internalformat, GLenum format, GLenum type, 
+                            bool bUseGLCore)
+  : m_PoolMetadataTexture(NULL),
     m_PoolDataTexture(NULL),
     m_poolSize(poolSize),
-    m_brickSize(brickSize),
+    m_maxBrickSize(maxBrickSize),
+    m_overlap(overlap),
+    m_volumeSize(volumeSize),
     m_internalformat(internalformat),
     m_format(format),
     m_type(type),
-    m_allocPos(0,0,0)
+    m_iMetaTextureUnit(0),
+    m_iDataTextureUnit(1),
+    m_bUseGLCore(bUseGLCore)
 {
+
+  // fill the pool slot information
+  const UINTVECTOR3 slotLayout = poolSize/maxBrickSize;
+  for (uint32_t z = 0;z<slotLayout.z;++z) {
+    for (uint32_t y = 0;y<slotLayout.y;++y) {
+      for (uint32_t x = 0;x<slotLayout.x;++x) {
+        m_PoolSlotData.push_back(PoolSlotData(UINTVECTOR3(x,y,z)));
+      }
+    }
+  }
+
+  // compute the offset table
+  uint32_t iOffset = 0;
+  uint32_t iLoDCount = GetLoDCount(m_volumeSize);
+  m_vLoDOffsetTable.resize(iLoDCount);
+  for (uint32_t i = 0;i<m_vLoDOffsetTable.size();++i) {
+    m_vLoDOffsetTable[i] = iOffset;
+    iOffset += GetBrickLayout(m_volumeSize, m_maxBrickSize, i).volume();
+  }
+
   CreateGLResources();
-  UpdateMetadataTexture();
+  UpdateMetadata();
+  UploadMetaData();
+}
+
+uint32_t GLVolumePool::GetIntegerBrickID(const UINTVECTOR4& vBrickID) const {
+  UINTVECTOR3 bricks = GetBrickLayout(m_volumeSize, m_maxBrickSize, vBrickID.w);
+
+  return vBrickID.x + vBrickID.y * bricks.x + vBrickID.z * bricks.x * bricks.y + m_vLoDOffsetTable[vBrickID.w];
+}
+
+std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t iDataTextureUnit) {
+  m_iMetaTextureUnit = iMetaTextureUnit;
+  m_iDataTextureUnit = iDataTextureUnit;
+
+  std::stringstream ss;
+
+  if (m_bUseGLCore)
+    ss << "#version 420 core" << std::endl;  
+  else
+    ss << "#version 420 compatibility" << std::endl;
+
+  uint32_t iLodCount = GetLoDCount(m_volumeSize);
+
+  ss << "" << std::endl
+     << "layout(binding = " << m_iMetaTextureUnit << ") uniform sampler2D metaData;" << std::endl
+     << "layout(binding = " << m_iDataTextureUnit << ") uniform sampler3D volumeData;" << std::endl
+     << "" << std::endl
+     << "uint Hash(uvec4 brick);" << std::endl
+     << "" << std::endl
+     << "const uint iLODOffset[" << m_vLoDOffsetTable.size() << "] = uint[](";
+  for (uint32_t i = 0;i<m_vLoDOffsetTable.size();++i) {
+    ss << m_vLoDOffsetTable[i];
+    if (i<iLodCount-1) {
+      ss << ", ";
+    }
+  }
+  ss << ");" << std::endl;
+
+  
+  /*
+
+  ss << ");" << std::endl
+     << "vec4 SampleVolume(vec3 vOffset, vec3 coords) {" << std::endl
+     << "  return sample3D(volumeData, coords+vOffset);" << std::endl
+     << "}" << std::endl
+     << "" << std::endl
+     << "int HashValue(uint serializedValue) {" << std::endl
+     << "  return int(serializedValue % " << m_iTableSize << ");" << std::endl
+     << "}" << std::endl
+     << "" << std::endl
+     << "uint Hash(uvec4 bd) {" << std::endl
+     << "  uint rehashCount = 0;" << std::endl
+     << "  uint serializedValue = Serialize(bd);" << std::endl
+     << "" << std::endl
+     << "  do {" << std::endl
+     << "    int hash = HashValue(serializedValue+rehashCount);" << std::endl
+     << "    uint valueInImage = imageAtomicCompSwap(hashTable, hash, uint(0), serializedValue);" << std::endl
+     << "    if (valueInImage == 0 || valueInImage == serializedValue) return rehashCount;" << std::endl
+     << "  } while (++rehashCount < " << m_iRehashCount << ") ;" << std::endl
+     << "" << std::endl
+     << "  return uint(" << m_iRehashCount << ");" << std::endl
+     << "}" << std::endl;
+
+     */
+
+  return ss.str();
+
 }
 
 bool GLVolumePool::UploadBrick(const BrickElemInfo& metaData, void* pData) {
@@ -44,125 +137,80 @@ bool GLVolumePool::UploadBrick(const BrickElemInfo& metaData, void* pData) {
   UINTVECTOR3 vPoolCoordinates = FindNextPoolPosition();
 
   // update bricks in pool list to include the new brick
-  VolumePoolElemInfo vpei(metaData, vPoolCoordinates, 0);
+  VolumePoolElemInfo vpei(metaData, vPoolCoordinates);
   m_BricksInPool.push_back(vpei);
 
-  // upload metadata change to 2D texture
-  UpdateMetadataTexture();
+  // upload CPU metadata (does not update the 2D texture yet)
+  // this is done by the explicit UploadMetaData call to 
+  // only upload the updated data once all bricks have been 
+  // updated
+  UpdateMetadata();
 
   // upload brick to 3D texture
-  m_PoolDataTexture->SetData(vPoolCoordinates*m_brickSize,
+  m_PoolDataTexture->SetData(vPoolCoordinates*m_maxBrickSize,
                              metaData.m_vVoxelSize, pData);
-  // save alloc position for where we were last time.
-  m_allocPos = vPoolCoordinates;
+
   return true;
 }
 
 bool GLVolumePool::IsBrickResident(const UINTVECTOR4& vBrickID) const {
-  for (std::deque<VolumePoolElemInfo>::const_iterator iter =
-         m_BricksInPool.begin();
-       iter != m_BricksInPool.end();
-       iter++) {
-         if (iter->m_vBrickID == vBrickID)  return true;
+
+  int32_t iBrickID = GetIntegerBrickID(vBrickID);
+  for (auto slot = m_PoolSlotData.begin(); slot<m_PoolSlotData.end();++slot) {
+    if (int32_t(slot->m_iBrickID) == iBrickID) return true;
   }
 
   return false;
 }
 
-void GLVolumePool::BindTexures(unsigned int iMetaTextureUnit,
-                               unsigned int iDataTextureUnit) const {
-  m_PoolMetadataTexture->Bind(iMetaTextureUnit);
-  m_PoolDataTexture->Bind(iDataTextureUnit);
+void GLVolumePool::BindTexures() const {
+  m_PoolMetadataTexture->Bind(m_iMetaTextureUnit);
+  m_PoolDataTexture->Bind(m_iDataTextureUnit);
 }
 
 GLVolumePool::~GLVolumePool() {
   FreeGLResources();
 }
 
-static uint32_t bytes_per_elem(GLenum gltype) {
-  switch(gltype) {
-    case GL_UNSIGNED_BYTE:
-    case GL_BYTE:
-    case GL_UNSIGNED_BYTE_3_3_2:
-    case GL_UNSIGNED_BYTE_2_3_3_REV:
-    case GL_BITMAP: return 1;
-    case GL_UNSIGNED_SHORT:
-    case GL_UNSIGNED_SHORT_5_6_5:
-    case GL_UNSIGNED_SHORT_5_6_5_REV:
-    case GL_UNSIGNED_SHORT_4_4_4_4:
-    case GL_UNSIGNED_SHORT_4_4_4_4_REV:
-    case GL_UNSIGNED_SHORT_5_5_5_1:
-    case GL_UNSIGNED_SHORT_1_5_5_5_REV:
-    case GL_SHORT: return 2;
-    case GL_UNSIGNED_INT:
-    case GL_INT:
-    case GL_FLOAT:
-    case GL_UNSIGNED_INT_8_8_8_8:
-    case GL_UNSIGNED_INT_8_8_8_8_REV:
-    case GL_UNSIGNED_INT_10_10_10_2:
-    case GL_UNSIGNED_INT_2_10_10_10_REV: return 4; break;
-  }
-  return 0;
-}
+
 
 void GLVolumePool::CreateGLResources() {
   m_PoolDataTexture = new GLTexture3D(m_poolSize.x, m_poolSize.y, m_poolSize.z,
-                                      m_internalformat, m_format, m_type,
-                                      bytes_per_elem(m_type));
+                                      m_internalformat, m_format, m_type);
   int gpumax; 
   GL(glGetIntegerv(GL_MAX_TEXTURE_SIZE, &gpumax));
   const uint32_t max_texture_size = std::min(4096, gpumax);
 
+  // TODO: compute proper size
+
   m_PoolMetadataTexture = new GLTexture2D(
-    max_texture_size, max_texture_size, GL_LUMINANCE,
-    GL_LUMINANCE, GL_UNSIGNED_INT, 4
+    max_texture_size, max_texture_size, GL_RGBA32F,
+    GL_RGBA, GL_FLOAT
   );
 }
 
-static UINTVECTOR3 increment(UINTVECTOR3 v, const UINTVECTOR3 base) {
-  do {
-    v[2]++;
-    if(v[2] == base[2]) {
-      v[2] = 0;
-      v[1]++;
-      if(v[1] == base[1]) {
-        v[1] = 0;
-        v[0]++;
-        if(v[0] >= base[0]) {
-          throw std::overflow_error("no brick space left");
-        }
-      }
-    }
-  } while(v[0] < base[0]);
-  return v;
-}
 
 UINTVECTOR3 GLVolumePool::FindNextPoolPosition() const {
-  // our maximum *logical* index.
-  const UINTVECTOR3 logMax = m_poolSize / m_brickSize;
-
-  // now we simply perform 'base logMax' arithmetic on our logical index until
-  // we either overflow (i.e. we're out of space) or we find a good index.
-  UINTVECTOR3 idx;
-  try {
-    idx = increment(m_allocPos, logMax);
-  } catch(const std::overflow_error&) {
-    // we ran out of space.. what should we replace?
-    // whatever is at the top of the queue.
-    const VolumePoolElemInfo& vei = m_BricksInPool.front();
-    m_BricksInPool.front();
-    return UINTVECTOR3(vei.m_vBrickID.x, vei.m_vBrickID.y, vei.m_vBrickID.z);
-  }
-  return idx;
+  return UINTVECTOR3();
 }
 
-void GLVolumePool::UpdateMetadataTexture() {
+void GLVolumePool::UploadMetaData() {
+  // TODO
+}
+
+void GLVolumePool::UpdateMetadata() {
   // TODO
 }
 
 void GLVolumePool::FreeGLResources() {
-  delete m_PoolMetadataTexture;
-  delete m_PoolDataTexture;
+  if (m_PoolMetadataTexture) {
+    m_PoolMetadataTexture->Delete();
+    delete m_PoolMetadataTexture;
+  }
+  if (m_PoolDataTexture) {
+    m_PoolDataTexture->Delete();
+    delete m_PoolDataTexture;
+  }
 }
 
 uint64_t GLVolumePool::GetCPUSize() const {

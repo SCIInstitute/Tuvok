@@ -58,17 +58,16 @@ bool  GLFBOTex::m_bInitialized = true;
 GLFBOTex::GLFBOTex(MasterController* pMasterController, GLenum minfilter,
                    GLenum magfilter, GLenum wrapmode, GLsizei width,
                    GLsizei height, GLenum intformat,
-                   unsigned int iSizePerElement,
                    bool bHaveDepth, int iNumBuffers) :
   m_pMasterController(pMasterController),
-  m_iSizePerElement(iSizePerElement),
   m_iSizeX(width),
   m_iSizeY(height),
   m_hTexture(new GLuint[iNumBuffers]),
   m_LastTexUnit(NULL),
   m_LastDepthTextUnit(0),
   m_iNumBuffers(iNumBuffers),
-  m_LastAttachment(NULL)
+  m_LastAttachment(NULL),
+  m_intformat(intformat)
 {
   if (width<1) width=1;
   if (height<1) height=1;

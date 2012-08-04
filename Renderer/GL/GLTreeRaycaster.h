@@ -46,12 +46,18 @@ namespace tuvok {
 
       virtual ERendererType GetRendererType() const {return RT_RC;}
 
+      bool CheckForRedraw();
+
     protected:
       GLHashTable*    m_pglHashTable;
       GLVolumePool*   m_pVolumePool;
+      std::vector<unsigned char> m_vUploadMem;
       GLVBO*          m_pNearPlaneQuad;
       GLVBO*          m_pBBoxVBO;
-      GLFBOTex*       m_pFBORayEntry;
+      std::array<GLFBOTex*,2> m_pFBORayStart;
+      std::array<GLFBOTex*,2> m_pFBORayStartNext;
+      std::array<GLFBOTex*,2> m_pFBOResumeColor;
+      std::array<GLFBOTex*,2> m_pFBOResumeColorNext;
       GLSLProgram*    m_pProgramRenderFrontFaces;
       GLSLProgram*    m_pProgramRenderFrontFacesNearPlane;
       GLSLProgram*    m_pProgramRayCast1D;
@@ -68,6 +74,9 @@ namespace tuvok {
       bool Initialize(std::shared_ptr<Context> ctx);
 
       bool Continue3DDraw();
+
+      void Raycast(RenderRegion3D& rr, EStereoID eStereoID);
+
       virtual bool Render3DRegion(RenderRegion3D& region3D);
 
       void FillRayEntryBuffer(RenderRegion3D& rr, EStereoID eStereoID);
@@ -84,6 +93,8 @@ namespace tuvok {
 
       bool LoadDataset(const std::string& strFilename);
 
+      void UpdateVolumePool(std::vector<UINTVECTOR4>& hash);
+
       // all functions below are not "guaranteed" yet
       // (ask Jens if you want to know what that means :-)
 
@@ -91,6 +102,7 @@ namespace tuvok {
 
       virtual void StartFrame();
       virtual void SetDataDepShaderVars();
+      bool CreateVolumePool();
 
   };
 } // tuvok namespace.

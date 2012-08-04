@@ -40,6 +40,7 @@
 
 #include "../../StdTuvokDefines.h"
 #include "GLObject.h"
+#include "GLTexture.h"
 
 namespace tuvok {
 
@@ -49,8 +50,7 @@ class GLFBOTex : public GLObject {
 public:
   GLFBOTex(MasterController* pMasterController, GLenum minfilter,
            GLenum magfilter, GLenum wrapmode, GLsizei width, GLsizei height,
-           GLenum intformat, unsigned int iSizePerElement,
-           bool bHaveDepth=false, int iNumBuffers=1);
+           GLenum intformat, bool bHaveDepth=false, int iNumBuffers=1);
   virtual ~GLFBOTex(void);
   virtual void SetViewport();
   virtual void Write(unsigned int iTargetBuffer=0, int iBuffer=0,
@@ -65,11 +65,11 @@ public:
 
   /// \todo check how much mem an FBO really occupies
   virtual uint64_t GetCPUSize() const {
-    return EstimateCPUSize(m_iSizeX, m_iSizeY, m_iSizePerElement,
+    return EstimateCPUSize(m_iSizeX, m_iSizeY, GLTexture::SizePerElement(m_intformat)/8,
                            m_hDepthBuffer!=0, m_iNumBuffers);
   }
   virtual uint64_t GetGPUSize() const {
-    return EstimateGPUSize(m_iSizeX, m_iSizeY, m_iSizePerElement,
+    return EstimateGPUSize(m_iSizeX, m_iSizeY, GLTexture::SizePerElement(m_intformat)/8,
                            m_hDepthBuffer!=0, m_iNumBuffers);
   }
 
@@ -100,7 +100,6 @@ public:
 
 private:
   MasterController*   m_pMasterController;
-  unsigned int        m_iSizePerElement;
   GLuint              m_iSizeX;
   GLuint              m_iSizeY;
   GLuint*             m_hTexture;
@@ -112,6 +111,7 @@ private:
   GLenum              m_LastDepthTextUnit;
   int                 m_iNumBuffers;
   GLenum*             m_LastAttachment;
+  GLenum              m_intformat;
 
   bool CheckFBO(const char* method);
   void initFBO(void);
