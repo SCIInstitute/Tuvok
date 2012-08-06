@@ -17,13 +17,20 @@ static UINTVECTOR3 GetLoDSize(const UINTVECTOR3& volumeSize, uint32_t iLoD) {
   return vLoDSize;
 }
 
+static FLOATVECTOR3 GetFloatBrickLayout(const UINTVECTOR3& volumeSize, const UINTVECTOR3& maxBrickSize, uint32_t iLoD) {
+  FLOATVECTOR3 baseBrickCount(float(volumeSize.x)/maxBrickSize.x, 
+                              float(volumeSize.y)/maxBrickSize.y,
+                              float(volumeSize.z)/maxBrickSize.z);
+  return baseBrickCount/float(MathTools::Pow2(iLoD));
+}
+
+
 static UINTVECTOR3 GetBrickLayout(const UINTVECTOR3& volumeSize, const UINTVECTOR3& maxBrickSize, uint32_t iLoD) {
   UINTVECTOR3 baseBrickCount(uint32_t(ceil(double(volumeSize.x)/maxBrickSize.x)), 
                              uint32_t(ceil(double(volumeSize.y)/maxBrickSize.y)),
                              uint32_t(ceil(double(volumeSize.z)/maxBrickSize.z)));
   return GetLoDSize(baseBrickCount, iLoD);
 }
-
 
 GLVolumePool::GLVolumePool(const UINTVECTOR3& poolSize, const UINTVECTOR3& maxBrickSize,
                            const UINTVECTOR3& overlap, const UINTVECTOR3& volumeSize,
@@ -53,7 +60,9 @@ GLVolumePool::GLVolumePool(const UINTVECTOR3& poolSize, const UINTVECTOR3& maxBr
     }
   }
 
-  // compute the offset table
+  // compute the LoD offset table, i.e. a table that holds
+  // for each LoD the accumulated number of all bricks in
+  // the lower levels, this is used to serialize a brick index
   uint32_t iOffset = 0;
   uint32_t iLoDCount = GetLoDCount(m_volumeSize);
   m_vLoDOffsetTable.resize(iLoDCount);
@@ -88,48 +97,68 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
 
   ss << "" << std::endl
      << "layout(binding = " << m_iMetaTextureUnit << ") uniform sampler2D metaData;" << std::endl
+     << "int iMetaTextureWidth;" << std::endl
+     << "" << std::endl
+     << "#define BI_MISSING 0.0" << std::endl
+     << "#define BI_PRESENT 1.0" << std::endl
+     << "#define BI_EMPTY   2.0" << std::endl
+     << "" << std::endl
      << "layout(binding = " << m_iDataTextureUnit << ") uniform sampler3D volumeData;" << std::endl
      << "" << std::endl
-     << "uint Hash(uvec4 brick);" << std::endl
-     << "" << std::endl
-     << "const uint iLODOffset[" << m_vLoDOffsetTable.size() << "] = uint[](";
-  for (uint32_t i = 0;i<m_vLoDOffsetTable.size();++i) {
+     << "const uint vLODOffset[" << iLodCount << "] = uint[](";
+  for (uint32_t i = 0;i<iLodCount;++i) {
     ss << m_vLoDOffsetTable[i];
     if (i<iLodCount-1) {
       ss << ", ";
     }
   }
-  ss << ");" << std::endl;
-
-  
-  /*
-
   ss << ");" << std::endl
-     << "vec4 SampleVolume(vec3 vOffset, vec3 coords) {" << std::endl
-     << "  return sample3D(volumeData, coords+vOffset);" << std::endl
+     << "const vec3 vLODLayout[" << iLodCount << "] = vec3[](";
+  for (uint32_t i = 0;i<m_vLoDOffsetTable.size();++i) {
+    FLOATVECTOR3 vLoDSize = GetFloatBrickLayout(m_volumeSize, m_maxBrickSize, i);    
+    ss << "vec3(" << vLoDSize.x << ", " << vLoDSize.y << ", " << vLoDSize.z << ")";
+    if (i<iLodCount-1) {
+      ss << ", ";
+    }
+  }
+  ss << ");" << std::endl
+     << "" << std::endl
+     << "uint Hash(uvec4 brick);" << std::endl
+     << "" << std::endl
+     << "ivec2 GetBrickIndex(uvec4 brickCoords) {" << std::endl
+     << "  uint iLODOffset = vLODOffset[brickCoords.w];"<< std::endl
+     << "  uvec2 iLODLayout = uvec2(ceil(vLODLayout[brickCoords.w].x), ceil(vLODLayout[brickCoords.w].y));"<< std::endl
+     << "  uint iBrickIndex = iLODOffset + brickCoords.x + brickCoords.y * iLODLayout.x + brickCoords.z * iLODLayout.x * iLODLayout.y;" << std::endl
+     << "  return ivec2(iBrickIndex%iMetaTextureWidth, iBrickIndex/iMetaTextureWidth);"<< std::endl
      << "}" << std::endl
      << "" << std::endl
-     << "int HashValue(uint serializedValue) {" << std::endl
-     << "  return int(serializedValue % " << m_iTableSize << ");" << std::endl
+     << "vec4 GetBrickInfo(uvec4 brickCoords) {" << std::endl
+     << "  return texelFetch(metaData, GetBrickIndex(brickCoords), 0);" << std::endl
      << "}" << std::endl
+     << "uvec4 ComputeBrickCoords(vec3 globalEntryCoods, uint iLOD) {" << std::endl
+     << "  return uvec4(globalEntryCoods*vLODLayout[iLOD], iLOD);" << std::endl
+     << "}" << std::endl
+     << "bool GetBrick(in vec3 globalEntryCoods, in uint iLOD, in vec3 direction," << std::endl
+     << "              out vec3 localEntryCoods, out vec3 localExitCoods," << std::endl
+     << "              out vec3 globalbExitCoods) {" << std::endl
+     << "  uvec4 brickCoords = ComputeBrickCoords(globalEntryCoods, iLOD);" << std::endl
+     << "  vec4  brickInfo   = GetBrickInfo(brickCoords);" << std::endl
+     << "  bool bFoundRequestedResolution = (brickInfo != BI_MISSING);" << std::endl
+     << "  while (brickInfo != BI_MISSING) {" << std::endl
+     << "    Hash(brickCoords);" << std::endl
+     << "    iLOD++;" << std::endl
+     << "    brickCoords = ComputeBrickCoords(globalEntryCoods, iLOD);" << std::endl
+     << "    brickInfo   = GetBrickInfo(brickCoords);" << std::endl
+     << "  }" << std::endl
      << "" << std::endl
-     << "uint Hash(uvec4 bd) {" << std::endl
-     << "  uint rehashCount = 0;" << std::endl
-     << "  uint serializedValue = Serialize(bd);" << std::endl
+     << "  // TODO: Get info about brick" << std::endl
      << "" << std::endl
-     << "  do {" << std::endl
-     << "    int hash = HashValue(serializedValue+rehashCount);" << std::endl
-     << "    uint valueInImage = imageAtomicCompSwap(hashTable, hash, uint(0), serializedValue);" << std::endl
-     << "    if (valueInImage == 0 || valueInImage == serializedValue) return rehashCount;" << std::endl
-     << "  } while (++rehashCount < " << m_iRehashCount << ") ;" << std::endl
-     << "" << std::endl
-     << "  return uint(" << m_iRehashCount << ");" << std::endl
-     << "}" << std::endl;
+     << "  return bFoundRequestedResolution;" << std::endl
+     << "}" << std::endl
+     << "" << std::endl;
 
-     */
-
+  T_ERROR(ss.str().c_str());
   return ss.str();
-
 }
 
 bool GLVolumePool::UploadBrick(const BrickElemInfo& metaData, void* pData) {
@@ -179,12 +208,38 @@ void GLVolumePool::CreateGLResources() {
                                       m_internalformat, m_format, m_type);
   int gpumax; 
   GL(glGetIntegerv(GL_MAX_TEXTURE_SIZE, &gpumax));
-  const uint32_t max_texture_size = std::min(4096, gpumax);
 
-  // TODO: compute proper size
+  // last element in the offset table conatins all bricks until the
+  // last level. That last level cpntains one more brick
+  uint32_t iTotalBrickCount = *(m_vLoDOffsetTable.end()-1)+1;
+
+  // this is very unlikely but not impossible
+  if (iTotalBrickCount > uint32_t(gpumax*gpumax)) {
+    std::stringstream ss;    
+    
+    ss << "Unable to create brick metadata texture, as it needs to hold "
+       << iTotalBrickCount << "entries but the max 2D texture size on this "
+       << "machine is only " << gpumax << " x " << gpumax << "allowing for "
+       << " a maximum of " << gpumax*gpumax << " indices.";
+
+    T_ERROR(ss.str().c_str());
+    throw std::runtime_error(ss.str().c_str()); 
+  }
+  
+  UINTVECTOR2 vTexSize;
+  vTexSize.x = uint32_t(ceil(sqrt(double(iTotalBrickCount))));
+  vTexSize.y = uint32_t(ceil(double(iTotalBrickCount)/double(vTexSize.x)));
+  m_brickMetaData.resize(vTexSize.area());
+
+  std::stringstream ss;        
+  ss << "Creating brick metadata texture of size " << vTexSize.x << " x " 
+     << vTexSize.y << " to effectively hold  " << iTotalBrickCount << " entries. "
+     << "Consequently, " << vTexSize.area() - iTotalBrickCount << " entries in "
+     << "texture are wasted due to the 2D extions process.";
+  MESSAGE(ss.str().c_str());
 
   m_PoolMetadataTexture = new GLTexture2D(
-    max_texture_size, max_texture_size, GL_RGBA32F,
+    vTexSize.x, vTexSize.x, GL_RGBA32F,
     GL_RGBA, GL_FLOAT
   );
 }
@@ -195,7 +250,7 @@ UINTVECTOR3 GLVolumePool::FindNextPoolPosition() const {
 }
 
 void GLVolumePool::UploadMetaData() {
-  // TODO
+  m_PoolMetadataTexture->SetData(&m_brickMetaData[0]);
 }
 
 void GLVolumePool::UpdateMetadata() {

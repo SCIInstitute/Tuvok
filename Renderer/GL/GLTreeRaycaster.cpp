@@ -243,7 +243,7 @@ bool GLTreeRaycaster::Initialize(std::shared_ptr<Context> ctx) {
   m_pProgramRayCast1D = m_pMasterController->MemMan()->GetGLSLProgram(sd, m_pContext->GetShareGroupID());
 
 
-  if (!m_pProgramRayCast1D->IsValid())
+  if (!m_pProgramRayCast1D || !m_pProgramRayCast1D->IsValid())
   {
       Cleanup();
       T_ERROR("Error loading a shader.");
