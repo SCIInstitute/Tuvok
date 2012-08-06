@@ -2,6 +2,7 @@
 
 #include "GLVolumePool.h"
 #include "Basics/MathTools.h"
+#include <stdexcept>
 
 using namespace tuvok;
 
