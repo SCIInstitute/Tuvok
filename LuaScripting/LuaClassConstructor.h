@@ -305,8 +305,13 @@ private:
       }
       else
       {
-        postExecFailure(ss, inst);
+        // Remove the instance table and its metatable.
+        // (must be removed in the correct order).
+        lua_remove(L, mt);
+        lua_remove(L, instTable);
+
         ss->vPrint("Failed to load class.");
+        postExecFailure(ss, inst);
         // Create a default LuaClassInstance and return that.
         LuaClassInstance instFail;
         LuaStrictStack<LuaClassInstance>::push(L, instFail);
@@ -417,6 +422,11 @@ private:
       }
       else
       {
+        // Remove the instance table and its metatable.
+        // (must be removed in the correct order).
+        lua_remove(L, mt);
+        lua_remove(L, instTable);
+
         ss->vPrint("Failed to load class.");
         postExecFailure(ss, inst);
         // Create a default LuaClassInstance and return that.
