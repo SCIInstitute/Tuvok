@@ -1,15 +1,25 @@
 #version 420 core
 
-// import VolumePool functions
+// get ray start points & color
+layout(binding=0) uniform sampler2D rayStartPoint;
+layout(binding=1) uniform sampler2D rayStartColor;
 
-layout(binding=0) uniform sampler2D rayEntryPoint;
-
+// get pixel coordinates
 layout(pixel_center_integer) in vec4 gl_FragCoord;
 
+
+// import VolumePool functions
+bool GetBrick(in vec3 normalizedEntryCoords, in uint iLOD, in vec3 direction,
+              out vec3 poolTextureEntryCoods, out int iSteps,
+              out vec3 normalizedExitCoods);
+
+void TransformToPoolSpace(inout vec3 direction, in vec3 volumeAspect, in float sampleRateModifier);
+
+// go
 void main()
 {
   ivec2 screenpos = ivec2(gl_FragCoord.xy);
-  gl_FragColor = texelFetch(rayEntryPoint, screenpos,0);
+  gl_FragColor = texelFetch(rayStartPoint, screenpos,0);
 }
 
 
@@ -18,7 +28,7 @@ void main()
 
    The MIT License
 
-   Copyright (c) 2011 Interactive Visualization and Data Analysis Group.
+   Copyright (c) 2012 Interactive Visualization and Data Analysis Group.
 
 
    Permission is hereby granted, free of charge, to any person obtaining a

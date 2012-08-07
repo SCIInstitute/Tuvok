@@ -84,6 +84,9 @@ uint32_t GLVolumePool::GetIntegerBrickID(const UINTVECTOR4& vBrickID) const {
 }
 
 std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t iDataTextureUnit) {
+  // must have created GL resources before asking for shader
+  if (!m_PoolMetadataTexture  || !m_PoolDataTexture) return "";
+
   m_iMetaTextureUnit = iMetaTextureUnit;
   m_iDataTextureUnit = iDataTextureUnit;
 
@@ -97,14 +100,14 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
   uint32_t iLodCount = GetLoDCount(m_volumeSize);
 
   ss << "" << std::endl
-     << "layout(binding = " << m_iMetaTextureUnit << ") uniform sampler2D metaData;" << std::endl
-     << "int iMetaTextureWidth;" << std::endl
+     << "layout(binding = " << m_iMetaTextureUnit << ") uniform usampler2D metaData;" << std::endl
+     << "const int iMetaTextureWidth = " << m_PoolMetadataTexture->GetSize().x << ";" << std::endl
      << "" << std::endl
-     << "#define BI_MISSING 0.0" << std::endl
-     << "#define BI_PRESENT 1.0" << std::endl
-     << "#define BI_EMPTY   2.0" << std::endl
+     << "#define BI_MISSING 0" << std::endl
+     << "#define BI_EMPTY   1" << std::endl
      << "" << std::endl
-     << "layout(binding = " << m_iDataTextureUnit << ") uniform sampler3D volumeData;" << std::endl
+     << "layout(binding = " << m_iDataTextureUnit << ") uniform sampler3D volumePool;" << std::endl
+     << "const ivec3 iPoolSize = ivec3(" << m_PoolDataTexture->GetSize().x << ", " << m_PoolDataTexture->GetSize().y << ", " << m_PoolDataTexture->GetSize().z <<");" << std::endl
      << "" << std::endl
      << "const uint vLODOffset[" << iLodCount << "] = uint[](";
   for (uint32_t i = 0;i<iLodCount;++i) {
@@ -114,13 +117,14 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
     }
   }
   ss << ");" << std::endl
-     << "const vec3 vLODLayout[" << iLodCount << "] = vec3[](";
+     << "const vec3 vLODLayout[" << iLodCount << "] = vec3[](" << std::endl;
   for (uint32_t i = 0;i<m_vLoDOffsetTable.size();++i) {
     FLOATVECTOR3 vLoDSize = GetFloatBrickLayout(m_volumeSize, m_maxBrickSize, i);    
-    ss << "vec3(" << vLoDSize.x << ", " << vLoDSize.y << ", " << vLoDSize.z << ")";
+    ss << "   vec3(" << vLoDSize.x << ", " << vLoDSize.y << ", " << vLoDSize.z << ")";
     if (i<iLodCount-1) {
-      ss << ", ";
+      ss << ",";
     }
+    ss << "// Level " << i << std::endl;
   }
   ss << ");" << std::endl
      << "" << std::endl
@@ -133,32 +137,83 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
      << "  return ivec2(iBrickIndex%iMetaTextureWidth, iBrickIndex/iMetaTextureWidth);"<< std::endl
      << "}" << std::endl
      << "" << std::endl
-     << "vec4 GetBrickInfo(uvec4 brickCoords) {" << std::endl
-     << "  return texelFetch(metaData, GetBrickIndex(brickCoords), 0);" << std::endl
+     << "uint GetBrickInfo(uvec4 brickCoords) {" << std::endl
+     << "  return texelFetch(metaData, GetBrickIndex(brickCoords), 0).r;" << std::endl
      << "}" << std::endl
-     << "uvec4 ComputeBrickCoords(vec3 globalEntryCoods, uint iLOD) {" << std::endl
-     << "  return uvec4(globalEntryCoods*vLODLayout[iLOD], iLOD);" << std::endl
+     << "" << std::endl
+     << "uvec4 ComputeBrickCoords(vec3 normalizedEntryCoords, uint iLOD) {" << std::endl
+     << "  return uvec4(normalizedEntryCoords*vLODLayout[iLOD], iLOD);" << std::endl
      << "}" << std::endl
-     << "bool GetBrick(in vec3 globalEntryCoods, in uint iLOD, in vec3 direction," << std::endl
-     << "              out vec3 localEntryCoods, out vec3 localExitCoods," << std::endl
-     << "              out vec3 globalbExitCoods) {" << std::endl
-     << "  uvec4 brickCoords = ComputeBrickCoords(globalEntryCoods, iLOD);" << std::endl
-     << "  vec4  brickInfo   = GetBrickInfo(brickCoords);" << std::endl
+     << "" << std::endl
+     << "void GetBrickCorners(uvec4 brickCoords, out vec3 corners[2]) {" << std::endl
+     << "  corners[0] = vec3(brickCoords.xyz) / vLODLayout[brickCoords.w];" << std::endl
+     << "  corners[1] = min(vec3(1.0,1.0,1.0), vec3(brickCoords.xyz+1) / vLODLayout[brickCoords.w]);" << std::endl
+     << "}" << std::endl
+     << "" << std::endl   
+     << "vec3 BrickExit(vec3 pointInBrick, vec3 dir, in vec3 corners[2]) {" << std::endl
+	   << "  vec3 div = 1.0 / dir;" << std::endl
+	   << "  ivec3 side = ivec3(step(0.0,div));" << std::endl
+	   << "  vec3 tIntersect;" << std::endl
+	   << "  tIntersect.x = (corners[side[0]].x - pointInBrick.x) * div.x * (corners[1].x-corners[0].x);" << std::endl
+	   << "  tIntersect.y = (corners[side[1]].y - pointInBrick.y) * div.y * (corners[1].y-corners[0].y);" << std::endl
+	   << "  tIntersect.z = (corners[side[2]].z - pointInBrick.z) * div.z * (corners[1].z-corners[0].z);" << std::endl
+	   << "  return pointInBrick + min(min(tIntersect.x, tIntersect.y), tIntersect.z) * dir;" << std::endl
+     << "}" << std::endl
+     << "" << std::endl
+     << "bool GetBrick(in vec3 normalizedEntryCoords, in uint iLOD, in vec3 direction," << std::endl
+     << "              out vec3 poolTextureEntryCoods, out int iSteps," << std::endl
+     << "              out vec3 normalizedExitCoods) {" << std::endl
+     << "  uvec4 brickCoords = ComputeBrickCoords(normalizedEntryCoords, iLOD);" << std::endl
+     << "  uint  brickInfo   = GetBrickInfo(brickCoords);" << std::endl
      << "  bool bFoundRequestedResolution = (brickInfo != BI_MISSING);" << std::endl
-     << "  while (brickInfo != BI_MISSING) {" << std::endl
+     << "  if (!bFoundRequestedResolution) {" << std::endl
+     << "    // when the requested resolution is not present find look for a lower one" << std::endl
      << "    Hash(brickCoords);" << std::endl
-     << "    iLOD++;" << std::endl
-     << "    brickCoords = ComputeBrickCoords(globalEntryCoods, iLOD);" << std::endl
-     << "    brickInfo   = GetBrickInfo(brickCoords);" << std::endl
+     << "    do {" << std::endl
+     << "      iLOD++;" << std::endl
+     << "      brickCoords = ComputeBrickCoords(normalizedEntryCoords, iLOD);" << std::endl
+     << "      brickInfo   = GetBrickInfo(brickCoords);" << std::endl
+     << "    } while (brickInfo != BI_MISSING);" << std::endl
+     << "  } else {" << std::endl
+     << "    // when we found an empty brick check if lower resolutions are also empty" << std::endl
+     << "    while (iLOD > 0 && brickInfo != BI_EMPTY) {" << std::endl
+     << "      iLOD--;" << std::endl
+     << "      uvec4 lowResBrickCoords = ComputeBrickCoords(normalizedEntryCoords, iLOD);" << std::endl
+     << "      uint lowResBrickInfo = GetBrickInfo(lowResBrickCoords);" << std::endl
+     << "      if (lowResBrickInfo == BI_EMPTY) {" << std::endl
+     << "        brickCoords = lowResBrickCoords;" << std::endl
+     << "        brickInfo = lowResBrickInfo;" << std::endl
+     << "      }" << std::endl
+     << "    }" << std::endl
      << "  }" << std::endl
-     << "" << std::endl
-     << "  // TODO: Get info about brick" << std::endl
-     << "" << std::endl
+     << "  vec3 corners[2];" << std::endl
+     << "  GetBrickCorners(brickCoords, corners);" << std::endl
+     << "  normalizedExitCoods = BrickExit(normalizedEntryCoords, direction, corners);" << std::endl
+     << "  // TODO" << std::endl
+     << "  //poolTextureEntryCoods = ??;" << std::endl
+     << "  //iSteps = ??;" << std::endl
      << "  return bFoundRequestedResolution;" << std::endl
      << "}" << std::endl
-     << "" << std::endl;
+     << "" << std::endl
+     << "void TransformToPoolSpace(inout vec3 direction, in vec3 volumeAspect, in float sampleRateModifier) {" << std::endl
+     << "  // get rid of the volume aspect ratio, and trace in cubic voxel space" << std::endl
+     << "  direction /= volumeAspect;" << std::endl
+     << "  // normalize the direction" << std::endl
+     << "  direction = normalize(direction);" << std::endl
+     << "  // scale to volume pool's normalized coodinates" << std::endl
+     << "  direction /= vec3(iPoolSize);" << std::endl
+     << "  // do (roughly) two samples per voxel and apply user defined sample density" << std::endl
+     << "  direction /= 2.0*sampleRateModifier;" << std::endl
+     << "}" << std::endl;
 
-  T_ERROR(ss.str().c_str());
+
+  std::stringstream debug(ss.str());
+  std::string line;
+  unsigned int iLine = 1;
+  while(std::getline(debug, line)) {
+      T_ERROR("%i %s", iLine++, line.c_str());
+  }
+
   return ss.str();
 }
 
@@ -202,16 +257,14 @@ GLVolumePool::~GLVolumePool() {
   FreeGLResources();
 }
 
-
-
 void GLVolumePool::CreateGLResources() {
   m_PoolDataTexture = new GLTexture3D(m_poolSize.x, m_poolSize.y, m_poolSize.z,
                                       m_internalformat, m_format, m_type);
   int gpumax; 
   GL(glGetIntegerv(GL_MAX_TEXTURE_SIZE, &gpumax));
 
-  // last element in the offset table conatins all bricks until the
-  // last level. That last level cpntains one more brick
+  // last element in the offset table contains all bricks until the
+  // last level + that last level itself contains one brick
   uint32_t iTotalBrickCount = *(m_vLoDOffsetTable.end()-1)+1;
 
   // this is very unlikely but not impossible
@@ -240,13 +293,14 @@ void GLVolumePool::CreateGLResources() {
   MESSAGE(ss.str().c_str());
 
   m_PoolMetadataTexture = new GLTexture2D(
-    vTexSize.x, vTexSize.x, GL_RGBA32F,
-    GL_RGBA, GL_FLOAT
+    vTexSize.x, vTexSize.x, GL_R32UI,
+    GL_RED_INTEGER, GL_UNSIGNED_INT
   );
 }
 
 
 UINTVECTOR3 GLVolumePool::FindNextPoolPosition() const {
+  // TODO
   return UINTVECTOR3();
 }
 
@@ -270,13 +324,11 @@ void GLVolumePool::FreeGLResources() {
 }
 
 uint64_t GLVolumePool::GetCPUSize() const {
-  return 0;
-//  return m_iSizePerElement * m_poolTexSize.volume() +
-//         m_metaTexSize.area(); // TODO: * metatex elemen size
+  return m_PoolMetadataTexture->GetCPUSize() + m_PoolDataTexture->GetCPUSize();
 }
 
 uint64_t GLVolumePool::GetGPUSize() const {
-  return GetCPUSize();
+  return m_PoolMetadataTexture->GetGPUSize() + m_PoolDataTexture->GetGPUSize();
 }
 
 /*
