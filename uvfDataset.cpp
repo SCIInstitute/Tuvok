@@ -1433,12 +1433,9 @@ bool UVFDataset::Crop(const PLANE<float>& plane, const std::string& strTempDir,
   PLANE<float> scaleInvariantPlane = plane;
   scaleInvariantPlane.transformIT(m);
 
-  LargeRAWFile dataFile(strTempRawFilename);
+  TempFile dataFile(strTempRawFilename);
   if (!dataFile.Open(true)) {
     T_ERROR("Unable to open flattened data.");
-    if(remove(strTempRawFilename.c_str()) == -1) {
-      WARNING("Unable to delete temp file %s", strTempRawFilename.c_str());
-    }
     return false;
   }
 
@@ -1494,9 +1491,6 @@ bool UVFDataset::Crop(const PLANE<float>& plane, const std::string& strTempDir,
   }
 
   if (!bCroppingOK)  {
-    if(remove(strTempRawFilename.c_str()) == -1) {
-      WARNING("Unable to delete temp file %s", strTempRawFilename.c_str());
-    }
     return false;
   }
 
@@ -1516,13 +1510,7 @@ bool UVFDataset::Crop(const PLANE<float>& plane, const std::string& strTempDir,
       strSource, Controller::Instance().IOMan()->GetMaxBrickSize(),
       Controller::Instance().IOMan()->GetBrickOverlap())) {
     T_ERROR("Unable to convert cropped data back to UVF");
-    if(remove(strTempRawFilename.c_str()) == -1) {
-      WARNING("Unable to delete temp file %s", strTempRawFilename.c_str());
-    }
     return false;
-  }
-  if(remove(strTempRawFilename.c_str()) == -1) {
-    WARNING("Unable to delete temp file %s", strTempRawFilename.c_str());
   }
 
   MESSAGE("Replacing original UVF by the new one");
@@ -1533,7 +1521,7 @@ bool UVFDataset::Crop(const PLANE<float>& plane, const std::string& strTempDir,
     if (SysTools::FileExists(newFilename)) {
       newFilename = SysTools::FindNextSequenceName(newFilename);
     }
-    rename(Filename().c_str(),newFilename.c_str());
+    rename(Filename().c_str(), newFilename.c_str());
   } else {
     remove(Filename().c_str());
   }
