@@ -107,8 +107,16 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
      << "#define BI_EMPTY   1" << std::endl
      << "" << std::endl
      << "layout(binding = " << m_iDataTextureUnit << ") uniform sampler3D volumePool;" << std::endl
-     << "const ivec3 iPoolSize = ivec3(" << m_PoolDataTexture->GetSize().x << ", " << m_PoolDataTexture->GetSize().y << ", " << m_PoolDataTexture->GetSize().z <<");" << std::endl
-     << "" << std::endl
+     << "const ivec3 iPoolSize = ivec3(" << m_PoolDataTexture->GetSize().x << ", " 
+                                         << m_PoolDataTexture->GetSize().y << ", " 
+                                         << m_PoolDataTexture->GetSize().z <<");" << std::endl
+     << "const ivec3 poolCapacity = ivec3(" << m_PoolDataTexture->GetSize().x/m_maxBrickSize.x << ", " << 
+                                               m_PoolDataTexture->GetSize().y/m_maxBrickSize.y << ", " <<
+                                               m_PoolDataTexture->GetSize().z/m_maxBrickSize.z <<");" << std::endl
+     << "const ivec3 maxBrickSize = ivec3(" << m_maxBrickSize.x << ", " 
+                                            << m_maxBrickSize.y << ", " 
+                                            << m_maxBrickSize.z <<");" << std::endl
+     << "const uint iMaxLOD = " << iLodCount-1 << ";" << std::endl
      << "const uint vLODOffset[" << iLodCount << "] = uint[](";
   for (uint32_t i = 0;i<iLodCount;++i) {
     ss << m_vLoDOffsetTable[i];
@@ -141,13 +149,14 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
      << "  return texelFetch(metaData, GetBrickIndex(brickCoords), 0).r;" << std::endl
      << "}" << std::endl
      << "" << std::endl
-     << "uvec4 ComputeBrickCoords(vec3 normalizedEntryCoords, uint iLOD) {" << std::endl
-     << "  return uvec4(normalizedEntryCoords*vLODLayout[iLOD], iLOD);" << std::endl
+     << "uvec4 ComputeBrickCoords(vec3 normEntryCoords, uint iLOD) {" << std::endl
+     << "  return uvec4(normEntryCoords*vLODLayout[iLOD], iLOD);" << std::endl
      << "}" << std::endl
      << "" << std::endl
-     << "void GetBrickCorners(uvec4 brickCoords, out vec3 corners[2]) {" << std::endl
+     << "void GetBrickCorners(uvec4 brickCoords, out vec3 corners[2], out vec3 fullBrickSize) {" << std::endl
      << "  corners[0] = vec3(brickCoords.xyz) / vLODLayout[brickCoords.w];" << std::endl
-     << "  corners[1] = min(vec3(1.0,1.0,1.0), vec3(brickCoords.xyz+1) / vLODLayout[brickCoords.w]);" << std::endl
+     << "  fullBrickSize = vec3(brickCoords.xyz+1) / vLODLayout[brickCoords.w];" << std::endl
+     << "  corners[1] = min(vec3(1.0,1.0,1.0), fullBrickSize);" << std::endl
      << "}" << std::endl
      << "" << std::endl   
      << "vec3 BrickExit(vec3 pointInBrick, vec3 dir, in vec3 corners[2]) {" << std::endl
@@ -159,11 +168,36 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
 	   << "  tIntersect.z = (corners[side[2]].z - pointInBrick.z) * div.z * (corners[1].z-corners[0].z);" << std::endl
 	   << "  return pointInBrick + min(min(tIntersect.x, tIntersect.y), tIntersect.z) * dir;" << std::endl
      << "}" << std::endl
+     << " " << std::endl
+     << "uvec3 InfoToCoords(in uint brickInfo) {" << std::endl
+     << "  uint index = brickInfo-2;" << std::endl
+     << "  uvec3 vBrickCoords;" << std::endl
+	   << "  vBrickCoords.x = index % poolCapacity.x;" << std::endl
+	   << "  vBrickCoords.y = (index / poolCapacity.x) % poolCapacity.y;" << std::endl
+	   << "  vBrickCoords.z = index / (poolCapacity.x*poolCapacity.y);" << std::endl
+	   << "  return vBrickCoords;" << std::endl
+     << "}" << std::endl
+     << " " << std::endl
+     << "void BrickPoolCoords(in uint brickInfo,  out vec3 corners[2]) {" << std::endl
+     << "  uvec3 poolVoxelPos = InfoToCoords(brickInfo) * maxBrickSize;" << std::endl
+     << "  corners[0] = vec3(poolVoxelPos) / vec3(iPoolSize);" << std::endl
+     << "  corners[1] = vec3(poolVoxelPos+1) / vec3(iPoolSize);" << std::endl
+     << "}" << std::endl
+     << " " << std::endl
+     << "void NormCoordsToPoolCoords(in vec3 normEntryCoords, in vec3 normExitCoords, in vec3 corners[2]," << std::endl
+     << "                            in uint brickInfo, out vec3 poolEntryCoods, out vec3 poolExitCoords) {" << std::endl
+     << "  vec3 poolCorners[2];" << std::endl
+     << "  BrickPoolCoords(brickInfo, poolCorners);" << std::endl
+     << "  vec3 normToPoolScale = (poolCorners[1]-poolCorners[0])/(corners[1]-corners[0]);" << std::endl
+     << "  vec3 normToPoolTrans = poolCorners[0]-corners[0]*normToPoolScale;" << std::endl
+     << "  poolEntryCoods = normEntryCoords + normToPoolTrans * normToPoolScale;" << std::endl
+     << "  poolExitCoords = normExitCoords + normToPoolTrans * normToPoolScale;" << std::endl
+     << "}" << std::endl
      << "" << std::endl
-     << "bool GetBrick(in vec3 normalizedEntryCoords, in uint iLOD, in vec3 direction," << std::endl
-     << "              out vec3 poolTextureEntryCoods, out int iSteps," << std::endl
-     << "              out vec3 normalizedExitCoods) {" << std::endl
-     << "  uvec4 brickCoords = ComputeBrickCoords(normalizedEntryCoords, iLOD);" << std::endl
+     << "bool GetBrick(in vec3 normEntryCoords, in uint iLOD, in vec3 direction," << std::endl
+     << "              out vec3 poolEntryCoods, out vec3 poolExitCoords," << std::endl
+     << "              out vec3 normExitCoods) {" << std::endl
+     << "  uvec4 brickCoords = ComputeBrickCoords(normEntryCoords, iLOD);" << std::endl
      << "  uint  brickInfo   = GetBrickInfo(brickCoords);" << std::endl
      << "  bool bFoundRequestedResolution = (brickInfo != BI_MISSING);" << std::endl
      << "  if (!bFoundRequestedResolution) {" << std::endl
@@ -171,14 +205,14 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
      << "    Hash(brickCoords);" << std::endl
      << "    do {" << std::endl
      << "      iLOD++;" << std::endl
-     << "      brickCoords = ComputeBrickCoords(normalizedEntryCoords, iLOD);" << std::endl
+     << "      brickCoords = ComputeBrickCoords(normEntryCoords, iLOD);" << std::endl
      << "      brickInfo   = GetBrickInfo(brickCoords);" << std::endl
      << "    } while (brickInfo != BI_MISSING);" << std::endl
      << "  } else {" << std::endl
      << "    // when we found an empty brick check if lower resolutions are also empty" << std::endl
-     << "    while (iLOD > 0 && brickInfo != BI_EMPTY) {" << std::endl
-     << "      iLOD--;" << std::endl
-     << "      uvec4 lowResBrickCoords = ComputeBrickCoords(normalizedEntryCoords, iLOD);" << std::endl
+     << "    while (iLOD > iMaxLOD && brickInfo != BI_EMPTY) {" << std::endl
+     << "      iLOD++;" << std::endl
+     << "      uvec4 lowResBrickCoords = ComputeBrickCoords(normEntryCoords, iLOD);" << std::endl
      << "      uint lowResBrickInfo = GetBrickInfo(lowResBrickCoords);" << std::endl
      << "      if (lowResBrickInfo == BI_EMPTY) {" << std::endl
      << "        brickCoords = lowResBrickCoords;" << std::endl
@@ -187,23 +221,36 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
      << "    }" << std::endl
      << "  }" << std::endl
      << "  vec3 corners[2];" << std::endl
-     << "  GetBrickCorners(brickCoords, corners);" << std::endl
-     << "  normalizedExitCoods = BrickExit(normalizedEntryCoords, direction, corners);" << std::endl
-     << "  // TODO" << std::endl
-     << "  //poolTextureEntryCoods = ??;" << std::endl
-     << "  //iSteps = ??;" << std::endl
+     << "  vec3 fullBrickCorner;" << std::endl
+     << "  GetBrickCorners(brickCoords, corners, fullBrickCorner);" << std::endl
+     << "  normExitCoods = BrickExit(normEntryCoords, direction, corners);" << std::endl
+     << "  corners[1] = fullBrickCorner;" << std::endl
+     << "  NormCoordsToPoolCoords(normEntryCoords, normExitCoods, corners," << std::endl
+     << "                         brickInfo, poolEntryCoods, normExitCoods);" << std::endl
      << "  return bFoundRequestedResolution;" << std::endl
      << "}" << std::endl
      << "" << std::endl
-     << "void TransformToPoolSpace(inout vec3 direction, in vec3 volumeAspect, in float sampleRateModifier) {" << std::endl
+     << "vec3 TransformToPoolSpace(in vec3 direction, in vec3 volumeAspect, in float sampleRateModifier) {" << std::endl
      << "  // get rid of the volume aspect ratio, and trace in cubic voxel space" << std::endl
      << "  direction /= volumeAspect;" << std::endl
      << "  // normalize the direction" << std::endl
      << "  direction = normalize(direction);" << std::endl
-     << "  // scale to volume pool's normalized coodinates" << std::endl
+     << "  // scale to volume pool's norm coodinates" << std::endl
      << "  direction /= vec3(iPoolSize);" << std::endl
      << "  // do (roughly) two samples per voxel and apply user defined sample density" << std::endl
-     << "  direction /= 2.0*sampleRateModifier;" << std::endl
+     << "  return direction / 2.0*sampleRateModifier;" << std::endl
+     << "}" << std::endl
+     << " " << std::endl
+     << "float samplePool(vec3 coords) {" << std::endl
+     << " return texture(volumePool, coords).r;" << std::endl
+     << "}" << std::endl
+     << " " << std::endl
+     << "vec3 samplePool3(vec3 coords) {" << std::endl
+     << " return texture(volumePool, coords).rgb;" << std::endl
+     << "}" << std::endl
+     << " " << std::endl
+     << "vec4 samplePool4(vec3 coords) {" << std::endl
+     << " return texture(volumePool, coords);" << std::endl
      << "}" << std::endl;
 
 

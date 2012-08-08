@@ -180,7 +180,6 @@ void GLTreeRaycaster::Cleanup() {
   }
 }
 
-
 void recreateFBO(GLFBOTex*& fbo, std::shared_ptr<Context> pContext,
                  const UINTVECTOR2& ws, GLenum intformat, 
                  GLenum format, GLenum type) {
@@ -237,6 +236,7 @@ bool GLTreeRaycaster::Initialize(std::shared_ptr<Context> ctx) {
   std::vector<std::string> vs, fs;
   vs.push_back(FindFileInDirs("GLTreeRaycaster-VS.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("GLTreeRaycaster-1D-FS.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
   ShaderDescriptor sd(vs, fs);
   sd.AddFragmentShaderString(m_pVolumePool->GetShaderFragment(3,4));
   sd.AddFragmentShaderString(m_pglHashTable->GetShaderFragment(5));

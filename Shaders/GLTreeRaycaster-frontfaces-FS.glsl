@@ -4,7 +4,7 @@ in vec3 vEyePos;
 uniform mat4x4 mEyeToModel;
 
 void main() {
-   gl_FragColor = mEyeToModel * vec4(vEyePos.x, vEyePos.y, vEyePos.z, 1.0);
+   gl_FragColor = vec4((mEyeToModel * vec4(vEyePos.x, vEyePos.y, vEyePos.z, 1.0)).xyz, vEyePos.z);
 }
 
 
