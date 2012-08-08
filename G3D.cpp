@@ -135,28 +135,27 @@ void G3D::write(const std::string & file, const GeometrySoA * const geometry, co
 	}
 }
 
-void G3D::readHeader(std::fstream & fs, GeometryInfo & info)
-{
-	char * buffer = new char[8 * sizeof(uint32_t) + sizeof(bool)];
-	fs.read(buffer, 8 * sizeof(uint32_t) + sizeof(bool));
-	info.isOpaque = ((buffer++)[0] == 1);
-	info.numberPrimitives = ((uint32_t*)buffer)[0];
-	info.primitiveType = ((uint32_t*)buffer)[1];
-	uint32_t numberSemantics = ((uint32_t*)buffer)[2];
-	info.numberIndices = ((uint32_t*)buffer)[3];
-	info.indexSize = ((uint32_t*)buffer)[4];
-	info.numberVertices = ((uint32_t*)buffer)[5];
-	info.vertexSize = ((uint32_t*)buffer)[6];
-	info.vertexType = ((uint32_t*)buffer)[7];
-	delete [] --buffer;
+void G3D::readHeader(std::fstream& fs, GeometryInfo& info) {
+  char* buffer = new char[8 * sizeof(uint32_t) + sizeof(bool)];
+  fs.read(buffer, 8 * sizeof(uint32_t) + sizeof(bool));
+  info.isOpaque = ((buffer)[0] == 1);
+  const uint32_t* ibuf = reinterpret_cast<const uint32_t*>(buffer+1);
+  info.numberPrimitives = ibuf[0];
+  info.primitiveType = ibuf[1];
+  uint32_t numberSemantics = ibuf[2];
+  info.numberIndices = ibuf[3];
+  info.indexSize = ibuf[4];
+  info.numberVertices = ibuf[5];
+  info.vertexSize = ibuf[6];
+  info.vertexType = ibuf[7];
+  delete[] buffer;
 
-	buffer = new char[numberSemantics * sizeof(uint32_t)];
-	fs.read(buffer, numberSemantics * sizeof(uint32_t));
-	for (uint32_t i=0; i<numberSemantics; ++i) 
-	{
-		info.attributeSemantics.push_back(((uint32_t*)buffer)[i]);
-	}
-	delete [] buffer;
+	char* buf = new char[numberSemantics * sizeof(uint32_t)];
+  fs.read(buf, numberSemantics * sizeof(uint32_t));
+  for (uint32_t i=0; i<numberSemantics; ++i) {
+    info.attributeSemantics.push_back(((uint32_t*)buf)[i]);
+  }
+  delete[] buf;
 }
 
 void G3D::readIndices(std::fstream & fs, uint32_t *& indices, const GeometryInfo & info)
