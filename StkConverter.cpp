@@ -168,7 +168,7 @@ stk_read_metadata(TIFF *tif, struct stk &metadata)
     // In particular, we'll look up the UIC3Tag and count the number of values
     // in there.
     const ttag_t uic3tag = (ttag_t) 33630; // the tag is private.
-    uint16_t count;
+    uint32_t count;
     void *data;
     if(TIFFGetField(tif, uic3tag, &count, &data) == 0) {
       return false;  // UIC3 tag does not exist; this is not a stk.
