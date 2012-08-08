@@ -839,7 +839,11 @@ void RasterDataBlock::SubSample(LargeRAWFile_ptr pSourceFile,
         pSourceData = new unsigned char[size_t(iSourceWindowSize*iElementSize)];
         pTargetData = new unsigned char[size_t(iTargetWindowSize*iElementSize)];
       } else {
-        pTargetFile->WriteRAW(pTargetData, iTargetWindowSize*iElementSize);
+        const uint64_t bytes = iTargetWindowSize * iElementSize;
+        if(pTargetFile->WriteRAW(pTargetData, bytes) != bytes) {
+          pDebugOut->Error(_func_, "short write while subsampling!");
+          assert(1 == 0);
+        }
       }
 
       if(pDebugOut && (--uCount == 0)) {
@@ -850,15 +854,21 @@ void RasterDataBlock::SubSample(LargeRAWFile_ptr pSourceFile,
                            int(iMaxLODLevel), fCurrentOutput);
       }
 
+      const uint64_t bytes = iSourceWindowSize*iElementSize;
       if (pSourceFile == pTargetFile) {
         // save and later restore position for in place subsampling
         uint64_t iFilePos = pSourceFile->GetPos();
         pSourceFile->SeekPos(iSourcePos*iElementSize);
-        pSourceFile->ReadRAW(pSourceData, iSourceWindowSize*iElementSize);
+        if(pSourceFile->ReadRAW(pSourceData, bytes) != bytes) {
+          pDebugOut->Error(_func_, "short read from '%s'",
+                           pSourceFile->GetFilename().c_str());
+        }
         pSourceFile->SeekPos(iFilePos);
       } else {
         pSourceFile->SeekPos(iSourcePos*iElementSize);
-        pSourceFile->ReadRAW(pSourceData, iSourceWindowSize*iElementSize);
+        if(pSourceFile->ReadRAW(pSourceData, bytes) != bytes) {
+          pDebugOut->Error(_func_, "short read from data");
+        }
       }
 
       iWindowSourcePos = 0;
@@ -885,7 +895,11 @@ void RasterDataBlock::SubSample(LargeRAWFile_ptr pSourceFile,
     iSourcePos += vPrefixProd[sourceSize.size()-1] * vSourcePos[sourceSize.size()-1];
   }
 
-  pTargetFile->WriteRAW(pTargetData, iTargetWindowSize*iElementSize);
+  const uint64_t bytes = iTargetWindowSize*iElementSize;
+  if(pTargetFile->WriteRAW(pTargetData, bytes) != bytes) {
+    pDebugOut->Error(_func_, "short write to '%s'",
+                     pTargetFile->GetFilename().c_str());
+  }
   delete[] pSourceData;
   delete[] pTargetData;
 }
