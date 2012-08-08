@@ -833,12 +833,11 @@ void RasterDataBlock::SubSample(LargeRAWFile_ptr pSourceFile,
   static const size_t uItersPerUpdate = 100;
   size_t uCount = uItersPerUpdate;
 
-  for (uint64_t i = 0;i<iTargetElementCount;i++) {
-
+  for (uint64_t i=0; i<iTargetElementCount; i++) {
     if (i==0 || iWindowTargetPos >= iTargetWindowSize) {
       if (i==0) {
-          pSourceData = new unsigned char[size_t(iSourceWindowSize*iElementSize)];
-          pTargetData = new unsigned char[size_t(iTargetWindowSize*iElementSize)];
+        pSourceData = new unsigned char[size_t(iSourceWindowSize*iElementSize)];
+        pTargetData = new unsigned char[size_t(iTargetWindowSize*iElementSize)];
       } else {
         pTargetFile->WriteRAW(pTargetData, iTargetWindowSize*iElementSize);
       }
@@ -884,14 +883,11 @@ void RasterDataBlock::SubSample(LargeRAWFile_ptr pSourceFile,
       iSourcePos += vPrefixProd[j-1] * vSourcePos[j-1];
     }
     iSourcePos += vPrefixProd[sourceSize.size()-1] * vSourcePos[sourceSize.size()-1];
-
-    
-
   }
 
   pTargetFile->WriteRAW(pTargetData, iTargetWindowSize*iElementSize);
-  delete [] pSourceData;
-  delete [] pTargetData;
+  delete[] pSourceData;
+  delete[] pTargetData;
 }
 
 
@@ -1010,7 +1006,6 @@ RasterDataBlock::FlatDataToBrickedLOD(
   vector<uint64_t> vReducedDomainSize;
 
   for (size_t i = 0;i<vLODCombis.size();i++) {
-
     if (pDebugOut) {
       pDebugOut->Message(_func_,
                          "Generating data for lod level %i of %i", int(i+1),
@@ -1159,7 +1154,7 @@ RasterDataBlock::FlatDataToBrickedLOD(
       //}
 
     }
-    delete [] pData;
+    delete[] pData;
 
 //    Console::printf("\n");
   }

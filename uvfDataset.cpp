@@ -98,7 +98,7 @@ bool UVFDataset::Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion)
             "different from this program's (%u)!",
             unsigned(m_pDatasetFile->GetGlobalHeader().ulFileVersion),
             unsigned(m_pDatasetFile->ms_ulReaderVersion));
-    if (m_pDatasetFile->ms_ulReaderVersion < 4) 
+    if (m_pDatasetFile->ms_ulReaderVersion < 4)
       WARNING("Opening UVF file with a version"
               "older then 4 without TOCBlock support, "
               "some features may not be available.");
@@ -113,7 +113,7 @@ bool UVFDataset::Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion)
     return false;
   }
 
-  for (size_t i = 0;i<m_timesteps.size();++i) 
+  for (size_t i = 0;i<m_timesteps.size();++i)
     delete m_timesteps[i];
   m_timesteps.resize(n_timesteps);
   if (m_bToCBlock) {
@@ -142,7 +142,7 @@ bool UVFDataset::Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion)
     ComputeMetaData(i);
     GetHistograms(i);
   }
-  
+
   ComputeRange();
 
   // print out data statistics
@@ -166,7 +166,7 @@ bool UVFDataset::Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion)
             << "  LOD down to "
             << ts->GetDB()->GetBrickCount(ts->GetDB()->GetLoDCount()-1).x << " x "
             << ts->GetDB()->GetBrickCount(ts->GetDB()->GetLoDCount()-1).y << " x "
-            << ts->GetDB()->GetBrickCount(ts->GetDB()->GetLoDCount()-1).z 
+            << ts->GetDB()->GetBrickCount(ts->GetDB()->GetLoDCount()-1).z
             << " bricks found.";
     } else {
       const RDTimestep* ts = (RDTimestep*)m_timesteps[tsi];
@@ -517,7 +517,7 @@ bool UVFDataset::VerifyTOCBlock(const TOCBlock* tb) const
   if (tb->GetComponentCount() == 1 || tb->GetComponentCount() == 4) {
     // check if the data's coarsest LOD level contains only one brick
     // this should always be true by design of the TOC-Block but
-    // we check it here in case we allow exceptionsto this in the future 
+    // we check it here in case we allow exceptionsto this in the future
     const uint64_t vSmallestLODBrickCount = tb->GetBrickCount(tb->GetLoDCount()-1).volume();
     return vSmallestLODBrickCount == 1;
   } else {
@@ -681,7 +681,7 @@ void UVFDataset::FindSuitableDataBlocks() {
 
           m_timesteps[data]->block_number = iBlocks;
           m_timesteps[data++]->m_pVolumeDataBlock = pVolumeDataBlock;
-        } 
+        }
         break;
       case UVFTables::BS_GEOMETRY: {
         MESSAGE("Found triangle mesh.");
@@ -821,7 +821,7 @@ UINTVECTOR3 UVFDataset::GetBrickVoxelCounts(const BrickKey& k) const
                                          [static_cast<size_t>(key.brick[0])]
                                          [static_cast<size_t>(key.brick[1])]
                                          [static_cast<size_t>(key.brick[2])]);
-  }  
+  }
 }
 
 
@@ -851,17 +851,17 @@ bool UVFDataset::Export(uint64_t iLODLevel, const std::string& targetFilename,
       // Unbrick each timestep.  Append the data if the user asks, but we must
       // always append on second and subsequent timesteps!
       okay &= rd_ts->GetDB()->BrickedLODToFlatData(
-                vLOD, targetFilename, 
+                vLOD, targetFilename,
                 bAppend || ts != m_timesteps.begin(),
                 &Controller::Debug::Out()
                 );
     }
-    return okay; 
+    return okay;
   }
 }
 
-bool UVFDataset::ApplyFunction(uint64_t iLODLevel, 
-                      bool (*brickFunc)(void* pData, 
+bool UVFDataset::ApplyFunction(uint64_t iLODLevel,
+                      bool (*brickFunc)(void* pData,
                                         const UINT64VECTOR3& vBrickSize,
                                         const UINT64VECTOR3& vBrickOffset,
                                         void* pUserContext),
@@ -874,8 +874,8 @@ bool UVFDataset::ApplyFunction(uint64_t iLODLevel,
       ts != m_timesteps.end(); ++ts) {
       const TOCTimestep* toc_ts = static_cast<TOCTimestep*>(*ts);
       okay &= toc_ts->GetDB()->ApplyFunction(
-                iLODLevel,             
-                brickFunc, pUserContext, 
+                iLODLevel,
+                brickFunc, pUserContext,
                 uint32_t(iOverlap), &Controller::Debug::Out()
               );
     }
@@ -887,11 +887,11 @@ bool UVFDataset::ApplyFunction(uint64_t iLODLevel,
         ts != m_timesteps.end(); ++ts) {
       const RDTimestep* rd_ts = static_cast<RDTimestep*>(*ts);
       okay &= rd_ts->GetDB()->ApplyFunction(
-                vLOD, brickFunc, pUserContext, 
+                vLOD, brickFunc, pUserContext,
                 iOverlap, &Controller::Debug::Out()
-                ); 
+                );
     }
-    return okay;  
+    return okay;
   }
 }
 
@@ -931,7 +931,7 @@ UINT64VECTOR4 UVFDataset::KeyToTOCVector(const BrickKey &k) const {
 
     const uint64_t x = iLinearIndex % iBricks.x;
     const uint64_t y = (iLinearIndex % (iBricks.x*iBricks.y)) / iBricks.x;
-    const uint64_t z = iLinearIndex / (iBricks.x*iBricks.y); 
+    const uint64_t z = iLinearIndex / (iBricks.x*iBricks.y);
 
     return UINT64VECTOR4(x,y,z,iLOD);
   } else {
@@ -1079,7 +1079,7 @@ bool UVFDataset::IsSameEndianness() const
   return m_bIsSameEndianness;
 }
 
-std::pair<double,double> UVFDataset::GetRange() const { 
+std::pair<double,double> UVFDataset::GetRange() const {
   return m_CachedRange;
 }
 
@@ -1156,7 +1156,7 @@ InternalMaxMinElement UVFDataset::MaxMinForKey(const BrickKey &k) const {
 
     const NDBrickKey& key = IndexToVectorKey(k);
     size_t iLOD = static_cast<size_t>(std::get<1>(k));
-    
+
     const RDTimestep* ts = static_cast<RDTimestep*>(m_timesteps[key.timestep]);
     return ts->m_vvaMaxMin[iLOD]
                           [static_cast<size_t>(key.brick[0])]
@@ -1221,15 +1221,15 @@ bool UVFDataset::GeometryTransformToFile(size_t iMeshIndex, const FLOATMATRIX4& 
     // such as the volume or histograms, etc.
     size_t iBlockIndex = 0;
     bool bFound = false;
-        
+
     for(size_t block=0; block < m_pDatasetFile->GetDataBlockCount(); ++block) {
-      if (m_pDatasetFile->GetDataBlock(block)->GetBlockSemantic() 
-                                                  == UVFTables::BS_GEOMETRY) {        
+      if (m_pDatasetFile->GetDataBlock(block)->GetBlockSemantic()
+                                                  == UVFTables::BS_GEOMETRY) {
         if (iMeshIndex == 0) {
           iBlockIndex = block;
           bFound = true;
           break;
-        }          
+        }
         iMeshIndex--;
       }
     }
@@ -1250,7 +1250,7 @@ bool UVFDataset::GeometryTransformToFile(size_t iMeshIndex, const FLOATMATRIX4& 
     if (vertices.size() % 3) {
       T_ERROR("Inconsistent data vertex in UVF block at index %u", static_cast<unsigned>(iBlockIndex));
       return false;
-    }  
+    }
     for (size_t i = 0;i<vertices.size();i+=3) {
       FLOATVECTOR3 v = (FLOATVECTOR4(vertices[i+0],vertices[i+1],vertices[i+2],1)*m).xyz();
       vertices[i+0] = v.x;
@@ -1268,7 +1268,7 @@ bool UVFDataset::GeometryTransformToFile(size_t iMeshIndex, const FLOATMATRIX4& 
     if (normals.size() % 3) {
       T_ERROR("Inconsistent normal data in UVF block at index %u", static_cast<unsigned>(iBlockIndex));
       return false;
-    }  
+    }
     for (size_t i = 0;i<normals.size();i+=3) {
       FLOATVECTOR3 n = (FLOATVECTOR4(normals[i+0],normals[i+1],normals[i+2],0)*invTranspose).xyz();
       n.normalize();
@@ -1281,7 +1281,7 @@ bool UVFDataset::GeometryTransformToFile(size_t iMeshIndex, const FLOATMATRIX4& 
     MESSAGE("Writing changes to disk");
     Close();
     MESSAGE("Reopening in read-only mode");
-    
+
     Open(false,false,false);
     return true;
   }
@@ -1305,15 +1305,15 @@ bool UVFDataset::RemoveMesh(size_t iMeshIndex) {
     // such as the volume or histograms, etc.
     size_t iBlockIndex = 0;
     bool bFound = false;
-        
+
     for(size_t block=0; block < m_pDatasetFile->GetDataBlockCount(); ++block) {
-      if (m_pDatasetFile->GetDataBlock(block)->GetBlockSemantic() 
-                                                  == UVFTables::BS_GEOMETRY) {        
+      if (m_pDatasetFile->GetDataBlock(block)->GetBlockSemantic()
+                                                  == UVFTables::BS_GEOMETRY) {
         if (iMeshIndex == 0) {
           iBlockIndex = block;
           bFound = true;
           break;
-        }          
+        }
         iMeshIndex--;
       }
     }
@@ -1328,7 +1328,7 @@ bool UVFDataset::RemoveMesh(size_t iMeshIndex) {
     MESSAGE("Writing changes to disk");
     Close();
     MESSAGE("Reopening in read-only mode");
-    
+
     Open(false,false,false);
     return bResult;
   }
@@ -1368,7 +1368,7 @@ bool UVFDataset::AppendMesh(const Mesh& m) {
       tsb->SetVertices(fVec);
     } else {
       // even if the vectors are empty still let the datablock know
-      tsb->SetVertices(vector<float>()); 
+      tsb->SetVertices(vector<float>());
     }
 
     if (n.size()) {
@@ -1402,13 +1402,13 @@ bool UVFDataset::AppendMesh(const Mesh& m) {
     tsb->SetColorIndices(m.GetColorIndices());
 
     tsb->m_Desc = m.Name();
-    
+
     m_pDatasetFile->AppendBlockToFile(tsb);
 
     MESSAGE("Writing changes to disk");
     Close();
     MESSAGE("Reopening in read-only mode");
-    
+
     Open(false,false,false);
     return true;
   }
@@ -1416,76 +1416,91 @@ bool UVFDataset::AppendMesh(const Mesh& m) {
 
 
 
-bool UVFDataset::Crop( const PLANE<float>& plane, const std::string& strTempDir, bool bKeepOldData)
+bool UVFDataset::Crop(const PLANE<float>& plane, const std::string& strTempDir,
+                      bool bKeepOldData)
 {
   MESSAGE("Flattening dataset");
-  string strTempRawFilename = SysTools::FindNextSequenceName(strTempDir + "crop-tmp.raw");
+  string strTempRawFilename = SysTools::FindNextSequenceName(
+    strTempDir + "crop-tmp.raw"
+  );
   Export(0, strTempRawFilename , false);
 
-  MESSAGE("Cropping at plane (%g %g %g %g)", plane.x, plane.y, plane.z, plane.w);
-
+  MESSAGE("Cropping at plane (%g %g %g %g)", plane.x, plane.y, plane.z,
+                                             plane.w);
   FLOATMATRIX4 m;
-  m.Scaling(FLOATVECTOR3(GetScale()/GetScale().maxVal()) * FLOATVECTOR3(GetDomainSize()) /float(GetDomainSize().maxVal()) );
+  m.Scaling(FLOATVECTOR3(GetScale()/GetScale().maxVal()) *
+            FLOATVECTOR3(GetDomainSize()) /float(GetDomainSize().maxVal()));
   PLANE<float> scaleInvariantPlane = plane;
   scaleInvariantPlane.transformIT(m);
 
   LargeRAWFile dataFile(strTempRawFilename);
   if (!dataFile.Open(true)) {
     T_ERROR("Unable to open flattened data.");
-    if(remove(strTempRawFilename.c_str()) == -1) WARNING("Unable to delete temp file %s", strTempRawFilename.c_str());
+    if(remove(strTempRawFilename.c_str()) == -1) {
+      WARNING("Unable to delete temp file %s", strTempRawFilename.c_str());
+    }
     return false;
   }
-  
+
   // crop data
   bool bCroppingOK = false;
   switch (GetBitWidth()) {
     case 8:
       if(GetIsSigned()) {
-        bCroppingOK = CropData<int8_t>(dataFile, scaleInvariantPlane, GetDomainSize(), GetComponentCount());
+        bCroppingOK = CropData<int8_t>(dataFile, scaleInvariantPlane,
+                                       GetDomainSize(), GetComponentCount());
       } else {
-        bCroppingOK = CropData<uint8_t>(dataFile, scaleInvariantPlane, GetDomainSize(), GetComponentCount());
+        bCroppingOK = CropData<uint8_t>(dataFile, scaleInvariantPlane,
+                                        GetDomainSize(), GetComponentCount());
       }
       break;
     case 16 :
       if(GetIsSigned()) {
-        bCroppingOK = CropData<int16_t>(dataFile, scaleInvariantPlane, GetDomainSize(), GetComponentCount());
+        bCroppingOK = CropData<int16_t>(dataFile, scaleInvariantPlane,
+                                        GetDomainSize(), GetComponentCount());
       } else {
-        bCroppingOK = CropData<uint16_t>(dataFile, scaleInvariantPlane, GetDomainSize(), GetComponentCount());
+        bCroppingOK = CropData<uint16_t>(dataFile, scaleInvariantPlane,
+                                         GetDomainSize(), GetComponentCount());
       }
       break;
     case 32 :
       if (GetIsFloat()) {
-        bCroppingOK = CropData<float>(dataFile, scaleInvariantPlane, GetDomainSize(), GetComponentCount());
+        bCroppingOK = CropData<float>(dataFile, scaleInvariantPlane,
+                                      GetDomainSize(), GetComponentCount());
       } else {
         if(GetIsSigned()) {
-          bCroppingOK = CropData<int32_t>(dataFile, scaleInvariantPlane, GetDomainSize(), GetComponentCount());
+          bCroppingOK = CropData<int32_t>(dataFile, scaleInvariantPlane,
+                                          GetDomainSize(), GetComponentCount());
         } else {
-          bCroppingOK = CropData<uint32_t>(dataFile, scaleInvariantPlane, GetDomainSize(), GetComponentCount());
+          bCroppingOK = CropData<uint32_t>(dataFile, scaleInvariantPlane,
+                                           GetDomainSize(), GetComponentCount());
         }
       }
       break;
     case 64 :
       if (GetIsFloat()) {
-        bCroppingOK = CropData<double>(dataFile, scaleInvariantPlane, GetDomainSize(), GetComponentCount());
+        bCroppingOK = CropData<double>(dataFile, scaleInvariantPlane,
+                                       GetDomainSize(), GetComponentCount());
       } else {
         if(GetIsSigned()) {
-          bCroppingOK = CropData<int64_t>(dataFile, scaleInvariantPlane, GetDomainSize(), GetComponentCount());
+          bCroppingOK = CropData<int64_t>(dataFile, scaleInvariantPlane,
+                                          GetDomainSize(), GetComponentCount());
         } else {
-          bCroppingOK = CropData<uint64_t>(dataFile, scaleInvariantPlane, GetDomainSize(), GetComponentCount());
+          bCroppingOK = CropData<uint64_t>(dataFile, scaleInvariantPlane,
+                                           GetDomainSize(), GetComponentCount());
         }
       }
       break;
   }
 
   if (!bCroppingOK)  {
-    if(remove(strTempRawFilename.c_str()) == -1) WARNING("Unable to delete temp file %s", strTempRawFilename.c_str());
+    if(remove(strTempRawFilename.c_str()) == -1) {
+      WARNING("Unable to delete temp file %s", strTempRawFilename.c_str());
+    }
     return false;
   }
 
-
   // TODO shrink volume to the largest non-zero aabb
-
-
   dataFile.Close();
 
   MESSAGE("Rebuilding UVF data");
@@ -1494,23 +1509,30 @@ bool UVFDataset::Crop( const PLANE<float>& plane, const std::string& strTempDir,
   std::string strDesc = std::string("Cropped ") + std::string(Name());
   std::string strSource = SysTools::GetFilename(Filename());
 
-  if (!RAWConverter::ConvertRAWDataset(strTempRawFilename, strTempFilename, strTempDir, 0,
-    GetBitWidth(), size_t(GetComponentCount()), 1, !IsSameEndianness(), GetIsSigned(), GetIsFloat(),
-    GetDomainSize(), FLOATVECTOR3(GetScale()), strDesc, strSource, 
-    Controller::Instance().IOMan()->GetMaxBrickSize(), 
-    Controller::Instance().IOMan()->GetBrickOverlap())) {
+  if(!RAWConverter::ConvertRAWDataset(
+      strTempRawFilename, strTempFilename, strTempDir, 0, GetBitWidth(),
+      size_t(GetComponentCount()), 1, !IsSameEndianness(), GetIsSigned(),
+      GetIsFloat(), GetDomainSize(), FLOATVECTOR3(GetScale()), strDesc,
+      strSource, Controller::Instance().IOMan()->GetMaxBrickSize(),
+      Controller::Instance().IOMan()->GetBrickOverlap())) {
     T_ERROR("Unable to convert cropped data back to UVF");
-    if(remove(strTempRawFilename.c_str()) == -1) WARNING("Unable to delete temp file %s", strTempRawFilename.c_str());
+    if(remove(strTempRawFilename.c_str()) == -1) {
+      WARNING("Unable to delete temp file %s", strTempRawFilename.c_str());
+    }
     return false;
   }
-  if(remove(strTempRawFilename.c_str()) == -1) WARNING("Unable to delete temp file %s", strTempRawFilename.c_str());
+  if(remove(strTempRawFilename.c_str()) == -1) {
+    WARNING("Unable to delete temp file %s", strTempRawFilename.c_str());
+  }
 
   MESSAGE("Replacing original UVF by the new one");
   Close();
-  
+
   if (bKeepOldData) {
     std::string newFilename = SysTools::AppendFilename(Filename(),"-beforeCropping");
-    if (SysTools::FileExists(newFilename)) newFilename = SysTools::FindNextSequenceName(newFilename);
+    if (SysTools::FileExists(newFilename)) {
+      newFilename = SysTools::FindNextSequenceName(newFilename);
+    }
     rename(Filename().c_str(),newFilename.c_str());
   } else {
     remove(Filename().c_str());
@@ -1518,7 +1540,8 @@ bool UVFDataset::Crop( const PLANE<float>& plane, const std::string& strTempDir,
 
 
   if (SysTools::FileExists(Filename())) {
-    T_ERROR("Unable to delete original UVF file, a new file (%s) has be created alongside the old.", strTempFilename.c_str());
+    T_ERROR("Unable to delete original UVF file, a new file (%s) has been "
+            "created alongside the old.", strTempFilename.c_str());
     Open(false,false,false);
     return false;
   }
@@ -1545,7 +1568,7 @@ bool UVFDataset::SaveRescaleFactors() {
     return false;
   } else {
     MESSAGE("Successfully reopened file in readwrite mode.");
-    
+
     if (m_bToCBlock) {
       for(size_t tsi=0; tsi < m_timesteps.size(); ++tsi) {
         TOCBlock* tocb =
@@ -1673,10 +1696,9 @@ std::pair<FLOATVECTOR3, FLOATVECTOR3> UVFDataset::GetTextCoords(BrickTable::cons
     }
 
     return std::make_pair(vTexcoordsMin, vTexcoordsMax*brickAspect);
-   
   } else {
     return Dataset::GetTextCoords(brick, bUseOnlyPowerOfTwo);
   }
 }
 
-}; // tuvok namespace.
+} // tuvok namespace.

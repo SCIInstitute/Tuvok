@@ -50,8 +50,8 @@ struct stk {
   uint16_t samples;    ///< number of components per pixel
 };
 
-static bool stk_read_metadata(TIFF *, struct stk &);
-static void stk_read_write_strips(TIFF *, LargeRAWFile &);
+static bool stk_read_metadata(TIFF*, struct stk&);
+static void stk_read_write_strips(TIFF*, LargeRAWFile&);
 
 StkConverter::StkConverter()
 {
@@ -79,22 +79,22 @@ StkConverter::ConvertToRAW(const std::string& strSourceFilename,
   T_ERROR("Tuvok was not built with IO support!");
   return false;
 #else
-  AbstrDebugOut& dbg = Controller::Debug::Out();
-  dbg.Message(_func_, "Attempting to convert stk file: %s",
-              strSourceFilename.c_str());
+  MESSAGE("Attempting to convert stk file: %s", strSourceFilename.c_str());
 
   TIFF *tif = TIFFOpen(strSourceFilename.c_str(), "r");
   if(tif == NULL) {
-    dbg.Error(_func_, "Could not open %s", strSourceFilename.c_str());
+    T_ERROR("Could not open %s", strSourceFilename.c_str());
     return false;
   }
   struct stk metadata;
-  stk_read_metadata(tif, metadata);
-  dbg.Message(_func_, "%ux%ux%u %s", metadata.x, metadata.y, metadata.z,
-                                     m_vConverterDesc.c_str());
-  dbg.Message(_func_, "%hu bits per component.", metadata.bpp);
-  dbg.Message(_func_, "%hu component%s.", metadata.samples,
-              (metadata.samples == 1) ? "" : "s");
+  if(!stk_read_metadata(tif, metadata)) {
+    return false;
+  }
+  MESSAGE("%ux%ux%u %s", metadata.x, metadata.y, metadata.z,
+                         m_vConverterDesc.c_str());
+  MESSAGE("%hu bits per component.", metadata.bpp);
+  MESSAGE("%hu component%s.", metadata.samples,
+                              (metadata.samples == 1) ? "" : "s");
   // copy that metadata into Tuvok variables.
   iComponentSize = metadata.bpp;
   iComponentCount = metadata.samples;
@@ -105,8 +105,9 @@ StkConverter::ConvertToRAW(const std::string& strSourceFilename,
   // IIRC libtiff handles all the endian issues for us.
   bConvertEndianess = false;
 
-  // One might consider setting the values below explicitly as bugs, but we're
-  // not quite sure where to read these from.  In any case, we don't have any
+  // One might consider setting the values below explicitly (as opposed
+  // to reading them from somewhere) to be bugs, but we're not quite
+  // sure where to read these from.  In any case, we don't have any
   // data for which these settings are invalid.
   bSigned = false;
   bIsFloat = false;
@@ -124,8 +125,7 @@ StkConverter::ConvertToRAW(const std::string& strSourceFilename,
   LargeRAWFile binary(strIntermediateFile);
   binary.Create(iComponentSize/8 * iComponentCount * vVolumeSize.volume());
   if(!binary.IsOpen()) {
-    dbg.Error(_func_, "Could not create binary file %s",
-              strIntermediateFile.c_str());
+    T_ERROR("Could not create binary file %s", strIntermediateFile.c_str());
     TIFFClose(tif);
     return false;
   }
@@ -153,7 +153,7 @@ StkConverter::ConvertToNative(const std::string&, const std::string&,
 }
 
 static bool
-stk_read_metadata(TIFF *tif, struct stk &metadata)
+stk_read_metadata(TIFF* tif, struct stk& metadata)
 {
 #ifdef TUVOK_NO_IO
   return false;
@@ -184,7 +184,7 @@ stk_read_metadata(TIFF *tif, struct stk &metadata)
 }
 
 static void
-stk_read_write_strips(TIFF *tif, LargeRAWFile &raw)
+stk_read_write_strips(TIFF* tif, LargeRAWFile& raw)
 {
 #ifndef TUVOK_NO_IO
   const tstrip_t n_strips = TIFFNumberOfStrips(tif);
