@@ -437,7 +437,8 @@ static bool Quantize(LargeRAWFile& InputData,
   double fQuantFactHist = QuantizationFactor(hist_size-1, minmax.first,
                                              minmax.second);
 
-  bool bDataWillbeChanged = fQuantFact != 1.0 || minmax.first != 0;
+  bool bDataWillbeChanged = fQuantFact != 1.0 || minmax.first != 0 ||
+                            sizeof(T) > 2;
 
   LargeRAWFile OutputData(strTargetFilename);
   // if the only reason for quantization is the histogram computation
