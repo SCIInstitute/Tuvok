@@ -2423,7 +2423,7 @@ IOManager::EvaluateExpression(const char* expr,
   }
 
   std::string tmp_fn = SysTools::RemoveExt(out_fn) + ".rdb";
-  LargeRAWFile_ptr lout(new LargeRAWFile(tmp_fn));
+  LargeRAWFile_ptr lout(new TempFile(tmp_fn));
   lout->Create();
   rdb->ResetFile(lout);
 
