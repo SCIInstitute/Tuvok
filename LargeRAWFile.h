@@ -163,4 +163,16 @@ protected:
 
 typedef std::shared_ptr<LargeRAWFile> LargeRAWFile_ptr;
 
+// A TempFile is an RAII LargeRAWFile, which deletes itself when it
+// goes out of scope.  There shouldn't be any need to explicitly delete
+// it, but you can do so early with the 'Delete' call, if desired.
+class TempFile : public LargeRAWFile {
+public:
+  TempFile(const std::string& filename) : LargeRAWFile(filename, 0) {}
+  virtual ~TempFile() {
+    Close();
+    Delete();
+  }
+};
+
 #endif // LARGERAWFILE_H
