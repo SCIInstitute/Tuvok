@@ -1888,5 +1888,15 @@ void AbstrRenderer::RegisterLuaFunctions(
                     "setConsiderPrevDepthBuffer", "", true);
   id = reg.function(&AbstrRenderer::LoadDataset,
                     "loadDataset", "", true);
+
+  id = reg.function(&AbstrRenderer::GetUseOnlyPowerOfTwo,
+                    "getUseOnlyPowerOfTwo", "", false);
+  id = reg.function(&AbstrRenderer::GetDownSampleTo8Bits,
+                    "getDownSampleTo8Bits", "", false);
+  id = reg.function(&AbstrRenderer::GetDisableBorder,
+                    "getDisableBorder", "", false);
+
+  id = reg.function(&AbstrRenderer::AddShaderPath,
+                    "addShaderPath", "", true);
 }
 
