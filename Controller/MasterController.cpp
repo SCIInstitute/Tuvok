@@ -53,6 +53,7 @@
 #include "../LuaScripting/LuaMemberReg.h"
 #include "../LuaScripting/TuvokSpecific/LuaTuvokTypes.h"
 #include "../LuaScripting/TuvokSpecific/LuaDatasetProxy.h"
+#include "../LuaScripting/TuvokSpecific/LuaTransferFun1DProxy.h"
 
 using namespace tuvok;
 
@@ -353,6 +354,15 @@ void MasterController::RegisterLuaCommands() {
       "tuvok.dataset.new instead.",
       LuaClassRegCallback<LuaDatasetProxy>::Type(
           LuaDatasetProxy::defineLuaInterface));
+
+  // Register 1D transfer function proxy
+  ss->registerClassStatic<LuaTransferFun1DProxy>(
+      &LuaTransferFun1DProxy::luaConstruct,
+      "tuvok.transferFun1D",
+      "Constructs a transfer function proxy. Construction of these proxies "
+      "should be left to the renderer.",
+      LuaClassRegCallback<LuaTransferFun1DProxy>::Type(
+          LuaTransferFun1DProxy::defineLuaInterface));
 }
 
 bool MasterController::Execute(const std::string& strCommand,

@@ -55,6 +55,7 @@
 #include "LuaScripting/LuaClassInstance.h"
 #include "LuaScripting/TuvokSpecific/LuaTuvokTypes.h"
 #include "LuaScripting/TuvokSpecific/LuaDatasetProxy.h"
+#include "LuaScripting/TuvokSpecific/LuaTransferFun1DProxy.h"
 
 using namespace std;
 using namespace tuvok;
@@ -183,6 +184,13 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
       "tuvok.datasetProxy.new");
   m_pLuaDatasetPtr = m_pLuaDataset.getRawPointer<LuaDatasetProxy>(
       m_pMasterController->LuaScript());
+
+  // Create our transfer function proxy.
+  m_pLua1DTrans =
+      m_pMasterController->LuaScript()->cexecRet<LuaClassInstance>(
+          "tuvok.transferFun1D.new");
+  m_pLua1DTransPtr = m_pLua1DTrans.getRawPointer<LuaTransferFun1DProxy>(
+      m_pMasterController->LuaScript());
 }
 
 bool AbstrRenderer::Initialize(std::shared_ptr<Context> ctx) {
@@ -247,6 +255,10 @@ AbstrRenderer::~AbstrRenderer() {
   // Kill the dataset proxy.
   m_pMasterController->LuaScript()->cexecRet<LuaClassInstance>(
       "deleteClass", m_pLuaDataset);
+
+  // Kill the transfer function 1d proxy.
+  m_pMasterController->LuaScript()->cexecRet<LuaClassInstance>(
+      "deleteClass", m_pLua1DTrans);
 }
 
 static std::string render_mode(AbstrRenderer::ERenderMode mode) {
@@ -310,6 +322,12 @@ void AbstrRenderer::Free1DTrans()
 {
   GPUMemMan& mm = *(Controller::Instance().MemMan());
   mm.Free1DTrans(m_p1DTrans, this);
+  m_pLua1DTransPtr->bind(NULL);
+}
+
+void AbstrRenderer::LuaBindNew1DTrans()
+{
+  m_pLua1DTransPtr->bind(m_p1DTrans);
 }
 
 void AbstrRenderer::Changed1DTrans() {
@@ -1367,7 +1385,7 @@ void AbstrRenderer::SetStereoEyeSwap(bool bSwap) {
   if (m_bDoStereoRendering) Schedule3DWindowRedraws();
 }
 
-void AbstrRenderer::CVFocusHasChanged(LuaClassInstance region) {
+void AbstrRenderer::CVFocusHasChanged(LuaClassInstance) {
   ScheduleRecompose();
 }
 
@@ -1604,6 +1622,10 @@ LuaClassInstance AbstrRenderer::LuaGetDataset() {
   return m_pLuaDataset;
 }
 
+LuaClassInstance AbstrRenderer::LuaGet1DTrans() {
+  return m_pLua1DTrans;
+}
+
 void AbstrRenderer::LuaCloneRenderMode(LuaClassInstance inst) {
   shared_ptr<LuaScripting> ss(m_pMasterController->LuaScript());
   AbstrRenderer* other = inst.getRawPointer<AbstrRenderer>(ss);
@@ -1668,6 +1690,9 @@ void AbstrRenderer::RegisterLuaFunctions(
   id = reg.function(&AbstrRenderer::LuaGetDataset,
                     "getDataset",
                     "Retrieves the renderer's current dataset.", false);
+
+  id = reg.function(&AbstrRenderer::LuaGet1DTrans,
+                    "get1DTrans", "", false);
 
   id = reg.function(&AbstrRenderer::SetBackgroundColors,
                     "setBGColors",

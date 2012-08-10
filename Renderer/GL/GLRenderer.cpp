@@ -197,6 +197,9 @@ bool GLRenderer::Initialize(std::shared_ptr<Context> ctx) {
     mm.GetEmpty1DTrans(m_pDataset->Get1DHistogram().GetFilledSize(), this,
                        &m_p1DTrans, &m_p1DTransTex);
   }
+  // This is a bit of a kludge, but there's currently no way for AbstrRenderer
+  // to know when a new m_p1DTrans has been set.
+  LuaBindNew1DTrans();
 
   if (SysTools::FileExists(strPotential2DTransName)) {
     mm.Get2DTransFromFile(strPotential2DTransName, this,

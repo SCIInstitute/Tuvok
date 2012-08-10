@@ -64,6 +64,7 @@ namespace tuvok {
 class MasterController;
 class RenderMesh;
 class LuaDatasetProxy;
+class LuaTransferFun1DProxy;
 
 class Brick {
 public:
@@ -570,6 +571,11 @@ class AbstrRenderer: public Scriptable {
     /// memory.  It's expected you'll set another one directly afterwards.
     void Free1DTrans();
 
+    /// This is the function that should be called after creating a new 1D
+    /// transfer function and associating it with the variable m_p1DTrans.
+    /// @todo Find a more elegant way of doing this.
+    void LuaBindNew1DTrans();
+
     /// @return the current iso value, normalized to be in [0,1]
     double GetNormalizedIsovalue() const;
     /// @return the current clearview iso value, normalized to be in [0,1]
@@ -757,13 +763,16 @@ class AbstrRenderer: public Scriptable {
     float               m_fCVIsovalue;
 
 
-    // Private Lua-only functions
+    // Private Lua-only functions/variables
   private:
 
     LuaClassInstance m_pLuaDataset;
     LuaDatasetProxy* m_pLuaDatasetPtr;
     LuaClassInstance LuaGetDataset();
 
+    LuaClassInstance m_pLua1DTrans;
+    LuaTransferFun1DProxy* m_pLua1DTransPtr;
+    LuaClassInstance LuaGet1DTrans();
 };
 
 }; //namespace tuvok

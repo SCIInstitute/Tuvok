@@ -27,39 +27,40 @@
  */
 
 /**
- \brief A Lua class proxy for IO's dataset class.
+ \brief Lua proxy for IO's 1D transfer function.
  */
 
-#ifndef LUADATASETPROXY_H_
-#define LUADATASETPROXY_H_
+#ifndef LUATRANSFERFUN1DPROXY_H
+#define LUATRANSFERFUN1DPROXY_H
 
-#include "../LuaScripting.h"
-#include "../LuaClassRegistration.h"
+class TransferFunction1D;
 
-namespace tuvok
-{
+namespace tuvok {
 
-class Dataset;
-
-class LuaDatasetProxy
+/// @brief classDescription
+class LuaTransferFun1DProxy
 {
 public:
-  LuaDatasetProxy();
-  virtual ~LuaDatasetProxy();
+  LuaTransferFun1DProxy();
+  virtual ~LuaTransferFun1DProxy();
 
-  void bindDataset(Dataset* ds);
+  void bind(TransferFunction1D* tf);
 
-  static LuaDatasetProxy* luaConstruct() {return new LuaDatasetProxy;}
-  static void defineLuaInterface(LuaClassRegistration<LuaDatasetProxy>& reg,
-                                 LuaDatasetProxy* me,
+  static LuaTransferFun1DProxy* luaConstruct() 
+  {
+    return new LuaTransferFun1DProxy();
+  }
+  static void defineLuaInterface(LuaClassRegistration<LuaTransferFun1DProxy>& reg,
+                                 LuaTransferFun1DProxy* me,
                                  LuaScripting* ss);
 
 private:
 
   /// Class registration we received from defineLuaInterface.
   /// @todo Change to unique pointer.
-  LuaClassRegistration<LuaDatasetProxy>* mReg;
+  LuaClassRegistration<LuaTransferFun1DProxy>* mReg;
 };
 
-} /* namespace tuvok */
-#endif /* LUADATASETPROXY_H_ */
+} // namespace tuvok
+
+#endif // LUATRANSFERFUN1DPROXY_H
