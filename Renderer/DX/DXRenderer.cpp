@@ -126,20 +126,6 @@ void DXRenderer::Changed2DTrans() {
 
 }
 
-void DXRenderer::Set1DTrans(const std::vector<unsigned char>&)
-{
-  Free1DTrans();
-
-  std::pair<TransferFunction1D*, DXTexture1D*> tf;
-  /// @todo FIXME GPUMemMan needs to account for DX.
-  assert(1 == 0); // make sure this comment gets noticed!
-  //GPUMemMan& mm = *(Controller::Instance().MemMan());
-  //tf = mm.SetExternal1DTrans(rgba, this);
-
-  m_p1DTrans = tf.first;
-  m_p1DTransTex = tf.second;
-}
-
 void DXRenderer::Resize(const UINTVECTOR2& vWinSize) {
   // call the parent
   AbstrRenderer::Resize(vWinSize);

@@ -137,8 +137,7 @@ public:
 };
 
 inline bool operator < (const Brick& left, const Brick& right) {
-  if  (left.fDistance < right.fDistance) return true;
-  return false;
+  return (left.fDistance < right.fDistance);
 }
 
 /** \class AbstrRenderer
@@ -268,7 +267,6 @@ class AbstrRenderer: public Scriptable {
 
     TransferFunction1D* Get1DTrans() {return m_p1DTrans;}
     TransferFunction2D* Get2DTrans() {return m_p2DTrans;}
-    virtual void Set1DTrans(const std::vector<unsigned char>& rgba) = 0;
 
     /** Notify renderer that 1D TF has changed.  In most cases, this will cause
      * the renderer to start anew. */
@@ -635,20 +633,20 @@ class AbstrRenderer: public Scriptable {
     uint32_t m_iTimeSliceMSecs;
     ///@}
 
-    uint64_t              m_iIntraFrameCounter;
-    uint64_t              m_iFrameCounter;
-    uint32_t              m_iCheckCounter;
-    uint64_t              m_iMaxLODIndex;
+    uint64_t            m_iIntraFrameCounter;
+    uint64_t            m_iFrameCounter;
+    uint32_t            m_iCheckCounter;
+    uint64_t            m_iMaxLODIndex;
     UINTVECTOR2         m_iLODLimits;
-    uint64_t              m_iPerformanceBasedLODSkip;
-    uint64_t              m_iCurrentLODOffset;
-    uint64_t              m_iStartLODOffset;
+    uint64_t            m_iPerformanceBasedLODSkip;
+    uint64_t            m_iCurrentLODOffset;
+    uint64_t            m_iStartLODOffset;
     size_t              m_iTimestep;
     CullingLOD          m_FrustumCullingLOD;
     bool                m_bClearFramebuffer;
     bool                m_bConsiderPreviousDepthbuffer;
-    uint64_t              m_iCurrentLOD;
-    uint64_t              m_iBricksRenderedInThisSubFrame;
+    uint64_t            m_iCurrentLOD;
+    uint64_t            m_iBricksRenderedInThisSubFrame;
     std::vector<Brick>  m_vCurrentBrickList;
     std::vector<Brick>  m_vLeftEyeBrickList;
     ERendererTarget     m_eRendererTarget;

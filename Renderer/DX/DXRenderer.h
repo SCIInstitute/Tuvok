@@ -62,7 +62,6 @@ class DXRenderer : public AbstrRenderer {
     virtual bool Initialize();
     virtual void Changed1DTrans();
     virtual void Changed2DTrans();
-    virtual void Set1DTrans(const std::vector<unsigned char>&);
 
     /** Set the bit depth mode of the offscreen buffer used for blending.  Causes a full redraw. */
     virtual void SetBlendPrecision(EBlendPrecision eBlendPrecision);

@@ -443,18 +443,6 @@ void GLRenderer::CleanupShaders() {
   CleanupShader(&m_pProgramMeshBTF);
 }
 
-void GLRenderer::Set1DTrans(const std::vector<unsigned char>& rgba)
-{
-  AbstrRenderer::Free1DTrans();
-
-  GPUMemMan& mm = *(Controller::Instance().MemMan());
-  std::pair<TransferFunction1D*, GLTexture1D*> tf;
-  tf = mm.SetExternal1DTrans(rgba, this);
-
-  m_p1DTrans = tf.first;
-  m_p1DTransTex = tf.second;
-}
-
 void GLRenderer::Changed1DTrans() {
   assert(m_p1DTransTex->GetSize() == m_p1DTrans->GetSize());
 
