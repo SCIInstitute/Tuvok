@@ -70,11 +70,12 @@ void LuaDatasetProxy::bindDataset(Dataset* ds)
     // Register dataset functions using ds.
     std::string id;
 
-    //GetDomainSize
     id = mReg->functionProxy(ds, &Dataset::GetDomainSize,
                              "getDomainSize", "", false);
     id = mReg->functionProxy(ds, &Dataset::GetRange,
                              "getRange", "", false);
+    id = mReg->functionProxy(ds, &Dataset::GetLODLevelCount,
+                             "getLODLevelCount", "", false);
 
     // Attempt to cast the dataset to a file backed dataset.
     FileBackedDataset* fileDataset = dynamic_cast<FileBackedDataset*>(ds);
