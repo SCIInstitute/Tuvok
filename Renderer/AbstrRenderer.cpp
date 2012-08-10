@@ -1908,6 +1908,9 @@ void AbstrRenderer::RegisterLuaFunctions(
                     false);
   ss->setProvenanceExempt(id);
 
+  id = reg.function(&AbstrRenderer::SetLODLimits,
+                    "setLODLimits", "", false);
+
 
 
 
