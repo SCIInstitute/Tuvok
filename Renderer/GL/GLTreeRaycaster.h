@@ -93,16 +93,25 @@ namespace tuvok {
 
       bool LoadDataset(const std::string& strFilename);
 
-      void UpdateVolumePool(std::vector<UINTVECTOR4>& hash);
+      bool CreateVolumePool();
+      void UpdateToVolumePool(const UINTVECTOR4& brick);
+      void UpdateToVolumePool(std::vector<UINTVECTOR4>& hash);
+      void RecomputeBrickVisibility();
+
+      // catch all circumstances that change the visibilty of a brick
+      virtual void SetIsoValue(float fIsovalue);
+      virtual void Changed2DTrans();
+      virtual void Changed1DTrans();
+      virtual void SetRendermode(AbstrRenderer::ERenderMode eRenderMode);
+
+
 
       // all functions below are not "guaranteed" yet
       // (ask Jens if you want to know what that means :-)
 
       bool            m_bNoRCClipplanes;
 
-      virtual void StartFrame();
       virtual void SetDataDepShaderVars();
-      bool CreateVolumePool();
 
   };
 } // tuvok namespace.

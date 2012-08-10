@@ -11,6 +11,8 @@
 #include "GLTexture3D.h"
 
 namespace tuvok {
+  class GLSLProgram;
+
   class PoolSlotData {
   public:
     PoolSlotData(const UINTVECTOR3& vPositionInPool) :
@@ -19,7 +21,16 @@ namespace tuvok {
       m_vPositionInPool(vPositionInPool)
     {}
 
+    void Clear() {
+      m_iBrickID = -1;
+      m_iTimeOfCreation = 0;
+    }
+
     const UINTVECTOR3& PositionInPool() const {return m_vPositionInPool;}
+
+    bool operator< (const PoolSlotData& other) {
+      return (m_iTimeOfCreation<other.m_iTimeOfCreation);
+    }
 
     int32_t     m_iBrickID;
     uint64_t    m_iTimeOfCreation;
@@ -38,30 +49,6 @@ namespace tuvok {
     UINTVECTOR3    m_vVoxelSize;
   };
 
-  struct VolumePoolElemInfo : public BrickElemInfo {
-    VolumePoolElemInfo(const BrickElemInfo& bei,
-                       const UINTVECTOR3& vPoolCoordinates) :
-        BrickElemInfo(bei),
-        m_vPoolCoordinates(vPoolCoordinates),
-        m_iPriority(0)
-    {}
-
-    bool operator<(const VolumePoolElemInfo& vei) const {
-      return this->m_iPriority < vei.m_iPriority;
-    }
-
-    void Age() {
-      m_iPriority++;
-    }
-
-    void Renew() {
-      m_iPriority = 0;
-    }
-
-    UINTVECTOR3 m_vPoolCoordinates;
-    uint64_t m_iPriority;
-  };
-
   class GLVolumePool : public GLObject {
     public:
       GLVolumePool(const UINTVECTOR3& poolSize, const UINTVECTOR3& maxBrickSize,
@@ -71,9 +58,12 @@ namespace tuvok {
       virtual ~GLVolumePool();
 
       bool UploadBrick(const BrickElemInfo& metaData, void* pData);
+      void UploadFirstBrick(const UINTVECTOR3& m_vVoxelSize, void* pData);
       void UploadMetaData();
+      void BrickContainsData(uint32_t iLoD, uint32_t iIndexInLoD, bool bVisible);
       bool IsBrickResident(const UINTVECTOR4& vBrickID) const;
-      void BindTexures() const;
+      void Enable(float fLoDFactor, const FLOATVECTOR3& volumeAspect,
+                  GLSLProgram* pShaderProgram) const;
 
       std::string GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t iDataTextureUnit);
 
@@ -81,10 +71,9 @@ namespace tuvok {
       virtual uint64_t GetGPUSize() const;
 
     protected:
-      
-      std::list<VolumePoolElemInfo> m_BricksInPool;
       GLTexture2D* m_PoolMetadataTexture;
       GLTexture3D* m_PoolDataTexture;
+      UINTVECTOR3 m_vPoolCapacity;
       UINTVECTOR3 m_poolSize;
       UINTVECTOR3 m_maxBrickSize;
       UINTVECTOR3 m_overlap;
@@ -92,30 +81,27 @@ namespace tuvok {
       GLint m_internalformat;
       GLenum m_format;
       GLenum m_type;
+      uint64_t m_iTimeOfCreation;
 
       uint32_t m_iMetaTextureUnit;
       uint32_t m_iDataTextureUnit;
       bool m_bUseGLCore;
 
+      size_t m_iInsertPos;
+
       UINTVECTOR2 m_metaTexSize;
 
-
-      std::vector<FLOATVECTOR4> m_brickMetaData;
+      std::vector<uint32_t> m_brickMetaData;
       std::vector<PoolSlotData> m_PoolSlotData;
       std::vector<uint32_t> m_vLoDOffsetTable;
-
-/*
-      Hash<UINTVECTOR4, BrickElemInfo>::Table m_BrickHash;
-      UINTVECTOR3 m_allocPos;
-
-*/
 
       void CreateGLResources();
       void FreeGLResources();
 
-      UINTVECTOR3 FindNextPoolPosition() const;
       void UpdateMetadata();
       uint32_t GetIntegerBrickID(const UINTVECTOR4& vBrickID) const;
+      void UploadBrick(uint32_t iBrickID, const UINTVECTOR3& vVoxelSize, void* pData, 
+                       size_t iInsertPos, uint64_t iTimeOfCreation);
   };
 }
 #endif // GLVOLUMEPOOL_H

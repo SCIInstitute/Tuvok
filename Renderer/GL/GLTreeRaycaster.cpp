@@ -22,6 +22,14 @@ using namespace std::placeholders;
 using namespace std;
 using namespace tuvok;
 
+static BrickKey HashValueToBrickKey(const UINTVECTOR4& hash, size_t timestep, const UVFDataset* pToCDataset) {
+  UINT64VECTOR3 layout = pToCDataset->GetBrickLayout(hash.w, timestep);
+
+  return BrickKey(timestep, hash.w, hash.x*layout.x*layout.y+
+                                    hash.y*layout.x+
+                                    hash.z);
+}
+
 GLTreeRaycaster::GLTreeRaycaster(MasterController* pMasterController, 
                          bool bUseOnlyPowerOfTwo, 
                          bool bDownSampleTo8Bits, 
@@ -46,7 +54,6 @@ GLTreeRaycaster::GLTreeRaycaster(MasterController* pMasterController,
   // a member of the parent class, henced it's initialized here
   m_bSupportsMeshes = false;
 
-  
   std::fill(m_pFBOResumeColor.begin(), m_pFBOResumeColor.end(), (GLFBOTex*)NULL);
   std::fill(m_pFBOResumeColorNext.begin(), m_pFBOResumeColorNext.end(), (GLFBOTex*)NULL);
   std::fill(m_pFBORayStart.begin(), m_pFBORayStart.end(), (GLFBOTex*)NULL);
@@ -111,8 +118,25 @@ bool GLTreeRaycaster::CreateVolumePool() {
 
   m_pVolumePool = new GLVolumePool(poolSize, UINTVECTOR3(m_pToCDataset->GetMaxUsedBrickSizes()), 
                                    m_pToCDataset->GetBrickOverlapSize(), 
-                                   UINTVECTOR3(m_pToCDataset->GetDomainSize()), glInternalformat,
-                                   glFormat, glType);
+                                   UINTVECTOR3(m_pToCDataset->GetDomainSize()),                                    
+                                   glInternalformat, glFormat, glType);
+
+
+  // upload a brick that covers the entire domain to make sure have something to render
+
+  if (m_vUploadMem.empty()) {
+  // if loading a brick for the first time, prepare upload mem
+    const UINTVECTOR3 vSize = m_pToCDataset->GetMaxBrickSize();
+    const uint64_t iByteWidth = m_pToCDataset->GetBitWidth()/8;
+    const uint64_t iCompCount = m_pToCDataset->GetComponentCount();
+    const uint64_t iBrickSize = vSize.volume() * iByteWidth * iCompCount;
+    m_vUploadMem.resize(iBrickSize);
+  }
+  const BrickKey bkey = HashValueToBrickKey(UINTVECTOR4(0,0,0,uint32_t(m_pToCDataset->GetLODLevelCount()-1)), m_iTimestep, m_pToCDataset);
+  m_pToCDataset->GetBrick(bkey, m_vUploadMem);
+  m_pVolumePool->UploadFirstBrick(m_pToCDataset->GetBrickVoxelCounts(bkey), &m_vUploadMem[0]);
+  
+  RecomputeBrickVisibility();
 
   return true;
 }
@@ -496,45 +520,6 @@ void GLTreeRaycaster::RenderBox(const RenderRegion& renderRegion, STATE_CULL cul
 }
 
 
-void GLTreeRaycaster::StartFrame() {
-  GLRenderer::StartFrame();
-  return;
-
-  // TODO
-  /*
-  FLOATVECTOR2 vfWinSize = FLOATVECTOR2(m_vWinSize);
-  switch (m_eRenderMode) {
-    case RM_1DTRANS    :  m_pProgram1DTrans[0]->Enable();
-                          m_pProgram1DTrans[0]->Set("vScreensize",vfWinSize.x, vfWinSize.y);
-
-                          m_pProgram1DTrans[1]->Enable();
-                          m_pProgram1DTrans[1]->Set("vScreensize",vfWinSize.x, vfWinSize.y);
-                          break;
-    case RM_2DTRANS    :  m_pProgram2DTrans[0]->Enable();
-                          m_pProgram2DTrans[0]->Set("vScreensize",vfWinSize.x, vfWinSize.y);
-
-                          m_pProgram2DTrans[1]->Enable();
-                          m_pProgram2DTrans[1]->Set("vScreensize",vfWinSize.x, vfWinSize.y);
-                          break;
-    case RM_ISOSURFACE :  {
-                           FLOATVECTOR3 scale = 1.0f/FLOATVECTOR3(m_pDataset->GetScale());
-                            if (m_bDoClearView) {
-                              m_pProgramIso2->Enable();
-                              m_pProgramIso2->Set("vScreensize",vfWinSize.x, vfWinSize.y);
-                              m_pProgramIso2->Set("vDomainScale",scale.x,scale.y,scale.z);
-                            }
-                            GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
-                            shader->Enable();
-                            shader->Set("vScreensize",vfWinSize.x, vfWinSize.y);
-                            shader->Set("vDomainScale",scale.x,scale.y,scale.z);
-                          }
-                          break;
-    default    :          T_ERROR("Invalid rendermode set");
-                          break;
-  }
-  */
-}
-
 void GLTreeRaycaster::SetDataDepShaderVars() {
 /*  GLRenderer::SetDataDepShaderVars();
   if (m_eRenderMode == RM_ISOSURFACE && m_bDoClearView) {
@@ -608,6 +593,40 @@ void GLTreeRaycaster::FillRayEntryBuffer(RenderRegion3D& rr, EStereoID eStereoID
   m_pBBoxVBO->UnBind();
 }
 
+void GLTreeRaycaster::SetIsoValue(float fIsovalue) {
+  GLRenderer::SetIsoValue(fIsovalue);
+  RecomputeBrickVisibility();
+}
+
+void GLTreeRaycaster::Changed2DTrans() {
+  GLRenderer::Changed2DTrans();
+  RecomputeBrickVisibility();
+}
+
+void GLTreeRaycaster::Changed1DTrans() {
+  GLRenderer::Changed1DTrans();
+  RecomputeBrickVisibility();
+}
+
+void GLTreeRaycaster::SetRendermode(AbstrRenderer::ERenderMode eRenderMode) {
+  GLRenderer::SetRendermode(eRenderMode);
+  RecomputeBrickVisibility();
+}
+
+void GLTreeRaycaster::RecomputeBrickVisibility() {
+  if (!m_pVolumePool) return;
+
+  for(auto brick = m_pDataset->BricksBegin(); brick != m_pDataset->BricksEnd(); ++brick) {
+    const BrickKey key = brick->first;
+    const bool bContainsData = ContainsData(key);
+
+    m_pVolumePool->BrickContainsData(uint32_t(std::get<1>(key)), 
+                                     uint32_t(std::get<2>(key)),
+                                     bContainsData);
+  }
+  m_pVolumePool->UploadMetaData();
+}
+
 void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
   m_TargetBinder.Bind(m_pFBO3DImageCurrent[size_t(eStereoID)],
                       m_pFBOResumeColorNext[size_t(eStereoID)],
@@ -615,10 +634,14 @@ void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
 
   m_pFBORayStart[size_t(eStereoID)]->Read(0);
   m_pFBOResumeColor[size_t(eStereoID)]->Read(1);
-  m_pVolumePool->BindTexures(); // bound to 2 and 3
+  m_pVolumePool->Enable(m_FrustumCullingLOD.GetLoDFactor(), 
+                        FLOATVECTOR3(m_pToCDataset->GetScale()),
+                        m_pProgramRayCast1D); // bound to 2 and 3
 
   // todo: use m_eRenderMode, code below is only for RM_1DTRANS
   m_p1DTransTex->Bind(4);
+  m_pProgramRayCast1D->Set("sampleRateModifier", m_fSampleRateModifier);
+  m_pProgramRayCast1D->Set("mEyeToModel", ComputeEyeToModelMatrix(rr, eStereoID), 4, false); 
 
   m_pglHashTable->Enable(); // bound to 5
 
@@ -639,8 +662,8 @@ bool GLTreeRaycaster::CheckForRedraw() {
 
   // if we have not converged yet redraw immediately
   // TODO: after finished implementing and debugging
-  // using the m_iCheckCounter here similar to 
-  // AbstrRenderer::CheckForRedraw() 
+  // we should be using the m_iCheckCounter here similar
+  // to AbstrRenderer::CheckForRedraw() 
   if (!m_bConverged) return true; 
 
   for (size_t i=0; i < renderRegions.size(); ++i) {
@@ -651,25 +674,14 @@ bool GLTreeRaycaster::CheckForRedraw() {
   return false;
 }
 
-static BrickKey HashValueToBrickKey(const UINTVECTOR4& hash, size_t timestep, const UVFDataset* pToCDataset) {
-  UINT64VECTOR3 layout = pToCDataset->GetBrickLayout(hash.w, timestep);
-
-  return BrickKey(timestep, hash.w, hash.x*layout.x*layout.y+
-                                    hash.y*layout.x+
-                                    hash.z);
+void GLTreeRaycaster::UpdateToVolumePool(const UINTVECTOR4& brick) {
+  std::vector<UINTVECTOR4> bricks;
+  bricks.push_back(brick);
+  UpdateToVolumePool(bricks);
 }
 
-void GLTreeRaycaster::UpdateVolumePool(std::vector<UINTVECTOR4>& hash) {
+void GLTreeRaycaster::UpdateToVolumePool(std::vector<UINTVECTOR4>& hash) {
   // TODO: this entire function should be part of the GPU mem-manager
-
-  // if loading a brick for the first time, prepare upload mem
-  if (m_vUploadMem.empty()) {
-    const UINTVECTOR3 vSize = m_pToCDataset->GetMaxBrickSize();
-    const uint64_t iByteWidth = m_pToCDataset->GetBitWidth()/8;
-    const uint64_t iCompCount = m_pToCDataset->GetComponentCount();
-    const uint64_t iBrickSize = vSize.volume() * iByteWidth * iCompCount;
-    m_vUploadMem.resize(iBrickSize);
-  }
 
   // now iterate over the missing bricks and upload them to the GPU
   // todo: consider batching this if it turns out to make a difference
@@ -679,7 +691,7 @@ void GLTreeRaycaster::UpdateVolumePool(std::vector<UINTVECTOR4>& hash) {
     const UINTVECTOR3 vVoxelSize = m_pToCDataset->GetBrickVoxelCounts(bkey);
 
     m_pToCDataset->GetBrick(bkey, m_vUploadMem);
-    m_pVolumePool->UploadBrick(BrickElemInfo(*missingBrick, vVoxelSize), &m_vUploadMem[0]);
+    if (!m_pVolumePool->UploadBrick(BrickElemInfo(*missingBrick, vVoxelSize), &m_vUploadMem[0])) break;
   }
   
   if (!hash.empty())
@@ -715,7 +727,7 @@ bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
   m_bConverged = hash.empty();
 
   // upload missing bricks
-  if (!m_bConverged) UpdateVolumePool(hash);
+  if (!m_bConverged) UpdateToVolumePool(hash);
 
   // always display intermediate results
   return true;
