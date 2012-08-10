@@ -73,6 +73,8 @@ void LuaDatasetProxy::bindDataset(Dataset* ds)
     //GetDomainSize
     id = mReg->functionProxy(ds, &Dataset::GetDomainSize,
                              "getDomainSize", "", false);
+    id = mReg->functionProxy(ds, &Dataset::GetRange,
+                             "getRange", "", false);
 
     // Attempt to cast the dataset to a file backed dataset.
     FileBackedDataset* fileDataset = dynamic_cast<FileBackedDataset*>(ds);

@@ -1496,7 +1496,7 @@ void AbstrRenderer::ReloadMesh(size_t index, const Mesh* m) {
   Schedule3DWindowRedraws();
 }
 
-void AbstrRenderer::Timestep(size_t t) {
+void AbstrRenderer::SetTimestep(size_t t) {
   if(t != m_iTimestep) {
     m_iTimestep = t;
     ScheduleCompleteRedraw();
@@ -1830,8 +1830,10 @@ void AbstrRenderer::RegisterLuaFunctions(
   id = reg.function(&AbstrRenderer::SetCV,
                     "setCV", "", true);
   id = reg.function(&AbstrRenderer::SetCVFocusPos,
-                    "SetCVFocusPos", "", true);
+                    "setCVFocusPos", "", true);
 
+  id = reg.function(&AbstrRenderer::SetTimestep,
+                    "setTimestep", "", true);
 
   id = reg.function(&AbstrRenderer::SetGlobalBBox,
                     "setGlobalBBox", "", true);

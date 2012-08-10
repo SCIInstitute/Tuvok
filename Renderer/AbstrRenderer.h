@@ -542,7 +542,7 @@ class AbstrRenderer: public Scriptable {
     bool SupportsMeshes() const {return m_bSupportsMeshes;}
     void ReloadMesh(size_t index, const Mesh* m);
 
-    void Timestep(size_t);
+    void SetTimestep(size_t);
     size_t Timestep() const;
 
     virtual void FixedFunctionality() const = 0;

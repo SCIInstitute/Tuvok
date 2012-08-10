@@ -585,6 +585,71 @@ public:
 };
 
 // Generic vector type that uses previously defined types on the stack.
+template <typename T1, typename T2>
+class LuaStrictStack<std::pair<T1, T2> >
+{
+public:
+
+  typedef std::pair<typename LuaStrictStack<T1>::Type,typename LuaStrictStack<T2>::Type > Type;
+
+  static Type get(lua_State* L, int pos)
+  {
+    // Ensure that there is a table on the top of the stack.
+    LuaStackRAII _a(L, 0);
+
+    Type ret;
+
+    luaL_checktype(L, pos, LUA_TTABLE);
+
+    lua_pushinteger(L, 1);
+    lua_gettable(L, pos);
+    ret.first = LuaStrictStack<T1>::get(L, lua_gettop(L));
+    lua_pop(L, 1);
+
+    lua_pushinteger(L, 2);
+    lua_gettable(L, pos);
+    ret.second = LuaStrictStack<T2>::get(L, lua_gettop(L));
+    lua_pop(L, 1);
+
+    return ret;
+  }
+
+  static void push(lua_State* L, Type in)
+  {
+    LuaStackRAII _a(L, 1);
+
+    // Place all of our vector values in a new table.
+    lua_newtable(L);
+    int tblPos = lua_gettop(L);
+
+    lua_pushinteger(L, 1);
+    LuaStrictStack<T1>::push(L, in.first);
+    lua_settable(L, tblPos);
+
+    lua_pushinteger(L, 2);
+    LuaStrictStack<T2>::push(L, in.second);
+    lua_settable(L, tblPos);
+  }
+
+  static std::string getValStr(Type in)
+  {
+    std::ostringstream os;
+    os << "{";
+    os << LuaStrictStack<T1>::getValStr(in.first);
+    os << ", ";
+    os << LuaStrictStack<T2>::getValStr(in.second);
+    os << "}";
+    return os.str();
+  }
+  static std::string getTypeStr() { return "GenericPair"; }
+  static Type getDefault() 
+  {
+    return std::make_pair(LuaStrictStack<T1>::getDefault(), 
+                          LuaStrictStack<T2>::getDefault());
+  }
+};
+
+// Generic vector type that uses previously defined types on the stack.
 template <typename T>
 class LuaStrictStack<std::vector<T> >
 {
