@@ -482,8 +482,8 @@ class AbstrRenderer: public Scriptable {
     virtual float GetCVContextScale() const {return m_fCVContextScale;}
     virtual void SetCVBorderScale(float fScale);
     virtual float GetCVBorderScale() const {return m_fCVBorderScale;}
-    virtual void SetCVFocusPos(const FLOATVECTOR4& vCVPos);
-    virtual void SetCVFocusPos(const RenderRegion& renderRegion,
+    virtual void SetCVFocusPosFVec(const FLOATVECTOR4& vCVPos);
+    virtual void SetCVFocusPos(LuaClassInstance renderRegion,
                                const INTVECTOR2& vPos);
     virtual FLOATVECTOR4 GetCVFocusPos() const {return m_vCVPos;}
     virtual INTVECTOR2 GetCVMousePos() const {return m_vCVMousePos;}
@@ -577,7 +577,7 @@ class AbstrRenderer: public Scriptable {
 
     virtual void        ClearColorBuffer() const = 0;
     virtual void        UpdateLightParamsInShaders() = 0;
-    virtual void        CVFocusHasChanged(const RenderRegion &);
+    virtual void        CVFocusHasChanged(LuaClassInstance region);
 
     /// @returns if the data we're rendering is color or not.
     virtual bool ColorData() const;

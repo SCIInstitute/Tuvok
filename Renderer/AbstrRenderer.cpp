@@ -1303,12 +1303,12 @@ void AbstrRenderer::SetCVBorderScale(float fScale) {
   }
 }
 
-void AbstrRenderer::SetCVFocusPos(const FLOATVECTOR4& vCVPos) {
+void AbstrRenderer::SetCVFocusPosFVec(const FLOATVECTOR4& vCVPos) {
   m_vCVMousePos = INTVECTOR2(-1,-1);
   m_vCVPos = vCVPos;
 }
 
-void AbstrRenderer::SetCVFocusPos(const RenderRegion& renderRegion,
+void AbstrRenderer::SetCVFocusPos(LuaClassInstance renderRegion,
                                   const INTVECTOR2& vPos) {
   if (m_vCVMousePos!= vPos) {
     m_vCVMousePos = vPos;
@@ -1367,7 +1367,7 @@ void AbstrRenderer::SetStereoEyeSwap(bool bSwap) {
   if (m_bDoStereoRendering) Schedule3DWindowRedraws();
 }
 
-void AbstrRenderer::CVFocusHasChanged(const RenderRegion &) {
+void AbstrRenderer::CVFocusHasChanged(LuaClassInstance region) {
   ScheduleRecompose();
 }
 
@@ -1626,7 +1626,7 @@ void AbstrRenderer::LuaCloneRenderMode(LuaClassInstance inst) {
   this->SetCVBorderScale(other->GetCVBorderScale());
   this->SetCVColor(other->GetCVColor());
   this->SetCV(other->GetCV());
-  this->SetCVFocusPos(other->GetCVFocusPos());
+  this->SetCVFocusPosFVec(other->GetCVFocusPos());
   this->SetInterpolant(other->GetInterpolant());
 }
 
@@ -1829,8 +1829,8 @@ void AbstrRenderer::RegisterLuaFunctions(
                     "getCVColor", "", true);
   id = reg.function(&AbstrRenderer::SetCV,
                     "setCV", "", true);
-  //id = reg.function(&AbstrRenderer::SetCVFocusPos,
-   //                 "SetCVFocusPos", "", true);
+  id = reg.function(&AbstrRenderer::SetCVFocusPos,
+                    "SetCVFocusPos", "", true);
 
 
   id = reg.function(&AbstrRenderer::SetGlobalBBox,

@@ -2777,24 +2777,27 @@ void GLRenderer::ComposeSurfaceImage(const RenderRegion &renderRegion, EStereoID
 }
 
 
-void GLRenderer::CVFocusHasChanged(const RenderRegion &renderRegion) {
+void GLRenderer::CVFocusHasChanged(LuaClassInstance luaRegion) {
   // read back the 3D position from the framebuffer
   float vec[4];
   m_pFBOIsoHit[0]->ReadBackPixels(m_vCVMousePos.x, 
                                   m_vWinSize.y-m_vCVMousePos.y,
                                   1, 1, vec);
 
+  shared_ptr<LuaScripting> ss = m_pMasterController->LuaScript();
+  RenderRegion* region = luaRegion.getRawPointer<RenderRegion>(ss);
+
   // update m_vCVPos
   if (vec[3] != 0.0f) {
     m_vCVPos = FLOATVECTOR4(vec[0],vec[1],vec[2],1.0f) *
-               renderRegion.modelView[0].inverse();
+               region->modelView[0].inverse();
   } else {
     // if we do not pick a valid point move CV pos to "nirvana"
     m_vCVPos = FLOATVECTOR4(10000000.0f, 10000000.0f, 10000000.0f, 0.0f);
   }
 
   // now let the parent do its part
-  AbstrRenderer::CVFocusHasChanged(renderRegion);
+  AbstrRenderer::CVFocusHasChanged(luaRegion);
 }
 
 FLOATVECTOR3 GLRenderer::Pick(const UINTVECTOR2& mousePos) const

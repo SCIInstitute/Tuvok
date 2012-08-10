@@ -202,7 +202,7 @@ class GLRenderer : public AbstrRenderer {
     void PreSubframe(const RenderRegion& renderRegion);
     void PostSubframe(const RenderRegion& renderRegion);
 
-    virtual void CVFocusHasChanged(const RenderRegion& renderRegion);
+    virtual void CVFocusHasChanged(LuaClassInstance region);
 
     virtual FLOATVECTOR3 Pick(const UINTVECTOR2&) const;
 
