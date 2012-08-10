@@ -84,7 +84,7 @@ void LuaDatasetProxy::bindDataset(Dataset* ds)
     if (fileDataset != NULL)
     {
       id = mReg->functionProxy(fileDataset, &FileBackedDataset::Filename,
-                               "path", "Full path to the dataset.", false);
+                               "fullpath", "Full path to the dataset.", false);
 
 
     }
