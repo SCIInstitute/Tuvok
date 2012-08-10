@@ -1883,5 +1883,10 @@ void AbstrRenderer::RegisterLuaFunctions(
                     "getWorkingBrick", "", false);
   id = reg.function(&AbstrRenderer::GetMinLODIndex,
                     "getMinLODIndex", "", false);
+
+  id = reg.function(&AbstrRenderer::SetConsiderPreviousDepthbuffer,
+                    "setConsiderPrevDepthBuffer", "", true);
+  id = reg.function(&AbstrRenderer::LoadDataset,
+                    "loadDataset", "", true);
 }
 
