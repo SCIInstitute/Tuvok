@@ -47,7 +47,7 @@ public:
   LuaDatasetProxy();
   virtual ~LuaDatasetProxy();
 
-  void bindDataset(Dataset* ds);
+  void bind(Dataset* ds, std::shared_ptr<LuaScripting> ss);
 
   static LuaDatasetProxy* luaConstruct() {return new LuaDatasetProxy;}
   static void defineLuaInterface(LuaClassRegistration<LuaDatasetProxy>& reg,

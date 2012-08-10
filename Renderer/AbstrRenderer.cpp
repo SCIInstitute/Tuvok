@@ -209,11 +209,11 @@ bool AbstrRenderer::LoadDataset(const string& strFilename) {
   if (m_pDataset)
   {
     m_pMasterController->MemMan()->FreeDataset(m_pDataset, this);
-    m_pLuaDatasetPtr->bindDataset(NULL);
+    m_pLuaDatasetPtr->bind(NULL, m_pMasterController->LuaScript());
   }
 
   m_pDataset = m_pMasterController->IOMan()->LoadDataset(strFilename,this);
-  m_pLuaDatasetPtr->bindDataset(m_pDataset);
+  m_pLuaDatasetPtr->bind(m_pDataset, m_pMasterController->LuaScript());
 
   if (m_pDataset == NULL) {
     T_ERROR("IOManager call to load dataset failed.");
@@ -1509,8 +1509,8 @@ void AbstrRenderer::RemoveMeshData(size_t index) {
   Schedule3DWindowRedraws();
 }
 
-void AbstrRenderer::ReloadMesh(size_t index, const Mesh* m) {
-  m_Meshes[index]->Clone(m);
+void AbstrRenderer::ReloadMesh(size_t index, const std::shared_ptr<Mesh> m) {
+  m_Meshes[index]->Clone(m.get());
   Schedule3DWindowRedraws();
 }
 

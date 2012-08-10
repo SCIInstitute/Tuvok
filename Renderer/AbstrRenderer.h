@@ -541,7 +541,7 @@ class AbstrRenderer: public Scriptable {
     virtual void RemoveMeshData(size_t index);
     std::vector<RenderMesh*>& GetMeshes() {return m_Meshes;}
     bool SupportsMeshes() const {return m_bSupportsMeshes;}
-    void ReloadMesh(size_t index, const Mesh* m);
+    void ReloadMesh(size_t index, const std::shared_ptr<Mesh> m);
 
     void SetTimestep(size_t);
     size_t Timestep() const;

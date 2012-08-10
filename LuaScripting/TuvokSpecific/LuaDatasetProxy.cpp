@@ -44,6 +44,8 @@
 
 #include "LuaDatasetProxy.h"
 
+using namespace std;
+
 namespace tuvok
 {
 
@@ -58,7 +60,7 @@ LuaDatasetProxy::~LuaDatasetProxy()
     delete mReg;
 }
 
-void LuaDatasetProxy::bindDataset(Dataset* ds)
+void LuaDatasetProxy::bind(Dataset* ds, shared_ptr<LuaScripting> ss)
 {
   if (mReg == NULL)
     throw LuaError("Unable to bind dataset, no class registration available.");
@@ -78,6 +80,12 @@ void LuaDatasetProxy::bindDataset(Dataset* ds)
                              "getLODLevelCount", "", false);
     id = mReg->functionProxy(ds, &Dataset::GetNumberOfTimesteps,
                              "getNumberOfTimesteps", "", false);
+    id = mReg->functionProxy(ds, &Dataset::GetMeshes,
+                             "getMeshes", "", false);
+    // We do NOT want the return values from GetMeshes stuck in the provenance
+    // system (Okay, so the provenance system doesn't store return values, just
+    // function parameters. But it's best to be safe).
+    ss->setProvenanceExempt(id);
 
     // Attempt to cast the dataset to a file backed dataset.
     FileBackedDataset* fileDataset = dynamic_cast<FileBackedDataset*>(ds);

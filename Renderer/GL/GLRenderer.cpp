@@ -2570,7 +2570,7 @@ void GLRenderer::RenderClipPlane(EStereoID eStereoID)
 }
 
 void GLRenderer::ScanForNewMeshes() {
-  const vector<Mesh*>& meshVec = m_pDataset->GetMeshes();
+  vector<shared_ptr<Mesh> > meshVec = m_pDataset->GetMeshes();
   for (size_t i = m_Meshes.size(); i<meshVec.size();i++) {
     m_Meshes.push_back(new RenderMeshGL(*meshVec[i]));
     m_Meshes[m_Meshes.size()-1]->InitRenderer();
@@ -2594,8 +2594,8 @@ bool GLRenderer::LoadDataset(const string& strFilename) {
   if (m_pProgram1DTrans[0] != NULL) SetDataDepShaderVars();
 
   // convert meshes in dataset to RenderMeshes
-  const vector<Mesh*>& meshVec = m_pDataset->GetMeshes();
-  for (vector<Mesh*>::const_iterator mesh = meshVec.begin();
+  vector<shared_ptr<Mesh> > meshVec = m_pDataset->GetMeshes();
+  for (vector<shared_ptr<Mesh> >::const_iterator mesh = meshVec.begin();
        mesh != meshVec.end(); mesh++) {
     m_Meshes.push_back(new RenderMeshGL(**mesh));
   }
