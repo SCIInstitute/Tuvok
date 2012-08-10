@@ -28,7 +28,7 @@ namespace tuvok {
 
     const UINTVECTOR3& PositionInPool() const {return m_vPositionInPool;}
 
-    bool operator< (const PoolSlotData& other) {
+    bool operator< (const PoolSlotData& other) const {
       return (m_iTimeOfCreation<other.m_iTimeOfCreation);
     }
 
