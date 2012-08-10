@@ -62,6 +62,7 @@ class CullingLOD
     FLOATVECTOR2 GetDepthScaleParams() const;
     float        GetNearPlane() const {return m_fNearPlane;}
     float        GetFarPlane() const {return m_fFarPlane;}
+    float        GetLoDFactor() const {return m_fLODFactor;}
 
   private:
     FLOATMATRIX4 m_mModelViewProjectionMatrix;
