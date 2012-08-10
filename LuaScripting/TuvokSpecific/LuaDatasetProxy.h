@@ -44,6 +44,14 @@ class Dataset;
 class LuaDatasetProxy
 {
 public:
+
+  /// Will be removed in the future...
+  enum DatasetType
+  {
+    Unknown,
+    UVF
+  };
+
   LuaDatasetProxy();
   virtual ~LuaDatasetProxy();
 
@@ -54,11 +62,16 @@ public:
                                  LuaDatasetProxy* me,
                                  LuaScripting* ss);
 
+  /// @todo get rid of dataset type when we fix the dataset base class.
+  DatasetType getDatasetType()    {return mDatasetType;}
 private:
 
   /// Class registration we received from defineLuaInterface.
   /// @todo Change to unique pointer.
   LuaClassRegistration<LuaDatasetProxy>* mReg;
+
+  /// The type of dataset.
+  DatasetType mDatasetType;
 };
 
 } /* namespace tuvok */

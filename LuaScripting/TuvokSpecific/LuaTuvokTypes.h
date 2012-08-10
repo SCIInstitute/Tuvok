@@ -48,6 +48,7 @@
 #include "../../Renderer/AbstrRenderer.h"
 #include "../../Renderer/RenderRegion.h"
 #include "../../Controller/MasterController.h"
+#include "LuaDatasetProxy.h"
 
 namespace tuvok
 {
@@ -712,6 +713,8 @@ TUVOK_LUA_REGISTER_ENUM_TYPE(AbstrRenderer::ScalingMethod)
 TUVOK_LUA_REGISTER_ENUM_TYPE(AbstrRenderer::ERenderMode)
 
 TUVOK_LUA_REGISTER_ENUM_TYPE(Interpolant)
+
+TUVOK_LUA_REGISTER_ENUM_TYPE(LuaDatasetProxy::DatasetType)
 
 TUVOK_LUA_REGISTER_ENUM_TYPE(MasterController::EVolumeRendererType)
 

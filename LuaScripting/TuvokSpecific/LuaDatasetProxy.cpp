@@ -34,6 +34,7 @@
 #include "3rdParty/LUA/lua.hpp"
 #include "IO/IOManager.h"
 #include "IO/FileBackedDataset.h"
+#include "IO/uvfDataset.h"
 
 #include <vector>
 
@@ -50,6 +51,7 @@ namespace tuvok
 {
 
 LuaDatasetProxy::LuaDatasetProxy()
+    : mDatasetType(Unknown)
 {
   mReg = NULL;
 }
@@ -70,7 +72,7 @@ void LuaDatasetProxy::bind(Dataset* ds, shared_ptr<LuaScripting> ss)
   if (ds != NULL)
   {
     // Register dataset functions using ds.
-    std::string id;
+    string id;
 
     id = mReg->functionProxy(ds, &Dataset::GetDomainSize,
                              "getDomainSize", "", false);
@@ -93,10 +95,15 @@ void LuaDatasetProxy::bind(Dataset* ds, shared_ptr<LuaScripting> ss)
     {
       id = mReg->functionProxy(fileDataset, &FileBackedDataset::Filename,
                                "fullpath", "Full path to the dataset.", false);
-
-
     }
 
+    UVFDataset* uvfDataset = dynamic_cast<UVFDataset*>(ds);
+    if (uvfDataset != NULL)
+    {
+      id = mReg->functionProxy(fileDataset, &UVFDataset::RemoveMesh,
+                               "removeMesh", "", true);
+      mDatasetType = UVF;
+    }
   }
 
 }
@@ -107,6 +114,11 @@ void LuaDatasetProxy::defineLuaInterface(
     LuaScripting*)
 {
   me->mReg = new LuaClassRegistration<LuaDatasetProxy>(reg);
+
+  string id;
+
+  // Register our functions
+  id = reg.function(&LuaDatasetProxy::getDatasetType, "getDSType", "", false);
 }
 
 } /* namespace tuvok */

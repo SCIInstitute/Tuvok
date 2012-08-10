@@ -1927,6 +1927,11 @@ void AbstrRenderer::RegisterLuaFunctions(
   id = reg.function(&AbstrRenderer::GetLightDir,
                     "getLightDir", "", false);
 
+  id = reg.function(&AbstrRenderer::SetDatasetIsInvalid,
+                    "setDatasetIsInvalid", "", true);
+  id = reg.function(&AbstrRenderer::RemoveMeshData,
+                    "removeMeshData", "", true);
+
 
 
   /// Register renderer specific functions.
