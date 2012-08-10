@@ -1872,5 +1872,16 @@ void AbstrRenderer::RegisterLuaFunctions(
                     "resize", "", true);
   id = reg.function(&AbstrRenderer::Paint,
                     "paint", "", true);
+
+  id = reg.function(&AbstrRenderer::GetCurrentSubFrameCount,
+                    "getCurrentSubFrameCount", "", false);
+  id = reg.function(&AbstrRenderer::GetWorkingSubFrame,
+                    "getWorkingSubFrame", "", false);
+  id = reg.function(&AbstrRenderer::GetCurrentBrickCount,
+                    "getCurrentBrickCount", "", false);
+  id = reg.function(&AbstrRenderer::GetWorkingBrick,
+                    "getWorkingBrick", "", false);
+  id = reg.function(&AbstrRenderer::GetMinLODIndex,
+                    "getMinLODIndex", "", false);
 }
 
