@@ -76,7 +76,7 @@ void LuaTransferFun1DProxy::bind(TransferFunction1D* tf)
 void LuaTransferFun1DProxy::defineLuaInterface(
     LuaClassRegistration<LuaTransferFun1DProxy>& reg,
     LuaTransferFun1DProxy* me,
-    LuaScripting* ss)
+    LuaScripting*)
 {
   me->mReg = new LuaClassRegistration<LuaTransferFun1DProxy>(reg);
 }

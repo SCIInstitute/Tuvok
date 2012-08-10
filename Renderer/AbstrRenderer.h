@@ -566,6 +566,14 @@ class AbstrRenderer: public Scriptable {
                                      AbstrRenderer* me,
                                      LuaScripting* ss);
 
+    /// This function is called at the end of RegisterLuaFunctions.
+    /// Use it to register additional renderer specific functions.
+    /// (functions that don't make sense as an inherited abstract method).
+    virtual void RegisterDerivedClassLuaFunctions(
+        LuaClassRegistration<AbstrRenderer>&,
+        LuaScripting*) 
+    {}
+
   protected:
     /// Unsets the current transfer function, including deleting it from GPU
     /// memory.  It's expected you'll set another one directly afterwards.

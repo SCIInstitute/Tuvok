@@ -1654,7 +1654,7 @@ void AbstrRenderer::LuaCloneRenderMode(LuaClassInstance inst) {
 
 void AbstrRenderer::RegisterLuaFunctions(
     LuaClassRegistration<AbstrRenderer>& reg,
-    AbstrRenderer*,
+    AbstrRenderer* me,
     LuaScripting* ss) {
 
   ss->vPrint("Registering abstract renderer functions.");
@@ -1907,5 +1907,11 @@ void AbstrRenderer::RegisterLuaFunctions(
                     "children of the call to create the new renderer).", 
                     false);
   ss->setProvenanceExempt(id);
+
+
+
+
+  /// Register renderer specific functions.
+  me->RegisterDerivedClassLuaFunctions(reg, ss);
 }
 

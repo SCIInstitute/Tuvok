@@ -59,7 +59,7 @@ class DXRenderer : public AbstrRenderer {
   public:
     DXRenderer(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder);
     virtual ~DXRenderer();
-    virtual bool Initialize();
+    virtual bool InitializeDirectX();
     virtual void Changed1DTrans();
     virtual void Changed2DTrans();
 
@@ -149,6 +149,10 @@ class DXRenderer : public AbstrRenderer {
 
     virtual FLOATVECTOR3 Pick(const UINTVECTOR2&) const;
 
+    virtual void RegisterDerivedClassLuaFunctions(
+        LuaClassRegistration<AbstrRenderer>& reg,
+        LuaScripting* ss);
+
   private:
     void SetBrickDepShaderVarsSlice(const UINTVECTOR3& vVoxelCount);
     void RenderSeperatingLines();
@@ -158,6 +162,40 @@ class DXRenderer : public AbstrRenderer {
     DXTexture1D*    m_p1DTransTex;
 
 };
+
+// Necessary to pass HWND around in the scripting system.
+// HWND is a pointer to a structure.
+template <>
+class LuaStrictStack<HWND>
+{
+public:
+
+  typedef HWND Type;
+
+  static HWND get(lua_State* L, int pos)
+  {
+    HWND hwnd = reinterpret_cast<HWND>(lua_touserdata(L, pos));
+    return hwnd;
+  }
+
+  static void push(lua_State* L, HWND hwnd)
+  {
+    lua_pushlightuserdata(L, hwnd);
+  }
+
+  static std::string getValStr(HWND hwnd)
+  {
+    std::ostringstream os;
+    os << "HWND - ???";
+    return os.str();
+  }
+  static std::string getTypeStr() { return "HWND"; }
+  static HWND getDefault()
+  {
+    return NULL;
+  }
+};
+
 
 }; //namespace tuvok
 

@@ -70,7 +70,7 @@ void DXRenderer::Cleanup() {
   OnDestroyDevice();
 }
 
-bool DXRenderer::Initialize() {
+bool DXRenderer::InitializeDirectX() {
   // next destroy the dx system we may have created already
   if (m_pd3dDevice) OnDestroyDevice();
 
@@ -349,5 +349,17 @@ bool DXRenderer::IsVolumeResident(const BrickKey& key) const{
   return false;
 }
 
+void DXRenderer::RegisterDerivedClassLuaFunctions(
+        LuaClassRegistration<AbstrRenderer>& reg,
+        LuaScripting* ss) {
+  std::string id;
+
+  id = reg.function(&DXRenderer::SetWinID,
+                    "setWinID",
+                    "Sets HWND.", false);
+  id = reg.function(&DXRenderer::InitializeDirectX,
+                    "initializeDirectX",
+                    "DirectX specific initialization function.", false);
+}
 
 #endif // _WIN32 && USE_DIRECTX
