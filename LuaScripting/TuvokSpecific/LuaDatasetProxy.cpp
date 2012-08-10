@@ -76,6 +76,8 @@ void LuaDatasetProxy::bindDataset(Dataset* ds)
                              "getRange", "", false);
     id = mReg->functionProxy(ds, &Dataset::GetLODLevelCount,
                              "getLODLevelCount", "", false);
+    id = mReg->functionProxy(ds, &Dataset::GetNumberOfTimesteps,
+                             "getNumberOfTimesteps", "", false);
 
     // Attempt to cast the dataset to a file backed dataset.
     FileBackedDataset* fileDataset = dynamic_cast<FileBackedDataset*>(ds);

@@ -1433,10 +1433,10 @@ void AbstrRenderer::SetLODLimits(const UINTVECTOR2 iLODLimits) {
   ScheduleCompleteRedraw();
 }
 
-void AbstrRenderer::SetColors(const FLOATVECTOR4& ambient,
-                              const FLOATVECTOR4& diffuse,
-                              const FLOATVECTOR4& specular,
-                              const FLOATVECTOR3& lightDir) {
+void AbstrRenderer::SetColors(FLOATVECTOR4 ambient,
+                              FLOATVECTOR4 diffuse,
+                              FLOATVECTOR4 specular,
+                              FLOATVECTOR3 lightDir) {
   m_cAmbient = ambient;
   m_cDiffuse = diffuse;
   m_cSpecular = specular;
@@ -1909,8 +1909,23 @@ void AbstrRenderer::RegisterLuaFunctions(
   ss->setProvenanceExempt(id);
 
   id = reg.function(&AbstrRenderer::SetLODLimits,
-                    "setLODLimits", "", false);
+                    "setLODLimits", "", true);
+  id = reg.function(&AbstrRenderer::SetColors,
+                    "setLightColors", "", true);
 
+  id = reg.function(&AbstrRenderer::SetInterpolant,
+                    "setInterpolant", "", true);
+  id = reg.function(&AbstrRenderer::GetInterpolant,
+                    "getInterpolant", "", false);
+
+  id = reg.function(&AbstrRenderer::GetAmbient,
+                    "getAmbient", "", false);
+  id = reg.function(&AbstrRenderer::GetDiffuse,
+                    "getDiffuse", "", false);
+  id = reg.function(&AbstrRenderer::GetSpecular,
+                    "getSpecular", "", false);
+  id = reg.function(&AbstrRenderer::GetLightDir,
+                    "getLightDir", "", false);
 
 
 

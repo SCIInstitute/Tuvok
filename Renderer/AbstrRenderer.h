@@ -455,10 +455,10 @@ class AbstrRenderer: public Scriptable {
       return m_bConsiderPreviousDepthbuffer;
     }
 
-    void SetColors(const FLOATVECTOR4& ambient,
-                   const FLOATVECTOR4& diffuse,
-                   const FLOATVECTOR4& specular,
-                   const FLOATVECTOR3& lightDir);
+    void SetColors(FLOATVECTOR4 ambient,
+                   FLOATVECTOR4 diffuse,
+                   FLOATVECTOR4 specular,
+                   FLOATVECTOR3 lightDir);
 
     FLOATVECTOR4 GetAmbient() const;
     FLOATVECTOR4 GetDiffuse() const;
