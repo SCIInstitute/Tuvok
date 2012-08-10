@@ -55,11 +55,6 @@ Dataset::~Dataset()
 }
 
 void Dataset::DeleteMeshes() {
-  for (std::vector<Mesh*>::iterator i = m_vpMeshList.begin();
-       i != m_vpMeshList.end();
-       i++) {
-    delete (*i);
-  }
   m_vpMeshList.clear();
 }
 

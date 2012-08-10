@@ -1509,7 +1509,7 @@ bool IOManager::ExtractIsosurface(const tuvok::UVFDataset* pSourceData,
   }
 }
 
-bool IOManager::ExportMesh(const Mesh* mesh, 
+bool IOManager::ExportMesh(const std::shared_ptr<Mesh> mesh, 
                            const std::string& strTargetFilename) {
   AbstrGeoConverter* conv = GetGeoConverterForExt(SysTools::ToLowerCase(SysTools::GetExt(strTargetFilename)),true, false);
 

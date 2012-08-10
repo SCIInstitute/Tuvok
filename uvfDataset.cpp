@@ -197,7 +197,7 @@ bool UVFDataset::Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion)
     for (vector<GeometryDataBlock*>::iterator tsb = m_TriSoupBlocks.begin();
          tsb != m_TriSoupBlocks.end();
          tsb++) {
-      uvfMesh* m = new uvfMesh(**tsb);
+      shared_ptr<uvfMesh> m(new uvfMesh(**tsb));
       m_vpMeshList.push_back(m);
 /*
       ostringstream stats;
