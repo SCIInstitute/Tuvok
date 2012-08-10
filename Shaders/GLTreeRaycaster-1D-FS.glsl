@@ -3,9 +3,9 @@
 // get ray start points & color
 layout(binding=0) uniform sampler2D rayStartPoint;
 layout(binding=1) uniform sampler2D rayStartColor;
-// 2 is volume pool metadata
-// 3 is volume pool
-layout(binding=4) uniform sampler1D transferFunction;
+layout(binding=2) uniform sampler1D transferFunction;
+// 3 is volume pool metadata
+// 4 is volume pool
 // 5 is hastable
 
 // get pixel coordinates
@@ -14,8 +14,6 @@ layout(pixel_center_integer) in vec4 gl_FragCoord;
 // volume and view parameter
 uniform float sampleRateModifier;
 uniform mat4x4 mEyeToModel;
-in vec3 vPosInViewCoords;
-
 
 // import VolumePool functions
 bool GetBrick(in vec3 normEntryCoords, in uint iLOD, in vec3 direction,
@@ -33,6 +31,9 @@ vec4 UnderCompositing(vec4 src, vec4 dst);
 void OpacityCorrectColor(float opacity_correction, inout vec4 color) {
   color.a = 1.0 - pow(1.0 - color.a, opacity_correction);
 }
+
+// data from vertex stage
+in vec3 vPosInViewCoords;
 
 // go
 void main()

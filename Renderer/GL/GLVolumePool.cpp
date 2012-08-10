@@ -98,7 +98,6 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
   m_iMetaTextureUnit = iMetaTextureUnit;
   m_iDataTextureUnit = iDataTextureUnit;
 
-
   std::stringstream ss;
 
   if (m_bUseGLCore)
@@ -337,6 +336,7 @@ void GLVolumePool::Enable(float fLoDFactor, const FLOATVECTOR3& volumeAspect,
                           GLSLProgram* pShaderProgram) const {
   m_PoolMetadataTexture->Bind(m_iMetaTextureUnit);
   m_PoolDataTexture->Bind(m_iDataTextureUnit);
+
   pShaderProgram->Enable();
   pShaderProgram->Set("fLoDFactor",fLoDFactor);
   pShaderProgram->Set("volumeAspect",volumeAspect.x, volumeAspect.y, volumeAspect.z);

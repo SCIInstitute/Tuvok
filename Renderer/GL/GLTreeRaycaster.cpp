@@ -506,20 +506,6 @@ bool GLTreeRaycaster::LoadShaders() {
   */
 }
 
-void GLTreeRaycaster::RenderBox(const RenderRegion& renderRegion, STATE_CULL cull, 
-                                EStereoID eStereoID, GLSLProgram* shader) const  {
-  
-  m_pContext->GetStateManager()->SetCullState(cull);
-
-  shader->Enable();
-  shader->Set("mModelViewProjection", renderRegion.modelView[size_t(eStereoID)]*m_mProjection[size_t(eStereoID)], 4, false); 
-
-  m_pBBoxVBO->Bind();
-  m_pBBoxVBO->Draw(GL_QUADS);
-  m_pBBoxVBO->UnBind();
-}
-
-
 void GLTreeRaycaster::SetDataDepShaderVars() {
 /*  GLRenderer::SetDataDepShaderVars();
   if (m_eRenderMode == RM_ISOSURFACE && m_bDoClearView) {
@@ -636,20 +622,35 @@ void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
   m_pFBOResumeColor[size_t(eStereoID)]->Read(1);
   m_pVolumePool->Enable(m_FrustumCullingLOD.GetLoDFactor(), 
                         FLOATVECTOR3(m_pToCDataset->GetScale()),
-                        m_pProgramRayCast1D); // bound to 2 and 3
+                        m_pProgramRayCast1D); // bound to 3 and 4
 
-  // todo: use m_eRenderMode, code below is only for RM_1DTRANS
-  m_p1DTransTex->Bind(4);
-  m_pProgramRayCast1D->Set("sampleRateModifier", m_fSampleRateModifier);
-  m_pProgramRayCast1D->Set("mEyeToModel", ComputeEyeToModelMatrix(rr, eStereoID), 4, false); 
 
   m_pglHashTable->Enable(); // bound to 5
 
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  RenderBox(rr, CULL_FRONT, eStereoID, m_pProgramRayCast1D);
+  // todo: use m_eRenderMode, code below is only for RM_1DTRANS
+  m_p1DTransTex->Bind(2);
 
+  // set shader parameters (shader is already enabled by m_pVolumePool->Enable)
+  m_pProgramRayCast1D->Enable();
+  m_pProgramRayCast1D->Set("sampleRateModifier", m_fSampleRateModifier);
+  m_pProgramRayCast1D->Set("mEyeToModel", ComputeEyeToModelMatrix(rr, eStereoID), 4, false); 
+  m_pProgramRayCast1D->Set("mModelViewProjection", rr.modelView[size_t(eStereoID)]*m_mProjection[size_t(eStereoID)], 4, false); 
+
+  // clear the buffers 
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  // render the back faces
+  m_pContext->GetStateManager()->SetCullState(CULL_FRONT);
+  m_pBBoxVBO->Bind();
+  m_pBBoxVBO->Draw(GL_QUADS);
+  m_pBBoxVBO->UnBind();
+
+  // unbind input textures
   m_pFBORayStart[size_t(eStereoID)]->FinishRead();
   m_pFBOResumeColor[size_t(eStereoID)]->FinishRead();
+
+  // done rendering for now
+  m_TargetBinder.Unbind();
 
   // swap current and next resume color
   std::swap(m_pFBOResumeColorNext[size_t(eStereoID)], m_pFBOResumeColor[size_t(eStereoID)]);
@@ -718,9 +719,6 @@ bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
 
   // do raycasting
   Raycast(rr, eStereoID);
-
-  // done rendering for now
-  m_TargetBinder.Unbind();
 
   // evaluate hastable
   std::vector<UINTVECTOR4> hash = m_pglHashTable->GetData();

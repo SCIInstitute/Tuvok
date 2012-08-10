@@ -80,9 +80,6 @@ namespace tuvok {
       virtual bool Render3DRegion(RenderRegion3D& region3D);
 
       void FillRayEntryBuffer(RenderRegion3D& rr, EStereoID eStereoID);
-      void RenderBox(const RenderRegion& renderRegion, STATE_CULL cull, 
-                     EStereoID eStereoID, GLSLProgram* shader) const;
-
       virtual void CreateOffscreenBuffers();
 
       FLOATMATRIX4 ComputeEyeToModelMatrix(const RenderRegion &renderRegion,
