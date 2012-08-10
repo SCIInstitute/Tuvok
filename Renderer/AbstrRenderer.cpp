@@ -1898,5 +1898,14 @@ void AbstrRenderer::RegisterLuaFunctions(
 
   id = reg.function(&AbstrRenderer::AddShaderPath,
                     "addShaderPath", "", true);
+
+  id = reg.function(&AbstrRenderer::Initialize,
+                    "initialize", 
+                    "Provenance is NOT recorded for this function. It should "
+                    "be called from the renderer initialization code "
+                    "(such that all provenance records are "
+                    "children of the call to create the new renderer).", 
+                    false);
+  ss->setProvenanceExempt(id);
 }
 
