@@ -1867,5 +1867,8 @@ void AbstrRenderer::RegisterLuaFunctions(
 
   id = reg.function(&AbstrRenderer::LuaShowClipPlane,
                     "showClipPlane", "", true);
+
+  id = reg.function(&AbstrRenderer::Resize,
+                    "resize", "", true);
 }
 
