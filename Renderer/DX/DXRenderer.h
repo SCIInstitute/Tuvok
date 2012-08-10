@@ -183,7 +183,7 @@ public:
     lua_pushlightuserdata(L, hwnd);
   }
 
-  static std::string getValStr(HWND hwnd)
+  static std::string getValStr(HWND)
   {
     std::ostringstream os;
     os << "HWND - ???";

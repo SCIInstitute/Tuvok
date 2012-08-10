@@ -969,6 +969,9 @@
     <ClCompile Include="IO\TTIFFWriter\TTIFFWriter.cpp">
       <Filter>IO\TTIFFWriter</Filter>
     </ClCompile>
+    <ClCompile Include="LuaScripting\TuvokSpecific\LuaTransferFun1DProxy.cpp">
+      <Filter>LuaScripting\TuvokSpecific</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Basics\Appendix.h">
@@ -1928,6 +1931,9 @@
     </ClInclude>
     <ClInclude Include="IO\TTIFFWriter\TTIFFWriter.h">
       <Filter>IO\TTIFFWriter</Filter>
+    </ClInclude>
+    <ClInclude Include="LuaScripting\TuvokSpecific\LuaTransferFun1DProxy.h">
+      <Filter>LuaScripting\TuvokSpecific</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
