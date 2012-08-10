@@ -406,17 +406,19 @@ void GLVolumePool::BrickContainsData(uint32_t iLoD, uint32_t iIndexInLoD, bool b
   if (bVisible)  {
     // if this brick was previously empty then it is now 
     // missing, i.e. not empty and not cached
-    if (m_brickMetaData[index] == BI_EMPTY)
-      if (index < m_brickMetaData.size()) // restore the first brick
+    if (m_brickMetaData[index] == BI_EMPTY) {
+      if (index < m_brickMetaData.size()) {// restore the first brick
         m_brickMetaData[index] = BI_MISSING;
-      else
+      } else {
         m_brickMetaData[index] = uint32_t(m_PoolSlotData.size()-1)+BI_FLAG_COUNT;
-
+      }
+    }
   } else {
     // if brick is in the pool -> clear that pool entry
     if (m_brickMetaData[index] > BI_EMPTY) {
-      if (index < m_brickMetaData.size()) // don't wipe the first brick
-        m_PoolSlotData[index-BI_FLAG_COUNT].Clear();
+      if (index < m_brickMetaData.size()-1) {// don't wipe the first low-res brick
+        m_PoolSlotData[index].Clear();
+      }
     }
     // mark brick as empty
     m_brickMetaData[index] = BI_EMPTY;
