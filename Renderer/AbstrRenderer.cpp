@@ -1870,5 +1870,7 @@ void AbstrRenderer::RegisterLuaFunctions(
 
   id = reg.function(&AbstrRenderer::Resize,
                     "resize", "", true);
+  id = reg.function(&AbstrRenderer::Paint,
+                    "paint", "", true);
 }
 
