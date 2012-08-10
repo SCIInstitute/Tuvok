@@ -1,10 +1,10 @@
 #version 420 core
 
-in vec3 vEyePos;
+in vec3 vPosInViewCoords;
 uniform mat4x4 mEyeToModel;
 
 void main() {
-   gl_FragColor = vec4((mEyeToModel * vec4(vEyePos.x, vEyePos.y, vEyePos.z, 1.0)).xyz, vEyePos.z);
+   gl_FragColor = vec4((mEyeToModel * vec4(vPosInViewCoords.x, vPosInViewCoords.y, vPosInViewCoords.z, 1.0)).xyz, vPosInViewCoords.z);
 }
 
 

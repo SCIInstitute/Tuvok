@@ -5,12 +5,12 @@ layout (location=0) in vec3 vertexPosition;
 uniform mat4x4 mModelViewProjection;
 uniform mat4x4 mModelView;
 
-out vec3 vEyePos;
+out vec3 vPosInViewCoords;
 
 void main(void)
 {
   gl_Position = mModelViewProjection * vec4(vertexPosition, 1.0);
-  vEyePos = (mModelView * vec4(vertexPosition, 1.0)).xyz;
+  vPosInViewCoords = (mModelView * vec4(vertexPosition, 1.0)).xyz;
 }
 
 
