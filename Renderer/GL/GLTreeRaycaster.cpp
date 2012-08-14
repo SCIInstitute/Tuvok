@@ -258,7 +258,7 @@ bool GLTreeRaycaster::Initialize(std::shared_ptr<Context> ctx) {
   // now that we've created the hastable and the volume pool
   // we can load the rest of the shader that depend on those
   std::vector<std::string> vs, fs;
-  vs.push_back(FindFileInDirs("GLTreeRaycaster-VS.glsl", m_vShaderSearchDirs, false));
+  vs.push_back(FindFileInDirs("GLTreeRaycaster-entry-VS.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("GLTreeRaycaster-1D-FS.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
   ShaderDescriptor sd(vs, fs);
@@ -606,9 +606,9 @@ void GLTreeRaycaster::RecomputeBrickVisibility() {
     const BrickKey key = brick->first;
     const bool bContainsData = ContainsData(key);
 
-    m_pVolumePool->BrickContainsData(uint32_t(std::get<1>(key)), 
+    m_pVolumePool->BrickIsVisible(uint32_t(std::get<1>(key)), 
                                      uint32_t(std::get<2>(key)),
-                                     bContainsData);
+                                     bContainsData, bContainsData); // TODO: compute the children visibility
   }
   m_pVolumePool->UploadMetaData();
 }
@@ -623,8 +623,6 @@ void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
   m_pVolumePool->Enable(m_FrustumCullingLOD.GetLoDFactor(), 
                         FLOATVECTOR3(m_pToCDataset->GetScale()),
                         m_pProgramRayCast1D); // bound to 3 and 4
-
-
   m_pglHashTable->Enable(); // bound to 5
 
   // todo: use m_eRenderMode, code below is only for RM_1DTRANS
@@ -634,6 +632,7 @@ void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
   m_pProgramRayCast1D->Enable();
   m_pProgramRayCast1D->Set("sampleRateModifier", m_fSampleRateModifier);
   m_pProgramRayCast1D->Set("mEyeToModel", ComputeEyeToModelMatrix(rr, eStereoID), 4, false); 
+  m_pProgramRayCast1D->Set("mModelView", rr.modelView[size_t(eStereoID)], 4, false); 
   m_pProgramRayCast1D->Set("mModelViewProjection", rr.modelView[size_t(eStereoID)]*m_mProjection[size_t(eStereoID)], 4, false); 
 
   // clear the buffers 
@@ -710,8 +709,11 @@ bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
   
   // prepare a new view
   if (rr.isBlank) {
+    OTHER("Starting a new frame");
     // compute new ray start
     FillRayEntryBuffer(rr,eStereoID);
+  } else {
+    OTHER("Continuing a frame");
   }
 
   // clear hastable
@@ -725,7 +727,12 @@ bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
   m_bConverged = hash.empty();
 
   // upload missing bricks
-  if (!m_bConverged) UpdateToVolumePool(hash);
+  if (!m_bConverged) {
+    OTHER("Last rendering pass was missing %i brick(s), paging in now...", int(hash.size()));
+    UpdateToVolumePool(hash);
+  } else {
+    OTHER("All bricks rendered, frame complete.");
+  }
 
   // always display intermediate results
   return true;

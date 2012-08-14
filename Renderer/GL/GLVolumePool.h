@@ -60,7 +60,8 @@ namespace tuvok {
       bool UploadBrick(const BrickElemInfo& metaData, void* pData);
       void UploadFirstBrick(const UINTVECTOR3& m_vVoxelSize, void* pData);
       void UploadMetaData();
-      void BrickContainsData(uint32_t iLoD, uint32_t iIndexInLoD, bool bVisible);
+      void BrickIsVisible(uint32_t iLoD, uint32_t iIndexInLoD,
+                             bool bVisible, bool bChildrenVisible);
       bool IsBrickResident(const UINTVECTOR4& vBrickID) const;
       void Enable(float fLoDFactor, const FLOATVECTOR3& volumeAspect,
                   GLSLProgram* pShaderProgram) const;
@@ -75,8 +76,8 @@ namespace tuvok {
       GLTexture3D* m_PoolDataTexture;
       UINTVECTOR3 m_vPoolCapacity;
       UINTVECTOR3 m_poolSize;
-      UINTVECTOR3 m_maxBrickSize;
-      UINTVECTOR3 m_overlap;
+      UINTVECTOR3 m_maxInnerBrickSize;
+      UINTVECTOR3 m_maxTotalBrickSize;
       UINTVECTOR3 m_volumeSize;
       GLint m_internalformat;
       GLenum m_format;
