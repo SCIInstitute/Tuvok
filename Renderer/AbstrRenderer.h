@@ -269,6 +269,7 @@ class AbstrRenderer: public Scriptable {
     TransferFunction1D* Get1DTrans() {return m_p1DTrans;}
     TransferFunction2D* Get2DTrans() {return m_p2DTrans;}
 
+    virtual void Set1DTrans(const std::vector<unsigned char>& rgba) = 0;
     /** Notify renderer that 1D TF has changed.  In most cases, this will cause
      * the renderer to start anew. */
     virtual void Changed1DTrans();
