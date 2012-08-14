@@ -594,6 +594,11 @@ void GLTreeRaycaster::Changed1DTrans() {
   RecomputeBrickVisibility();
 }
 
+void GLTreeRaycaster::Set1DTrans(const std::vector<unsigned char>& rgba) {
+  GLRenderer::Set1DTrans(rgba);
+  RecomputeBrickVisibility();
+}
+
 void GLTreeRaycaster::SetRendermode(AbstrRenderer::ERenderMode eRenderMode) {
   GLRenderer::SetRendermode(eRenderMode);
   RecomputeBrickVisibility();

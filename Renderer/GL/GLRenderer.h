@@ -67,7 +67,7 @@ class GLRenderer : public AbstrRenderer {
                bool bDisableBorder);
     virtual ~GLRenderer();
     virtual bool Initialize(std::shared_ptr<Context> ctx);    
-    void Set1DTrans(const std::vector<unsigned char>& rgba);
+    virtual void Set1DTrans(const std::vector<unsigned char>& rgba);
     virtual void Changed1DTrans();
     virtual void Changed2DTrans();
 

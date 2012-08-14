@@ -38,6 +38,7 @@ namespace tuvok {
       // this is work in  progress so before we start we disable all we can 
       virtual bool SupportsClearView() {return false;}
       virtual bool CanDoClipPlane() {return false;}
+      virtual void Set1DTrans(const std::vector<unsigned char>& rgba);
 
 
       virtual std::string ClearViewDisableReason() const {
