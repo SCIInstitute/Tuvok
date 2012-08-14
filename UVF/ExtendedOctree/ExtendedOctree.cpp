@@ -146,16 +146,16 @@ void ExtendedOctree::ComputeMetadata() {
 
     // downsample the volume (except for the first LoD)
     if (!m_vLODTable.empty())  {
-      if (vVolumeSize.x > vUsableBrickSize.x) {
+      if (vVolumeSize.x > 1) {
         l.m_iLODPixelSize.x = uint64_t(ceil(vVolumeSize.x/2.0));
         vAspect.x *= (vVolumeSize.x%2) ? float(vVolumeSize.x)/float(l.m_iLODPixelSize.x) : 2;
       } 
 
-      if (vVolumeSize.y > vUsableBrickSize.y) {
+      if (vVolumeSize.y > 1) {
         l.m_iLODPixelSize.y = uint64_t(ceil(vVolumeSize.y/2.0));
         vAspect.y *= (vVolumeSize.y%2) ? float(vVolumeSize.y)/float(l.m_iLODPixelSize.y) : 2;
       }
-      if (vVolumeSize.z > vUsableBrickSize.z) {
+      if (vVolumeSize.z > 1) {
         l.m_iLODPixelSize.z = uint64_t(ceil(vVolumeSize.z/2.0));
         vAspect.z *= (vVolumeSize.z%2) ? float(vVolumeSize.z)/float(l.m_iLODPixelSize.z) : 2;
       }
@@ -171,9 +171,9 @@ void ExtendedOctree::ComputeMetadata() {
 
     l.m_iLoDOffset = 0; // don't know it yet, but for now quiet a warning.
     m_vLODTable.push_back(l);
-  } while (vVolumeSize.x > vUsableBrickSize.x ||
-           vVolumeSize.y > vUsableBrickSize.y ||
-           vVolumeSize.z > vUsableBrickSize.z);
+  } while (vVolumeSize.x > 1 ||
+           vVolumeSize.y > 1 ||
+           vVolumeSize.z > 1);
 
   // fill m_iLoDOffsets
   m_vLODTable[0].m_iLoDOffset = 0;
