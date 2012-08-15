@@ -100,6 +100,58 @@ static std::string find_filename(std::vector<std::string> directories,
   return *fn + dirsep + filename;
 }
 
+
+ShaderDescriptor ShaderDescriptor::Create(
+  std::vector<std::string> directories, 
+  std::vector<std::pair<uint32_t, std::string> > fragmentDataBindings,
+  ...
+) {
+  ShaderDescriptor rv;
+  va_list args;
+  va_start(args, directories);
+
+  const char* filename;
+  // we expect two NULLs: first terminates vertex list, second fragment list.
+  do {
+    filename = va_arg(args, const char*);
+    if(filename != NULL) {
+      rv.si->vertex.push_back(std::make_pair(std::string(filename),
+                              SHADER_VERTEX_DISK));
+    }
+  } while(filename != NULL);
+
+  // now second: fragment shaders.
+  do {
+    filename = va_arg(args, const char*);
+    if(filename != NULL) {
+      rv.si->fragment.push_back(std::make_pair(std::string(filename),
+                                SHADER_FRAGMENT_DISK));
+    }
+  } while(filename != NULL);
+  va_end(args);
+
+  // now try to clean up all those paths.
+  // The user gave us some directories to search, but let's make sure we also
+  // search the location of our binary.
+  std::vector<std::string> dirs = SysTools::GetSubDirList(
+    Controller::Instance().SysInfo()->GetProgramPath()
+  );
+  directories.insert(directories.end(), dirs.begin(), dirs.end());
+  directories.push_back(Controller::Instance().SysInfo()->GetProgramPath());
+    
+  typedef std::vector<std::pair<std::string, enum shader_type> > sv;
+  for(sv::iterator v = rv.si->vertex.begin(); v != rv.si->vertex.end(); ++v) {
+    v->first = find_filename(directories, v->first);
+  }
+  for(sv::iterator f = rv.si->fragment.begin(); f != rv.si->fragment.end();
+      ++f) {
+    f->first = find_filename(directories, f->first);
+  }
+
+  rv.fragmentDataBindings = fragmentDataBindings;
+
+  return rv;
+}
 ShaderDescriptor ShaderDescriptor::Create(
   std::vector<std::string> directories, ...
 ) {

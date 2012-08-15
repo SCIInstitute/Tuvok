@@ -32,6 +32,12 @@ class ShaderDescriptor {
       std::vector<std::string> directories, ...
     );
 
+    static ShaderDescriptor Create(
+      std::vector<std::string> directories,
+      std::vector<std::pair<uint32_t, std::string> > fragmentDataBindings,
+      ...
+    );
+
     /// Adds a vertex shader in a string (i.e. not from a filename)
     void AddVertexShaderString(const std::string shader);
     /// Adds a fragment shader in a string (i.e. not from a filename)
@@ -64,6 +70,7 @@ class ShaderDescriptor {
     SIterator begin_fragment() const;
     SIterator end_fragment() const;
 
+    std::vector<std::pair<uint32_t, std::string> > fragmentDataBindings;
   private:
     struct sinfo;
     std::shared_ptr<sinfo> si;
