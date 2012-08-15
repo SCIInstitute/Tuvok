@@ -91,7 +91,7 @@ GLFBOTex::GLFBOTex(MasterController* pMasterController, GLenum minfilter,
   m_LastAttachment=new GLenum[iNumBuffers];
   for (int i=0; i<m_iNumBuffers; i++) {
     m_LastTexUnit[i]=0;
-    m_LastAttachment[i]=GL_COLOR_ATTACHMENT0_EXT+i;
+    m_LastAttachment[i]=GL_COLOR_ATTACHMENT0+i;
     m_hTexture[i]=0;
   }
   while(glGetError() != GL_NO_ERROR) { ; } // clear error state.
@@ -262,7 +262,7 @@ void GLFBOTex::SetViewport() {
  * Lock texture for writing. Texture may not be bound any more!
  */
 void GLFBOTex::Write(unsigned int iTargetBuffer, int iBuffer, bool bCheckBuffer) {
-  GLenum target = GL_COLOR_ATTACHMENT0_EXT + iTargetBuffer;
+  GLenum target = GL_COLOR_ATTACHMENT0 + iTargetBuffer;
 
   if (!m_hFBO) {
     T_ERROR("FBO not initialized!");
@@ -335,27 +335,27 @@ void GLFBOTex::NoDrawBuffer() {
 }
 
 void GLFBOTex::OneDrawBuffer() {
-  GL(glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT));
+  GL(glDrawBuffer(GL_COLOR_ATTACHMENT0));
 }
 
 void GLFBOTex::TwoDrawBuffers() {
-  GLenum twobuffers[]  = { GL_COLOR_ATTACHMENT0_EXT,
-                           GL_COLOR_ATTACHMENT1_EXT };
+  GLenum twobuffers[]  = { GL_COLOR_ATTACHMENT0,
+                           GL_COLOR_ATTACHMENT1 };
   GL(glDrawBuffers(2, twobuffers));
 }
 
 void GLFBOTex::ThreeDrawBuffers() {
-  GLenum threebuffers[]  = { GL_COLOR_ATTACHMENT0_EXT,
-                            GL_COLOR_ATTACHMENT1_EXT,
-                            GL_COLOR_ATTACHMENT2_EXT};
+  GLenum threebuffers[]  = {GL_COLOR_ATTACHMENT0,
+                            GL_COLOR_ATTACHMENT1,
+                            GL_COLOR_ATTACHMENT2};
   GL(glDrawBuffers(3, threebuffers));
 }
 
 void GLFBOTex::FourDrawBuffers() {
-  GLenum fourbuffers[]  = { GL_COLOR_ATTACHMENT0_EXT,
-                            GL_COLOR_ATTACHMENT1_EXT,
-                            GL_COLOR_ATTACHMENT2_EXT,
-                            GL_COLOR_ATTACHMENT3_EXT};
+  GLenum fourbuffers[]  = { GL_COLOR_ATTACHMENT0,
+                            GL_COLOR_ATTACHMENT1,
+                            GL_COLOR_ATTACHMENT2,
+                            GL_COLOR_ATTACHMENT3};
   GL(glDrawBuffers(4, fourbuffers));
 }
 
@@ -377,7 +377,7 @@ void GLFBOTex::ReadBackPixels(int x, int y, int sX, int sY, void* pData) {
   } else if (GLEW_VERSION_3_0) {
     GL(glClampColor(GL_CLAMP_READ_COLOR, GL_FALSE));
   }
-  GL(glReadBuffer(GL_COLOR_ATTACHMENT0_EXT));
+  GL(glReadBuffer(GL_COLOR_ATTACHMENT0));
   GL(glReadPixels(x, y, sX, sY, GL_RGBA, GL_FLOAT, pData));
   FinishWrite(0);
 }
