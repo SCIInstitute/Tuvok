@@ -134,7 +134,7 @@ LuaScripting::LuaScripting()
   lua_atpanic(mL, &luaPanic);
   luaL_openlibs(mL);
 
-  LuaStackRAII _a(mL, 0);
+  LuaStackRAII _a(mL, 0, 0);
 
   // First construct the system table (functions in registerScriptFunctions
   // may want to register themselves in _sys_).
@@ -174,7 +174,7 @@ void LuaScripting::clean()
 //-----------------------------------------------------------------------------
 void LuaScripting::clearAllLastExecTables()
 {
-  LuaStackRAII _a = LuaStackRAII(mL, 0);
+  LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
   for (vector<string>::const_iterator it = mRegisteredGlobals.begin();
        it != mRegisteredGlobals.end(); ++it)
   {
@@ -466,7 +466,7 @@ void LuaScripting::printClassHelp(int tableIndex)
 //-----------------------------------------------------------------------------
 void LuaScripting::infoHelp(LuaTable table)
 {
-  LuaStackRAII _a(mL, 0);
+  LuaStackRAII _a(mL, 0, 0);
 
   int funTable = table.getStackLocation();
 
@@ -667,7 +667,7 @@ void LuaScripting::addParamInfo(const std::string& fqname, int paramID,
                                 const std::string& name,
                                 const std::string& desc)
 {
-  LuaStackRAII _a(mL, 0);
+  LuaStackRAII _a(mL, 0, 0);
 
   // Correct the zero based parameter.
   paramID++;
@@ -728,7 +728,7 @@ void LuaScripting::enableProvenance(bool enable)
 //-----------------------------------------------------------------------------
 void LuaScripting::unregisterAllFunctions()
 {
-  LuaStackRAII _a = LuaStackRAII(mL, 0);
+  LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
   for (vector<string>::const_iterator it = mRegisteredGlobals.begin();
        it != mRegisteredGlobals.end(); ++it)
   {
@@ -757,7 +757,7 @@ void LuaScripting::deleteAllClassInstances()
 {
   // Iterate over the class instance table and call destroyClassInstanceTable
   // on all of the key values.
-  LuaStackRAII _a(mL, 0);
+  LuaStackRAII _a(mL, 0, 0);
 
   lua_getglobal(mL, LuaClassInstance::SYSTEM_TABLE);
   if (lua_isnil(mL, -1) == 1)
@@ -818,7 +818,7 @@ void LuaScripting::deleteAllClassInstances()
 //-----------------------------------------------------------------------------
 void LuaScripting::destroyClassInstanceTable(int tableIndex)
 {
-  LuaStackRAII _a(mL, 0);
+  LuaStackRAII _a(mL, 0, 0);
 
   if (lua_getmetatable(mL, tableIndex) == 0)
     throw LuaError("Unable to obtain function metatable.");
@@ -857,7 +857,7 @@ void LuaScripting::destroyClassInstanceTable(int tableIndex)
 //-----------------------------------------------------------------------------
 void LuaScripting::cleanupClassConstructors()
 {
-  LuaStackRAII _a(mL, 0);
+  LuaStackRAII _a(mL, 0, 0);
 
   for (vector<string>::iterator it = mRegisteredClasses.begin();
       it != mRegisteredClasses.end(); ++it)
@@ -898,7 +898,7 @@ void LuaScripting::cleanupClassConstructors()
 //-----------------------------------------------------------------------------
 void LuaScripting::notifyOfDeletion(LuaClassInstance inst)
 {
-  LuaStackRAII _a(mL, 0);
+  LuaStackRAII _a(mL, 0, 0);
 
   setExpectedExceptionFlag(true);
   try
@@ -939,7 +939,7 @@ void LuaScripting::notifyOfDeletion(LuaClassInstance inst)
 void LuaScripting::removeFunctionsFromTable(int parentTable,
                                             const char* tableName)
 {
-  LuaStackRAII _a = LuaStackRAII(mL, 0);
+  LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
   // Iterate over the first table on the stack.
   int tablePos = lua_gettop(mL);
 
@@ -996,7 +996,7 @@ void LuaScripting::removeFunctionsFromTable(int parentTable,
 //-----------------------------------------------------------------------------
 void LuaScripting::clearLastExecFromTable()
 {
-  LuaStackRAII _a = LuaStackRAII(mL, 0);
+  LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
   // Iterate over the first table on the stack.
   int tablePos = lua_gettop(mL);
 
@@ -1038,7 +1038,7 @@ void LuaScripting::clearLastExecFromTable()
 //-----------------------------------------------------------------------------
 vector<LuaScripting::FunctionDesc> LuaScripting::getAllFuncDescs() const
 {
-  LuaStackRAII _a = LuaStackRAII(mL, 0);
+  LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
                         // ¤3.7.3.1 -- Automatic storage duration.
                         // ¤6.7.2 -- Destroyed at the end of the block in
                         //           reverse order of creation.
@@ -1062,7 +1062,7 @@ vector<LuaScripting::FunctionDesc> LuaScripting::getAllFuncDescs() const
 void LuaScripting::getTableFuncDefs(vector<LuaScripting::FunctionDesc>& descs)
   const
 {
-  LuaStackRAII _a = LuaStackRAII(mL, 0);
+  LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
 
   // Iterate over the first table on the stack.
   int tablePos = lua_gettop(mL);
@@ -1119,7 +1119,7 @@ void LuaScripting::getTableFuncDefs(vector<LuaScripting::FunctionDesc>& descs)
 LuaScripting::FunctionDesc
 LuaScripting::getFunctionDescFromTable(int table) const
 {
-  LuaStackRAII _a(mL, 0);
+  LuaStackRAII _a(mL, 0, 0);
 
   FunctionDesc desc;
 
@@ -1162,7 +1162,7 @@ string LuaScripting::getUnqualifiedName(const string& fqName)
 vector<string> LuaScripting::performCorrection(int tbl,
                                                const std::string& name)
 {
-  LuaStackRAII _a = LuaStackRAII(mL, 0, __FILE__, __LINE__);
+  LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
   vector<string> ret;
 
   lua_pushnil(mL);
@@ -1195,7 +1195,7 @@ vector<string> LuaScripting::performCorrection(int tbl,
 //-----------------------------------------------------------------------------
 vector<string> LuaScripting::completeCommand(const std::string& fqName)
 {
-  LuaStackRAII _a = LuaStackRAII(mL, 0, __FILE__, __LINE__);
+  LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
 
   vector<string> ret;
 
@@ -1367,7 +1367,7 @@ std::string LuaScripting::getCmdPath(std::string fqName)
 void LuaScripting::bindClosureTableWithFQName(const string& fqName,
                                               int tableIndex)
 {
-  LuaStackRAII _a = LuaStackRAII(mL, 0, __FILE__, __LINE__);
+  LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
 
   // Tokenize the fully qualified name.
   const string delims(QUALIFIED_NAME_DELIMITER);
@@ -1523,7 +1523,7 @@ void LuaScripting::bindClosureTableWithFQName(const string& fqName,
 //-----------------------------------------------------------------------------
 bool LuaScripting::isOurRegisteredFunction(int stackIndex) const
 {
-  LuaStackRAII _a = LuaStackRAII(mL, 0);
+  LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
 
   // Extract the light user data that holds a pointer to the class that was
   // used to register this function.
@@ -1544,7 +1544,7 @@ bool LuaScripting::isOurRegisteredFunction(int stackIndex) const
 //-----------------------------------------------------------------------------
 bool LuaScripting::isRegisteredFunction(int stackIndex) const
 {
-  LuaStackRAII _a = LuaStackRAII(mL, 0);
+  LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
 
   // Check to make sure this table is NOT a registered function.
   if (lua_getmetatable(mL, stackIndex) != 0)
@@ -1572,7 +1572,7 @@ bool LuaScripting::isRegisteredFunction(int stackIndex) const
 void LuaScripting::createCallableFuncTable(lua_CFunction proxyFunc,
                                            void* realFuncToCall)
 {
-  LuaStackRAII _a = LuaStackRAII(mL, 1, __FILE__, __LINE__);
+  LuaStackRAII _a = LuaStackRAII(mL, 0, 1);
 
   // Table containing the function closure.
   lua_newtable(mL);
@@ -1615,7 +1615,7 @@ void LuaScripting::populateWithMetadata(const std::string& name,
                                         const std::string& sigNoReturn,
                                         int tableIndex)
 {
-  LuaStackRAII _a = LuaStackRAII(mL, 0);
+  LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
 
   // Function description
   lua_pushstring(mL, desc.c_str());
@@ -1670,7 +1670,7 @@ void LuaScripting::populateWithMetadata(const std::string& name,
 void LuaScripting::createDefaultsAndLastExecTables(int tableIndex,
                                                    int numFunParams)
 {
-  LuaStackRAII _a = LuaStackRAII(mL, -numFunParams);
+  LuaStackRAII _a = LuaStackRAII(mL, numFunParams, 0);
 
   int firstParamPos = (lua_gettop(mL) - numFunParams) + 1;
 
@@ -2046,7 +2046,7 @@ bool LuaScripting::doProvenanceFromExec(lua_State* L,
 //-----------------------------------------------------------------------------
 void LuaScripting::setUndoRedoStackExempt(const string& funcName)
 {
-  LuaStackRAII _a = LuaStackRAII(mL, 0);
+  LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
 
   lua_State* L = mL;
   if (getFunctionTable(funcName) == false)
@@ -2069,7 +2069,7 @@ void LuaScripting::setUndoRedoStackExempt(const string& funcName)
 //-----------------------------------------------------------------------------
 void LuaScripting::setProvenanceExempt(const std::string& fqName)
 {
-  LuaStackRAII _a = LuaStackRAII(mL, 0);
+  LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
 
   setUndoRedoStackExempt(fqName);
 
@@ -2087,7 +2087,7 @@ void LuaScripting::setProvenanceExempt(const std::string& fqName)
 //-----------------------------------------------------------------------------
 void LuaScripting::copyDefaultsTableToLastExec(int funTableIndex)
 {
-  LuaStackRAII _a = LuaStackRAII(mL, 0);
+  LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
 
   // Push a copy of the defaults table onto the stack.
   lua_getfield(mL, funTableIndex, TBL_MD_FUN_PDEFS);
@@ -2153,7 +2153,7 @@ void LuaScripting::executeFunctionOnStack(int nparams, int nret)
 {
   // - 2 because we have the function table as a transparent parameter
   // and lua_call will also pop the function off the stack.
-  LuaStackRAII _a = LuaStackRAII(mL, -nparams - 2 + nret);
+  LuaStackRAII _a = LuaStackRAII(mL, nparams + 2, nret);
   // + 1 is for the function table that was pushed by prepForExecution.
   lua_call(mL, nparams + 1, nret);
 }
@@ -2161,7 +2161,7 @@ void LuaScripting::executeFunctionOnStack(int nparams, int nret)
 //-----------------------------------------------------------------------------
 void LuaScripting::exec(const std::string& cmd)
 {
-  LuaStackRAII _a = LuaStackRAII(mL, 0);
+  LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
   luaL_loadstring(mL, cmd.c_str());
   lua_call(mL, 0, 0);
 }
@@ -2169,7 +2169,7 @@ void LuaScripting::exec(const std::string& cmd)
 //-----------------------------------------------------------------------------
 void LuaScripting::cexec(const std::string& cmd)
 {
-  LuaStackRAII _a = LuaStackRAII(mL, 0);
+  LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
   prepForExecution(cmd);
   executeFunctionOnStack(0, 0);
 }
@@ -2177,7 +2177,7 @@ void LuaScripting::cexec(const std::string& cmd)
 //-----------------------------------------------------------------------------
 void LuaScripting::resetFunDefault(int argumentPos, int ftableStackPos)
 {
-  LuaStackRAII _a = LuaStackRAII(mL, -1);
+  LuaStackRAII _a = LuaStackRAII(mL, 1, 0);
 
   int valPos = lua_gettop(mL);
   lua_getfield(mL, ftableStackPos, TBL_MD_FUN_PDEFS);
@@ -2212,7 +2212,7 @@ void LuaScripting::logExecFailure(const std::string& failure)
 //-----------------------------------------------------------------------------
 void LuaScripting::setExpectedExceptionFlag(bool expected)
 {
-  LuaStackRAII _a = LuaStackRAII(mL, 0);
+  LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
   lua_pushboolean(mL, expected ? 1 : 0);
   lua_setfield(mL, LUA_REGISTRYINDEX,
                LuaScripting::REG_EXPECTED_EXCEPTION_FLAG);
@@ -2239,7 +2239,7 @@ void LuaScripting::endCommand()
 //-----------------------------------------------------------------------------
 LuaClassInstance LuaScripting::getLuaClassInstance(void* p)
 {
-  LuaStackRAII _a(mL, 0);
+  LuaStackRAII _a(mL, 0, 0);
 
   // Grab lookup table and attempt to lookup the light user data.
   if (getFunctionTable(LuaClassInstance::CLASS_LOOKUP_TABLE) == false)
@@ -2263,14 +2263,14 @@ LuaClassInstance LuaScripting::getLuaClassInstance(void* p)
 //-----------------------------------------------------------------------------
 bool LuaScripting::getClassTable(LuaClassInstance inst)
 {
-  LuaStackRAII _a(mL, 1);
+  LuaStackRAII _a(mL, 0, 1);
   return getFunctionTable(inst.fqName());
 }
 
 //-----------------------------------------------------------------------------
 void LuaScripting::deleteLuaClassInstance(LuaClassInstance inst)
 {
-  LuaStackRAII _a(mL, 0);
+  LuaStackRAII _a(mL, 0, 0);
 
   if (getFunctionTable(inst.fqName()))
   {
@@ -2343,7 +2343,7 @@ void LuaScripting::setNextTempClassInstRange(LuaClassInstance::IDType low,
 //-----------------------------------------------------------------------------
 void LuaScripting::setNullUndoFun(const std::string& name)
 {
-  LuaStackRAII _a = LuaStackRAII(mL, 0);
+  LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
 
   // Need to check the signature of the function that we are trying to bind
   // into the script system.
@@ -2362,7 +2362,7 @@ void LuaScripting::setNullUndoFun(const std::string& name)
 //-----------------------------------------------------------------------------
 void LuaScripting::setNullRedoFun(const std::string& name)
 {
-  LuaStackRAII _a = LuaStackRAII(mL, 0);
+  LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
 
   // Need to check the signature of the function that we are trying to bind
   // into the script system.
@@ -2381,7 +2381,7 @@ void LuaScripting::setNullRedoFun(const std::string& name)
 //-----------------------------------------------------------------------------
 bool LuaScripting::isLuaClassInstance(int tableIndex)
 {
-  LuaStackRAII _a = LuaStackRAII(mL, 0);
+  LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
 
   if (lua_getmetatable(mL, tableIndex) == 0)
   {
@@ -2467,7 +2467,7 @@ static int dir_gc (lua_State *L)
 
 static int luaopen_dir(lua_State *L)
 {
-  LuaStackRAII _a(L, 0);
+  LuaStackRAII _a(L, 0, 0);
   luaL_newmetatable(L, DirMetatable);
 
   // set its __gc field
@@ -2502,7 +2502,7 @@ static const char* LuaOSCaptureFun = "os.capture = function(cmd, raw)\n"
 //-----------------------------------------------------------------------------
 void LuaScripting::registerLuaUtilityFunctions()
 {
-  LuaStackRAII _a(mL, 0);
+  LuaStackRAII _a(mL, 0, 0);
 
   // Register the dir() lua function.
 #ifndef DETECTED_OS_WINDOWS

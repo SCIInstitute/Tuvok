@@ -90,7 +90,7 @@ bool LuaClassInstance::isValid(std::shared_ptr<LuaScripting> ss) const
 
 bool LuaClassInstance::isValid(LuaScripting* ss) const
 {
-  LuaStackRAII _a(ss->getLuaState(), 0);
+  LuaStackRAII _a(ss->getLuaState(), 0, 0);
 
   if (isDefaultInstance())
     return false;
@@ -111,7 +111,7 @@ bool LuaClassInstance::isValid(LuaScripting* ss) const
 void* LuaClassInstance::getVoidPointer(LuaScripting* ss)
 {
   lua_State* L = ss->getLuaState();
-  LuaStackRAII _a(L, 0);
+  LuaStackRAII _a(L, 0, 0);
 
   if (ss->getFunctionTable(fqName()) == false)
     throw LuaError("Invalid function table.");

@@ -251,7 +251,7 @@ void LuaProvenance::logExecution(const string& fname,
 
   // Gather last execution parameters for inclusion in the undo stack.
   lua_State* L = mScripting->getLuaState();
-  LuaStackRAII _a = LuaStackRAII(L, 0);
+  LuaStackRAII _a = LuaStackRAII(L, 0, 0);
   if (mScripting->getFunctionTable(fname.c_str()) == false)
     throw LuaError("Provenance unable to find function");
   lua_getfield(L, -1, LuaScripting::TBL_MD_FUN_LAST_EXEC);
@@ -571,7 +571,7 @@ void LuaProvenance::performUndoRedoOp(const string& funcName,
   // Obtain function's table, then grab its metamethod __call.
   // Push parameters onto the stack after the __call method, and execute.
   lua_State* L = mScripting->getLuaState();
-  LuaStackRAII _a = LuaStackRAII(L, 0);
+  LuaStackRAII _a = LuaStackRAII(L, 0, 0);
 
   if (mScripting->getFunctionTable(funcName) == false)
   {

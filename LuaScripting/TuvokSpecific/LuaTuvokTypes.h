@@ -94,8 +94,6 @@ public:
 
   static VECTOR4<T> get(lua_State* L, int pos)
   {
-    LuaStackRAII _a(L, 0);  ///< TODO: Remove once thoroughly tested.
-
     Type ret;
 
     // There should be a table at 'pos', containing four numerical elements.
@@ -126,8 +124,6 @@ public:
 
   static void push(lua_State* L, VECTOR4<T> in)
   {
-    LuaStackRAII _a(L, 1);  ///< TODO: Remove once thoroughly tested.
-
     lua_newtable(L);
     int tbl = lua_gettop(L);
 
@@ -167,8 +163,6 @@ public:
 
   static VECTOR3<T> get(lua_State* L, int pos)
   {
-    LuaStackRAII _a(L, 0);  ///< TODO: Remove once thoroughly tested.
-
     VECTOR3<T> ret;
 
     // There should be a table at 'pos', containing four numerical elements.
@@ -194,8 +188,6 @@ public:
 
   static void push(lua_State* L, VECTOR3<T> in)
   {
-    LuaStackRAII _a(L, 1);  ///< TODO: Remove once thoroughly tested.
-
     lua_newtable(L);
     int tbl = lua_gettop(L);
 
@@ -231,8 +223,6 @@ public:
 
   static VECTOR3<T> get(lua_State* L, int pos)
   {
-    LuaStackRAII _a(L, 0);  ///< TODO: Remove once thoroughly tested.
-
     VECTOR3<T> ret;
 
     // There should be a table at 'pos', containing four numerical elements.
@@ -258,8 +248,6 @@ public:
 
   static void push(lua_State* L, VECTOR3<T> in)
   {
-    LuaStackRAII _a(L, 1);  ///< TODO: Remove once thoroughly tested.
-
     lua_newtable(L);
     int tbl = lua_gettop(L);
 
@@ -295,8 +283,6 @@ public:
 
   static VECTOR2<T> get(lua_State* L, int pos)
   {
-    LuaStackRAII _a(L, 0);  ///< TODO: Remove once thoroughly tested.
-
     VECTOR2<T> ret;
 
     // There should be a table at 'pos', containing four numerical elements.
@@ -317,8 +303,6 @@ public:
 
   static void push(lua_State* L, VECTOR2<T> in)
   {
-    LuaStackRAII _a(L, 1);  ///< TODO: Remove once thoroughly tested.
-
     lua_newtable(L);
     int tbl = lua_gettop(L);
 
@@ -351,8 +335,6 @@ public:
 
   static VECTOR2<T> get(lua_State* L, int pos)
   {
-    LuaStackRAII _a(L, 0);  ///< TODO: Remove once thoroughly tested.
-
     VECTOR2<T> ret;
 
     // There should be a table at 'pos', containing four numerical elements.
@@ -373,8 +355,6 @@ public:
 
   static void push(lua_State* L, VECTOR2<T> in)
   {
-    LuaStackRAII _a(L, 1);  ///< TODO: Remove once thoroughly tested.
-
     lua_newtable(L);
     int tbl = lua_gettop(L);
 
@@ -418,8 +398,6 @@ public:
 
   static MATRIX2<T> get(lua_State* L, int pos)
   {
-    LuaStackRAII _a(L, 0);
-
     VECTOR2<T> rows[2];
 
     luaL_checktype(L, pos, LUA_TTABLE);
@@ -439,8 +417,6 @@ public:
 
   static void push(lua_State* L, MATRIX2<T> in)
   {
-    LuaStackRAII _a(L, 1);
-
     lua_newtable(L);
     int tbl = lua_gettop(L);
 
@@ -478,8 +454,6 @@ public:
 
   static MATRIX3<T> get(lua_State* L, int pos)
   {
-    LuaStackRAII _a(L, 0);
-
     VECTOR3<T> rows[3];
 
     luaL_checktype(L, pos, LUA_TTABLE);
@@ -504,8 +478,6 @@ public:
 
   static void push(lua_State* L, MATRIX3<T> in)
   {
-    LuaStackRAII _a(L, 1);
-
     lua_newtable(L);
     int tbl = lua_gettop(L);
 
@@ -551,8 +523,6 @@ public:
 
   static MATRIX4<T> get(lua_State* L, int pos)
   {
-    LuaStackRAII _a(L, 0);
-
     VECTOR4<T> rows[4];
 
     luaL_checktype(L, pos, LUA_TTABLE);
@@ -582,8 +552,6 @@ public:
 
   static void push(lua_State* L, MATRIX4<T> in)
   {
-    LuaStackRAII _a(L, 1);
-
     lua_newtable(L);
     int tbl = lua_gettop(L);
 
@@ -637,8 +605,6 @@ public:
 
   static ExtendedPlane get(lua_State* L, int pos)
   {
-    LuaStackRAII _a(L, 0);
-
     luaL_checktype(L, pos, LUA_TTABLE);
 
     lua_pushinteger(L, 1);
@@ -663,8 +629,6 @@ public:
 
   static void push(lua_State* L, ExtendedPlane in)
   {
-    LuaStackRAII _a(L, 1);
-
     lua_newtable(L);
     int tbl = lua_gettop(L);
 

@@ -46,29 +46,31 @@ namespace tuvok
 {
 
 //-----------------------------------------------------------------------------
-LuaStackRAII::LuaStackRAII(lua_State* L, int finalRelStackHeight,
-                           const char* where, int line)
+LuaStackRAII::LuaStackRAII(lua_State* L, int valsConsumed, int valsReturned)
 {
   mL = L;
 
   mInitialStackTop      = lua_gettop(mL);
-  mFinalRelStackHeight  = finalRelStackHeight;
+  mValsConsumed         = valsConsumed;
+  mValsReturned         = valsReturned;
 
-  mWhere = where;
-  mLine = line;
+  if (valsConsumed < 0)
+    throw LuaError("LuaStackRAII valsConsumed must be >= 0.");
+  if (valsReturned < 0)
+    throw LuaError("LuaStackRAII valsReturned must be >= 0.");
 }
 
+//-----------------------------------------------------------------------------
 static void luaStackRAIIInternalDoString(lua_State* mL, std::string str)
 {
   luaL_dostring(mL, str.c_str());
 }
 
-
 //-----------------------------------------------------------------------------
 LuaStackRAII::~LuaStackRAII()
 {
   int stackTop = lua_gettop(mL);
-  int stackTarget = mInitialStackTop + mFinalRelStackHeight;
+  int stackTarget = mInitialStackTop - mValsConsumed + mValsReturned;
 
   if (stackTop != stackTarget)
   {
@@ -87,11 +89,6 @@ LuaStackRAII::~LuaStackRAII()
       ostringstream os;
       os << "log.error([==[LuaStackRAII: unexpected stack size. Expected: ";
       os << stackTarget << ". Actual: " << stackTop << ".";
-
-      if (mWhere != NULL)
-      {
-        os << " File: " << mWhere << ". Line: " << mLine << ".";
-      }
 
       // To ensure we don't wipe out Lua error messages (generally, these will
       // be caught by lua_atpanic).
@@ -112,7 +109,27 @@ LuaStackRAII::~LuaStackRAII()
     }
 
     // Ensure stack ends up at the stack target (RAII)
-    lua_settop(mL, stackTarget);
+    if (mValsReturned == 0)
+    {
+      // Simply set the top to the stack target.
+      lua_settop(mL, stackTarget);
+    }
+    else
+    {
+      // NOTE: In this case, we can't just set the top to stack target. 
+      //       Doing that will wipe out any potential return values.
+
+      // Calculate absolute position removal index.
+      int curTop = lua_gettop(mL);
+
+      // Keep removing values from the stack until we get to the stack target.
+      while (curTop > stackTarget)
+      {
+        lua_remove(mL, lua_gettop(mL) - mValsReturned);
+        curTop = lua_gettop(mL);
+      }
+    }
+
   }
 }
 

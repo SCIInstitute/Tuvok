@@ -103,7 +103,7 @@ void LuaMemberRegUnsafe::unregisterFunctions()
 void LuaMemberRegUnsafe::unregisterHooks()
 {
   lua_State* L = mScriptSystem->getLuaState();
-  LuaStackRAII _a = LuaStackRAII(L, 0);
+  LuaStackRAII _a = LuaStackRAII(L, 0, 0);
 
   // Loop through the hooks, and unregister them from their functions
   for (vector<string>::iterator it = mHookedFunctions.begin();
@@ -138,7 +138,7 @@ void LuaMemberRegUnsafe::unregisterHooks()
 void LuaMemberRegUnsafe::unregisterUndoRedoFunctions()
 {
   lua_State* L = mScriptSystem->getLuaState();
-  LuaStackRAII _a = LuaStackRAII(L, 0);
+  LuaStackRAII _a = LuaStackRAII(L, 0, 0);
 
   // Loop through the hooks, and unregister them from their functions
   for (vector<UndoRedoReg>::iterator it = mRegisteredUndoRedo.begin();

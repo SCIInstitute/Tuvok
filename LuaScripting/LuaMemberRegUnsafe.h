@@ -133,7 +133,7 @@ private:
   {
     static int exec(lua_State* L)
     {
-      LuaStackRAII _a = LuaStackRAII(L, 1); // 1 for the return value.
+      LuaStackRAII _a = LuaStackRAII(L, 0, 1); // 1 for the return value.
 
       FunPtr fp = *static_cast<FunPtr*>(lua_touserdata(L, lua_upvalueindex(1)));
       T* bClass = reinterpret_cast<T*>(lua_touserdata(L, lua_upvalueindex(2)));
@@ -195,7 +195,7 @@ private:
   {
     static int exec(lua_State* L)
     {
-      LuaStackRAII _a = LuaStackRAII(L, 0);
+      LuaStackRAII _a = LuaStackRAII(L, 0, 0);
 
       FunPtr fp = *static_cast<FunPtr*>(lua_touserdata(L, lua_upvalueindex(1)));
       T* bClass = reinterpret_cast<T*>(lua_touserdata(L, lua_upvalueindex(2)));
@@ -255,7 +255,7 @@ std::string LuaMemberRegUnsafe::registerFunction(T* C, FunPtr f,
   LuaScripting* ss  = mScriptSystem;
   lua_State*    L   = ss->getLuaState();
 
-  LuaStackRAII _a = LuaStackRAII(L, 0);
+  LuaStackRAII _a = LuaStackRAII(L, 0, 0);
 
   // Member function pointers are not pointing to a function, they are
   // compiler dependent and are pointing to a memory address.
@@ -355,7 +355,7 @@ void LuaMemberRegUnsafe::strictHookInternal(
   LuaScripting* ss  = mScriptSystem;
   lua_State*    L   = ss->getLuaState();
 
-  LuaStackRAII _a = LuaStackRAII(L, 0);
+  LuaStackRAII _a = LuaStackRAII(L, 0, 0);
 
   // Need to check the signature of the function that we are trying to bind
   // into the script system.

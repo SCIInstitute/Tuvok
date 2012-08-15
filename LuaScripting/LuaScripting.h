@@ -708,7 +708,7 @@ private:
   {
     static int exec(lua_State* L)
     {
-      LuaStackRAII _a = LuaStackRAII(L, 1); // 1 return value.
+      LuaStackRAII _a = LuaStackRAII(L, 0, 1); // 1 return value.
 
       FunPtr fp = reinterpret_cast<FunPtr>(
           lua_touserdata(L, lua_upvalueindex(1)));
@@ -774,7 +774,7 @@ private:
   {
     static int exec(lua_State* L)
     {
-      LuaStackRAII _a = LuaStackRAII(L, 0);
+      LuaStackRAII _a = LuaStackRAII(L, 0, 0);
 
       FunPtr fp = reinterpret_cast<FunPtr>(
           lua_touserdata(L, lua_upvalueindex(1)));
@@ -846,7 +846,7 @@ void LuaScripting::registerClass(
   // to be a static function.
   // Construct 'constructor' table.
   lua_State* L = getLuaState();
-  LuaStackRAII _a(L, 0);
+  LuaStackRAII _a(L, 0, 0);
 
   // Register 'new'. This will automatically create the necessary class table.
   std::string fqFunName = className;
@@ -893,7 +893,7 @@ void LuaScripting::registerClassStatic(
   // to be a static function.
   // Construct 'constructor' table.
   lua_State* L = getLuaState();
-  LuaStackRAII _a(L, 0);
+  LuaStackRAII _a(L, 0, 0);
 
   // Register 'new'. This will automatically create the necessary class table.
   std::string fqFunName = className;
@@ -931,7 +931,7 @@ void LuaScripting::registerClassStatic(
 template <typename T>
 T LuaScripting::execRet(const std::string& cmd)
 {
-  LuaStackRAII _a = LuaStackRAII(mL, 0);
+  LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
 
   std::string retCmd = "return " + cmd;
   luaL_loadstring(mL, retCmd.c_str());
@@ -944,7 +944,7 @@ T LuaScripting::execRet(const std::string& cmd)
 template <typename T>
 T LuaScripting::cexecRet(const std::string& name)
 {
-  LuaStackRAII _a = LuaStackRAII(mL, 0);
+  LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
   prepForExecution(name);
   executeFunctionOnStack(0, 1);
   T ret = LuaStrictStack<T>::get(mL, lua_gettop(mL));
@@ -958,7 +958,7 @@ template <typename T>
 void Tuvok_luaCheckParam(lua_State* L, const std::string& name,
                          int typesTable, int check_pos)
 {
-  LuaStackRAII _a = LuaStackRAII(L, 0);
+  LuaStackRAII _a = LuaStackRAII(L, 0, 0);
 
   lua_pushinteger(L, check_pos++);
   lua_gettable(L, typesTable);
@@ -1007,7 +1007,7 @@ std::string LuaScripting::registerFunction(FunPtr f, const std::string& name,
                                            const std::string& desc,
                                            bool undoRedo)
 {
-  LuaStackRAII _a = LuaStackRAII(mL, 0);
+  LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
 
   // Idea: Build a 'callable' table.
   // Its metatable will have a __call metamethod that points to the C
@@ -1064,7 +1064,7 @@ void LuaScripting::strictHookInternal(
     bool registerUndo,
     bool registerRedo)
 {
-  LuaStackRAII _a = LuaStackRAII(mL, 0);
+  LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
 
   // Need to check the signature of the function that we are trying to bind
   // into the script system.

@@ -59,7 +59,7 @@ public:
   {
     lua_State* L = mSS->getLuaState();
 
-    LuaStackRAII _a = LuaStackRAII(L, 0);
+    LuaStackRAII _a = LuaStackRAII(L, 0, 0);
 
     // Idea: Build a 'callable' table.
     // Its metatable will have a __call metamethod that points to the C
@@ -133,7 +133,7 @@ public:
       typename LuaClassRegCallback<CLS>::Type& callback)
   {
     lua_State* L = mSS->getLuaState();
-    LuaStackRAII _a = LuaStackRAII(L, 0);
+    LuaStackRAII _a = LuaStackRAII(L, 0, 0);
 
     // Member function pointers are not pointing to a function, they are
     // compiler dependent and are pointing to a memory address.
@@ -230,7 +230,7 @@ private:
     // the function above (the exec function above).
     static int exec(lua_State* L)
     {
-      LuaStackRAII _a = LuaStackRAII(L, 1); // 1 return value.
+      LuaStackRAII _a = LuaStackRAII(L, 0, 1); // 1 return value.
 
       // The function table that called us on the top of the stack.
       int consTable = 1;
@@ -344,7 +344,7 @@ private:
     // the function above (the exec function above).
     static int exec(lua_State* L)
     {
-      LuaStackRAII _a = LuaStackRAII(L, 1); // 1 return value.
+      LuaStackRAII _a = LuaStackRAII(L, 0, 1); // 1 return value.
 
       // The function table that called us on the top of the stack.
       int consTable = 1;

@@ -45,25 +45,29 @@ class LuaStackRAII
 public:
   /// Use this class to ensure the Lua stack is cleaned up properly when an
   /// exception is thrown.
-  /// \param  finalRelStackHeight   Final relative stack height.
-  ///                               Accepts any valid integer. Positive values
-  ///                               indicate that values will be left on the
-  ///                               stack. 0 indicates that the stack should be
-  ///                               left unchanged. Negative values indicate
-  ///                               that values should be removed from the
-  ///                               stack.
-  LuaStackRAII(lua_State* L, int finalRelStackHeight,
-               const char* where = NULL, int line = 0);
-
+  /// \param valsConsumed   The # of values removed from the stack. 
+  ///                       This number should NOT take into account
+  ///                       valsReturned.
+  /// \param valsReturned   The number of return values pushed onto the stack.
+  ///                       This number should NOT take into account 
+  ///                       valsConsumed.
+  /// Example:
+  ///  void someFun(..)
+  ///  {
+  ///    LuaStackRAII _a(mL, 2, 1);
+  ///  ...
+  ///  }
+  ///  After successful completion of this function, LuaStackRAII's destructor
+  ///  expects that the stack will contain one less element relative to when 
+  ///  LuaStackRAII was constructed.
+  LuaStackRAII(lua_State* L, int valsConsumed, int valsReturned);
   virtual ~LuaStackRAII();
 
 private:
 
   int           mInitialStackTop;
-  int           mFinalRelStackHeight;
-
-  const char*   mWhere;
-  int           mLine;
+  int           mValsConsumed;
+  int           mValsReturned;
 
   lua_State*    mL;
 

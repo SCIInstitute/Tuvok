@@ -172,7 +172,7 @@ void LuaClassRegistration<T>::inherit(LuaClassInstance them)
   LuaScripting* ss(mSS);
   lua_State* L = ss->getLuaState();
 
-  LuaStackRAII _a(L, 0);
+  LuaStackRAII _a(L, 0, 0);
 
   // Generate our own LuaClassInstance.
   LuaClassInstance us(mGlobalID);
@@ -204,7 +204,7 @@ void LuaClassRegistration<T>::inherit(LuaClassInstance them,
   LuaScripting* ss(mSS);
   lua_State* L = ss->getLuaState();
 
-  LuaStackRAII _a(L, 0);
+  LuaStackRAII _a(L, 0, 0);
 
   // Generate our own LuaClassInstance.
   LuaClassInstance us(mGlobalID);

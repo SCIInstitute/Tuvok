@@ -36,7 +36,7 @@
   template <typename P1>
   void LuaScripting::cexec(const std::string& name, P1 p1)
   {
-    LuaStackRAII _a = LuaStackRAII(mL, 0);
+    LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
     prepForExecution(name);
   #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
     int ftable = lua_gettop(mL);
@@ -56,7 +56,7 @@
   template <typename P1, typename P2>
   void LuaScripting::cexec(const std::string& name, P1 p1, P2 p2)
   {
-    LuaStackRAII _a = LuaStackRAII(mL, 0);
+    LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
     prepForExecution(name);
   #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
     int ftable = lua_gettop(mL);
@@ -78,7 +78,7 @@
   template <typename P1, typename P2, typename P3>
   void LuaScripting::cexec(const std::string& name, P1 p1, P2 p2, P3 p3)
   {
-    LuaStackRAII _a = LuaStackRAII(mL, 0);
+    LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
     prepForExecution(name);
   #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
     int ftable = lua_gettop(mL);
@@ -102,7 +102,7 @@
   template <typename P1, typename P2, typename P3, typename P4>
   void LuaScripting::cexec(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4)
   {
-    LuaStackRAII _a = LuaStackRAII(mL, 0);
+    LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
     prepForExecution(name);
   #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
     int ftable = lua_gettop(mL);
@@ -128,7 +128,7 @@
   template <typename P1, typename P2, typename P3, typename P4, typename P5>
   void LuaScripting::cexec(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5)
   {
-    LuaStackRAII _a = LuaStackRAII(mL, 0);
+    LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
     prepForExecution(name);
   #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
     int ftable = lua_gettop(mL);
@@ -156,7 +156,7 @@
   template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6>
   void LuaScripting::cexec(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6)
   {
-    LuaStackRAII _a = LuaStackRAII(mL, 0);
+    LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
     prepForExecution(name);
   #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
     int ftable = lua_gettop(mL);
@@ -186,7 +186,7 @@
   template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7>
   void LuaScripting::cexec(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7)
   {
-    LuaStackRAII _a = LuaStackRAII(mL, 0);
+    LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
     prepForExecution(name);
   #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
     int ftable = lua_gettop(mL);
@@ -218,7 +218,7 @@
   template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7, typename P8>
   void LuaScripting::cexec(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8)
   {
-    LuaStackRAII _a = LuaStackRAII(mL, 0);
+    LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
     prepForExecution(name);
   #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
     int ftable = lua_gettop(mL);
@@ -252,7 +252,7 @@
   template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7, typename P8, typename P9>
   void LuaScripting::cexec(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8, P9 p9)
   {
-    LuaStackRAII _a = LuaStackRAII(mL, 0);
+    LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
     prepForExecution(name);
   #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
     int ftable = lua_gettop(mL);
@@ -288,7 +288,7 @@
   template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7, typename P8, typename P9, typename P10>
   void LuaScripting::cexec(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8, P9 p9, P10 p10)
   {
-    LuaStackRAII _a = LuaStackRAII(mL, 0);
+    LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
     prepForExecution(name);
   #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
     int ftable = lua_gettop(mL);
@@ -327,7 +327,7 @@
   template <typename T, typename P1>
   T LuaScripting::cexecRet(const std::string& name, P1 p1)
   {
-    LuaStackRAII _a = LuaStackRAII(mL, 0);
+    LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
     prepForExecution(name);
   #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
     int ftable = lua_gettop(mL);
@@ -350,7 +350,7 @@
   template <typename T, typename P1, typename P2>
   T LuaScripting::cexecRet(const std::string& name, P1 p1, P2 p2)
   {
-    LuaStackRAII _a = LuaStackRAII(mL, 0);
+    LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
     prepForExecution(name);
   #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
     int ftable = lua_gettop(mL);
@@ -375,7 +375,7 @@
   template <typename T, typename P1, typename P2, typename P3>
   T LuaScripting::cexecRet(const std::string& name, P1 p1, P2 p2, P3 p3)
   {
-    LuaStackRAII _a = LuaStackRAII(mL, 0);
+    LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
     prepForExecution(name);
   #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
     int ftable = lua_gettop(mL);
@@ -402,7 +402,7 @@
   template <typename T, typename P1, typename P2, typename P3, typename P4>
   T LuaScripting::cexecRet(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4)
   {
-    LuaStackRAII _a = LuaStackRAII(mL, 0);
+    LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
     prepForExecution(name);
   #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
     int ftable = lua_gettop(mL);
@@ -431,7 +431,7 @@
   template <typename T, typename P1, typename P2, typename P3, typename P4, typename P5>
   T LuaScripting::cexecRet(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5)
   {
-    LuaStackRAII _a = LuaStackRAII(mL, 0);
+    LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
     prepForExecution(name);
   #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
     int ftable = lua_gettop(mL);
@@ -462,7 +462,7 @@
   template <typename T, typename P1, typename P2, typename P3, typename P4, typename P5, typename P6>
   T LuaScripting::cexecRet(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6)
   {
-    LuaStackRAII _a = LuaStackRAII(mL, 0);
+    LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
     prepForExecution(name);
   #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
     int ftable = lua_gettop(mL);
@@ -495,7 +495,7 @@
   template <typename T, typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7>
   T LuaScripting::cexecRet(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7)
   {
-    LuaStackRAII _a = LuaStackRAII(mL, 0);
+    LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
     prepForExecution(name);
   #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
     int ftable = lua_gettop(mL);
@@ -530,7 +530,7 @@
   template <typename T, typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7, typename P8>
   T LuaScripting::cexecRet(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8)
   {
-    LuaStackRAII _a = LuaStackRAII(mL, 0);
+    LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
     prepForExecution(name);
   #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
     int ftable = lua_gettop(mL);
@@ -567,7 +567,7 @@
   template <typename T, typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7, typename P8, typename P9>
   T LuaScripting::cexecRet(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8, P9 p9)
   {
-    LuaStackRAII _a = LuaStackRAII(mL, 0);
+    LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
     prepForExecution(name);
   #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
     int ftable = lua_gettop(mL);
@@ -606,7 +606,7 @@
   template <typename T, typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7, typename P8, typename P9, typename P10>
   T LuaScripting::cexecRet(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8, P9 p9, P10 p10)
   {
-    LuaStackRAII _a = LuaStackRAII(mL, 0);
+    LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
     prepForExecution(name);
   #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
     int ftable = lua_gettop(mL);
@@ -648,7 +648,7 @@
   template <typename P1>
   void LuaScripting::setDefaults(const std::string& name, P1 p1, bool call)
   {
-    LuaStackRAII _a = LuaStackRAII(mL, 0);
+    LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
     if (getFunctionTable(name) == false)
       throw LuaNonExistantFunction("Can't find function");
     int ftable = lua_gettop(mL);
@@ -673,7 +673,7 @@
   template <typename P1, typename P2>
   void LuaScripting::setDefaults(const std::string& name, P1 p1, P2 p2, bool call)
   {
-    LuaStackRAII _a = LuaStackRAII(mL, 0);
+    LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
     if (getFunctionTable(name) == false)
       throw LuaNonExistantFunction("Can't find function");
     int ftable = lua_gettop(mL);
@@ -701,7 +701,7 @@
   template <typename P1, typename P2, typename P3>
   void LuaScripting::setDefaults(const std::string& name, P1 p1, P2 p2, P3 p3, bool call)
   {
-    LuaStackRAII _a = LuaStackRAII(mL, 0);
+    LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
     if (getFunctionTable(name) == false)
       throw LuaNonExistantFunction("Can't find function");
     int ftable = lua_gettop(mL);
@@ -732,7 +732,7 @@
   template <typename P1, typename P2, typename P3, typename P4>
   void LuaScripting::setDefaults(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4, bool call)
   {
-    LuaStackRAII _a = LuaStackRAII(mL, 0);
+    LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
     if (getFunctionTable(name) == false)
       throw LuaNonExistantFunction("Can't find function");
     int ftable = lua_gettop(mL);
@@ -766,7 +766,7 @@
   template <typename P1, typename P2, typename P3, typename P4, typename P5>
   void LuaScripting::setDefaults(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, bool call)
   {
-    LuaStackRAII _a = LuaStackRAII(mL, 0);
+    LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
     if (getFunctionTable(name) == false)
       throw LuaNonExistantFunction("Can't find function");
     int ftable = lua_gettop(mL);
@@ -803,7 +803,7 @@
   template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6>
   void LuaScripting::setDefaults(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, bool call)
   {
-    LuaStackRAII _a = LuaStackRAII(mL, 0);
+    LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
     if (getFunctionTable(name) == false)
       throw LuaNonExistantFunction("Can't find function");
     int ftable = lua_gettop(mL);
@@ -843,7 +843,7 @@
   template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7>
   void LuaScripting::setDefaults(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, bool call)
   {
-    LuaStackRAII _a = LuaStackRAII(mL, 0);
+    LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
     if (getFunctionTable(name) == false)
       throw LuaNonExistantFunction("Can't find function");
     int ftable = lua_gettop(mL);
@@ -886,7 +886,7 @@
   template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7, typename P8>
   void LuaScripting::setDefaults(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8, bool call)
   {
-    LuaStackRAII _a = LuaStackRAII(mL, 0);
+    LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
     if (getFunctionTable(name) == false)
       throw LuaNonExistantFunction("Can't find function");
     int ftable = lua_gettop(mL);
@@ -932,7 +932,7 @@
   template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7, typename P8, typename P9>
   void LuaScripting::setDefaults(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8, P9 p9, bool call)
   {
-    LuaStackRAII _a = LuaStackRAII(mL, 0);
+    LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
     if (getFunctionTable(name) == false)
       throw LuaNonExistantFunction("Can't find function");
     int ftable = lua_gettop(mL);
@@ -981,7 +981,7 @@
   template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7, typename P8, typename P9, typename P10>
   void LuaScripting::setDefaults(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8, P9 p9, P10 p10, bool call)
   {
-    LuaStackRAII _a = LuaStackRAII(mL, 0);
+    LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
     if (getFunctionTable(name) == false)
       throw LuaNonExistantFunction("Can't find function");
     int ftable = lua_gettop(mL);

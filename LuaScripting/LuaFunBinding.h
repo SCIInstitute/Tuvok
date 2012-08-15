@@ -439,7 +439,7 @@ public:
 
   static LuaClassInstance get(lua_State* L, int pos)
   {
-    LuaStackRAII _a(L, 0);
+    LuaStackRAII _a(L, 0, 0);
 
     // If the class that was passed to us didn't exist (nil) then we will
     // ignore the attempted retrieval, and return the default instance ID.
@@ -472,7 +472,7 @@ public:
 
   static void push(lua_State* L, LuaClassInstance in)
   {
-    LuaStackRAII _a(L, 1);
+    LuaStackRAII _a(L, 0, 1);
 
     // Lookup the instance table in the global instance table based on the
     // instance ID.
@@ -595,7 +595,7 @@ public:
   static Type get(lua_State* L, int pos)
   {
     // Ensure that there is a table on the top of the stack.
-    LuaStackRAII _a(L, 0);
+    LuaStackRAII _a(L, 0, 0);
 
     Type ret;
 
@@ -616,7 +616,7 @@ public:
 
   static void push(lua_State* L, Type in)
   {
-    LuaStackRAII _a(L, 1);
+    LuaStackRAII _a(L, 0, 1);
 
     // Place all of our vector values in a new table.
     lua_newtable(L);
@@ -660,7 +660,7 @@ public:
   static Type get(lua_State* L, int pos)
   {
     // Ensure that there is a table on the top of the stack.
-    LuaStackRAII _a(L, 0);
+    LuaStackRAII _a(L, 0, 0);
 
     Type ret;
 
@@ -691,7 +691,7 @@ public:
 
   static void push(lua_State* L, Type in)
   {
-    LuaStackRAII _a(L, 1);
+    LuaStackRAII _a(L, 0, 1);
 
     // Place all of our vector values in a new table.
     lua_newtable(L);
@@ -736,7 +736,7 @@ public:
   static Type get(lua_State* L, int pos)
   {
     // Ensure that there is a table on the top of the stack.
-    LuaStackRAII _a(L, 0);
+    LuaStackRAII _a(L, 0, 0);
 
     Type ret;
 
@@ -767,7 +767,7 @@ public:
 
   static void push(lua_State* L, Type in)
   {
-    LuaStackRAII _a(L, 1);
+    LuaStackRAII _a(L, 0, 1);
 
     // Place all of our vector values in a new table.
     lua_newtable(L);
