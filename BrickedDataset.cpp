@@ -43,7 +43,7 @@ BrickedDataset::~BrickedDataset() { }
 void BrickedDataset::AddBrick(const BrickKey& bk,
                               const BrickMD& brick)
 {
-  MESSAGE("adding brick (%u, %u, %u) -> ((%g,%g,%g), (%g,%g,%g), (%u,%u,%u))",
+/*  MESSAGE("adding brick (%u, %u, %u) -> ((%g,%g,%g), (%g,%g,%g), (%u,%u,%u))",
           static_cast<unsigned>(std::get<0>(bk)),
           static_cast<unsigned>(std::get<1>(bk)),
           static_cast<unsigned>(std::get<2>(bk)),
@@ -51,7 +51,7 @@ void BrickedDataset::AddBrick(const BrickKey& bk,
           brick.extents[0], brick.extents[1], brick.extents[2],
           static_cast<unsigned>(brick.n_voxels[0]),
           static_cast<unsigned>(brick.n_voxels[1]),
-          static_cast<unsigned>(brick.n_voxels[2]));
+          static_cast<unsigned>(brick.n_voxels[2]));*/
   this->bricks.insert(std::make_pair(bk, brick));
 }
 
