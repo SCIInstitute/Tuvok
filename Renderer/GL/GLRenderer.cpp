@@ -1918,7 +1918,15 @@ void GLRenderer::SetBlendPrecision(EBlendPrecision eBlendPrecision) {
 
 
 std::string GLRenderer::FindFileInDirs(const std::string& file, const std::vector<std::string> strDirs,bool subdirs) const {
-  if (SysTools::FileExists(file)) return file;
+#ifdef DETECTED_OS_APPLE
+  if (SysTools::FileExists(SysTools::GetFromResourceOnMac(file))) {
+    std::string res = SysTools::GetFromResourceOnMac(file);
+    MESSAGE("Found %s in bundle, using that.", file.c_str());
+    return res;
+  }
+#endif
+
+ if (SysTools::FileExists(file)) return file;
 
   // not in the current dir!
   // iterate through all directories, looking for the file in them.
@@ -1939,14 +1947,6 @@ std::string GLRenderer::FindFileInDirs(const std::string& file, const std::vecto
 
 std::string GLRenderer::FindFile(const std::string& file, bool subdirs) const
 {
-#ifdef DETECTED_OS_APPLE
-  if (SysTools::FileExists(SysTools::GetFromResourceOnMac(file))) {
-    std::string res = SysTools::GetFromResourceOnMac(file);
-    MESSAGE("Found %s in bundle, using that.", file.c_str());
-    return res;
-  }
-#endif
-
   if(!SysTools::FileExists(file)) {
     
     // if it doesn't exist but we allow subdir search, try harder
