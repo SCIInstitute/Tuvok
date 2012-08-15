@@ -372,7 +372,11 @@ void GLFBOTex::FinishRead(int iBuffer) {
 void GLFBOTex::ReadBackPixels(int x, int y, int sX, int sY, void* pData) {
   // read back the 3D position from the framebuffer
   Write(0,0,false);
-  GL(glClampColor(GL_CLAMP_READ_COLOR, GL_FALSE));
+  if (GLEW_ARB_color_buffer_float) {
+    GL(glClampColorARB(GL_CLAMP_READ_COLOR, GL_FALSE));
+  } else if (GLEW_VERSION_3_0) {
+    GL(glClampColor(GL_CLAMP_READ_COLOR, GL_FALSE));
+  }
   GL(glReadBuffer(GL_COLOR_ATTACHMENT0_EXT));
   GL(glReadPixels(x, y, sX, sY, GL_RGBA, GL_FLOAT, pData));
   FinishWrite(0);
