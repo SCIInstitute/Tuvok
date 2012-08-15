@@ -108,7 +108,7 @@ ShaderDescriptor ShaderDescriptor::Create(
 ) {
   ShaderDescriptor rv;
   va_list args;
-  va_start(args, directories);
+  va_start(args, fragmentDataBindings);
 
   const char* filename;
   // we expect two NULLs: first terminates vertex list, second fragment list.
