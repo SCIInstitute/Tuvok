@@ -84,7 +84,7 @@ void GLTexture2D::SetData(const UINTVECTOR2& offset, const UINTVECTOR2& size, co
                      size.x, size.y,
                      m_format, m_type, (GLvoid*)pixels));
 
-  if (bRestoreBinding) GL(glBindTexture(GL_TEXTURE_2D, prevTex));
+  if (bRestoreBinding && GLuint(prevTex) != m_iGLID) GL(glBindTexture(GL_TEXTURE_2D, prevTex));
 }
 
 void GLTexture2D::SetData(const void *pixels, bool bRestoreBinding) {
@@ -98,7 +98,7 @@ void GLTexture2D::SetData(const void *pixels, bool bRestoreBinding) {
   GL(glTexImage2D(GL_TEXTURE_2D, 0, m_internalformat, m_iSizeX, m_iSizeY,
                   0, m_format, m_type, (GLvoid*)pixels));
 
-  if (bRestoreBinding) GL(glBindTexture(GL_TEXTURE_2D, prevTex));
+  if (bRestoreBinding && GLuint(prevTex) != m_iGLID) GL(glBindTexture(GL_TEXTURE_2D, prevTex));
 }
 
 std::shared_ptr<const void> GLTexture2D::GetData()

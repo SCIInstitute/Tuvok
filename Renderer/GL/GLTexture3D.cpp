@@ -94,7 +94,7 @@ void GLTexture3D::SetData(const UINTVECTOR3& offset, const UINTVECTOR3& size,
                      size.x, size.y, size.z,
                      m_format, m_type, (GLvoid*)pixels));
 
-  if (bRestoreBinding) GL(glBindTexture(GL_TEXTURE_3D, prevTex));
+  if (bRestoreBinding && GLuint(prevTex) != m_iGLID) GL(glBindTexture(GL_TEXTURE_3D, prevTex));
 }
 
 void GLTexture3D::SetData(const void *pixels, bool bRestoreBinding) {
@@ -117,5 +117,5 @@ void GLTexture3D::SetData(const void *pixels, bool bRestoreBinding) {
             static_cast<unsigned int>(err));
   }
 
-  if (bRestoreBinding) GL(glBindTexture(GL_TEXTURE_3D, prevTex));
+  if (bRestoreBinding && GLuint(prevTex) != m_iGLID) GL(glBindTexture(GL_TEXTURE_3D, prevTex));
 }
