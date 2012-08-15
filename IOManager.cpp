@@ -1042,7 +1042,7 @@ bool IOManager::ConvertDataset(const list<string>& files,
   // performance across brick sizes.  However it's completely ridiculous in
   // actual use, and catches a confusing bug if you forget an argument in the
   // API call (which still compiles due to default arguments!).
-  assert(iMaxBrickSize >= 32 &&
+  assert(iMaxBrickSize >= 2 &&
          "Incredibly small bricks -- are you sure?");
 
   /// @todo verify the list of files is `compatible':
