@@ -117,7 +117,7 @@ class GLRenderer : public AbstrRenderer {
     std::vector<unsigned char> m_p1DData;
     unsigned char*  m_p2DData;
     GLFBOTex*       m_pFBO3DImageLast;
-    GLFBOTex*       m_pFBO3DImageCurrent[2];
+    GLFBOTex*       m_pFBO3DImageNext[2];
     GLFBOTex*       m_pFBOResizeQuickBlit;
     GLFBOTex*       m_pFBOIsoHit[2];
     GLFBOTex*       m_pFBOCVHit[2];

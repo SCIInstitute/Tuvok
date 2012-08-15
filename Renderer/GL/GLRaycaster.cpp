@@ -532,7 +532,7 @@ void GLRaycaster::Render3DInLoop(const RenderRegion3D& renderRegion,
     }
 
   } else {
-    m_TargetBinder.Bind(m_pFBO3DImageCurrent[size_t(eStereoID)]);
+    m_TargetBinder.Bind(m_pFBO3DImageNext[size_t(eStereoID)]);
 
     // do the raycasting
     switch (m_eRenderMode) {
@@ -589,7 +589,7 @@ void GLRaycaster::RenderHQMIPInLoop(const RenderRegion2D &renderRegion,
   RenderBox(renderRegion, b.vCenter, b.vExtension, b.vTexcoordsMin,
             b.vTexcoordsMax, false, SI_LEFT_OR_MONO);
 
-  m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);  // for MIP rendering "abuse" left-eye buffer for the itermediate results
+  m_TargetBinder.Bind(m_pFBO3DImageNext[1]);  // for MIP rendering "abuse" left-eye buffer for the itermediate results
 
 
   localState.enableBlend = true;

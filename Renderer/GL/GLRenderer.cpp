@@ -112,10 +112,10 @@ GLRenderer::GLRenderer(MasterController* pMasterController,
   m_pProgram2DTrans[0]   = NULL;
   m_pProgram2DTrans[1]   = NULL;
 
-  m_pFBO3DImageCurrent[0] = NULL;
+  m_pFBO3DImageNext[0] = NULL;
   m_pFBOIsoHit[0] = NULL;
   m_pFBOCVHit[0] = NULL;
-  m_pFBO3DImageCurrent[1] = NULL;
+  m_pFBO3DImageNext[1] = NULL;
   m_pFBOIsoHit[1] = NULL;
   m_pFBOCVHit[1] = NULL;
 }
@@ -729,18 +729,18 @@ void GLRenderer::CopyOverCompletedRegion(const RenderRegion* region) {
   glClear(GL_DEPTH_BUFFER_BIT);
 
   // Read newly completed image
-  m_pFBO3DImageCurrent[0]->Read(0);
+  m_pFBO3DImageNext[0]->Read(0);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
                   (this->decreaseScreenResNow) ? GL_LINEAR : GL_NEAREST);
-  m_pFBO3DImageCurrent[0]->ReadDepth(1);
+  m_pFBO3DImageNext[0]->ReadDepth(1);
 
   // Display this to the old buffer so we can reuse it in future frame.
   m_pProgramTrans->Enable();
   FullscreenQuadRegion(region, this->decreaseScreenResNow);
 
   m_TargetBinder.Unbind();
-  m_pFBO3DImageCurrent[0]->FinishRead();
-  m_pFBO3DImageCurrent[0]->FinishDepthRead();
+  m_pFBO3DImageNext[0]->FinishRead();
+  m_pFBO3DImageNext[0]->FinishDepthRead();
 }
 
 void GLRenderer::TargetIsBlankButFrameIsNotFinished(const RenderRegion* region) {
@@ -768,11 +768,11 @@ void GLRenderer::EndFrame(const vector<char>& justCompletedRegions) {
          m_pContext->GetStateManager()->Apply(m_BaseState);
 
         if (m_bStereoEyeSwap) {
-          m_pFBO3DImageCurrent[0]->Read(1);
-          m_pFBO3DImageCurrent[1]->Read(0);
+          m_pFBO3DImageNext[0]->Read(1);
+          m_pFBO3DImageNext[1]->Read(0);
         } else {
-          m_pFBO3DImageCurrent[0]->Read(0);
-          m_pFBO3DImageCurrent[1]->Read(1);
+          m_pFBO3DImageNext[0]->Read(0);
+          m_pFBO3DImageNext[1]->Read(1);
         }
 
         m_TargetBinder.Bind(m_pFBO3DImageLast);
@@ -804,10 +804,10 @@ void GLRenderer::EndFrame(const vector<char>& justCompletedRegions) {
 
         m_TargetBinder.Unbind();
 
-        m_pFBO3DImageCurrent[0]->FinishRead();
-        m_pFBO3DImageCurrent[1]->FinishRead();
+        m_pFBO3DImageNext[0]->FinishRead();
+        m_pFBO3DImageNext[1]->FinishRead();
       } else {
-        swap(m_pFBO3DImageLast, m_pFBO3DImageCurrent[0]);
+        swap(m_pFBO3DImageLast, m_pFBO3DImageNext[0]);
       }
 
       for (size_t i=0; i < renderRegions.size(); ++i) {
@@ -1049,9 +1049,9 @@ bool GLRenderer::Render2DView(RenderRegion2D& renderRegion) {
   // bind offscreen buffer
   if (renderRegion.GetUseMIP()) {
     // for MIP rendering "abuse" left-eye buffer for the itermediate results
-    m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);
+    m_TargetBinder.Bind(m_pFBO3DImageNext[1]);
   } else {
-    m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
+    m_TargetBinder.Bind(m_pFBO3DImageNext[0]);
   }
 
   SetDataDepShaderVars();
@@ -1226,16 +1226,16 @@ bool GLRenderer::Render2DView(RenderRegion2D& renderRegion) {
     localState.enableDepthTest = false;
     m_pContext->GetStateManager()->Apply(localState);
 
-    m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
+    m_TargetBinder.Bind(m_pFBO3DImageNext[0]);
 
     SetRenderTargetArea(UINTVECTOR2(0,0), m_vWinSize, false);
     m_pContext->GetStateManager()->SetEnableScissor(true);
     SetRenderTargetAreaScissor(renderRegion);
-    m_pFBO3DImageCurrent[1]->Read(0);
+    m_pFBO3DImageNext[1]->Read(0);
     m_p1DTransTex->Bind(1);
     m_pProgramTransMIP->Enable();
     FullscreenQuad();
-    m_pFBO3DImageCurrent[1]->FinishRead(0);
+    m_pFBO3DImageNext[1]->FinishRead(0);
   }
 
   m_TargetBinder.Unbind();
@@ -1328,7 +1328,7 @@ void GLRenderer::NewFrameClear(const RenderRegion& renderRegion) {
 
   size_t iStereoBufferCount = (m_bDoStereoRendering) ? 2 : 1;
   for (size_t i = 0;i<iStereoBufferCount;i++) {
-    m_TargetBinder.Bind(m_pFBO3DImageCurrent[i]);
+    m_TargetBinder.Bind(m_pFBO3DImageNext[i]);
 
     if (m_bConsiderPreviousDepthbuffer && m_aDepthStorage) {
       GL(glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT));
@@ -1445,13 +1445,13 @@ void GLRenderer::PreSubframe(const RenderRegion& renderRegion)
   for (size_t i = 0;i<iStereoBufferCount;i++) {
     // Render the coordinate cross (three arrows in upper right corner)
     if (m_bRenderCoordArrows) {
-      m_TargetBinder.Bind(m_pFBO3DImageCurrent[i]);
+      m_TargetBinder.Bind(m_pFBO3DImageNext[i]);
       RenderCoordArrows(renderRegion);
     }
 
     // write the bounding boxes into the depth buffer 
     // and the colorbuffer for isosurfacing.
-    m_TargetBinder.Bind(m_pFBO3DImageCurrent[i]);
+    m_TargetBinder.Bind(m_pFBO3DImageNext[i]);
     m_mProjection[i].setProjection();
     renderRegion.modelView[i].setModelview();
     GeometryPreRender();
@@ -1466,7 +1466,7 @@ void GLRenderer::PostSubframe(const RenderRegion& renderRegion)
   // render the bounding boxes, clip plane, and geometry behind the volume
   size_t iStereoBufferCount = (m_bDoStereoRendering) ? 2 : 1;
   for (size_t i = 0;i<iStereoBufferCount;i++) {
-    m_TargetBinder.Bind(m_pFBO3DImageCurrent[i]);
+    m_TargetBinder.Bind(m_pFBO3DImageNext[i]);
     m_mProjection[i].setProjection();
     renderRegion.modelView[i].setModelview();
     GeometryPostRender();
@@ -1679,9 +1679,9 @@ void GLRenderer::Cleanup() {
   }
 
   for (uint32_t i = 0;i<2;i++) {
-    if (m_pFBO3DImageCurrent[i]) {
-      mm.FreeFBO(m_pFBO3DImageCurrent[i]);
-      m_pFBO3DImageCurrent[i] = NULL;
+    if (m_pFBO3DImageNext[i]) {
+      mm.FreeFBO(m_pFBO3DImageNext[i]);
+      m_pFBO3DImageNext[i] = NULL;
     }
     if (m_pFBOIsoHit[i]) {
       mm.FreeFBO(m_pFBOIsoHit[i]);
@@ -1719,9 +1719,9 @@ void GLRenderer::CreateOffscreenBuffers() {
   }
 
   for (uint32_t i=0; i < 2; i++) {
-    if (m_pFBO3DImageCurrent[i]) {    
-      mm.FreeFBO(m_pFBO3DImageCurrent[i]);
-      m_pFBO3DImageCurrent[i] = NULL;
+    if (m_pFBO3DImageNext[i]) {    
+      mm.FreeFBO(m_pFBO3DImageNext[i]);
+      m_pFBO3DImageNext[i] = NULL;
     }
     if (m_pFBOIsoHit[i]) {
       mm.FreeFBO(m_pFBOIsoHit[i]);
@@ -1758,7 +1758,7 @@ void GLRenderer::CreateOffscreenBuffers() {
                                       m_vWinSize.y, intformat, GL_RGBA, type,
                                       m_pContext->GetShareGroupID(), true);
       }
-      m_pFBO3DImageCurrent[i] = mm.GetFBO(GL_NEAREST,
+      m_pFBO3DImageNext[i] = mm.GetFBO(GL_NEAREST,
                                           GL_NEAREST,
                                           GL_CLAMP,
                                           m_vWinSize.x,
@@ -2620,7 +2620,7 @@ void GLRenderer::Recompose3DView(const RenderRegion3D& renderRegion) {
 
   size_t iStereoBufferCount = (m_bDoStereoRendering) ? 2 : 1;
   for (size_t i = 0;i<iStereoBufferCount;i++) {
-    m_TargetBinder.Bind(m_pFBO3DImageCurrent[i]);
+    m_TargetBinder.Bind(m_pFBO3DImageNext[i]);
     m_mProjection[i].setProjection();
     renderRegion.modelView[i].setModelview();
     GeometryPreRender();
@@ -2710,7 +2710,7 @@ bool GLRenderer::Render3DView(const RenderRegion3D& renderRegion,
       m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) {
      
       for (size_t i = 0;i<iStereoBufferCount;i++) {
-        m_TargetBinder.Bind(m_pFBO3DImageCurrent[i]);
+        m_TargetBinder.Bind(m_pFBO3DImageNext[i]);
         ComposeSurfaceImage(renderRegion, EStereoID(i));
       } 
 

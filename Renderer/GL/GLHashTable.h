@@ -14,7 +14,7 @@ class GLTexture1D;
 
 class GLHashTable : public GLObject {
   public:
-    GLHashTable(const UINTVECTOR3& maxBrickCount, uint32_t iTableSize=211, uint32_t iRehashCount=10, bool bUseGLCore=true); 
+    GLHashTable(const UINTVECTOR3& maxBrickCount, uint32_t iTableSize=511, uint32_t iRehashCount=10, bool bUseGLCore=true); 
     virtual ~GLHashTable();
 
     void InitGL();

@@ -57,8 +57,8 @@ namespace tuvok {
       GLVBO*          m_pBBoxVBO;
       std::array<GLFBOTex*,2> m_pFBORayStart;
       std::array<GLFBOTex*,2> m_pFBORayStartNext;
-      std::array<GLFBOTex*,2> m_pFBOResumeColor;
-      std::array<GLFBOTex*,2> m_pFBOResumeColorNext;
+      std::array<GLFBOTex*,2> m_pFBOStartColor;
+      std::array<GLFBOTex*,2> m_pFBOStartColorNext;
       GLSLProgram*    m_pProgramRenderFrontFaces;
       GLSLProgram*    m_pProgramRenderFrontFacesNearPlane;
       GLSLProgram*    m_pProgramRayCast1D;

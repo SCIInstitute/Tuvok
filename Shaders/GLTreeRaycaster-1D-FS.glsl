@@ -32,31 +32,35 @@ void OpacityCorrectColor(float opacity_correction, inout vec4 color) {
   color.a = 1.0 - pow(1.0 - color.a, opacity_correction);
 }
 
-float ComputeRayParam(vec3 d, vec3 s, vec3 p) {
-    if (d.x != 0) return (p.x-s.x)/d.x;
-    if (d.y != 0) return (p.y-s.y)/d.y;
-    if (d.z != 0) return (p.z-s.z)/d.z;
-    return 1.0;
-}
-
-
 // data from vertex stage
 in vec3 vPosInViewCoords;
+
+// outputs into render targets
+layout(location=0) out vec4 accRayColor;
+layout(location=1) out vec4 rayResumeColor;
+layout(location=2) out vec4 rayResumePos;
+
+bool vecEqual(uvec4 a, uvec4 b) {
+  return a.x == b.x && 
+         a.y == b.y && 
+         a.z == b.z && 
+         a.w == b.w;
+}
 
 // go
 void main()
 {
   // read ray parameters and start color
-  ivec2 screenpos      = ivec2(gl_FragCoord.xy);
-  vec4 accRayColor     = texelFetch(rayStartColor, screenpos,0);
+  ivec2 screenpos = ivec2(gl_FragCoord.xy);
+  accRayColor     = texelFetch(rayStartColor, screenpos,0);
     
   // fetch ray entry from texture and get ray exit point from vs-shader
-  const vec4 entryParam  = texelFetch(rayStartPoint, screenpos,0);
+  rayResumePos = texelFetch(rayStartPoint, screenpos,0);
   const vec4 exitParam = vec4((mEyeToModel * vec4(vPosInViewCoords.x, vPosInViewCoords.y, vPosInViewCoords.z, 1.0)).xyz, vPosInViewCoords.z);
 
   // for clarity, separate postions from depth (stored in w)
-  vec3 normEntryPos = entryParam.xyz;
-  const float entryDepth = entryParam.w;
+  vec3 normEntryPos = rayResumePos.xyz;
+  const float entryDepth = rayResumePos.w;
   const vec3 normExitCoords = exitParam.xyz;
   const float exitDepth = exitParam.w;
 
@@ -66,33 +70,49 @@ void main()
   vec3 voxelSpaceDirection = TransformToPoolSpace(direction, sampleRateModifier);
   float stepSize = length(voxelSpaceDirection);
 
+  /*
+  float depth = 0;
+  vec3 cp = normEntryPos; 
+  //accRayColor = vec4(normExitCoords, 1.0);
+  //accRayColor = rayResumeColor = vec4(1.0, 0.0, 0.0, 0.5);
+
+  while (length(cp-normEntryPos) < rayLength) {
+    float data = samplePool(cp);
+    vec4 color = texture(transferFunction, data);
+    accRayColor = UnderCompositing(color, accRayColor);
+    cp += voxelSpaceDirection;
+  }
+
+  //accRayColor = vec4(rayLength, 0.0,0.0, 1.0);
+  
+  return;
+  */
+  
 
   // iterate over the bricks along the ray
-  vec4 rayResumePos, rayResumeColor;
+  rayResumeColor = accRayColor;
   float t = 0;
-  int iSteps, i;
   bool bOptimalResolution = true;
-  vec3 currentPos = normEntryPos;
-  uvec4 lastBrick=uvec4(0,0,0,999999999), currentBrick; // TODO
+  vec3 currentPos = normEntryPos;  
 
-  float voxelSize = 1./128.; // TODO make this one voxel
+  float voxelSize = .25/8192.; // TODO make this a quater of one voxel (or smaller)
+    // fetch brick coords at the current position with the 
+    // correct resolution. if that brick is not present the
+    // call returns false and the coords to a lower resolution brick
+    vec3 poolEntryCoords;
+    vec3 poolExitCoords;
+    vec3 normBrickExitCoords;
+    bool bEmpty;
 
   if (rayLength > voxelSize) {
-    currentPos += voxelSize * direction/rayLength;
-    do {
-
+    uvec4 lastBrick=uvec4(0,0,0,1000), currentBrick=uvec4(0,0,0,0);
+    for(uint j = 0;j<100;++j) { // j is just for savety, stop traversal after 100 bricks
       // compute the current LoD
       float currentDepth = mix(entryDepth, exitDepth, t);
       uint iLOD = ComputeLOD(currentDepth);
 
-      // fetch brick coords at the current position with the 
-      // correct resolution. if that brick is not present the
-      // call returns false and the coords to a lower resolution brick
-      vec3 poolEntryCoords;
-      vec3 poolExitCoords;
-      vec3 normBrickExitCoords;
-      bool bEmpty;
-      bool bRequestOK = GetBrick(currentPos, iLOD, voxelSpaceDirection,
+      bool bRequestOK = GetBrick(currentPos+voxelSize*direction/rayLength,
+                                 iLOD, voxelSpaceDirection,
                                  poolEntryCoords, poolExitCoords,
                                  normBrickExitCoords, bEmpty, currentBrick);
 
@@ -108,14 +128,14 @@ void main()
 
       if (!bEmpty) {
         // prepare the traversal
-        iSteps = int(length(poolExitCoords-poolEntryCoords)/stepSize);
+        int iSteps = int(length(poolExitCoords-poolEntryCoords)/stepSize);
 
         // compute opacity correction factor
         float ocFactor = pow(2,iLOD) / sampleRateModifier;
 
         // now raycast through this brick
         vec3 currentPoolCoords = poolEntryCoords;
-        for (i=0;i<iSteps;++i) {
+        for (int i=0;i<iSteps;++i) {
           // fetch volume
           float data = samplePool(currentPoolCoords);
 
@@ -129,44 +149,29 @@ void main()
           accRayColor = UnderCompositing(color, accRayColor);
 
           // early ray termination
-          if (accRayColor.a > 0.95)  {
-            gl_FragData[0] = accRayColor;
-            gl_FragData[1] = vec4(0.0);
-            gl_FragData[2] = vec4(0.0);
-            return;
-          }
+          if (accRayColor.a > 0.95)  return;
 
           // advance ray
           currentPoolCoords += voxelSpaceDirection;
         }
       }
 
-//     t = ComputeRayParam(direction, normEntryPos, normBrickExitCoords);
+     // global position along the ray
       t = length(normEntryPos-normBrickExitCoords)/rayLength;
 
-      
-     // global position along the ray
-     /* if (t > 0.99 || lastBrick == currentBrick)
-        gl_FragData[0] = vec4(1.0, 0.0, 0.0, 1.0);
-      else
-        gl_FragData[0] = vec4(0.0, 0.0, 0.0, 1.0);
-      return;
-      */
+//      if (t > 0.99 || lastBrick == currentBrick)
+//        accRayColor = vec4(1.0, 0.0, 0.0, 1.0);
+//      else
+//        accRayColor = vec4(0.0, 0.0, 0.0, 1.0);
+//      return;      
+     
 
-      if (t > 0.99 || lastBrick == currentBrick) break;
+      if (t > 0.99 || lastBrick == currentBrick) return;
       currentPos = normBrickExitCoords;
       lastBrick = currentBrick;
-    } while (true);
+    }
   }
-  // write out result, i.e. the resume position and color 
-  // and the composite color
-
-  // TODO: Change this to use OpenGL 3.0 named variables and bind them
-  //       with glBindFragDataLocation(programId, 0, "accRayColor");
-  //       in cpu code
-  gl_FragData[0] = accRayColor;
-  gl_FragData[1] = rayResumeColor;
-  gl_FragData[2] = rayResumePos;
+  
 }
 
 

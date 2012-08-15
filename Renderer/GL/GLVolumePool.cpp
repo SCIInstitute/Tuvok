@@ -57,7 +57,7 @@ GLVolumePool::GLVolumePool(const UINTVECTOR3& poolSize, const UINTVECTOR3& maxBr
     m_internalformat(internalformat),
     m_format(format),
     m_type(type),
-    m_iTimeOfCreation(0),
+    m_iTimeOfCreation(1),
     m_iMetaTextureUnit(0),
     m_iDataTextureUnit(1),
     m_bUseGLCore(bUseGLCore),
@@ -133,6 +133,10 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
      << "const ivec3 maxInnerBrickSize = ivec3(" << m_maxInnerBrickSize.x << ", " 
                                             << m_maxInnerBrickSize.y << ", " 
                                             << m_maxInnerBrickSize.z <<");" << std::endl
+     << "// brick overlap voxels (in pool texcoords" << std::endl
+     << "const vec3 overlap = vec3(" << (m_maxTotalBrickSize.x-m_maxInnerBrickSize.x)/(2.0f*m_PoolDataTexture->GetSize().x) << ", " 
+                                     << (m_maxTotalBrickSize.y-m_maxInnerBrickSize.y)/(2.0f*m_PoolDataTexture->GetSize().y) << ", " 
+                                     << (m_maxTotalBrickSize.z-m_maxInnerBrickSize.z)/(2.0f*m_PoolDataTexture->GetSize().z) <<");" << std::endl
      << "uniform float fLoDFactor;" << std::endl
      << "uniform float fLevelZeroWorldSpaceError;" << std::endl
      << "uniform vec3 volumeAspect;" << std::endl
@@ -163,7 +167,7 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
      << "}" << std::endl
      << "" << std::endl
      << "ivec2 GetBrickIndex(uvec4 brickCoords) {" << std::endl
-     << "  uint iLODOffset = vLODOffset[brickCoords.w];"<< std::endl
+     << "  uint iLODOffset  = vLODOffset[brickCoords.w];"<< std::endl
      << "  uvec2 iLODLayout = uvec2(ceil(vLODLayout[brickCoords.w].x), ceil(vLODLayout[brickCoords.w].y));"<< std::endl
      << "  uint iBrickIndex = iLODOffset + brickCoords.x + brickCoords.y * iLODLayout.x + brickCoords.z * iLODLayout.x * iLODLayout.y;" << std::endl
      << "  return ivec2(iBrickIndex%iMetaTextureWidth, iBrickIndex/iMetaTextureWidth);"<< std::endl
@@ -187,9 +191,9 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
 	   << "  vec3 div = 1.0 / dir;" << std::endl
 	   << "  ivec3 side = ivec3(step(0.0,div));" << std::endl
 	   << "  vec3 tIntersect;" << std::endl
-	   << "  tIntersect.x = (corners[side[0]].x - pointInBrick.x) * div.x * (corners[1].x-corners[0].x);" << std::endl
-	   << "  tIntersect.y = (corners[side[1]].y - pointInBrick.y) * div.y * (corners[1].y-corners[0].y);" << std::endl
-	   << "  tIntersect.z = (corners[side[2]].z - pointInBrick.z) * div.z * (corners[1].z-corners[0].z);" << std::endl
+	   << "  tIntersect.x = (corners[side.x].x - pointInBrick.x) * div.x;// * (corners[1].x-corners[0].x);" << std::endl
+	   << "  tIntersect.y = (corners[side.y].y - pointInBrick.y) * div.y;// * (corners[1].y-corners[0].y);" << std::endl
+	   << "  tIntersect.z = (corners[side.z].z - pointInBrick.z) * div.z;// * (corners[1].z-corners[0].z);" << std::endl
 	   << "  return pointInBrick + min(min(tIntersect.x, tIntersect.y), tIntersect.z) * dir;" << std::endl
      << "}" << std::endl
      << " " << std::endl
@@ -204,8 +208,8 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
      << " " << std::endl
      << "void BrickPoolCoords(in uint brickInfo,  out vec3 corners[2]) {" << std::endl
      << "  uvec3 poolVoxelPos = InfoToCoords(brickInfo) * maxTotalBrickSize;" << std::endl
-     << "  corners[0] = vec3(poolVoxelPos)                   / vec3(iPoolSize);" << std::endl
-     << "  corners[1] = vec3(poolVoxelPos+maxTotalBrickSize) / vec3(iPoolSize);" << std::endl
+     << "  corners[0] = (vec3(poolVoxelPos)                   / vec3(iPoolSize))+ overlap;" << std::endl
+     << "  corners[1] = (vec3(poolVoxelPos+maxTotalBrickSize) / vec3(iPoolSize))- overlap;" << std::endl
      << "}" << std::endl
      << " " << std::endl
      << "void NormCoordsToPoolCoords(in vec3 normEntryCoords, in vec3 normExitCoords, in vec3 corners[2]," << std::endl
@@ -214,13 +218,8 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
      << "  BrickPoolCoords(brickInfo, poolCorners);" << std::endl
      << "  vec3 normToPoolScale = (poolCorners[1]-poolCorners[0])/(corners[1]-corners[0]);" << std::endl
      << "  vec3 normToPoolTrans = poolCorners[0]-corners[0]*normToPoolScale;" << std::endl
-     << "  poolEntryCoords = (normEntryCoords * normToPoolScale + normToPoolTrans);" << std::endl
-     << "  poolExitCoords = (normExitCoords  * normToPoolScale + normToPoolTrans);" << std::endl
-
-     << "// TODO: consider the overlap !!!" << std::endl
-     << "  poolEntryCoords   += 2.0/512.0;" << std::endl
-     << "  poolExitCoords    -= 2.0/512.0;" << std::endl
-
+     << "  poolEntryCoords  = (normEntryCoords * normToPoolScale + normToPoolTrans);" << std::endl
+     << "  poolExitCoords   = (normExitCoords  * normToPoolScale + normToPoolTrans);" << std::endl
      << "}" << std::endl
      << "" << std::endl
      << "bool GetBrick(in vec3 normEntryCoords, in uint iLOD, in vec3 direction," << std::endl
@@ -243,7 +242,7 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
      << "  bEmpty = (brickInfo <= BI_EMPTY);" << std::endl
      << "  if (bEmpty) {" << std::endl
      << "    // when we find an empty brick check if the lower resolutions are also empty" << std::endl
-     << "    while (iLOD > iMaxLOD) {" << std::endl
+     << "    while (iLOD+1 < iMaxLOD) {" << std::endl
      << "      iLOD++;" << std::endl
      << "      uvec4 lowResBrickCoords = ComputeBrickCoords(normEntryCoords, iLOD);" << std::endl
      << "      uint lowResBrickInfo = GetBrickInfo(lowResBrickCoords);" << std::endl
@@ -275,7 +274,7 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
      << "  // scale to volume pool's norm coodinates" << std::endl
      << "  direction /= vec3(iPoolSize);" << std::endl
      << "  // do (roughly) two samples per voxel and apply user defined sample density" << std::endl
-     << "  return direction / 2.0*sampleRateModifier;" << std::endl
+     << "  return direction / (2.0*sampleRateModifier);" << std::endl
      << "}" << std::endl
      << " " << std::endl
      << "float samplePool(vec3 coords) {" << std::endl
@@ -312,17 +311,16 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
 void GLVolumePool::UploadBrick(uint32_t iBrickID, const UINTVECTOR3& vVoxelSize, void* pData, 
                                size_t iInsertPos, uint64_t iTimeOfCreation) {
   if (m_PoolSlotData[iInsertPos].m_iBrickID >= 0) {
-     OTHER("Removing brick %i at queue position %i from pool", 
-       int(m_PoolSlotData[iInsertPos].m_iBrickID), 
-       int(iInsertPos));
-
     // mark data that was previously paged-in as missing, but only if it 
     // is not empty
-    if (m_brickMetaData[m_PoolSlotData[iInsertPos].m_iBrickID] > BI_EMPTY) {
+    if (m_brickMetaData[m_PoolSlotData[iInsertPos].m_iBrickID] > BI_MISSING) {
       m_brickMetaData[m_PoolSlotData[iInsertPos].m_iBrickID] = BI_MISSING;
-    } else {
-      OTHER("   that brick is currently empty so nothing really happened");
-    }
+
+      OTHER("Removing brick %i at queue position %i from pool", 
+         int(m_PoolSlotData[iInsertPos].m_iBrickID), 
+         int(iInsertPos));
+
+    } 
   }
 
   m_PoolSlotData[iInsertPos].m_iBrickID = iBrickID;
@@ -332,7 +330,7 @@ void GLVolumePool::UploadBrick(uint32_t iBrickID, const UINTVECTOR3& vVoxelSize,
                              m_PoolSlotData[iInsertPos].PositionInPool().y * m_vPoolCapacity.x +
                              m_PoolSlotData[iInsertPos].PositionInPool().z * m_vPoolCapacity.x * m_vPoolCapacity.y;
 
-  OTHER("Loading brick %i at queue position %i (pool coord: %i=[%i, %i, %i]) at time %llu", 
+  MESSAGE("Loading brick %i at queue position %i (pool coord: %i=[%i, %i, %i]) at time %llu", 
           int(m_PoolSlotData[iInsertPos].m_iBrickID), 
           int(iInsertPos),
           int(vPoolCoordinate),
@@ -360,7 +358,7 @@ void GLVolumePool::UploadFirstBrick(const UINTVECTOR3& m_vVoxelSize, void* pData
 bool GLVolumePool::UploadBrick(const BrickElemInfo& metaData, void* pData) {
   // in this frame we already replaced all bricks (except the single low-res brick)
   // in the pool so now we should render them first
-  if (m_iInsertPos-1 >= m_PoolSlotData.size()) return false;
+  if (m_iInsertPos >= m_PoolSlotData.size()-1) return false;
 
   int32_t iBrickID = GetIntegerBrickID(metaData.m_vBrickID);
   UploadBrick(iBrickID, metaData.m_vVoxelSize, pData, m_iInsertPos, m_iTimeOfCreation++);
@@ -398,18 +396,22 @@ GLVolumePool::~GLVolumePool() {
 void GLVolumePool::CreateGLResources() {
   m_PoolDataTexture = new GLTexture3D(m_poolSize.x, m_poolSize.y, m_poolSize.z,
                                       m_internalformat, m_format, m_type, 0, GL_LINEAR, GL_LINEAR);
-  m_vPoolCapacity = UINTVECTOR3(m_PoolDataTexture->GetSize().x/m_maxInnerBrickSize.x,
-                                m_PoolDataTexture->GetSize().y/m_maxInnerBrickSize.y,
-                                m_PoolDataTexture->GetSize().z/m_maxInnerBrickSize.z);
+  m_vPoolCapacity = UINTVECTOR3(m_PoolDataTexture->GetSize().x/m_maxTotalBrickSize.x,
+                                m_PoolDataTexture->GetSize().y/m_maxTotalBrickSize.y,
+                                m_PoolDataTexture->GetSize().z/m_maxTotalBrickSize.z);
 
-  OTHER("Creating brick pool of size [%i,%i,%i] to hold a "
-        "max of [%i,%i,%i] bricks of size [%i,%i,%i] and smaler.",
+  OTHER("Creating brick pool of size [%u,%u,%u] to hold a "
+        "max of [%u,%u,%u] bricks of size [%u,%u,%u] ("
+        "adressable size [%u,%u,%u]) and smaler.",
          m_PoolDataTexture->GetSize().x,
          m_PoolDataTexture->GetSize().y,
          m_PoolDataTexture->GetSize().z,
          m_vPoolCapacity.x,
          m_vPoolCapacity.y,
          m_vPoolCapacity.z,
+         m_maxTotalBrickSize.x,
+         m_maxTotalBrickSize.y,
+         m_maxTotalBrickSize.z,
          m_maxInnerBrickSize.x,
          m_maxInnerBrickSize.y,
          m_maxInnerBrickSize.z);
@@ -456,20 +458,27 @@ void GLVolumePool::CreateGLResources() {
 void GLVolumePool::UploadMetaData() {
 
   // DEBUG code
-  OTHER("Brickpool Metadata entries:");
-  for (size_t i = 0; i<m_brickMetaData.size();++i) {
+/*  MESSAGE("Brickpool Metadata entries:");
+  for (size_t i = 0; i<m_PoolSlotData.size();++i) {
     switch (m_brickMetaData[i]) {
       case BI_MISSING     : break;
-      case BI_EMPTY       : OTHER("  %i is empty",i); break;
-      case BI_CHILD_EMPTY : OTHER("  %i is empty (including all children)",i); break;
-      default             : OTHER("  %i loaded at position %i", i, int(m_brickMetaData[i]-BI_FLAG_COUNT)); break;
+      case BI_EMPTY       : MESSAGE("  %i is empty",i); break;
+      case BI_CHILD_EMPTY : MESSAGE("  %i is empty (including all children)",i); break;
+      default             : MESSAGE("  %i loaded at position %i", i, int(m_brickMetaData[i]-BI_FLAG_COUNT)); break;
     }
   }
+  */
+  uint32_t used=0;
+  for (size_t i = 0; i<m_PoolSlotData.size();++i) {
+    if (m_brickMetaData[i] > BI_MISSING)
+      used++;
+  }
+  OTHER("Pool Utilization %u/%u %g%%", used, uint32_t(m_PoolSlotData.size()), 100.0f*used/float(m_PoolSlotData.size()));
   // DEBUG code end
 
   m_PoolMetadataTexture->SetData(&m_brickMetaData[0]);
   std::sort(m_PoolSlotData.begin(), m_PoolSlotData.end());
-  m_iInsertPos = 1;
+  m_iInsertPos = 0;
 }
 
 void GLVolumePool::BrickIsVisible(uint32_t iLoD, uint32_t iIndexInLoD, bool bVisible, bool bChildrenVisible) {
@@ -479,7 +488,7 @@ void GLVolumePool::BrickIsVisible(uint32_t iLoD, uint32_t iIndexInLoD, bool bVis
     // if this brick was previously empty then it is now 
     // missing, i.e. not empty and not cached
     if (m_brickMetaData[index] <= BI_EMPTY) {
-      if (index < m_brickMetaData.size()) {// restore the first brick
+      if (index < m_PoolSlotData.size()) {// restore the first brick
         m_brickMetaData[index] = BI_MISSING;
       } else {
         m_brickMetaData[index] = uint32_t(m_PoolSlotData.size()-1)+BI_FLAG_COUNT;
@@ -487,9 +496,9 @@ void GLVolumePool::BrickIsVisible(uint32_t iLoD, uint32_t iIndexInLoD, bool bVis
     }
   } else {
     // if brick is in the pool -> clear that pool entry
-    if (m_brickMetaData[index] > BI_EMPTY) {
-      if (index < m_brickMetaData.size()-1) {// don't wipe the first low-res brick
-        m_PoolSlotData[index].Clear();
+    if (m_brickMetaData[index] > BI_MISSING) {
+      if (index < m_PoolSlotData.size()-1) {// don't wipe the first low-res brick
+        m_PoolSlotData[m_brickMetaData[index]-BI_FLAG_COUNT].Clear();
       }
     }
     // mark brick as empty

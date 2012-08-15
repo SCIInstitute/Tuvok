@@ -25,9 +25,9 @@ using namespace tuvok;
 static BrickKey HashValueToBrickKey(const UINTVECTOR4& hash, size_t timestep, const UVFDataset* pToCDataset) {
   UINT64VECTOR3 layout = pToCDataset->GetBrickLayout(hash.w, timestep);
 
-  return BrickKey(timestep, hash.w, hash.x*layout.x*layout.y+
+  return BrickKey(timestep, hash.w, hash.x+
                                     hash.y*layout.x+
-                                    hash.z);
+                                    hash.z*layout.x*layout.y);
 }
 
 GLTreeRaycaster::GLTreeRaycaster(MasterController* pMasterController, 
@@ -54,8 +54,8 @@ GLTreeRaycaster::GLTreeRaycaster(MasterController* pMasterController,
   // a member of the parent class, henced it's initialized here
   m_bSupportsMeshes = false;
 
-  std::fill(m_pFBOResumeColor.begin(), m_pFBOResumeColor.end(), (GLFBOTex*)NULL);
-  std::fill(m_pFBOResumeColorNext.begin(), m_pFBOResumeColorNext.end(), (GLFBOTex*)NULL);
+  std::fill(m_pFBOStartColor.begin(), m_pFBOStartColor.end(), (GLFBOTex*)NULL);
+  std::fill(m_pFBOStartColorNext.begin(), m_pFBOStartColorNext.end(), (GLFBOTex*)NULL);
   std::fill(m_pFBORayStart.begin(), m_pFBORayStart.end(), (GLFBOTex*)NULL);
   std::fill(m_pFBORayStartNext.begin(), m_pFBORayStartNext.end(), (GLFBOTex*)NULL);
 }
@@ -64,7 +64,7 @@ GLTreeRaycaster::GLTreeRaycaster(MasterController* pMasterController,
 bool GLTreeRaycaster::CreateVolumePool() {
 
   // todo: make this configurable
-  const UINTVECTOR3 poolSize = UINTVECTOR3(512, 512, 512);
+  const UINTVECTOR3 poolSize = UINTVECTOR3(1024, 1024, 512);
 
   GLenum glInternalformat=0;
   GLenum glFormat=0;
@@ -189,8 +189,8 @@ void GLTreeRaycaster::Cleanup() {
 
   std::for_each(m_pFBORayStart.begin(),        m_pFBORayStart.end(),        deleteFBO);
   std::for_each(m_pFBORayStartNext.begin(),    m_pFBORayStartNext.end(),    deleteFBO);
-  std::for_each(m_pFBOResumeColor.begin(),     m_pFBOResumeColor.end(),     deleteFBO);
-  std::for_each(m_pFBOResumeColorNext.begin(), m_pFBOResumeColorNext.end(), deleteFBO);
+  std::for_each(m_pFBOStartColor.begin(),     m_pFBOStartColor.end(),     deleteFBO);
+  std::for_each(m_pFBOStartColorNext.begin(), m_pFBOStartColorNext.end(), deleteFBO);
 
   delete m_pBBoxVBO;
   m_pBBoxVBO = NULL;
@@ -234,12 +234,12 @@ void GLTreeRaycaster::CreateOffscreenBuffers() {
 
   if (m_vWinSize.area() > 0) {
     for_each(m_pFBORayStart.begin(), m_pFBORayStart.end(), 
-      bind(recreateFBO, _1, m_pContext ,m_vWinSize, GL_RGBA16F, GL_RGBA, GL_HALF_FLOAT));
-    for_each(m_pFBORayStartNext.begin(), m_pFBORayStartNext.end(), 
-      bind(recreateFBO, _1, m_pContext ,m_vWinSize, GL_RGBA16F, GL_RGBA, GL_HALF_FLOAT));
-    for_each(m_pFBOResumeColor.begin(), m_pFBOResumeColor.end(), 
       bind(recreateFBO, _1, m_pContext ,m_vWinSize, intformat, GL_RGBA, type));
-    for_each(m_pFBOResumeColorNext.begin(), m_pFBOResumeColorNext.end(), 
+    for_each(m_pFBORayStartNext.begin(), m_pFBORayStartNext.end(), 
+      bind(recreateFBO, _1, m_pContext ,m_vWinSize, intformat, GL_RGBA, type));
+    for_each(m_pFBOStartColor.begin(), m_pFBOStartColor.end(), 
+      bind(recreateFBO, _1, m_pContext ,m_vWinSize, intformat, GL_RGBA, type));
+    for_each(m_pFBOStartColorNext.begin(), m_pFBOStartColorNext.end(), 
       bind(recreateFBO, _1, m_pContext ,m_vWinSize, intformat, GL_RGBA, type));
   }
 }
@@ -546,7 +546,9 @@ bool GLTreeRaycaster::Continue3DDraw() {
 }
 
 void GLTreeRaycaster::FillRayEntryBuffer(RenderRegion3D& rr, EStereoID eStereoID) {
-  // bind output render target (DEBUG, should be front face texture)
+  m_TargetBinder.Bind(m_pFBOStartColor[size_t(eStereoID)]);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
   m_TargetBinder.Bind(m_pFBORayStart[size_t(eStereoID)]);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -619,19 +621,17 @@ void GLTreeRaycaster::RecomputeBrickVisibility() {
 }
 
 void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
-  m_TargetBinder.Bind(m_pFBO3DImageCurrent[size_t(eStereoID)],
-                      m_pFBOResumeColorNext[size_t(eStereoID)],
+  m_TargetBinder.Bind(m_pFBO3DImageNext[size_t(eStereoID)],                      
+                      m_pFBOStartColorNext[size_t(eStereoID)],
                       m_pFBORayStartNext[size_t(eStereoID)]);
 
   m_pFBORayStart[size_t(eStereoID)]->Read(0);
-  m_pFBOResumeColor[size_t(eStereoID)]->Read(1);
+  m_pFBOStartColor[size_t(eStereoID)]->Read(1);
+  m_p1DTransTex->Bind(2);   // todo: use m_eRenderMode, this is only for RM_1DTRANS
   m_pVolumePool->Enable(m_FrustumCullingLOD.GetLoDFactor(), 
                         FLOATVECTOR3(m_pToCDataset->GetScale()),
                         m_pProgramRayCast1D); // bound to 3 and 4
   m_pglHashTable->Enable(); // bound to 5
-
-  // todo: use m_eRenderMode, code below is only for RM_1DTRANS
-  m_p1DTransTex->Bind(2);
 
   // set shader parameters (shader is already enabled by m_pVolumePool->Enable)
   m_pProgramRayCast1D->Enable();
@@ -644,6 +644,7 @@ void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // render the back faces
+  m_pContext->GetStateManager()->SetEnableCullFace(true);
   m_pContext->GetStateManager()->SetCullState(CULL_FRONT);
   m_pBBoxVBO->Bind();
   m_pBBoxVBO->Draw(GL_QUADS);
@@ -651,14 +652,14 @@ void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
 
   // unbind input textures
   m_pFBORayStart[size_t(eStereoID)]->FinishRead();
-  m_pFBOResumeColor[size_t(eStereoID)]->FinishRead();
+  m_pFBOStartColor[size_t(eStereoID)]->FinishRead();
 
   // done rendering for now
   m_TargetBinder.Unbind();
 
   // swap current and next resume color
-  std::swap(m_pFBOResumeColorNext[size_t(eStereoID)], m_pFBOResumeColor[size_t(eStereoID)]);
-  std::swap(m_pFBORayStart[size_t(eStereoID)], m_pFBORayStartNext[size_t(eStereoID)]);
+  std::swap(m_pFBOStartColorNext[size_t(eStereoID)], m_pFBOStartColor[size_t(eStereoID)]);
+  std::swap(m_pFBORayStartNext[size_t(eStereoID)], m_pFBORayStart[size_t(eStereoID)]);
 }
 
 bool GLTreeRaycaster::CheckForRedraw() {
@@ -706,20 +707,20 @@ void GLTreeRaycaster::UpdateToVolumePool(std::vector<UINTVECTOR4>& hash) {
 bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
   // for DEBUG render always MONO
   EStereoID eStereoID = SI_LEFT_OR_MONO;
+ 
+  // prepare a new view
+  if (rr.isBlank) {
+    MESSAGE("Starting a new frame");
+    // compute new ray start
+    FillRayEntryBuffer(rr,eStereoID);
+  } else {
+    MESSAGE("Continuing a frame");
+  }
 
   // reset state
   GPUState localState = m_BaseState;
   localState.enableBlend = false;
   m_pContext->GetStateManager()->Apply(localState);
-  
-  // prepare a new view
-  if (rr.isBlank) {
-    OTHER("Starting a new frame");
-    // compute new ray start
-    FillRayEntryBuffer(rr,eStereoID);
-  } else {
-    OTHER("Continuing a frame");
-  }
 
   // clear hastable
   m_pglHashTable->ClearData();
@@ -736,7 +737,7 @@ bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
     OTHER("Last rendering pass was missing %i brick(s), paging in now...", int(hash.size()));
     UpdateToVolumePool(hash);
   } else {
-    OTHER("All bricks rendered, frame complete.");
+    MESSAGE("All bricks rendered, frame complete.");
   }
 
   // always display intermediate results

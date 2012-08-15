@@ -600,7 +600,7 @@ void GLSBVR2D::Render3DInLoop(const RenderRegion3D& renderRegion,
       RenderProxyGeometry();
     }
   } else {
-    m_TargetBinder.Bind(m_pFBO3DImageCurrent[size_t(eStereoID)]);
+    m_TargetBinder.Bind(m_pFBO3DImageNext[size_t(eStereoID)]);
 
     m_pContext->GetStateManager()->SetDepthMask(false);
     SetBrickDepShaderVars(renderRegion, b);
