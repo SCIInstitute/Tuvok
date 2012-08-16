@@ -86,12 +86,13 @@
 
 #include "Mesh.h"
 #include "AbstrGeoConverter.h"
-#include "OBJGeoConverter.h"
+#include "GeomViewConverter.h"
 #include "LinesGeoConverter.h"
-#include "PLYGeoConverter.h"
 #include "MobileGeoConverter.h"
 #include "MedAlyVisGeoConverter.h"
 #include "MedAlyVisFiberTractGeoConverter.h"
+#include "OBJGeoConverter.h"
+#include "PLYGeoConverter.h"
 #include "XML3DGeoConverter.h"
 
 using namespace std;
@@ -143,12 +144,13 @@ IOManager::IOManager() :
   m_iIncoresize(m_iMaxBrickSize*m_iMaxBrickSize*m_iMaxBrickSize),
   m_LoadDS(NULL)
 {
+  m_vpGeoConverters.push_back(new GeomViewConverter());
   m_vpGeoConverters.push_back(new LinesGeoConverter());
-  m_vpGeoConverters.push_back(new PLYGeoConverter());
-  m_vpGeoConverters.push_back(new OBJGeoConverter());
   m_vpGeoConverters.push_back(new MobileGeoConverter());
   m_vpGeoConverters.push_back(new MedAlyVisGeoConverter());
   m_vpGeoConverters.push_back(new MedAlyVisFiberTractGeoConverter());
+  m_vpGeoConverters.push_back(new OBJGeoConverter());
+  m_vpGeoConverters.push_back(new PLYGeoConverter());
   m_vpGeoConverters.push_back(new XML3DGeoConverter());
 
   m_vpConverters.push_back(new VGStudioConverter());
