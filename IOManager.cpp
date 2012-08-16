@@ -887,40 +887,53 @@ bool IOManager::MergeDatasets(const vector <string>& strFilenames,
   MasterController *MCtlr = &(Controller::Instance());
   if (bSignedG) {
     if (bIsFloatG) {
+      assert(iComponentSizeG >= 32);
       switch (iComponentSizeG) {
         case 32 : {
-                    DataMerger<float> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, MCtlr, bUseMaxMode);
-                    bIsMerged = d.IsOK();
-                    break;
-                  }
+          DataMerger<float> d(vIntermediateFiles, strMergedFile,
+                              vVolumeSizeG.volume()*iComponentCountG, MCtlr,
+                              bUseMaxMode);
+          bIsMerged = d.IsOK();
+          break;
+        }
         case 64 : {
-                    DataMerger<double> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, MCtlr, bUseMaxMode);
-                    bIsMerged = d.IsOK();
-                    break;
-                  }
+          DataMerger<double> d(vIntermediateFiles, strMergedFile,
+                               vVolumeSizeG.volume()*iComponentCountG, MCtlr,
+                               bUseMaxMode);
+          bIsMerged = d.IsOK();
+          break;
+        }
       }
     } else {
       switch (iComponentSizeG) {
         case 8  : {
-                    DataMerger<char> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, MCtlr, bUseMaxMode);
-                    bIsMerged = d.IsOK();
-                    break;
-                  }
+          DataMerger<char> d(vIntermediateFiles, strMergedFile,
+                             vVolumeSizeG.volume()*iComponentCountG, MCtlr,
+                             bUseMaxMode);
+          bIsMerged = d.IsOK();
+          break;
+        }
         case 16 : {
-                    DataMerger<short> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, MCtlr, bUseMaxMode);
-                    bIsMerged = d.IsOK();
-                    break;
-                  }
+          DataMerger<short> d(vIntermediateFiles, strMergedFile,
+                              vVolumeSizeG.volume()*iComponentCountG, MCtlr,
+                              bUseMaxMode);
+          bIsMerged = d.IsOK();
+          break;
+        }
         case 32 : {
-                    DataMerger<int> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, MCtlr, bUseMaxMode);
-                    bIsMerged = d.IsOK();
-                    break;
-                  }
+          DataMerger<int> d(vIntermediateFiles, strMergedFile,
+                            vVolumeSizeG.volume()*iComponentCountG, MCtlr,
+                            bUseMaxMode);
+          bIsMerged = d.IsOK();
+          break;
+        }
         case 64 : {
-                    DataMerger<int64_t> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, MCtlr, bUseMaxMode);
-                    bIsMerged = d.IsOK();
-                    break;
-                  }
+          DataMerger<int64_t> d(vIntermediateFiles, strMergedFile,
+                                vVolumeSizeG.volume()*iComponentCountG, MCtlr,
+                                bUseMaxMode);
+          bIsMerged = d.IsOK();
+          break;
+        }
       }
     }
   } else {
@@ -928,28 +941,35 @@ bool IOManager::MergeDatasets(const vector <string>& strFilenames,
       // unsigned float ??? :-)
       T_ERROR("Don't know how to handle unsigned float data.");
       return false;
-    } else {
-      switch (iComponentSizeG) {
-        case 8  : {
-                    DataMerger<unsigned char> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, MCtlr, bUseMaxMode);
-                    bIsMerged = d.IsOK();
-                    break;
-                  }
-        case 16 : {
-                    DataMerger<unsigned short> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, MCtlr, bUseMaxMode);
-                    bIsMerged = d.IsOK();
-                    break;
-                  }
-        case 32 : {
-                    DataMerger<unsigned int> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, MCtlr, bUseMaxMode);
-                    bIsMerged = d.IsOK();
-                    break;
-                  }
-        case 64 : {
-                    DataMerger<uint64_t> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, MCtlr, bUseMaxMode);
-                    bIsMerged = d.IsOK();
-                    break;
-                  }
+    }
+    switch (iComponentSizeG) {
+      case 8  : {
+        DataMerger<unsigned char> d(vIntermediateFiles, strMergedFile,
+                                    vVolumeSizeG.volume()*iComponentCountG, MCtlr,
+                                    bUseMaxMode);
+        bIsMerged = d.IsOK();
+        break;
+      }
+      case 16 : {
+        DataMerger<unsigned short> d(vIntermediateFiles, strMergedFile,
+                                     vVolumeSizeG.volume()*iComponentCountG, MCtlr,
+                                     bUseMaxMode);
+        bIsMerged = d.IsOK();
+        break;
+      }
+      case 32 : {
+        DataMerger<unsigned int> d(vIntermediateFiles, strMergedFile,
+                                   vVolumeSizeG.volume()*iComponentCountG, MCtlr,
+                                   bUseMaxMode);
+        bIsMerged = d.IsOK();
+        break;
+      }
+      case 64 : {
+        DataMerger<uint64_t> d(vIntermediateFiles, strMergedFile,
+                               vVolumeSizeG.volume()*iComponentCountG, MCtlr,
+                               bUseMaxMode);
+        bIsMerged = d.IsOK();
+        break;
       }
     }
   }
