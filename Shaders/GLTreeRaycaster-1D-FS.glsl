@@ -14,6 +14,7 @@ layout(pixel_center_integer) in vec4 gl_FragCoord;
 // volume and view parameter
 uniform float sampleRateModifier;
 uniform mat4x4 mEyeToModel;
+uniform float fTransScale;
 
 // import VolumePool functions
 bool GetBrick(in vec3 normEntryCoords, in uint iLOD, in vec3 direction,
@@ -40,13 +41,6 @@ layout(location=0) out vec4 accRayColor;
 layout(location=1) out vec4 rayResumeColor;
 layout(location=2) out vec4 rayResumePos;
 
-bool vecEqual(uvec4 a, uvec4 b) {
-  return a.x == b.x && 
-         a.y == b.y && 
-         a.z == b.z && 
-         a.w == b.w;
-}
-
 // go
 void main()
 {
@@ -56,6 +50,12 @@ void main()
     
   // fetch ray entry from texture and get ray exit point from vs-shader
   rayResumePos = texelFetch(rayStartPoint, screenpos,0);
+
+  if (rayResumePos.w > 0) {
+    rayResumeColor = accRayColor;
+    return;
+  }
+
   const vec4 exitParam = vec4((mEyeToModel * vec4(vPosInViewCoords.x, vPosInViewCoords.y, vPosInViewCoords.z, 1.0)).xyz, vPosInViewCoords.z);
 
   // for clarity, separate postions from depth (stored in w)
@@ -140,7 +140,7 @@ void main()
           float data = samplePool(currentPoolCoords);
 
           // apply TF
-          vec4 color = texture(transferFunction, data);
+          vec4 color = texture(transferFunction, data*fTransScale);
 
           // apply oppacity correction
           OpacityCorrectColor(ocFactor, color);
@@ -149,7 +149,13 @@ void main()
           accRayColor = UnderCompositing(color, accRayColor);
 
           // early ray termination
-          if (accRayColor.a > 0.95)  return;
+          if (accRayColor.a > 0.99) {
+            if (bOptimalResolution) {
+              rayResumePos.w = 1;
+              rayResumeColor = accRayColor;
+            }
+            return;
+          }
 
           // advance ray
           currentPoolCoords += voxelSpaceDirection;
@@ -166,12 +172,19 @@ void main()
 //      return;      
      
 
-      if (t > 0.99 || lastBrick == currentBrick) return;
+      if (t > 0.99 || lastBrick == currentBrick) {
+        if (bOptimalResolution) {
+          rayResumePos.w = 1;
+          rayResumeColor = accRayColor;
+        }
+        return;
+      }
       currentPos = normBrickExitCoords;
       lastBrick = currentBrick;
     }
   }
   
+
 }
 
 

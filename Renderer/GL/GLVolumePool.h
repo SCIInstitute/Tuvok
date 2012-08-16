@@ -53,6 +53,7 @@ namespace tuvok {
     public:
       GLVolumePool(const UINTVECTOR3& poolSize, const UINTVECTOR3& maxBrickSize,
                    const UINTVECTOR3& overlap, const UINTVECTOR3& volumeSize,
+                   const FLOATVECTOR3& vExtend,
                    GLint internalformat, GLenum format, GLenum type, 
                    bool bUseGLCore=true);
       virtual ~GLVolumePool();
@@ -79,6 +80,7 @@ namespace tuvok {
       UINTVECTOR3 m_maxInnerBrickSize;
       UINTVECTOR3 m_maxTotalBrickSize;
       UINTVECTOR3 m_volumeSize;
+      FLOATVECTOR3 m_vExtend;
       GLint m_internalformat;
       GLenum m_format;
       GLenum m_type;
@@ -91,6 +93,7 @@ namespace tuvok {
       size_t m_iInsertPos;
 
       UINTVECTOR2 m_metaTexSize;
+      uint32_t m_iTotalBrickCount;
 
       std::vector<uint32_t> m_brickMetaData;
       std::vector<PoolSlotData> m_PoolSlotData;

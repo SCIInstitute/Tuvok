@@ -45,8 +45,9 @@ static UINTVECTOR3 GetBrickLayout(const UINTVECTOR3& volumeSize, const UINTVECTO
 
 GLVolumePool::GLVolumePool(const UINTVECTOR3& poolSize, const UINTVECTOR3& maxBrickSize,
                            const UINTVECTOR3& overlap, const UINTVECTOR3& volumeSize,
+                           const FLOATVECTOR3& vExtend,
                            GLint internalformat, GLenum format, GLenum type, 
-                            bool bUseGLCore)
+                           bool bUseGLCore)
   : m_PoolMetadataTexture(NULL),
     m_PoolDataTexture(NULL),
     m_vPoolCapacity(0,0,0),
@@ -54,6 +55,7 @@ GLVolumePool::GLVolumePool(const UINTVECTOR3& poolSize, const UINTVECTOR3& maxBr
     m_maxInnerBrickSize(maxBrickSize-overlap*2),
     m_maxTotalBrickSize(maxBrickSize),
     m_volumeSize(volumeSize),
+    m_vExtend(vExtend),
     m_internalformat(internalformat),
     m_format(format),
     m_type(type),
@@ -385,7 +387,8 @@ void GLVolumePool::Enable(float fLoDFactor, const FLOATVECTOR3& volumeAspect,
   pShaderProgram->Set("fLoDFactor",fLoDFactor);
   pShaderProgram->Set("volumeAspect",volumeAspect.x, volumeAspect.y, volumeAspect.z);
 
-  float fLevelZeroWorldSpaceError = (volumeAspect/FLOATVECTOR3(m_volumeSize)).maxVal();
+
+  float fLevelZeroWorldSpaceError = (m_vExtend/FLOATVECTOR3(m_volumeSize)).maxVal();
   pShaderProgram->Set("fLevelZeroWorldSpaceError",fLevelZeroWorldSpaceError);
 }
 
@@ -421,14 +424,14 @@ void GLVolumePool::CreateGLResources() {
 
   // last element in the offset table contains all bricks until the
   // last level + that last level itself contains one brick
-  uint32_t iTotalBrickCount = *(m_vLoDOffsetTable.end()-1)+1;
+  m_iTotalBrickCount = *(m_vLoDOffsetTable.end()-1)+1;
 
   // this is very unlikely but not impossible
-  if (iTotalBrickCount > uint32_t(gpumax*gpumax)) {
+  if (m_iTotalBrickCount > uint32_t(gpumax*gpumax)) {
     std::stringstream ss;    
     
     ss << "Unable to create brick metadata texture, as it needs to hold "
-       << iTotalBrickCount << "entries but the max 2D texture size on this "
+       << m_iTotalBrickCount << "entries but the max 2D texture size on this "
        << "machine is only " << gpumax << " x " << gpumax << "allowing for "
        << " a maximum of " << gpumax*gpumax << " indices.";
 
@@ -437,15 +440,15 @@ void GLVolumePool::CreateGLResources() {
   }
   
   UINTVECTOR2 vTexSize;
-  vTexSize.x = uint32_t(ceil(sqrt(double(iTotalBrickCount))));
-  vTexSize.y = uint32_t(ceil(double(iTotalBrickCount)/double(vTexSize.x)));
+  vTexSize.x = uint32_t(ceil(sqrt(double(m_iTotalBrickCount))));
+  vTexSize.y = uint32_t(ceil(double(m_iTotalBrickCount)/double(vTexSize.x)));
   m_brickMetaData.resize(vTexSize.area());
   std::fill(m_brickMetaData.begin(), m_brickMetaData.end(), BI_MISSING);
 
   std::stringstream ss;        
   ss << "Creating brick metadata texture of size " << vTexSize.x << " x " 
-     << vTexSize.y << " to effectively hold  " << iTotalBrickCount << " entries. "
-     << "Consequently, " << vTexSize.area() - iTotalBrickCount << " entries in "
+     << vTexSize.y << " to effectively hold  " << m_iTotalBrickCount << " entries. "
+     << "Consequently, " << vTexSize.area() - m_iTotalBrickCount << " entries in "
      << "texture are wasted due to the 2D extions process.";
   MESSAGE(ss.str().c_str());
 
@@ -459,7 +462,7 @@ void GLVolumePool::UploadMetaData() {
 
   // DEBUG code
 /*  MESSAGE("Brickpool Metadata entries:");
-  for (size_t i = 0; i<m_PoolSlotData.size();++i) {
+  for (size_t i = 0; i<m_iTotalBrickCount;++i) {
     switch (m_brickMetaData[i]) {
       case BI_MISSING     : break;
       case BI_EMPTY       : MESSAGE("  %i is empty",i); break;
@@ -469,11 +472,11 @@ void GLVolumePool::UploadMetaData() {
   }
   */
   uint32_t used=0;
-  for (size_t i = 0; i<m_PoolSlotData.size();++i) {
+  for (size_t i = 0; i<m_iTotalBrickCount;++i) {
     if (m_brickMetaData[i] > BI_MISSING)
       used++;
   }
-  OTHER("Pool Utilization %u/%u %g%%", used, uint32_t(m_PoolSlotData.size()), 100.0f*used/float(m_PoolSlotData.size()));
+  OTHER("Pool Utilization %u/%u %g%%", used, m_PoolSlotData.size(), 100.0f*used/float(m_PoolSlotData.size()));
   // DEBUG code end
 
   m_PoolMetadataTexture->SetData(&m_brickMetaData[0]);
@@ -488,7 +491,7 @@ void GLVolumePool::BrickIsVisible(uint32_t iLoD, uint32_t iIndexInLoD, bool bVis
     // if this brick was previously empty then it is now 
     // missing, i.e. not empty and not cached
     if (m_brickMetaData[index] <= BI_EMPTY) {
-      if (index < m_PoolSlotData.size()) {// restore the first brick
+      if (index < m_iTotalBrickCount) {// restore the first brick
         m_brickMetaData[index] = BI_MISSING;
       } else {
         m_brickMetaData[index] = uint32_t(m_PoolSlotData.size()-1)+BI_FLAG_COUNT;

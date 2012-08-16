@@ -64,7 +64,7 @@ GLTreeRaycaster::GLTreeRaycaster(MasterController* pMasterController,
 bool GLTreeRaycaster::CreateVolumePool() {
 
   // todo: make this configurable
-  const UINTVECTOR3 poolSize = UINTVECTOR3(1024, 1024, 512);
+  const UINTVECTOR3 poolSize = UINTVECTOR3(512, 512, 512);
 
   GLenum glInternalformat=0;
   GLenum glFormat=0;
@@ -115,10 +115,15 @@ bool GLTreeRaycaster::CreateVolumePool() {
     default : T_ERROR("Invalid bit width"); return false;
   }
 
+  UINTVECTOR3 vDomainSize = UINTVECTOR3(m_pToCDataset->GetDomainSize());
+  FLOATVECTOR3 vScale = FLOATVECTOR3(m_pToCDataset->GetScale());
+  FLOATVECTOR3 vExtend = FLOATVECTOR3(vDomainSize) * vScale;
+  vExtend /= vExtend.maxVal();
+
 
   m_pVolumePool = new GLVolumePool(poolSize, UINTVECTOR3(m_pToCDataset->GetMaxUsedBrickSizes()), 
                                    m_pToCDataset->GetBrickOverlapSize(), 
-                                   UINTVECTOR3(m_pToCDataset->GetDomainSize()),                                    
+                                   vDomainSize, vExtend,
                                    glInternalformat, glFormat, glType);
 
 
@@ -132,9 +137,18 @@ bool GLTreeRaycaster::CreateVolumePool() {
     const uint64_t iBrickSize = vSize.volume() * iByteWidth * iCompCount;
     m_vUploadMem.resize(iBrickSize);
   }
-  const BrickKey bkey = HashValueToBrickKey(UINTVECTOR4(0,0,0,uint32_t(m_pToCDataset->GetLODLevelCount()-1)), m_iTimestep, m_pToCDataset);
-  m_pToCDataset->GetBrick(bkey, m_vUploadMem);
-  m_pVolumePool->UploadFirstBrick(m_pToCDataset->GetBrickVoxelCounts(bkey), &m_vUploadMem[0]);
+
+  // find lowest LoD with only a single brick
+  for (size_t iLoD = 0;iLoD<m_pToCDataset->GetLODLevelCount();++iLoD) {
+    if (m_pToCDataset->GetBrickCount(iLoD, m_iTimestep) == 1) {
+      const BrickKey bkey = HashValueToBrickKey(UINTVECTOR4(0,0,0,uint32_t(m_pToCDataset->GetLODLevelCount()-1)), m_iTimestep, m_pToCDataset);
+
+      m_pToCDataset->GetBrick(bkey, m_vUploadMem);
+      m_pVolumePool->UploadFirstBrick(m_pToCDataset->GetBrickVoxelCounts(bkey), &m_vUploadMem[0]);
+      break;
+    }
+  }
+
   
   RecomputeBrickVisibility();
 
@@ -640,6 +654,12 @@ void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
   m_pProgramRayCast1D->Set("mModelView", rr.modelView[size_t(eStereoID)], 4, false); 
   m_pProgramRayCast1D->Set("mModelViewProjection", rr.modelView[size_t(eStereoID)]*m_mProjection[size_t(eStereoID)], 4, false); 
 
+  float fScale         = CalculateScaling();
+  float fGradientScale = (m_pDataset->MaxGradientMagnitude() == 0) ?
+                          1.0f : 1.0f/m_pDataset->MaxGradientMagnitude();
+
+  m_pProgramRayCast1D->Set("fTransScale",fScale);
+
   // clear the buffers 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -686,8 +706,19 @@ void GLTreeRaycaster::UpdateToVolumePool(const UINTVECTOR4& brick) {
   UpdateToVolumePool(bricks);
 }
 
+// TODO: this entire function should be part of the GPU mem-manager
 void GLTreeRaycaster::UpdateToVolumePool(std::vector<UINTVECTOR4>& hash) {
-  // TODO: this entire function should be part of the GPU mem-manager
+
+  // DEBUG Code
+  uint32_t iHQLevel = std::numeric_limits<uint32_t>::max();
+  uint32_t iLQLevel = 0;
+  for (auto missingBrick = hash.begin();missingBrick<hash.end(); ++missingBrick) {
+    iHQLevel = std::min(missingBrick->w, iHQLevel);
+    iLQLevel = std::max(missingBrick->w, iLQLevel);
+  }
+  T_ERROR("Max Quality %i, Min Quality=%i", iHQLevel, iLQLevel);
+  // DEBUG Code End
+
 
   // now iterate over the missing bricks and upload them to the GPU
   // todo: consider batching this if it turns out to make a difference
@@ -730,6 +761,7 @@ bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
 
   // evaluate hastable
   std::vector<UINTVECTOR4> hash = m_pglHashTable->GetData();
+  //hash.push_back(UINTVECTOR4(0,0,0,0));  // DEBUG Code
   m_bConverged = hash.empty();
 
   // upload missing bricks
