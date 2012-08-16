@@ -259,6 +259,7 @@ void SBVRGeogen3D::ComputeGeometry(bool bMeshOnly) {
 
   float fDepth = m_fMaxZ;
   float fLayerDistance = GetLayerDistance();
+  assert(fLayerDistance > 0);
 
   // I hit this every time I fiddle with the integration of an
   // application.  If an app doesn't set brick metadata properly, we'll
