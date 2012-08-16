@@ -153,6 +153,7 @@ HEADERS += \
            IO/DSFactory.h \
            IO/ExternalDataset.h \
            IO/FileBackedDataset.h \
+           IO/GeomViewConverter.h \
            IO/gzio.h \
            IO/IASSConverter.h \
            IO/I3MConverter.h \
@@ -447,6 +448,7 @@ SOURCES += \
            IO/DSFactory.cpp \
            IO/ExternalDataset.cpp \
            IO/FileBackedDataset.cpp \
+           IO/GeomViewConverter.cpp \
            IO/gzio.c \
            IO/IASSConverter.cpp \
            IO/I3MConverter.cpp \
