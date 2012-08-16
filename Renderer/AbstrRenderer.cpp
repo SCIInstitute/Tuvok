@@ -345,13 +345,9 @@ void AbstrRenderer::Changed1DTrans() {
 }
 
 void AbstrRenderer::Changed2DTrans() {
-  AbstrDebugOut *dbg = m_pMasterController->DebugOut();
   if (m_eRenderMode != RM_2DTRANS) {
-    dbg->Message(_func_,
-                 "not using the 2D transferfunction at the moment, "
-                 "ignoring message");
+    MESSAGE("not currently using 2D tfqn; ignoring message.");
   } else {
-    dbg->Message(_func_, "complete redraw scheduled");
     ScheduleCompleteRedraw();
     // No provenance; handled by application, not Tuvok lib.
   }
@@ -596,6 +592,7 @@ void AbstrRenderer::SetLocalBBox(bool bRenderBBox) {
 
 void AbstrRenderer::ScheduleCompleteRedraw() {
   m_iCheckCounter = m_iStartDelay;
+  MESSAGE("complete redraw scheduled");
 
   for (size_t i=0; i < renderRegions.size(); ++i) {
     renderRegions[i]->redrawMask = true;
