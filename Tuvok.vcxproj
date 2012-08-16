@@ -525,6 +525,7 @@
     <ClCompile Include="Basics\KDTree.cpp" />
     <ClCompile Include="Basics\Mesh.cpp" />
     <ClCompile Include="IO\AmiraConverter.cpp" />
+    <ClCompile Include="IO\GeomViewConverter.cpp" />
     <ClCompile Include="IO\Images\StackExporter.cpp" />
     <ClCompile Include="IO\LinesGeoConverter.cpp" />
     <ClCompile Include="IO\TTIFFWriter\TTIFFWriter.cpp" />
@@ -1314,6 +1315,7 @@
     <ClInclude Include="Basics\3rdParty\tclap\XorHandler.h" />
     <ClInclude Include="Basics\3rdParty\tclap\ZshCompletionOutput.h" />
     <ClInclude Include="IO\AmiraConverter.h" />
+    <ClInclude Include="IO\GeomViewConverter.h" />
     <ClInclude Include="IO\Images\StackExporter.h" />
     <ClInclude Include="IO\LinesGeoConverter.h" />
     <ClInclude Include="IO\TTIFFWriter\TTIFFWriter.h" />

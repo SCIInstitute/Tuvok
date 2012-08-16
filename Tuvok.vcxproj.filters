@@ -972,6 +972,9 @@
     <ClCompile Include="LuaScripting\TuvokSpecific\LuaTransferFun1DProxy.cpp">
       <Filter>LuaScripting\TuvokSpecific</Filter>
     </ClCompile>
+    <ClCompile Include="IO\GeomViewConverter.cpp">
+      <Filter>IO</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Basics\Appendix.h">
@@ -1934,6 +1937,9 @@
     </ClInclude>
     <ClInclude Include="LuaScripting\TuvokSpecific\LuaTransferFun1DProxy.h">
       <Filter>LuaScripting\TuvokSpecific</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\GeomViewConverter.h">
+      <Filter>IO</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
