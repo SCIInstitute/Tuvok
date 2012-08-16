@@ -655,8 +655,6 @@ void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
   m_pProgramRayCast1D->Set("mModelViewProjection", rr.modelView[size_t(eStereoID)]*m_mProjection[size_t(eStereoID)], 4, false); 
 
   float fScale         = CalculateScaling();
-  float fGradientScale = (m_pDataset->MaxGradientMagnitude() == 0) ?
-                          1.0f : 1.0f/m_pDataset->MaxGradientMagnitude();
 
   m_pProgramRayCast1D->Set("fTransScale",fScale);
 
