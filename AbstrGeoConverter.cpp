@@ -155,8 +155,7 @@ void AbstrGeoConverter::AddToMesh(const VertVec& vertices,
                                 IndexVec& TCIndices, IndexVec& COLIndices) {
   if (v.size() > 3) {
     // per OBJ definition any poly with more than 3 verices has
-    // to be planar and convex, so we can savely triangulate it
-
+    // to be planar and convex, so we can safely triangulate it
     SortByGradient(vertices,v,n,t,c);
 
     for (size_t i = 0;i<v.size()-2;i++) {
@@ -173,7 +172,6 @@ void AbstrGeoConverter::AddToMesh(const VertVec& vertices,
                 TCIndices,
                 COLIndices);
     }
-
   } else {
     for (size_t i = 0;i<v.size();i++) {
       VertIndices.push_back(v[i]);

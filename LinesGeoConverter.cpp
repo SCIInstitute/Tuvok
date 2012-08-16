@@ -119,6 +119,7 @@ LinesGeoConverter::ConvertToMesh(const std::string& rawFilename) {
   if(!lines) {
     throw DSParseFailed("short color index list", __FILE__, __LINE__);
   }
+  lines.close();
 
   // we're good, except the data are in a different coordinate space.
   // oops!  Subtract 0.5 from X and Y to get it into the right place.
