@@ -18,12 +18,17 @@ namespace tuvok {
     PoolSlotData(const UINTVECTOR3& vPositionInPool) :
       m_iBrickID(-1),
       m_iTimeOfCreation(0),
+      m_iOrigTimeOfCreation(0),
       m_vPositionInPool(vPositionInPool)
     {}
 
-    void Clear() {
-      m_iBrickID = -1;
-      m_iTimeOfCreation = 0;
+    void FlagEmpty() {
+      m_iOrigTimeOfCreation = m_iTimeOfCreation;
+      m_iTimeOfCreation = 1;
+    }
+
+    void Restore() {
+      m_iTimeOfCreation = m_iOrigTimeOfCreation;
     }
 
     const UINTVECTOR3& PositionInPool() const {return m_vPositionInPool;}
@@ -34,6 +39,7 @@ namespace tuvok {
 
     int32_t     m_iBrickID;
     uint64_t    m_iTimeOfCreation;
+    uint64_t    m_iOrigTimeOfCreation;
   private:
     UINTVECTOR3 m_vPositionInPool;
     PoolSlotData();
@@ -94,9 +100,10 @@ namespace tuvok {
       UINTVECTOR2 m_metaTexSize;
       uint32_t m_iTotalBrickCount;
 
-      std::vector<uint32_t> m_brickMetaData;
-      std::vector<PoolSlotData> m_PoolSlotData;
-      std::vector<uint32_t> m_vLoDOffsetTable;
+      std::vector<uint32_t>      m_brickMetaData;
+      std::vector<PoolSlotData*> m_brickToPoolMapping;
+      std::vector<PoolSlotData>  m_PoolSlotData;
+      std::vector<uint32_t>      m_vLoDOffsetTable;
 
       void CreateGLResources();
       void FreeGLResources();

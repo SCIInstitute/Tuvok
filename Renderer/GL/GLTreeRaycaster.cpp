@@ -64,7 +64,7 @@ GLTreeRaycaster::GLTreeRaycaster(MasterController* pMasterController,
 bool GLTreeRaycaster::CreateVolumePool() {
 
   // todo: make this configurable
-  const UINTVECTOR3 poolSize = UINTVECTOR3(1024, 1024, 512);
+  const UINTVECTOR3 poolSize = UINTVECTOR3(512, 512, 512);
 
   GLenum glInternalformat=0;
   GLenum glFormat=0;
@@ -217,11 +217,11 @@ void GLTreeRaycaster::Cleanup() {
 void recreateFBO(GLFBOTex*& fbo, std::shared_ptr<Context> pContext,
                  const UINTVECTOR2& ws, GLenum intformat, 
                  GLenum format, GLenum type) {
-    if (fbo)
-      Controller::Instance().MemMan()->FreeFBO(fbo); 
+  if (fbo)
+    Controller::Instance().MemMan()->FreeFBO(fbo); 
 
-    fbo = Controller::Instance().MemMan()->GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP, ws.x,
-      ws.y, intformat, format, type, pContext->GetShareGroupID(), false);
+  fbo = Controller::Instance().MemMan()->GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP, ws.x,
+    ws.y, intformat, format, type, pContext->GetShareGroupID(), false);
 }
 
 void GLTreeRaycaster::CreateOffscreenBuffers() {

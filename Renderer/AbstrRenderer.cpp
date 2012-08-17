@@ -148,8 +148,8 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_vAt(0,0,0),
   m_vUp(0,1,0),
   m_fFOV(50.0f),
-  m_fZNear(0.1f),
-  m_fZFar(100.0f),
+  m_fZNear(0.001f),
+  m_fZFar(1000.0f),
   simpleRenderRegion3D(this),
   m_cAmbient(1.0f,1.0f,1.0f,0.1f),
   m_cDiffuse(1.0f,1.0f,1.0f,1.0f),
@@ -947,7 +947,7 @@ bool AbstrRenderer::ContainsData(const BrickKey& key) const
 
   double fMaxValue = (m_pDataset->GetRange().first > m_pDataset->GetRange().second) ?
                           m_p1DTrans->GetSize() : m_pDataset->GetRange().second;
-  double fRescaleFactor = fMaxValue / double(m_p1DTrans->GetSize());
+  double fRescaleFactor = fMaxValue / double(m_p1DTrans->GetSize()-1);
 
   bool bContainsData;
   // render mode dictates how we look at data ...

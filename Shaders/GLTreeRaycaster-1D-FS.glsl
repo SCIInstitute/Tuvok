@@ -19,7 +19,7 @@ uniform float fTransScale;
 // import VolumePool functions
 bool GetBrick(in vec3 normEntryCoords, in uint iLOD, in vec3 direction,
               out vec3 poolEntryCoords, out vec3 poolExitCoords,
-              out vec3 normExitCoords, out bool bEmpty, out uvec4 currentBrick);
+              out vec3 normExitCoords, out bool bEmpty);
 vec3 TransformToPoolSpace(in vec3 direction,
                           in float sampleRateModifier);
 float samplePool(vec3 coords);
@@ -105,7 +105,6 @@ void main()
     bool bEmpty;
 
   if (rayLength > voxelSize) {
-    uvec4 lastBrick=uvec4(0,0,0,1000), currentBrick=uvec4(0,0,0,0);
     for(uint j = 0;j<100;++j) { // j is just for savety, stop traversal after 100 bricks
       // compute the current LoD
       float currentDepth = mix(entryDepth, exitDepth, t);
@@ -114,7 +113,7 @@ void main()
       bool bRequestOK = GetBrick(currentPos+voxelSize*direction/rayLength,
                                  iLOD, direction,
                                  poolEntryCoords, poolExitCoords,
-                                 normBrickExitCoords, bEmpty, currentBrick);
+                                 normBrickExitCoords, bEmpty);
 
 
       if (!bRequestOK && bOptimalResolution) {
@@ -149,7 +148,7 @@ void main()
           accRayColor = UnderCompositing(color, accRayColor);
 
           // early ray termination
-          if (accRayColor.a > 0.99) {
+          if (accRayColor.a > 0.95) {
             if (bOptimalResolution) {
               rayResumePos.w = 1;
               rayResumeColor = accRayColor;
@@ -172,7 +171,7 @@ void main()
 //      return;      
      
 
-      if (t > 0.99 || lastBrick == currentBrick) {
+      if (t > 0.99) {
         if (bOptimalResolution) {
           rayResumePos.w = 1;
           rayResumeColor = accRayColor;
@@ -180,7 +179,6 @@ void main()
         return;
       }
       currentPos = normBrickExitCoords;
-      lastBrick = currentBrick;
     }
   }
   
