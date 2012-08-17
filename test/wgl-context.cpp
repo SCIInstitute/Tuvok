@@ -36,7 +36,7 @@
 #include "StdTuvokDefines.h"
 #ifdef DETECTED_OS_WINDOWS
 # include <windows.h>
-# include <GL/gl.h>
+# include <GL/glew.h>
 # include <GL/wglew.h>
 #else
 # include <GL/glxew.h>
