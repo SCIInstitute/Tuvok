@@ -112,7 +112,7 @@ void main()
       uint iLOD = ComputeLOD(currentDepth);
 
       bool bRequestOK = GetBrick(currentPos+voxelSize*direction/rayLength,
-                                 iLOD, voxelSpaceDirection,
+                                 iLOD, direction,
                                  poolEntryCoords, poolExitCoords,
                                  normBrickExitCoords, bEmpty, currentBrick);
 

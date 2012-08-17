@@ -103,6 +103,8 @@ namespace tuvok {
       virtual void SetRendermode(AbstrRenderer::ERenderMode eRenderMode);
 
 
+      virtual void SetRescaleFactors(const DOUBLEVECTOR3& vfRescale);
+      void CreateVBO();
 
       // all functions below are not "guaranteed" yet
       // (ask Jens if you want to know what that means :-)

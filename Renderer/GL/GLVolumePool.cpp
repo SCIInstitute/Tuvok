@@ -28,24 +28,27 @@ static UINTVECTOR3 GetLoDSize(const UINTVECTOR3& volumeSize, uint32_t iLoD) {
   return vLoDSize;
 }
 
-static FLOATVECTOR3 GetFloatBrickLayout(const UINTVECTOR3& volumeSize, const UINTVECTOR3& maxBrickSize, uint32_t iLoD) {
-  FLOATVECTOR3 baseBrickCount(float(volumeSize.x)/maxBrickSize.x, 
-                              float(volumeSize.y)/maxBrickSize.y,
-                              float(volumeSize.z)/maxBrickSize.z);
+static FLOATVECTOR3 GetFloatBrickLayout(const UINTVECTOR3& volumeSize,
+                                        const UINTVECTOR3& maxInnerBrickSize,
+                                        uint32_t iLoD) {
+  FLOATVECTOR3 baseBrickCount(float(volumeSize.x)/maxInnerBrickSize.x, 
+                              float(volumeSize.y)/maxInnerBrickSize.y,
+                              float(volumeSize.z)/maxInnerBrickSize.z);
   return baseBrickCount/float(MathTools::Pow2(iLoD));
 }
 
 
-static UINTVECTOR3 GetBrickLayout(const UINTVECTOR3& volumeSize, const UINTVECTOR3& maxBrickSize, uint32_t iLoD) {
-  UINTVECTOR3 baseBrickCount(uint32_t(ceil(double(volumeSize.x)/maxBrickSize.x)), 
-                             uint32_t(ceil(double(volumeSize.y)/maxBrickSize.y)),
-                             uint32_t(ceil(double(volumeSize.z)/maxBrickSize.z)));
+static UINTVECTOR3 GetBrickLayout(const UINTVECTOR3& volumeSize,
+                                  const UINTVECTOR3& maxInnerBrickSize,
+                                  uint32_t iLoD) {
+  UINTVECTOR3 baseBrickCount(uint32_t(ceil(double(volumeSize.x)/maxInnerBrickSize.x)), 
+                             uint32_t(ceil(double(volumeSize.y)/maxInnerBrickSize.y)),
+                             uint32_t(ceil(double(volumeSize.z)/maxInnerBrickSize.z)));
   return GetLoDSize(baseBrickCount, iLoD);
 }
 
 GLVolumePool::GLVolumePool(const UINTVECTOR3& poolSize, const UINTVECTOR3& maxBrickSize,
                            const UINTVECTOR3& overlap, const UINTVECTOR3& volumeSize,
-                           const FLOATVECTOR3& vExtend,
                            GLint internalformat, GLenum format, GLenum type, 
                            bool bUseGLCore)
   : m_PoolMetadataTexture(NULL),
@@ -55,7 +58,6 @@ GLVolumePool::GLVolumePool(const UINTVECTOR3& poolSize, const UINTVECTOR3& maxBr
     m_maxInnerBrickSize(maxBrickSize-overlap*2),
     m_maxTotalBrickSize(maxBrickSize),
     m_volumeSize(volumeSize),
-    m_vExtend(vExtend),
     m_internalformat(internalformat),
     m_format(format),
     m_type(type),
@@ -110,6 +112,8 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
     ss << "#version 420 compatibility" << std::endl;
 
   uint32_t iLodCount = GetLoDCount(m_volumeSize);
+  FLOATVECTOR3 poolAspect(m_PoolDataTexture->GetSize());
+  poolAspect /= poolAspect.minVal();
 
   ss << "" << std::endl
      << "layout(binding = " << m_iMetaTextureUnit << ") uniform usampler2D metaData;" << std::endl
@@ -124,6 +128,9 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
      << "const ivec3 iPoolSize = ivec3(" << m_PoolDataTexture->GetSize().x << ", " 
                                          << m_PoolDataTexture->GetSize().y << ", " 
                                          << m_PoolDataTexture->GetSize().z <<");" << std::endl
+     << "const  vec3 poolAspect = vec3(" << poolAspect.x << ", " 
+                                         << poolAspect.y << ", " 
+                                         << poolAspect.z <<");" << std::endl
      << "const ivec3 poolCapacity = ivec3(" << m_vPoolCapacity.x << ", " << 
                                                m_vPoolCapacity.y << ", " <<
                                                m_vPoolCapacity.z <<");" << std::endl
@@ -193,9 +200,9 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
 	   << "  vec3 div = 1.0 / dir;" << std::endl
 	   << "  ivec3 side = ivec3(step(0.0,div));" << std::endl
 	   << "  vec3 tIntersect;" << std::endl
-	   << "  tIntersect.x = (corners[side.x].x - pointInBrick.x) * div.x;// * (corners[1].x-corners[0].x);" << std::endl
-	   << "  tIntersect.y = (corners[side.y].y - pointInBrick.y) * div.y;// * (corners[1].y-corners[0].y);" << std::endl
-	   << "  tIntersect.z = (corners[side.z].z - pointInBrick.z) * div.z;// * (corners[1].z-corners[0].z);" << std::endl
+	   << "  tIntersect.x = (corners[side.x].x - pointInBrick.x) * div.x;" << std::endl
+	   << "  tIntersect.y = (corners[side.y].y - pointInBrick.y) * div.y;" << std::endl
+	   << "  tIntersect.z = (corners[side.z].z - pointInBrick.z) * div.z;" << std::endl
 	   << "  return pointInBrick + min(min(tIntersect.x, tIntersect.y), tIntersect.z) * dir;" << std::endl
      << "}" << std::endl
      << " " << std::endl
@@ -269,8 +276,6 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
      << "}" << std::endl
      << "" << std::endl
      << "vec3 TransformToPoolSpace(in vec3 direction, in float sampleRateModifier) {" << std::endl
-     << "  // get rid of the volume aspect ratio, and trace in cubic voxel space" << std::endl
-     << "  direction /= volumeAspect;" << std::endl
      << "  // normalize the direction" << std::endl
      << "  direction = normalize(direction);" << std::endl
      << "  // scale to volume pool's norm coodinates" << std::endl
@@ -378,17 +383,18 @@ bool GLVolumePool::IsBrickResident(const UINTVECTOR4& vBrickID) const {
   return false;
 }
 
-void GLVolumePool::Enable(float fLoDFactor, const FLOATVECTOR3& volumeAspect,
+void GLVolumePool::Enable(float fLoDFactor, const FLOATVECTOR3& vExtend,
+                          const FLOATVECTOR3& vAspect,
                           GLSLProgram* pShaderProgram) const {
   m_PoolMetadataTexture->Bind(m_iMetaTextureUnit);
   m_PoolDataTexture->Bind(m_iDataTextureUnit);
 
   pShaderProgram->Enable();
   pShaderProgram->Set("fLoDFactor",fLoDFactor);
-  pShaderProgram->Set("volumeAspect",volumeAspect.x, volumeAspect.y, volumeAspect.z);
+  pShaderProgram->Set("volumeAspect",vAspect.x, vAspect.y, vAspect.z);
 
 
-  float fLevelZeroWorldSpaceError = (m_vExtend/FLOATVECTOR3(m_volumeSize)).maxVal();
+  float fLevelZeroWorldSpaceError = (vExtend/FLOATVECTOR3(m_volumeSize)).maxVal();
   pShaderProgram->Set("fLevelZeroWorldSpaceError",fLevelZeroWorldSpaceError);
 }
 

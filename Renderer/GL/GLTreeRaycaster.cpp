@@ -64,7 +64,7 @@ GLTreeRaycaster::GLTreeRaycaster(MasterController* pMasterController,
 bool GLTreeRaycaster::CreateVolumePool() {
 
   // todo: make this configurable
-  const UINTVECTOR3 poolSize = UINTVECTOR3(512, 512, 512);
+  const UINTVECTOR3 poolSize = UINTVECTOR3(1024, 1024, 512);
 
   GLenum glInternalformat=0;
   GLenum glFormat=0;
@@ -116,15 +116,11 @@ bool GLTreeRaycaster::CreateVolumePool() {
   }
 
   UINTVECTOR3 vDomainSize = UINTVECTOR3(m_pToCDataset->GetDomainSize());
-  FLOATVECTOR3 vScale = FLOATVECTOR3(m_pToCDataset->GetScale());
-  FLOATVECTOR3 vExtend = FLOATVECTOR3(vDomainSize) * vScale;
-  vExtend /= vExtend.maxVal();
 
 
   m_pVolumePool = new GLVolumePool(poolSize, UINTVECTOR3(m_pToCDataset->GetMaxUsedBrickSizes()), 
                                    m_pToCDataset->GetBrickOverlapSize(), 
-                                   vDomainSize, vExtend,
-                                   glInternalformat, glFormat, glType);
+                                   vDomainSize, glInternalformat, glFormat, glType);
 
 
   // upload a brick that covers the entire domain to make sure have something to render
@@ -298,6 +294,21 @@ bool GLTreeRaycaster::Initialize(std::shared_ptr<Context> ctx) {
   m_pNearPlaneQuad->AddVertexData(posData);
 
   // init bbox vbo
+  CreateVBO();
+
+  return true;
+}
+
+void GLTreeRaycaster::SetRescaleFactors(const DOUBLEVECTOR3& vfRescale) {
+  GLRenderer::SetRescaleFactors(vfRescale);
+  CreateVBO();
+}
+
+void GLTreeRaycaster::CreateVBO() {
+  delete m_pBBoxVBO;
+  m_pBBoxVBO = NULL;
+
+
   FLOATVECTOR3 vCenter, vExtend;
   GetVolumeAABB(vCenter, vExtend);
 
@@ -306,7 +317,7 @@ bool GLTreeRaycaster::Initialize(std::shared_ptr<Context> ctx) {
   vMaxPoint = (vCenter + vExtend/2.0);
 
   m_pBBoxVBO = new GLVBO();
-  posData.clear();
+  std::vector<FLOATVECTOR3> posData;
   // BACK
   posData.push_back(FLOATVECTOR3(vMaxPoint.x, vMinPoint.y, vMinPoint.z));
   posData.push_back(FLOATVECTOR3(vMinPoint.x, vMinPoint.y, vMinPoint.z));
@@ -338,9 +349,8 @@ bool GLTreeRaycaster::Initialize(std::shared_ptr<Context> ctx) {
   posData.push_back(FLOATVECTOR3(vMinPoint.x, vMaxPoint.y, vMaxPoint.z));
   posData.push_back(FLOATVECTOR3(vMaxPoint.x, vMaxPoint.y, vMaxPoint.z));
   m_pBBoxVBO->AddVertexData(posData);
-
-  return true;
 }
+
 
 bool GLTreeRaycaster::LoadShaders() {
   if (!GLRenderer::LoadShaders()) {
@@ -642,9 +652,15 @@ void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
   m_pFBORayStart[size_t(eStereoID)]->Read(0);
   m_pFBOStartColor[size_t(eStereoID)]->Read(1);
   m_p1DTransTex->Bind(2);   // todo: use m_eRenderMode, this is only for RM_1DTRANS
+
+  UINTVECTOR3 vDomainSize = UINTVECTOR3(m_pToCDataset->GetDomainSize());
+  FLOATVECTOR3 vScale = FLOATVECTOR3(m_pToCDataset->GetScale());
+  FLOATVECTOR3 vExtend = FLOATVECTOR3(vDomainSize) * vScale;
+  vExtend /= vExtend.maxVal();
+  vScale /= vScale.minVal();
+
   m_pVolumePool->Enable(m_FrustumCullingLOD.GetLoDFactor(), 
-                        FLOATVECTOR3(m_pToCDataset->GetScale()),
-                        m_pProgramRayCast1D); // bound to 3 and 4
+                        vExtend, vScale, m_pProgramRayCast1D); // bound to 3 and 4
   m_pglHashTable->Enable(); // bound to 5
 
   // set shader parameters (shader is already enabled by m_pVolumePool->Enable)
@@ -741,6 +757,7 @@ bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
   // for DEBUG render always MONO
   EStereoID eStereoID = SI_LEFT_OR_MONO;
  
+
   // prepare a new view
   if (rr.isBlank) {
     MESSAGE("Starting a new frame");

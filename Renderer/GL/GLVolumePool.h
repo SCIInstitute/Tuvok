@@ -53,7 +53,6 @@ namespace tuvok {
     public:
       GLVolumePool(const UINTVECTOR3& poolSize, const UINTVECTOR3& maxBrickSize,
                    const UINTVECTOR3& overlap, const UINTVECTOR3& volumeSize,
-                   const FLOATVECTOR3& vExtend,
                    GLint internalformat, GLenum format, GLenum type, 
                    bool bUseGLCore=true);
       virtual ~GLVolumePool();
@@ -64,7 +63,8 @@ namespace tuvok {
       void BrickIsVisible(uint32_t iLoD, uint32_t iIndexInLoD,
                              bool bVisible, bool bChildrenVisible);
       bool IsBrickResident(const UINTVECTOR4& vBrickID) const;
-      void Enable(float fLoDFactor, const FLOATVECTOR3& volumeAspect,
+      void Enable(float fLoDFactor, const FLOATVECTOR3& vExtend,
+                  const FLOATVECTOR3& vAspect,
                   GLSLProgram* pShaderProgram) const;
 
       std::string GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t iDataTextureUnit);
@@ -80,7 +80,6 @@ namespace tuvok {
       UINTVECTOR3 m_maxInnerBrickSize;
       UINTVECTOR3 m_maxTotalBrickSize;
       UINTVECTOR3 m_volumeSize;
-      FLOATVECTOR3 m_vExtend;
       GLint m_internalformat;
       GLenum m_format;
       GLenum m_type;

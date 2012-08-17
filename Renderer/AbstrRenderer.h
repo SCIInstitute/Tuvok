@@ -382,7 +382,7 @@ class AbstrRenderer: public Scriptable {
     void SetPerfMeasures(uint32_t iMinFramerate, bool bRenderLowResIntermediateResults,
                          float fScreenResDecFactor,
                          float fSampleDecFactor, uint32_t iStartDelay);
-    void SetRescaleFactors(const DOUBLEVECTOR3& vfRescale) {
+    virtual void SetRescaleFactors(const DOUBLEVECTOR3& vfRescale) {
       m_pDataset->SetRescaleFactors(vfRescale);
       ScheduleCompleteRedraw();
     }
