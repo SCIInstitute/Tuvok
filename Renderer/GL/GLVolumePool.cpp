@@ -152,7 +152,7 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
      << "const uint iMaxLOD = " << iLodCount-1 << ";" << std::endl
      << "const uint vLODOffset[" << iLodCount << "] = uint[](";
   for (uint32_t i = 0;i<iLodCount;++i) {
-    ss << m_vLoDOffsetTable[i];
+    ss << "uint(" << m_vLoDOffsetTable[i] << ")";
     if (i<iLodCount-1) {
       ss << ", ";
     }
@@ -240,7 +240,8 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
      << "  uint  brickInfo   = GetBrickInfo(brickCoords);" << std::endl
      << "  uvec4 largestMissingBrickCoords;" << std::endl
      << "  if (brickInfo == BI_MISSING) {" << std::endl
-     << "    // when the requested resolution is not present find look for a lower one" << std::endl
+     << "    ReportMissingBrick(brickCoords);" << std::endl
+     << "    // when the requested resolution is not present find look for lower res" << std::endl
      << "    bFoundRequestedResolution = false;" << std::endl
      << "    do {" << std::endl
      << "      largestMissingBrickCoords = brickCoords;" << std::endl
@@ -309,7 +310,7 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
   std::string line;
   unsigned int iLine = 1;
   while(std::getline(debug, line)) {
-    MESSAGE("%i %s", iLine++, line.c_str());
+    OTHER("%i %s", iLine++, line.c_str());
   }
   // DEBUG code end
 
@@ -501,7 +502,7 @@ void GLVolumePool::BrickIsVisible(uint32_t iLoD, uint32_t iIndexInLoD, bool bVis
     // to do something now
     if (m_brickMetaData[index] <= BI_EMPTY) {
       
-      if (m_brickToPoolMapping[index] && m_brickToPoolMapping[index]->m_iBrickID == index) {
+      if (m_brickToPoolMapping[index] && uint32_t(m_brickToPoolMapping[index]->m_iBrickID) == uint32_t(index)) {
         // if the brick still exists restore it
         m_brickToPoolMapping[index]->Restore();
         uint32_t iPoolCoordinate = m_brickToPoolMapping[index]->PositionInPool().x +

@@ -64,7 +64,7 @@ GLTreeRaycaster::GLTreeRaycaster(MasterController* pMasterController,
 bool GLTreeRaycaster::CreateVolumePool() {
 
   // todo: make this configurable
-  const UINTVECTOR3 poolSize = UINTVECTOR3(512, 512, 512);
+  const UINTVECTOR3 poolSize = UINTVECTOR3(1024, 1024, 512);
 
   GLenum glInternalformat=0;
   GLenum glFormat=0;

@@ -41,6 +41,8 @@ layout(location=0) out vec4 accRayColor;
 layout(location=1) out vec4 rayResumeColor;
 layout(location=2) out vec4 rayResumePos;
 
+layout (depth_greater) out float gl_FragDepth;
+
 // go
 void main()
 {
@@ -182,6 +184,7 @@ void main()
     }
   }
   
+  gl_FragDepth = 1.0;
 
 }
 
