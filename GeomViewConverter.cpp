@@ -27,7 +27,12 @@
 #define __STDC_FORMAT_MACROS
 #include "StdTuvokDefines.h"
 #include <fstream>
-#include <cinttypes>
+// MSVC 2010 does not include this c99/posix 2001 feature, so we implement it manually for now.
+#ifndef _MSC_VER
+# include <cinttypes>
+#else
+# define PRIu64 "llu"
+#endif
 #include <memory>
 #include "GeomViewConverter.h"
 
