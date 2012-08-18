@@ -131,7 +131,7 @@ bool GLTreeRaycaster::CreateVolumePool() {
     const uint64_t iByteWidth = m_pToCDataset->GetBitWidth()/8;
     const uint64_t iCompCount = m_pToCDataset->GetComponentCount();
     const uint64_t iBrickSize = vSize.volume() * iByteWidth * iCompCount;
-    m_vUploadMem.resize(iBrickSize);
+    m_vUploadMem.resize(static_cast<size_t>(iBrickSize));
   }
 
   // find lowest LoD with only a single brick
