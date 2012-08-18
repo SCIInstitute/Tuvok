@@ -24,12 +24,16 @@
    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
    DEALINGS IN THE SOFTWARE.
 */
+#define __STDC_FORMAT_MACROS
 #include "StdTuvokDefines.h"
 #include <fstream>
+#include <cinttypes>
 #include <memory>
-#include "Basics/Mesh.h"
-#include "Controller/Controller.h"
 #include "GeomViewConverter.h"
+
+#include "Basics/Mesh.h"
+#include "Basics/SysTools.h"
+#include "Controller/Controller.h"
 #include "TuvokIOError.h"
 
 namespace tuvok {
@@ -70,10 +74,18 @@ GeomViewConverter::ConvertToMesh(const std::string& rawFilename) {
 
   size_t n_vertices_st = static_cast<size_t>(n_vertices);
   VertVec vertices(n_vertices_st);
+  const uint64_t steps = (n_vertices / 10000) > 0 ? (n_vertices / 10000) : 1000;
   for(uint64_t i=0; i < n_vertices; ++i) {
     FLOATVECTOR3 tmp;
     off >> tmp[0] >> tmp[1] >> tmp[2];
+    tmp[0] -= 0.5;
+    tmp[1] -= 0.5;
+    tmp[2] -= 0.5;
     vertices[static_cast<size_t>(i)] = tmp;
+    if((i % steps) == 0) {
+      MESSAGE("Processing vertex %" PRIu64 " of %" PRIu64 " (%5.2f%%)",
+              i, n_vertices, static_cast<double>(i)/n_vertices*100.0);
+    }
   }
   if(!off) {
     throw DSParseFailed(rawFilename.c_str(), "vertices list short", __FILE__,
@@ -85,6 +97,7 @@ GeomViewConverter::ConvertToMesh(const std::string& rawFilename) {
   IndexVec VertIndices, NormalIndices, TCIndices, COLIndices;
   {
     uint16_t three, seven;
+    const uint64_t fsteps = (n_faces / 10000) > 0 ? (n_faces / 10000) : 1000;
     for(uint64_t i=0; i < n_faces; ++i) {
       UINTVECTOR3 face;
       off >> three >> face[0] >> face[1] >> face[2] >> seven;
@@ -101,6 +114,11 @@ GeomViewConverter::ConvertToMesh(const std::string& rawFilename) {
       v.push_back(face[1]);
       v.push_back(face[2]);
       AddToMesh(vertices,v,n,t,c,VertIndices,NormalIndices,TCIndices,COLIndices);
+
+      if((i % fsteps) == 0) {
+        MESSAGE("Processing face %" PRIu64 " of %" PRIu64 " (%5.2f%%)",
+                i, n_faces, static_cast<double>(i)/n_faces*100.0);
+      }
     }
   }
   off.close();
@@ -108,7 +126,7 @@ GeomViewConverter::ConvertToMesh(const std::string& rawFilename) {
   return std::shared_ptr<Mesh>(new Mesh(
     vertices, NormVec(), TexCoordVec(), ColorVec(),
     VertIndices, NormalIndices, TCIndices, COLIndices,
-    false, true, "Geomview", Mesh::MT_TRIANGLES
+    false, false, SysTools::GetFilename(rawFilename), Mesh::MT_TRIANGLES
   ));
 }
 
