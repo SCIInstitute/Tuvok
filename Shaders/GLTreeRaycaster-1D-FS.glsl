@@ -184,7 +184,7 @@ void main()
     }
   }
   
-  gl_FragDepth = 1.0;
+  gl_FragDepth = 1.0; 
 
 }
 

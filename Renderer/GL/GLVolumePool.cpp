@@ -127,7 +127,10 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
      << "layout(binding = " << m_iDataTextureUnit << ") uniform sampler3D volumePool;" << std::endl
      << "const ivec3 iPoolSize = ivec3(" << m_PoolDataTexture->GetSize().x << ", " 
                                          << m_PoolDataTexture->GetSize().y << ", " 
-                                         << m_PoolDataTexture->GetSize().z <<");" << std::endl
+                                         << m_PoolDataTexture->GetSize().z <<");" << std::endl                                         
+     << "const  vec3 volumeSize = vec3(" << m_volumeSize.x << ", " 
+                                         << m_volumeSize.y << ", " 
+                                         << m_volumeSize.z <<");" << std::endl                                         
      << "const  vec3 poolAspect = vec3(" << poolAspect.x << ", " 
                                          << poolAspect.y << ", " 
                                          << poolAspect.z <<");" << std::endl
@@ -238,18 +241,15 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
      << "  normEntryCoords = max(vec3(0.),min(normEntryCoords,vec3(1.)));" << std::endl
      << "  uvec4 brickCoords = ComputeBrickCoords(normEntryCoords, iLOD);" << std::endl
      << "  uint  brickInfo   = GetBrickInfo(brickCoords);" << std::endl
-     << "  uvec4 largestMissingBrickCoords;" << std::endl
      << "  if (brickInfo == BI_MISSING) {" << std::endl
      << "    ReportMissingBrick(brickCoords);" << std::endl
      << "    // when the requested resolution is not present find look for lower res" << std::endl
      << "    bFoundRequestedResolution = false;" << std::endl
      << "    do {" << std::endl
-     << "      largestMissingBrickCoords = brickCoords;" << std::endl
      << "      iLOD++;" << std::endl
      << "      brickCoords = ComputeBrickCoords(normEntryCoords, iLOD);" << std::endl
      << "      brickInfo   = GetBrickInfo(brickCoords);" << std::endl
      << "    } while (brickInfo == BI_MISSING);" << std::endl
-     << "    ReportMissingBrick(largestMissingBrickCoords);" << std::endl
      << "  }" << std::endl
      << "  bEmpty = (brickInfo <= BI_EMPTY);" << std::endl
      << "  if (bEmpty) {" << std::endl
@@ -280,6 +280,7 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
      << "" << std::endl
      << "vec3 TransformToPoolSpace(in vec3 direction, in float sampleRateModifier) {" << std::endl
      << "  // normalize the direction" << std::endl
+     << "  direction *= volumeSize;" << std::endl
      << "  direction = normalize(direction);" << std::endl
      << "  // scale to volume pool's norm coodinates" << std::endl
      << "  direction /= vec3(iPoolSize);" << std::endl
