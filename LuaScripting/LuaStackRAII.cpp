@@ -87,7 +87,7 @@ LuaStackRAII::~LuaStackRAII()
       // Take advantage of the fact that this class will be used in conjunction
       // with LuaScripting.
       ostringstream os;
-      os << "log.error([==[LuaStackRAII: unexpected stack size. Expected: ";
+      os << "log.warn([==[LuaStackRAII: unexpected stack size. Expected: ";
       os << stackTarget << ". Actual: " << stackTop << ".";
 
       // To ensure we don't wipe out Lua error messages (generally, these will
