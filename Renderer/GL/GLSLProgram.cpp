@@ -887,7 +887,7 @@ void GLSLProgram::Set(const char *name, float x) const {
     GLint location = get_location(name);    
     CheckType(name, GL_FLOAT);
     GL(glUniform1f(location,x));    
-    MESSAGE("Set uniform %s to %g", name, x);
+    // MESSAGE("Set uniform %s to %g", name, x);
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
     return;
@@ -899,7 +899,7 @@ void GLSLProgram::Set(const char *name, float x, float y) const {
     GLint location = get_location(name);
     CheckType(name, GL_FLOAT_VEC2);
     GL(glUniform2f(location,x,y));    
-    MESSAGE("Set uniform %s to (%g,%g)", name, x, y);
+    // MESSAGE("Set uniform %s to (%g,%g)", name, x, y);
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
     return;
@@ -911,7 +911,7 @@ void GLSLProgram::Set(const char *name, float x, float y, float z) const {
     GLint location = get_location(name);
     CheckType(name, GL_FLOAT_VEC3);
     GL(glUniform3f(location,x,y,z));
-    MESSAGE("Set uniform %s to (%g,%g,%g)", name, x, y, z);
+    // MESSAGE("Set uniform %s to (%g,%g,%g)", name, x, y, z);
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
     return;
@@ -923,7 +923,7 @@ void GLSLProgram::Set(const char *name, float x, float y, float z, float w) cons
     GLint location = get_location(name);
     CheckType(name, GL_FLOAT_VEC4);
     GL(glUniform4f(location,x,y,z,w));
-    MESSAGE("Set uniform %s to (%g,%g,%g,%g)", name, x, y, z, w);
+    // MESSAGE("Set uniform %s to (%g,%g,%g,%g)", name, x, y, z, w);
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
     return;
@@ -956,7 +956,7 @@ void GLSLProgram::Set(const char *name, int x) const {
     GLint location = get_location(name);
     CheckType(name, GL_INT);
     GL(glUniform1i(location,x));
-    MESSAGE("Set uniform %s to %d", name, x);
+    // MESSAGE("Set uniform %s to %d", name, x);
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
     return;
@@ -968,7 +968,7 @@ void GLSLProgram::Set(const char *name, int x, int y) const {
     GLint location = get_location(name);
     CheckType(name, GL_INT_VEC2);
     GL(glUniform2i(location,x,y));
-    MESSAGE("Set uniform %s to (%d,%d)", name, x, y);
+    // MESSAGE("Set uniform %s to (%d,%d)", name, x, y);
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
     return;
@@ -980,7 +980,7 @@ void GLSLProgram::Set(const char *name, int x, int y, int z) const {
     GLint location = get_location(name);
     CheckType(name, GL_INT_VEC3);
     GL(glUniform3i(location,x,y,z));
-    MESSAGE("Set uniform %s to (%d,%d,%d)", name, x, y, z);
+    // MESSAGE("Set uniform %s to (%d,%d,%d)", name, x, y, z);
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
     return;
@@ -992,7 +992,7 @@ void GLSLProgram::Set(const char *name, int x, int y, int z, int w) const {
     GLint location = get_location(name);
     CheckType(name, GL_INT_VEC4);
     GL(glUniform4i(location,x,y,z,w));    
-    MESSAGE("Set uniform %s to (%d,%d,%d,%d)", name, x, y, z, w);
+    // MESSAGE("Set uniform %s to (%d,%d,%d,%d)", name, x, y, z, w);
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
     return;
@@ -1014,7 +1014,7 @@ void GLSLProgram::Set(const char *name, bool x) const {
     GLint location = get_location(name);
     CheckType(name, GL_BOOL);
     GL(glUniform1i(location,x?1:0));
-    MESSAGE("Set uniform %s to %s", name, x ? "true" : "false");
+    // MESSAGE("Set uniform %s to %s", name, x ? "true" : "false");
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
     return;
@@ -1026,8 +1026,8 @@ void GLSLProgram::Set(const char *name, bool x, bool y) const {
     GLint location = get_location(name);
     CheckType(name, GL_BOOL_VEC2);
     GL(glUniform2i(location,x?1:0,y?1:0));    
-    MESSAGE("Set uniform %s to (%s,%s)", name, x ? "true" : "false",
-                                               y ? "true" : "false");
+    // MESSAGE("Set uniform %s to (%s,%s)", name, x ? "true" : "false",
+    //                                           y ? "true" : "false");
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
     return;
@@ -1039,9 +1039,9 @@ void GLSLProgram::Set(const char *name, bool x, bool y, bool z) const {
     GLint location = get_location(name);
     CheckType(name, GL_BOOL_VEC3);
     GL(glUniform3i(location,x?1:0,y?1:0,z?1:0));    
-    MESSAGE("Set uniform %s to (%s,%s,%s)", name, x ? "true" : "false",
-                                                  y ? "true" : "false",
-                                                  z ? "true" : "false");
+    // MESSAGE("Set uniform %s to (%s,%s,%s)", name, x ? "true" : "false",
+    //                                              y ? "true" : "false",
+    //                                              z ? "true" : "false");
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
     return;
@@ -1053,10 +1053,10 @@ void GLSLProgram::Set(const char *name, bool x, bool y, bool z, bool w) const {
     GLint location = get_location(name);
     CheckType(name, GL_BOOL_VEC4);
     GL(glUniform4i(location,x?1:0,y?1:0,z?1:0,w?1:0));    
-    MESSAGE("Set uniform %s to (%s,%s,%s,%s)", name, x ? "true" : "false",
-                                                     y ? "true" : "false",
-                                                     z ? "true" : "false",
-                                                     w ? "true" : "false");
+//    MESSAGE("Set uniform %s to (%s,%s,%s,%s)", name, x ? "true" : "false",
+//                                                     y ? "true" : "false",
+//                                                     z ? "true" : "false",
+//                                                     w ? "true" : "false");
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
     return;

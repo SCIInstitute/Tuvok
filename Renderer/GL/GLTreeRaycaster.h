@@ -64,6 +64,7 @@ namespace tuvok {
       GLSLProgram*    m_pProgramRayCast1D;
       UVFDataset*     m_pToCDataset;
       bool            m_bConverged;
+      GLFBOTex*       m_pFBODebug;
 
       /** Loads GLSL vertex and fragment shaders. */
       virtual bool LoadShaders();

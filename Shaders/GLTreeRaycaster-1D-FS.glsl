@@ -17,9 +17,10 @@ uniform mat4x4 mEyeToModel;
 uniform float fTransScale;
 
 // import VolumePool functions
-bool GetBrick(in vec3 normEntryCoords, in uint iLOD, in vec3 direction,
+bool GetBrick(in vec3 normEntryCoords, inout uint iLOD, in vec3 direction,
               out vec3 poolEntryCoords, out vec3 poolExitCoords,
-              out vec3 normExitCoords, out bool bEmpty);
+              out vec3 normExitCoords, out bool bEmpty,
+              out vec3 normToPoolScale, out vec3 normToPoolTrans);
 vec3 TransformToPoolSpace(in vec3 direction,
                           in float sampleRateModifier);
 float samplePool(vec3 coords);
@@ -40,8 +41,9 @@ in vec3 vPosInViewCoords;
 layout(location=0) out vec4 accRayColor;
 layout(location=1) out vec4 rayResumeColor;
 layout(location=2) out vec4 rayResumePos;
+layout(location=3) out vec4 debugFBO;
 
-layout (depth_greater) out float gl_FragDepth;
+// layout (depth_greater) out float gl_FragDepth;
 
 // go
 void main()
@@ -53,10 +55,11 @@ void main()
   // fetch ray entry from texture and get ray exit point from vs-shader
   rayResumePos = texelFetch(rayStartPoint, screenpos,0);
 
+  // if the ray has terminated already, exit early
   if (rayResumePos.w > 0) {
     rayResumeColor = accRayColor;
     return;
-  }
+  } 
 
   const vec4 exitParam = vec4((mEyeToModel * vec4(vPosInViewCoords.x, vPosInViewCoords.y, vPosInViewCoords.z, 1.0)).xyz, vPosInViewCoords.z);
 
@@ -72,52 +75,37 @@ void main()
   vec3 voxelSpaceDirection = TransformToPoolSpace(direction, sampleRateModifier);
   float stepSize = length(voxelSpaceDirection);
 
-  /*
-  float depth = 0;
-  vec3 cp = normEntryPos; 
-  //accRayColor = vec4(normExitCoords, 1.0);
-  //accRayColor = rayResumeColor = vec4(1.0, 0.0, 0.0, 0.5);
-
-  while (length(cp-normEntryPos) < rayLength) {
-    float data = samplePool(cp);
-    vec4 color = texture(transferFunction, data);
-    accRayColor = UnderCompositing(color, accRayColor);
-    cp += voxelSpaceDirection;
-  }
-
-  //accRayColor = vec4(rayLength, 0.0,0.0, 1.0);
-  
-  return;
-  */
-  
+  debugFBO = vec4(1., 0., 0., 1.);
 
   // iterate over the bricks along the ray
   rayResumeColor = accRayColor;
   float t = 0;
   bool bOptimalResolution = true;
-  vec3 currentPos = normEntryPos;  
 
   float voxelSize = .25/8192.; // TODO make this a quater of one voxel (or smaller)
-    // fetch brick coords at the current position with the 
-    // correct resolution. if that brick is not present the
-    // call returns false and the coords to a lower resolution brick
-    vec3 poolEntryCoords;
-    vec3 poolExitCoords;
-    vec3 normBrickExitCoords;
-    bool bEmpty;
+  vec3 currentPos = normEntryPos+voxelSize*direction/rayLength;
+
+  // fetch brick coords at the current position with the 
+  // correct resolution. if that brick is not present the
+  // call returns false and the coords to a lower resolution brick
+  vec3 poolEntryCoords;
+  vec3 poolExitCoords;
+  vec3 normBrickExitCoords;
+  bool bEmpty;
 
   if (rayLength > voxelSize) {
-    for(uint j = 0;j<100;++j) { // j is just for savety, stop traversal after 100 bricks
+    for(uint j = 0;j<2;++j) { // j is just for savety, stop traversal after 100 bricks
       // compute the current LoD
       float currentDepth = mix(entryDepth, exitDepth, t);
       uint iLOD = ComputeLOD(currentDepth);
 
-      bool bRequestOK = GetBrick(currentPos+voxelSize*direction/rayLength,
+      vec3 normToPoolScale;
+      vec3 normToPoolTrans;
+      bool bRequestOK = GetBrick(currentPos,
                                  iLOD, direction,
                                  poolEntryCoords, poolExitCoords,
-                                 normBrickExitCoords, bEmpty);
-
-
+                                 normBrickExitCoords, bEmpty,
+                                 normToPoolScale, normToPoolTrans);
       if (!bRequestOK && bOptimalResolution) {
         // for the first time in this pass, we got a brick
         // at lower than requested resolution then record this 
@@ -129,10 +117,10 @@ void main()
 
       if (!bEmpty) {
         // prepare the traversal
-        int iSteps = int(length(poolExitCoords-poolEntryCoords)/stepSize);
+        int iSteps = int(length(poolExitCoords-poolEntryCoords)/stepSize)+1;
 
         // compute opacity correction factor
-        float ocFactor = pow(2,iLOD) / sampleRateModifier;
+        float ocFactor = exp2(iLOD) / sampleRateModifier;
 
         // now raycast through this brick
         vec3 currentPoolCoords = poolEntryCoords;
@@ -150,7 +138,7 @@ void main()
           accRayColor = UnderCompositing(color, accRayColor);
 
           // early ray termination
-          if (accRayColor.a > 0.95) {
+          if (accRayColor.a > 0.99) {
             if (bOptimalResolution) {
               rayResumePos.w = 1;
               rayResumeColor = accRayColor;
@@ -160,18 +148,16 @@ void main()
 
           // advance ray
           currentPoolCoords += voxelSpaceDirection;
+          debugFBO.b += 0.01;
         }
+
+        currentPos = (currentPoolCoords-normToPoolTrans)/normToPoolScale;
+      } else {
+        currentPos = normBrickExitCoords+voxelSize*direction/rayLength;
       }
 
      // global position along the ray
       t = length(normEntryPos-normBrickExitCoords)/rayLength;
-
-//      if (t > 0.99 || lastBrick == currentBrick)
-//        accRayColor = vec4(1.0, 0.0, 0.0, 1.0);
-//      else
-//        accRayColor = vec4(0.0, 0.0, 0.0, 1.0);
-//      return;      
-     
 
       if (t > 0.99) {
         if (bOptimalResolution) {
@@ -180,11 +166,14 @@ void main()
         }
         return;
       }
-      currentPos = normBrickExitCoords;
+
+      if (!bEmpty) 
+        debugFBO.r += 0.1;
+      else
+        debugFBO.g += 0.1;
+
     }
   }
-  
-  gl_FragDepth = 1.0; 
 
 }
 

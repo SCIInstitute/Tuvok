@@ -49,6 +49,7 @@ GLTreeRaycaster::GLTreeRaycaster(MasterController* pMasterController,
   m_pProgramRayCast1D(NULL),
   m_pToCDataset(NULL),
   m_bConverged(true),
+  m_pFBODebug(NULL),
   m_bNoRCClipplanes(bNoRCClipplanes)
 {
   // a member of the parent class, henced it's initialized here
@@ -202,6 +203,8 @@ void GLTreeRaycaster::Cleanup() {
   std::for_each(m_pFBOStartColor.begin(),     m_pFBOStartColor.end(),     deleteFBO);
   std::for_each(m_pFBOStartColorNext.begin(), m_pFBOStartColorNext.end(), deleteFBO);
 
+  deleteFBO(m_pFBODebug);
+
   delete m_pBBoxVBO;
   m_pBBoxVBO = NULL;
   delete m_pNearPlaneQuad;
@@ -251,6 +254,8 @@ void GLTreeRaycaster::CreateOffscreenBuffers() {
       bind(recreateFBO, _1, m_pContext ,m_vWinSize, intformat, GL_RGBA, type));
     for_each(m_pFBOStartColorNext.begin(), m_pFBOStartColorNext.end(), 
       bind(recreateFBO, _1, m_pContext ,m_vWinSize, intformat, GL_RGBA, type));
+
+    recreateFBO(m_pFBODebug, m_pContext ,m_vWinSize, intformat, GL_RGBA, type);
   }
 }
 
@@ -647,7 +652,8 @@ void GLTreeRaycaster::RecomputeBrickVisibility() {
 void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
   m_TargetBinder.Bind(m_pFBO3DImageNext[size_t(eStereoID)],                      
                       m_pFBOStartColorNext[size_t(eStereoID)],
-                      m_pFBORayStartNext[size_t(eStereoID)]);
+                      m_pFBORayStartNext[size_t(eStereoID)],
+                      m_pFBODebug);
 
   m_pFBORayStart[size_t(eStereoID)]->Read(0);
   m_pFBOStartColor[size_t(eStereoID)]->Read(1);
@@ -698,6 +704,10 @@ void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
   // swap current and next resume color
   std::swap(m_pFBOStartColorNext[size_t(eStereoID)], m_pFBOStartColor[size_t(eStereoID)]);
   std::swap(m_pFBORayStartNext[size_t(eStereoID)], m_pFBORayStart[size_t(eStereoID)]);
+
+  static bool debug = true;
+  if (debug) 
+    std::swap(m_pFBODebug, m_pFBO3DImageNext[size_t(eStereoID)]);
 }
 
 bool GLTreeRaycaster::CheckForRedraw() {
@@ -726,7 +736,7 @@ void GLTreeRaycaster::UpdateToVolumePool(const UINTVECTOR4& brick) {
 
 // TODO: this entire function should be part of the GPU mem-manager
 void GLTreeRaycaster::UpdateToVolumePool(std::vector<UINTVECTOR4>& hash) {
-
+/*
   // DEBUG Code
   uint32_t iHQLevel = std::numeric_limits<uint32_t>::max();
   uint32_t iLQLevel = 0;
@@ -734,9 +744,9 @@ void GLTreeRaycaster::UpdateToVolumePool(std::vector<UINTVECTOR4>& hash) {
     iHQLevel = std::min(missingBrick->w, iHQLevel);
     iLQLevel = std::max(missingBrick->w, iLQLevel);
   }
-  T_ERROR("Max Quality %i, Min Quality=%i", iHQLevel, iLQLevel);
+  MESSAGE("Max Quality %i, Min Quality=%i", iHQLevel, iLQLevel);
   // DEBUG Code End
-
+*/
 
   // now iterate over the missing bricks and upload them to the GPU
   // todo: consider batching this if it turns out to make a difference
@@ -756,15 +766,16 @@ void GLTreeRaycaster::UpdateToVolumePool(std::vector<UINTVECTOR4>& hash) {
 bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
   // for DEBUG render always MONO
   EStereoID eStereoID = SI_LEFT_OR_MONO;
- 
 
   // prepare a new view
   if (rr.isBlank) {
-    MESSAGE("Starting a new frame");
+//    MESSAGE("Starting a new frame");
     // compute new ray start
+    m_Timer.Start();
     FillRayEntryBuffer(rr,eStereoID);
+    msecPassedCurrentFrame = 0;
   } else {
-    MESSAGE("Continuing a frame");
+//    MESSAGE("Continuing a frame");
   }
 
   // reset state
@@ -785,11 +796,16 @@ bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
 
   // upload missing bricks
   if (!m_bConverged) {
-    OTHER("Last rendering pass was missing %i brick(s), paging in now...", int(hash.size()));
+//    MESSAGE("Last rendering pass was missing %i brick(s), paging in now...", int(hash.size()));
     UpdateToVolumePool(hash);
+    float fMsecPassed = float(m_Timer.Elapsed());
+    OTHER("The current subframe took %g ms to render (%g sFPS)", fMsecPassed, 1000./fMsecPassed);
   } else {
-    MESSAGE("All bricks rendered, frame complete.");
+//    MESSAGE("All bricks rendered, frame complete.");
+    float fMsecPassed = float(m_Timer.Elapsed());
+    OTHER("The total frame took %g ms to render (%g FPS)", fMsecPassed, 1000./fMsecPassed);
   }
+
 
   // always display intermediate results
   return true;

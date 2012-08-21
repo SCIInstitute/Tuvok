@@ -33,10 +33,6 @@ namespace tuvok {
 
     const UINTVECTOR3& PositionInPool() const {return m_vPositionInPool;}
 
-    bool operator< (const PoolSlotData& other) const {
-      return (m_iTimeOfCreation<other.m_iTimeOfCreation);
-    }
-
     int32_t     m_iBrickID;
     uint64_t    m_iTimeOfCreation;
     uint64_t    m_iOrigTimeOfCreation;
@@ -102,7 +98,7 @@ namespace tuvok {
 
       std::vector<uint32_t>      m_brickMetaData;
       std::vector<PoolSlotData*> m_brickToPoolMapping;
-      std::vector<PoolSlotData>  m_PoolSlotData;
+      std::vector<PoolSlotData*> m_PoolSlotData;
       std::vector<uint32_t>      m_vLoDOffsetTable;
 
       void CreateGLResources();
