@@ -705,7 +705,7 @@ void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
   std::swap(m_pFBOStartColorNext[size_t(eStereoID)], m_pFBOStartColor[size_t(eStereoID)]);
   std::swap(m_pFBORayStartNext[size_t(eStereoID)], m_pFBORayStart[size_t(eStereoID)]);
 
-  static bool debug = true;
+  static bool debug = false;
   if (debug) 
     std::swap(m_pFBODebug, m_pFBO3DImageNext[size_t(eStereoID)]);
 }

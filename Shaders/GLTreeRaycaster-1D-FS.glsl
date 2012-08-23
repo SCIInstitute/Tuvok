@@ -61,13 +61,13 @@ void main()
     return;
   } 
 
-  const vec4 exitParam = vec4((mEyeToModel * vec4(vPosInViewCoords.x, vPosInViewCoords.y, vPosInViewCoords.z, 1.0)).xyz, vPosInViewCoords.z);
+  vec4 exitParam = vec4((mEyeToModel * vec4(vPosInViewCoords.x, vPosInViewCoords.y, vPosInViewCoords.z, 1.0)).xyz, vPosInViewCoords.z);
 
   // for clarity, separate postions from depth (stored in w)
   vec3 normEntryPos = rayResumePos.xyz;
-  const float entryDepth = rayResumePos.w;
-  const vec3 normExitCoords = exitParam.xyz;
-  const float exitDepth = exitParam.w;
+  float entryDepth = rayResumePos.w;
+  vec3 normExitCoords = exitParam.xyz;
+  float exitDepth = exitParam.w;
 
   // compute ray direction
   vec3 direction = normExitCoords-normEntryPos;
@@ -94,7 +94,7 @@ void main()
   bool bEmpty;
 
   if (rayLength > voxelSize) {
-    for(uint j = 0;j<2;++j) { // j is just for savety, stop traversal after 100 bricks
+    for(uint j = 0;j<100;++j) { // j is just for savety, stop traversal after 100 bricks
       // compute the current LoD
       float currentDepth = mix(entryDepth, exitDepth, t);
       uint iLOD = ComputeLOD(currentDepth);
@@ -120,7 +120,7 @@ void main()
         int iSteps = int(length(poolExitCoords-poolEntryCoords)/stepSize)+1;
 
         // compute opacity correction factor
-        float ocFactor = exp2(iLOD) / sampleRateModifier;
+        float ocFactor = 1.0 / sampleRateModifier;
 
         // now raycast through this brick
         vec3 currentPoolCoords = poolEntryCoords;
