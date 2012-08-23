@@ -567,6 +567,14 @@ FLOATMATRIX4 GLTreeRaycaster::ComputeEyeToModelMatrix(const RenderRegion &render
   mScale.Scaling(1.0f/vExtend);
   mNormalize.Translation(0.5f, 0.5f, 0.5f);
 
+  // start a little (actually a thousandth of a voxel) into the volume 
+  // to ged rid of float inaccuracies with the starting point compuation
+  UINTVECTOR3 vDomainSize = UINTVECTOR3(m_pToCDataset->GetDomainSize());
+  mScale.Scaling((1.0f-(0.001f/vDomainSize.x))/vExtend.x, 
+                 (1.0f-(0.001f/vDomainSize.y))/vExtend.y, 
+                 (1.0f-(0.001f/vDomainSize.z))/vExtend.z);
+
+
   return renderRegion.modelView[size_t(eStereoID)].inverse() * mTrans * mScale * mNormalize;
 }
 

@@ -51,15 +51,14 @@ void main()
   // read ray parameters and start color
   ivec2 screenpos = ivec2(gl_FragCoord.xy);
   accRayColor     = texelFetch(rayStartColor, screenpos,0);
+  rayResumeColor  = accRayColor;
+  debugFBO = vec4(1., 0., 0., 1.);
     
   // fetch ray entry from texture and get ray exit point from vs-shader
   rayResumePos = texelFetch(rayStartPoint, screenpos,0);
 
   // if the ray has terminated already, exit early
-  if (rayResumePos.w > 0) {
-    rayResumeColor = accRayColor;
-    return;
-  } 
+  if (rayResumePos.w == 1000) return;
 
   vec4 exitParam = vec4((mEyeToModel * vec4(vPosInViewCoords.x, vPosInViewCoords.y, vPosInViewCoords.z, 1.0)).xyz, vPosInViewCoords.z);
 
@@ -75,15 +74,13 @@ void main()
   vec3 voxelSpaceDirection = TransformToPoolSpace(direction, sampleRateModifier);
   float stepSize = length(voxelSpaceDirection);
 
-  debugFBO = vec4(1., 0., 0., 1.);
 
   // iterate over the bricks along the ray
-  rayResumeColor = accRayColor;
   float t = 0;
   bool bOptimalResolution = true;
 
-  float voxelSize = .25/8192.; // TODO make this a quater of one voxel (or smaller)
-  vec3 currentPos = normEntryPos+voxelSize*direction/rayLength;
+  float voxelSize = .125/8192.; // TODO make this a quater of one voxel (or smaller)
+  vec3 currentPos = normEntryPos/*+voxelSize*direction/rayLength*/;
 
   // fetch brick coords at the current position with the 
   // correct resolution. if that brick is not present the
@@ -111,7 +108,7 @@ void main()
         // at lower than requested resolution then record this 
         // position
         bOptimalResolution = false;
-        rayResumePos   = vec4(currentPos, currentDepth);
+        rayResumePos   = vec4(currentPos/*-voxelSize*direction/rayLength */, currentDepth);
         rayResumeColor = accRayColor;
       }
 
@@ -140,7 +137,7 @@ void main()
           // early ray termination
           if (accRayColor.a > 0.99) {
             if (bOptimalResolution) {
-              rayResumePos.w = 1;
+              rayResumePos.w = 1000;
               rayResumeColor = accRayColor;
             }
             return;
@@ -161,7 +158,7 @@ void main()
 
       if (t > 0.99) {
         if (bOptimalResolution) {
-          rayResumePos.w = 1;
+          rayResumePos.w = 1000;
           rayResumeColor = accRayColor;
         }
         return;
@@ -175,6 +172,10 @@ void main()
     }
   }
 
+  if (bOptimalResolution) {
+    rayResumePos.w = 1000;
+    rayResumeColor = accRayColor;
+  }
 }
 
 
