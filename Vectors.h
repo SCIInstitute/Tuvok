@@ -306,7 +306,7 @@ public:
       z = replacement.z;
     }
   }
-  VECTOR3<T> normalized() {
+  VECTOR3<T> normalized() const {
     T len = length(); 
     return VECTOR3<T>(x/len,y/len,z/len);
   }
@@ -1371,6 +1371,37 @@ public:
                       T(xz - wy),          T(yz + wx),          T(1.0f - (xx + yy)), T(0),
                       T(0),                T(0),                T(0),                T(1));
 
+  }
+
+  void QUATERNION4::normalize()
+    {
+      // Don't normalize if we don't have to
+      float mag2 = w * w + x * x + y * y + z * z;
+      if (fabs(mag2) >  0.00001f && fabs(mag2 - 1.0f) >  0.00001f) {
+        float mag = sqrt(mag2);
+        w /= mag;
+        x /= mag;
+        y /= mag;
+        z /= mag;
+      }
+    }
+
+  // Convert from Euler Angles
+  void QUATERNION4::FromEuler(T p, T y, T r)
+  {
+	  T sinp = sin(p);
+	  T siny = sin(y);
+	  T sinr = sin(r);
+	  T cosp = cos(p);
+	  T cosy = cos(y);
+	  T cosr = cos(r);
+ 
+	  x = sinr * cosp * cosy - cosr * sinp * siny;
+	  y = cosr * sinp * cosy + sinr * cosp * siny;
+	  z = cosr * cosp * siny - sinr * sinp * cosy;
+	  w = cosr * cosp * cosy + sinr * sinp * siny;
+
+	  normalize();
   }
 
   bool operator == ( const QUATERNION4<T>& other ) const {return (other.x==x && other.y==y && other.z==z && other.w==w); }
