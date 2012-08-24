@@ -102,6 +102,6 @@ private:
   enum DataType                  data_type;
 };
 
-}; // namespace tuvok
+} // namespace tuvok
 
 #endif // TUVOK_VARIANT_ARRAY_H
