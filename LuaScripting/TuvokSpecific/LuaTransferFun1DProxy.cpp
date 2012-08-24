@@ -122,7 +122,7 @@ bool LuaTransferFun1DProxy::proxyLoadWithFilenameAndSize(
 
 //------------------------------------------------------------------------------
 void LuaTransferFun1DProxy::proxySetStdFunction(
-    float centerPoint, float invGradient, float component, bool invertedStep)
+    float centerPoint, float invGradient, int component, bool invertedStep)
 {
   if (m1DTrans == NULL) return;
   m1DTrans->SetStdFunction(centerPoint, invGradient, component, invertedStep);

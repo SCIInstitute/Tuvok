@@ -55,6 +55,7 @@
 #include "../LuaScripting/TuvokSpecific/LuaTuvokTypes.h"
 #include "../LuaScripting/TuvokSpecific/LuaDatasetProxy.h"
 #include "../LuaScripting/TuvokSpecific/LuaTransferFun1DProxy.h"
+#include "../LuaScripting/TuvokSpecific/LuaTransferFun2DProxy.h"
 
 using namespace tuvok;
 
@@ -360,10 +361,19 @@ void MasterController::RegisterLuaCommands() {
   ss->registerClassStatic<LuaTransferFun1DProxy>(
       &LuaTransferFun1DProxy::luaConstruct,
       "tuvok.transferFun1D",
-      "Constructs a transfer function proxy. Construction of these proxies "
+      "Constructs a 1D transfer function proxy. Construction of these proxies "
       "should be left to the renderer.",
       LuaClassRegCallback<LuaTransferFun1DProxy>::Type(
           LuaTransferFun1DProxy::defineLuaInterface));
+
+  // Register 2D transfer function proxy
+  ss->registerClassStatic<LuaTransferFun2DProxy>(
+      &LuaTransferFun2DProxy::luaConstruct,
+      "tuvok.transferFun2D",
+      "Constructs a 2D transfer function proxy. Construction of these proxies "
+      "should be left to the renderer.",
+      LuaClassRegCallback<LuaTransferFun2DProxy>::Type(
+          LuaTransferFun2DProxy::defineLuaInterface));
 
   // Register IO manager functions.
   // This is not done in the IO manager class because IO does not know about

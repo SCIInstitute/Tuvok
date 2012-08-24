@@ -223,6 +223,7 @@ HEADERS += \
            LuaScripting/LuaStackRAII.h \
            LuaScripting/TuvokSpecific/LuaDatasetProxy.h \
            LuaScripting/TuvokSpecific/LuaTransferFun1DProxy.h \
+           LuaScripting/TuvokSpecific/LuaTransferFun2DProxy.h \
            LuaScripting/TuvokSpecific/LuaTuvokTypes.h \
            Renderer/StateManager.h \
            Renderer/AbstrRenderer.h \
@@ -507,6 +508,7 @@ SOURCES += \
            LuaScripting/LuaStackRAII.cpp \
            LuaScripting/TuvokSpecific/LuaDatasetProxy.cpp \
            LuaScripting/TuvokSpecific/LuaTransferFun1DProxy.cpp \
+           LuaScripting/TuvokSpecific/LuaTransferFun2DProxy.cpp \
            Renderer/AbstrRenderer.cpp \
            Renderer/Context.cpp \
            Renderer/CullingLOD.cpp \

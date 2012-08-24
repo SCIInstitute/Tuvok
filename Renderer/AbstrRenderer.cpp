@@ -56,6 +56,7 @@
 #include "LuaScripting/TuvokSpecific/LuaTuvokTypes.h"
 #include "LuaScripting/TuvokSpecific/LuaDatasetProxy.h"
 #include "LuaScripting/TuvokSpecific/LuaTransferFun1DProxy.h"
+#include "LuaScripting/TuvokSpecific/LuaTransferFun2DProxy.h"
 
 using namespace std;
 using namespace tuvok;
@@ -185,11 +186,18 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_pLuaDatasetPtr = m_pLuaDataset.getRawPointer<LuaDatasetProxy>(
       m_pMasterController->LuaScript());
 
-  // Create our transfer function proxy.
+  // Create our 1D transfer function proxy.
   m_pLua1DTrans =
       m_pMasterController->LuaScript()->cexecRet<LuaClassInstance>(
           "tuvok.transferFun1D.new");
   m_pLua1DTransPtr = m_pLua1DTrans.getRawPointer<LuaTransferFun1DProxy>(
+      m_pMasterController->LuaScript());
+
+  // Create our 2D transfer function proxy.
+  m_pLua2DTrans = 
+      m_pMasterController->LuaScript()->cexecRet<LuaClassInstance>(
+          "tuvok.transferFun2D.new");
+  m_pLua2DTransPtr = m_pLua2DTrans.getRawPointer<LuaTransferFun2DProxy>(
       m_pMasterController->LuaScript());
 }
 
@@ -259,6 +267,10 @@ AbstrRenderer::~AbstrRenderer() {
   // Kill the transfer function 1d proxy.
   m_pMasterController->LuaScript()->cexecRet<LuaClassInstance>(
       "deleteClass", m_pLua1DTrans);
+
+  // Kill the transfer function 2d proxy.
+  m_pMasterController->LuaScript()->cexecRet<LuaClassInstance>(
+      "deleteClass", m_pLua2DTrans);
 }
 
 static std::string render_mode(AbstrRenderer::ERenderMode mode) {
@@ -295,8 +307,7 @@ void AbstrRenderer::SetBlendPrecision(EBlendPrecision eBlendPrecision) {
   }
 }
 
-void AbstrRenderer::SetDataset(Dataset *vds)
-{
+void AbstrRenderer::SetDataset(Dataset *vds) {
   if(m_pDataset) {
     Controller::Instance().MemMan()->FreeDataset(vds, this);
     delete m_pDataset;
@@ -318,15 +329,17 @@ void AbstrRenderer::UpdateData(const BrickKey& bk,
 }
 */
 
-void AbstrRenderer::Free1DTrans()
-{
+void AbstrRenderer::Free1DTrans() {
   GPUMemMan& mm = *(Controller::Instance().MemMan());
   mm.Free1DTrans(m_p1DTrans, this);
   m_pLua1DTransPtr->bind(NULL);
 }
 
-void AbstrRenderer::LuaBindNew1DTrans()
-{
+void AbstrRenderer::LuaBindNew2DTrans() {
+  m_pLua2DTransPtr->bind(m_p2DTrans);
+}
+
+void AbstrRenderer::LuaBindNew1DTrans() {
   m_pLua1DTransPtr->bind(m_p1DTrans);
 }
 
@@ -1621,6 +1634,11 @@ LuaClassInstance AbstrRenderer::LuaGet1DTrans() {
   return m_pLua1DTrans;
 }
 
+LuaClassInstance AbstrRenderer::LuaGet2DTrans() {
+  return m_pLua2DTrans;
+}
+
+
 void AbstrRenderer::LuaCloneRenderMode(LuaClassInstance inst) {
   shared_ptr<LuaScripting> ss(m_pMasterController->LuaScript());
   AbstrRenderer* other = inst.getRawPointer<AbstrRenderer>(ss);
@@ -1692,6 +1710,8 @@ void AbstrRenderer::RegisterLuaFunctions(
 
   id = reg.function(&AbstrRenderer::LuaGet1DTrans,
                     "get1DTrans", "", false);
+  id = reg.function(&AbstrRenderer::LuaGet2DTrans,
+                    "get2DTrans", "", false);
 
   id = reg.function(&AbstrRenderer::SetBackgroundColors,
                     "setBGColors",

@@ -231,6 +231,9 @@ bool GLRenderer::Initialize(std::shared_ptr<Context> ctx) {
     m_p2DTrans->m_Swatches.push_back(newSwatch);
     m_pMasterController->MemMan()->Changed2DTrans(NULL, m_p2DTrans);
   }
+  // This is a bit of a kludge, but there's currently no way for AbstrRenderer
+  // to know when a new m_p2DTrans has been set.
+  LuaBindNew2DTrans();
 
   for (vector<shared_ptr<RenderMesh> >::iterator mesh = m_Meshes.begin();
        mesh != m_Meshes.end(); mesh++) {

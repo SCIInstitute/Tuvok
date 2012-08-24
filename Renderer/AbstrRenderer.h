@@ -65,6 +65,7 @@ class MasterController;
 class RenderMesh;
 class LuaDatasetProxy;
 class LuaTransferFun1DProxy;
+class LuaTransferFun2DProxy;
 
 class Brick {
 public:
@@ -552,6 +553,10 @@ class AbstrRenderer: public Scriptable {
     /// @todo Find a more elegant way of doing this.
     void LuaBindNew1DTrans();
 
+    /// This is the function that should be called after creating a new 2D
+    /// transfer function and associating it with the variable m_p2DTrans.
+    void LuaBindNew2DTrans();
+
     /// @return the current iso value, normalized to be in [0,1]
     double GetNormalizedIsovalue() const;
     /// @return the current clearview iso value, normalized to be in [0,1]
@@ -754,6 +759,10 @@ class AbstrRenderer: public Scriptable {
     LuaClassInstance m_pLua1DTrans;
     LuaTransferFun1DProxy* m_pLua1DTransPtr;
     LuaClassInstance LuaGet1DTrans();
+
+    LuaClassInstance m_pLua2DTrans;
+    LuaTransferFun2DProxy* m_pLua2DTransPtr;
+    LuaClassInstance LuaGet2DTrans();
 };
 
 }; //namespace tuvok

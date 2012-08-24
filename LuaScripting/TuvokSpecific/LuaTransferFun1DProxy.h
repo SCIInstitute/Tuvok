@@ -30,8 +30,8 @@
  \brief Lua proxy for IO's 1D transfer function.
  */
 
-#ifndef LUATRANSFERFUN1DPROXY_H
-#define LUATRANSFERFUN1DPROXY_H
+#ifndef TUVOK_LUATRANSFERFUN1DPROXY_H
+#define TUVOK_LUATRANSFERFUN1DPROXY_H
 
 class TransferFunction1D;
 
@@ -62,7 +62,7 @@ private:
   /// Auxiliary functions
   bool proxyLoadWithFilenameAndSize(const std::string& file, size_t size);
   void proxySetStdFunction(float centerPoint, float invGradient, 
-                           float component, bool invertedStep);
+                           int component, bool invertedStep);
   bool proxySave(const std::string& filename) const;
 
   /// Class registration we received from defineLuaInterface.
@@ -75,4 +75,4 @@ private:
 
 } // namespace tuvok
 
-#endif // LUATRANSFERFUN1DPROXY_H
+#endif // TUVOK_LUATRANSFERFUN1DPROXY_H
