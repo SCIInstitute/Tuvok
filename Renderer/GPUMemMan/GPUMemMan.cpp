@@ -63,6 +63,10 @@
 #include "Renderer/GL/GLTexture2D.h"
 #include "Renderer/GL/GLVolume.h"
 
+#include "../LuaScripting/LuaScripting.h"
+#include "../LuaScripting/LuaMemberReg.h"
+#include "../LuaScripting/TuvokSpecific/LuaTransferFun1DProxy.h"
+
 using namespace std;
 using namespace std::placeholders;
 using namespace tuvok;
@@ -73,7 +77,8 @@ GPUMemMan::GPUMemMan(MasterController* masterController) :
   m_iAllocatedGPUMemory(0),
   m_iAllocatedCPUMemory(0),
   m_iFrameCounter(0),
-  m_iInCoreSize(DEFAULT_INCORESIZE)
+  m_iInCoreSize(DEFAULT_INCORESIZE),
+  m_pMemReg(new LuaMemberReg(masterController->LuaScript()))
 {
   if (masterController && masterController->IOMan()) {
     m_iInCoreSize = masterController->IOMan()->GetIncoresize();
@@ -81,6 +86,8 @@ GPUMemMan::GPUMemMan(MasterController* masterController) :
 
   m_vUploadHub.resize(size_t(m_iInCoreSize*4));
   m_iAllocatedCPUMemory = size_t(m_iInCoreSize*4);
+
+  RegisterLuaCommands();
 }
 
 GPUMemMan::~GPUMemMan() {
@@ -355,11 +362,24 @@ void GPUMemMan::FreeTexture(GLTexture2D* pTexture) {
 
 // ******************** 1D Trans
 
-void GPUMemMan::Changed1DTrans(const AbstrRenderer* requester,
-                               TransferFunction1D* pTransferFunction1D) {
+void GPUMemMan::Changed1DTrans(LuaClassInstance luaAbstrRen,
+                               LuaClassInstance tf1d) {
   MESSAGE("Sending change notification for 1D transfer function");
 
+  shared_ptr<LuaScripting> ss = m_MasterController->LuaScript();
+
+  // Convert LuaClassInstance -> LuaTransferFun1DProxy -> TransferFunction1D
+  LuaTransferFun1DProxy* tfProxy = 
+      tf1d.getRawPointer<LuaTransferFun1DProxy>(ss);
+  TransferFunction1D* pTransferFunction1D = tfProxy->get1DTransferFunction();
+
   pTransferFunction1D->ComputeNonZeroLimits();
+
+  // Retrieve raw pointer for the Abstract renderer.
+  AbstrRenderer* requester = NULL;
+  if (luaAbstrRen.isValid(ss)) {
+    requester = luaAbstrRen.getRawPointer<AbstrRenderer>(ss);
+  }
 
   for (Trans1DListIter i = m_vpTrans1DList.begin();i<m_vpTrans1DList.end();i++) {
     if (i->pTransferFunction1D == pTransferFunction1D) {
@@ -1101,3 +1121,13 @@ uint32_t GPUMemMan::GetBitWidthMem() const {
   return m_SystemInfo->GetProgramBitWidth();
 }
 uint32_t GPUMemMan::GetNumCPUs() const {return m_SystemInfo->GetNumberOfCPUs();}
+
+
+void GPUMemMan::RegisterLuaCommands() {
+  std::string id;
+  const std::string nm = "tuvok.gpu."; // namespace
+
+  id = m_pMemReg->registerFunction(this,&GPUMemMan::Changed1DTrans,
+                                   nm + "changed1DTrans", "", false);
+}
+

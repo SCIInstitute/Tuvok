@@ -63,8 +63,8 @@ class GPUMemMan {
     void FreeAssociatedTextures(Dataset* pDataset, int iShareGroupID);
     void FreeDataset(Dataset* pVolumeDataset, AbstrRenderer* requester);
 
-    void Changed1DTrans(const AbstrRenderer* requester,
-                        TransferFunction1D* pTransferFunction1D);
+    void Changed1DTrans(LuaClassInstance abstrRenderer,
+                        LuaClassInstance transferFun1D);
     void GetEmpty1DTrans(size_t iSize, AbstrRenderer* requester,
                          TransferFunction1D** ppTransferFunction1D,
                          GLTexture1D** tex);
@@ -142,23 +142,25 @@ class GPUMemMan {
     ///@}
 
   private:
-    VolDataList                m_vpVolumeDatasets;
-    SimpleTextureList          m_vpSimpleTextures;
-    Trans1DList                m_vpTrans1DList;
-    Trans2DList                m_vpTrans2DList;
-    GLVolumeList               m_vpTex3DList;
-    FBOList                    m_vpFBOList;
-    GLSLList                   m_vpGLSLList;
-    MasterController*          m_MasterController;
-    SystemInfo*                m_SystemInfo;
+    VolDataList                 m_vpVolumeDatasets;
+    SimpleTextureList           m_vpSimpleTextures;
+    Trans1DList                 m_vpTrans1DList;
+    Trans2DList                 m_vpTrans2DList;
+    GLVolumeList                m_vpTex3DList;
+    FBOList                     m_vpFBOList;
+    GLSLList                    m_vpGLSLList;
+    MasterController*           m_MasterController;
+    SystemInfo*                 m_SystemInfo;
 
-    uint64_t                     m_iAllocatedGPUMemory;
-    uint64_t                     m_iAllocatedCPUMemory;
-    uint64_t                     m_iFrameCounter;
+    uint64_t                    m_iAllocatedGPUMemory;
+    uint64_t                    m_iAllocatedCPUMemory;
+    uint64_t                    m_iFrameCounter;
 
-    uint64_t                     m_iInCoreSize;
+    uint64_t                    m_iInCoreSize;
 
-    std::vector<unsigned char> m_vUploadHub;
+    std::vector<unsigned char>  m_vUploadHub;
+
+    std::auto_ptr<LuaMemberReg> m_pMemReg;
 
     GLVolume* AllocOrGetVolume(Dataset* pDataset,
                                const BrickKey& key,
@@ -173,6 +175,7 @@ class GPUMemMan {
     void DeleteArbitraryBrick(int iShareGroupID);
     void Delete3DTexture(size_t iIndex);
     void Delete3DTexture(const GLVolumeListIter &tex);
+    void RegisterLuaCommands();
 };
 }
 #endif // TUVOK_GPUMEMMAN_H
