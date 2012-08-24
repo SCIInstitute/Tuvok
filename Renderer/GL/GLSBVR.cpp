@@ -396,7 +396,7 @@ void GLSBVR::Render3DInLoop(const RenderRegion3D& renderRegion,
   if (m_bSupportsMeshes) {
     m_SBVRGeogen.ResetMesh();
     if (m_eRenderMode != RM_ISOSURFACE) {
-      for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
+      for (vector<shared_ptr<RenderMesh> >::iterator mesh = m_Meshes.begin();
            mesh != m_Meshes.end(); mesh++) {
         if ((*mesh)->GetActive()) {
           m_SBVRGeogen.AddMesh((*mesh)->GetInPointList(false));

@@ -506,7 +506,8 @@ class AbstrRenderer: public Scriptable {
 
     virtual void ScanForNewMeshes() {}
     virtual void RemoveMeshData(size_t index);
-    std::vector<RenderMesh*>& GetMeshes() {return m_Meshes;}
+    // Return value references are not supported by lua.
+    std::vector<std::shared_ptr<RenderMesh> > GetMeshes() {return m_Meshes;}
     bool SupportsMeshes() const {return m_bSupportsMeshes;}
     void ReloadMesh(size_t index, const std::shared_ptr<Mesh> m);
 
@@ -589,7 +590,7 @@ class AbstrRenderer: public Scriptable {
     Interpolant         m_eInterpolant;
 
     bool                m_bSupportsMeshes;
-    std::vector<RenderMesh*> m_Meshes;
+    std::vector<std::shared_ptr<RenderMesh> > m_Meshes;
 
 
     /// parameters for dynamic resolution adjustments
@@ -732,6 +733,11 @@ class AbstrRenderer: public Scriptable {
     virtual bool IsVolumeResident(const BrickKey& key) const = 0;
 
     virtual void RegisterCalls(Scripting*);
+
+    /// Since m_Meshes no longer gets returned as a reference from GetMeshes,
+    /// we need to implement these mutation functions to provide support via
+    /// lua.
+    void ClearRendererMeshes();
 
   private:
     float               m_fIsovalue;

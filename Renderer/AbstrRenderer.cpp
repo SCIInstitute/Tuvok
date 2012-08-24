@@ -1107,7 +1107,7 @@ void AbstrRenderer::PlanFrame(RenderRegion3D& region) {
     FLOATVECTOR3 vMinPoint = vCenter-vExtend/2.0, 
                  vMaxPoint = vCenter+vExtend/2.0;
 
-     for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
+     for (vector<shared_ptr<RenderMesh> >::iterator mesh = m_Meshes.begin();
          mesh != m_Meshes.end(); mesh++) {
       if ((*mesh)->GetActive()) {
         (*mesh)->SetVolumeAABB(vMinPoint, vMaxPoint);
@@ -1500,8 +1500,6 @@ std::vector<LuaClassInstance> AbstrRenderer::LuaGetRenderRegions()
 }
 
 void AbstrRenderer::RemoveMeshData(size_t index) {
-  delete m_Meshes[index];
-  m_Meshes[index] = NULL;
   m_Meshes.erase(m_Meshes.begin()+index);
   Schedule3DWindowRedraws();
 }
@@ -1647,6 +1645,10 @@ void AbstrRenderer::LuaCloneRenderMode(LuaClassInstance inst) {
   this->SetCV(other->GetCV());
   this->SetCVFocusPosFVec(other->GetCVFocusPos());
   this->SetInterpolant(other->GetInterpolant());
+}
+
+void AbstrRenderer::ClearRendererMeshes() {
+  m_Meshes.clear();
 }
 
 void AbstrRenderer::RegisterLuaFunctions(
@@ -1933,6 +1935,11 @@ void AbstrRenderer::RegisterLuaFunctions(
                     "removeMeshData", "", true);
   id = reg.function(&AbstrRenderer::ScanForNewMeshes,
                     "scanForNewMeshes", "", true);
+  id = reg.function(&AbstrRenderer::GetMeshes,
+                    "getMeshes", "", false);
+  ss->setProvenanceExempt(id);
+  id = reg.function(&AbstrRenderer::ClearRendererMeshes,
+                    "clearMeshes", "", true);
 
 
 
