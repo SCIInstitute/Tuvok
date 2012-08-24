@@ -30,8 +30,8 @@
  \brief A Lua class proxy for IO's dataset class.
  */
 
-#ifndef LUADATASETPROXY_H_
-#define LUADATASETPROXY_H_
+#ifndef TUVOK_LUADATASETPROXY_H_
+#define TUVOK_LUADATASETPROXY_H_
 
 #include "../LuaScripting.h"
 #include "../LuaClassRegistration.h"
@@ -63,16 +63,19 @@ public:
                                  LuaScripting* ss);
 
   /// @todo get rid of dataset type when we fix the dataset base class.
-  DatasetType getDatasetType()    {return mDatasetType;}
+  DatasetType getDatasetType() const    {return mDatasetType;}
+  Dataset*    getDataset()     const    {return mDS;}
+
 private:
 
   /// Class registration we received from defineLuaInterface.
   /// @todo Change to unique pointer.
-  LuaClassRegistration<LuaDatasetProxy>* mReg;
+  LuaClassRegistration<LuaDatasetProxy>*  mReg;
+  Dataset*                                mDS;
 
   /// The type of dataset.
   DatasetType mDatasetType;
 };
 
 } /* namespace tuvok */
-#endif /* LUADATASETPROXY_H_ */
+#endif /* TUVOK_LUADATASETPROXY_H_ */

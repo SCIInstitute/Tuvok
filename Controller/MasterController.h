@@ -191,6 +191,7 @@ private:
   /// Initializer; add all our builtin commands.
   void RegisterInternalCommands();
   void RegisterLuaCommands();
+  void RegisterIOManagerLuaCommands();
 
   RenderRegion* LuaCreateRenderRegion3D(LuaClassInstance ren);
   RenderRegion* LuaCreateRenderRegion2D(int mode,  // RenderRegion::EWindowMode
@@ -216,7 +217,12 @@ private:
                                           bool bNoRCClipplanes,
                                           bool bBiasAndScaleTF);
 
-
+  /// Proxy function for IOManager::ExportDataset. Exists because IO does
+  /// not know about LuaScripting.
+  bool IOProxyExportDataset(LuaClassInstance ds,
+                            uint64_t iLODlevel,
+                            const std::string& strTargetFilename,
+                            const std::string& strTempDir) const;
 
 
 private:
@@ -230,8 +236,8 @@ private:
   provenance_func* m_pProvenance;
   bool             m_bExperimentalFeatures;
 
-  std::shared_ptr<LuaScripting>  m_pLuaScript;
-  std::auto_ptr<LuaMemberReg>         m_pMemReg;
+  std::shared_ptr<LuaScripting>   m_pLuaScript;
+  std::auto_ptr<LuaMemberReg>     m_pMemReg;
 
   AbstrRendererList m_vVolumeRenderer;
   // The active renderer should point into a member of the renderer list.

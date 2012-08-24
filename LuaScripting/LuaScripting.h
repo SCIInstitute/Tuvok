@@ -147,7 +147,6 @@ public:
   ///
   /// TO REGISTER MEMBER FUNCTIONS:
   /// Use the LuaMemberReg mediator class. It will clean up for you.
-  /// functions.
   template <typename FunPtr>
   std::string registerFunction(FunPtr f,
                                const std::string& name,
@@ -165,7 +164,7 @@ public:
   template <typename FunPtr>
   void strictHook(FunPtr f, const std::string& name);
 
-  /// Sets the undo function for the registered function specified by name.
+  /// Sets the undo function for the registered function specified by 'name'.
   /// The default undo function is to re-execute the last command executed.
   /// E.G. If you execute "fun(1.5)", then "fun(5.5)", then execute an undo,
   ///      the undo will execute fun(1.5) to undo fun(5.5).
@@ -177,8 +176,8 @@ public:
   ///      To reset defaults on a per function basis, use the setDefaults
   ///      family of functions.
   /// \param  f       Function to call. If the function does not have the
-  ///                 same signature of the function registered at name,
-  ///                 a runtime will be thrown if RTTI is enabled.
+  ///                 same signature of the function registered at 'name',
+  ///                 a runtime exception will be thrown if RTTI is enabled.
   /// \param  name    The fully qualified name of the function that you wish to
   ///                 reset the undo function for.
   template <typename FunPtr>
@@ -186,8 +185,8 @@ public:
 
   /// Use this function to ensure that no functions are called on undo.
   /// The last executed parameters table is still updated upon undo.
-  /// Use this function if you do not have any idea about how many arguments
-  /// the function takes, and you would like to nullify its undo/redo
+  /// Use this function if you don't know what arguments
+  /// the function takes and you would like to nullify its undo/redo
   /// operations. It is used to nullify undo on constructors / destructors
   /// of lua instance classes.
   /// All composited functions are called.

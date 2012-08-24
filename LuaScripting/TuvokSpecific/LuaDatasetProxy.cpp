@@ -51,7 +51,8 @@ namespace tuvok
 {
 
 LuaDatasetProxy::LuaDatasetProxy()
-    : mDatasetType(Unknown)
+    : mDS(NULL)
+    , mDatasetType(Unknown)
 {
   mReg = NULL;
 }
@@ -60,6 +61,7 @@ LuaDatasetProxy::~LuaDatasetProxy()
 {
   if (mReg != NULL)
     delete mReg;
+  mDS = NULL;
 }
 
 void LuaDatasetProxy::bind(Dataset* ds, shared_ptr<LuaScripting> ss)
@@ -71,6 +73,8 @@ void LuaDatasetProxy::bind(Dataset* ds, shared_ptr<LuaScripting> ss)
 
   if (ds != NULL)
   {
+    mDS = ds;
+
     // Register dataset functions using ds.
     string id;
 

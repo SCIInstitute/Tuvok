@@ -38,6 +38,10 @@
 
 /// TODO: Look into rewriting using variadic templates when we support C++11.
 
+// The basic ideas behind LuaStrictStack (managing the lua stack using 
+// template specialization) and LuaCFunExec (binding functions 
+// using template specialization) in this file come from LuaBridge.
+// https://github.com/vinniefalco/LuaBridge
 
 #ifndef TUVOK_LUAFUNBINDING_H_
 #define TUVOK_LUAFUNBINDING_H_

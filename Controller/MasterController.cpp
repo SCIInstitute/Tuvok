@@ -41,6 +41,7 @@
 #include "../DebugOut/TextfileOut.h"
 #include "../IO/IOManager.h"
 #include "../IO/TransferFunction1D.h"
+#include "../IO/uvfDataset.h"
 #include "../Renderer/GPUMemMan/GPUMemMan.h"
 #include "../Renderer/GPUMemMan/GPUMemManDataStructs.h"
 #include "../Renderer/GL/GLRaycaster.h"
@@ -363,6 +364,39 @@ void MasterController::RegisterLuaCommands() {
       "should be left to the renderer.",
       LuaClassRegCallback<LuaTransferFun1DProxy>::Type(
           LuaTransferFun1DProxy::defineLuaInterface));
+
+  // Register IO manager functions.
+  // This is not done in the IO manager class because IO does not know about
+  // the Lua scripting system.
+  RegisterIOManagerLuaCommands();
+}
+
+void MasterController::RegisterIOManagerLuaCommands() {
+  std::string id;
+  const std::string nm = "tuvok.io."; // namespace
+
+  id = m_pMemReg->registerFunction(this,&MasterController::IOProxyExportDataset,
+                                    nm + "exportDataset", "", false);
+}
+
+bool MasterController::IOProxyExportDataset(LuaClassInstance ds,
+                                            uint64_t iLODlevel,
+                                            const std::string& strTargetFilename,
+                                            const std::string& strTempDir) const
+{
+  if (m_pLuaScript->cexecRet<LuaDatasetProxy::DatasetType>(
+          ds.fqName() + ".getDSType") != LuaDatasetProxy::UVF) {
+    T_ERROR("tuvok.io.exportDataset only accepts UVF.");
+    return false;
+  }
+
+  // Convert LuaClassInstance -> LuaDatasetProxy -> UVFdataset
+  LuaDatasetProxy* dsProxy = ds.getRawPointer<LuaDatasetProxy>(m_pLuaScript);
+  UVFDataset* uvf = dynamic_cast<UVFDataset*>(dsProxy->getDataset());
+  assert(uvf != NULL);
+
+  return m_pIOManager->ExportDataset(uvf, iLODlevel, strTargetFilename, 
+                                     strTempDir);
 }
 
 bool MasterController::Execute(const std::string& strCommand,
