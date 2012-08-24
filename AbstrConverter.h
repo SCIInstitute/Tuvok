@@ -59,51 +59,6 @@ public:
   std::pair<uint64_t, uint64_t> m_uiRange;
 };
 
-namespace { // force internal linkage.
-  // Figure out what factor we should multiply each element in the data set by
-  // to quantize it.
-  template <typename T>
-  double QuantizationFactor(size_t max_out, const T& mn, const T& mx)
-  {
-    double quant = max_out / (static_cast<double>(mx) - mn);
-    // ensure we don't "stretch" the data values, only "compress" them if
-    // necessary.
-    return std::min(quant, 1.0);
-  }
-  // For FP data we allow the range to be stretched.  Even if the
-  // max/min range is 0.3, we could still have a million different
-  // values in there.  Attempting to `compress' the range and that to
-  // integers is going to leave us with 1 value.
-  template <>
-  double QuantizationFactor(size_t max_out, const float& mn, const float& mx)
-  {
-    return max_out / (mx - mn);
-  }
-  // Side note: we use references here because constant template parameters
-  // must be integral or reference types.
-  template <>
-  double QuantizationFactor(size_t max_out, const double& mn, const double& mx)
-  {
-    return max_out / (mx - mn);
-  }
-
-  /// We'll need a bin for each unique value of in the data... but
-  /// we can't easily compute that when the type is FP.  Just punt
-  /// in that case.
-  ///@{
-  template<typename T>
-  size_t bins_needed(std::pair<T,T> minmax) {
-    return static_cast<size_t>(minmax.second-minmax.first) + 1;
-  }
-  template<> size_t bins_needed(std::pair<float,float>) {
-    return std::numeric_limits<size_t>::max();
-  }
-  template<> size_t bins_needed(std::pair<double,double>) {
-    return std::numeric_limits<size_t>::max();
-  }
-  ///@}
-}
-
 class AbstrConverter {
 public:
   virtual ~AbstrConverter() {}
