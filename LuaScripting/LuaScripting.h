@@ -694,9 +694,9 @@ private:
   LuaClassInstance::IDType          mGlobalTempInstHigh;
   LuaClassInstance::IDType          mGlobalTempCurrent;
 
-  std::auto_ptr<LuaProvenance>      mProvenance;
-  std::auto_ptr<LuaMemberRegUnsafe> mMemberReg;
-  std::auto_ptr<LuaClassConstructor>mClassCons;
+  std::unique_ptr<LuaProvenance>      mProvenance;
+  std::unique_ptr<LuaMemberRegUnsafe> mMemberReg;
+  std::unique_ptr<LuaClassConstructor>mClassCons;
 
   bool                              mVerboseMode;
 

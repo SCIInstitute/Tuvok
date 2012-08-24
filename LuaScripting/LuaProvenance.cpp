@@ -1012,7 +1012,7 @@ SUITE(LuaProvenanceTests)
 
     shared_ptr<LuaScripting> sc(new LuaScripting());
 
-    auto_ptr<A> a(new A(sc));
+    unique_ptr<A> a(new A(sc));
 
     a->mReg.registerFunction(a.get(), &A::set_i1, "set_i1", "", true);
     a->mReg.registerFunction(a.get(), &A::set_i2, "set_i2", "", true);
@@ -1208,7 +1208,7 @@ SUITE(LuaProvenanceTests)
     // thoroughly.
     TEST_HEADER;
 
-    auto_ptr<LuaScripting> sc(new LuaScripting());
+    unique_ptr<LuaScripting> sc(new LuaScripting());
 
     sc->registerFunction(&set_i1, "set_i1", "", true);
     sc->registerFunction(&set_s1, "set_s1", "", true);
@@ -1422,7 +1422,7 @@ SUITE(LuaProvenanceTests)
   {
     TEST_HEADER;
 
-    auto_ptr<LuaScripting> sc(new LuaScripting());
+    unique_ptr<LuaScripting> sc(new LuaScripting());
 
     sc->registerFunction(&set_i1, "set_i1", "", true);
     sc->setNullUndoFun("set_i1");

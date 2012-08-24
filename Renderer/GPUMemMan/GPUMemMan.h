@@ -160,7 +160,7 @@ class GPUMemMan {
 
     std::vector<unsigned char>  m_vUploadHub;
 
-    std::auto_ptr<LuaMemberReg> m_pMemReg;
+    std::unique_ptr<LuaMemberReg> m_pMemReg;
 
     GLVolume* AllocOrGetVolume(Dataset* pDataset,
                                const BrickKey& key,

@@ -2581,7 +2581,7 @@ SUITE(TestLuaScriptingSystem)
   {
     TEST_HEADER;
 
-    auto_ptr<LuaScripting> sc(new LuaScripting());  // want to use unique_ptr
+    unique_ptr<LuaScripting> sc(new LuaScripting());  // want to use unique_ptr
 
     // Test successful bindings and their results.
     sc->registerFunction(&dfun, "test.dummyFun", "My test dummy func.", true);
@@ -2679,7 +2679,7 @@ SUITE(TestLuaScriptingSystem)
   {
     TEST_HEADER;
 
-    auto_ptr<LuaScripting> sc(new LuaScripting());  // want to use unique_ptr
+    unique_ptr<LuaScripting> sc(new LuaScripting());  // want to use unique_ptr
 
     sc->registerFunction(&str_int, "str.int", "", true);
     sc->registerFunction(&str_int2, "str.int2", "", true);
@@ -2703,7 +2703,7 @@ SUITE(TestLuaScriptingSystem)
   {
     TEST_HEADER;
 
-    auto_ptr<LuaScripting> sc(new LuaScripting());  // want to use unique_ptr
+    unique_ptr<LuaScripting> sc(new LuaScripting());  // want to use unique_ptr
 
     sc->registerFunction(&str_int, "str.fint", "desc str_int", true);
     sc->registerFunction(&str_int2, "str.fint2", "desc str_int2", true);
@@ -2779,7 +2779,7 @@ SUITE(TestLuaScriptingSystem)
     TEST_HEADER;
 
     // Test retrieval of all function descriptions.
-    auto_ptr<LuaScripting> sc(new LuaScripting());  // want to use unique_ptr
+    unique_ptr<LuaScripting> sc(new LuaScripting());  // want to use unique_ptr
 
     sc->registerFunction(&str_int,            "str.int",            "Desc 1",
                          true);
@@ -2866,7 +2866,7 @@ SUITE(TestLuaScriptingSystem)
   {
     TEST_HEADER;
 
-    auto_ptr<LuaScripting> sc(new LuaScripting());
+    unique_ptr<LuaScripting> sc(new LuaScripting());
 
     sc->registerFunction(&str_int,            "func1", "Function 1", true);
     sc->registerFunction(&str_int2,           "a.func2", "Function 2", true);
@@ -2955,7 +2955,7 @@ SUITE(TestLuaScriptingSystem)
   {
     TEST_HEADER;
 
-    auto_ptr<LuaScripting> sc(new LuaScripting());
+    unique_ptr<LuaScripting> sc(new LuaScripting());
 
     sc->registerFunction(&set_i1, "set_i1", "", true);
     sc->registerFunction(&set_s1, "set_s1", "", true);
@@ -3040,7 +3040,7 @@ SUITE(TestLuaScriptingSystem)
   {
     TEST_HEADER;
 
-    auto_ptr<LuaScripting> sc(new LuaScripting());
+    unique_ptr<LuaScripting> sc(new LuaScripting());
 
     sc->registerFunction(&set_i1, "set_i1", "", true);
     sc->setDefaults("set_i1", 40, true);
@@ -3146,7 +3146,7 @@ SUITE(TestLuaScriptingSystem)
   {
     TEST_HEADER;
 
-    auto_ptr<LuaScripting> sc(new LuaScripting());
+    unique_ptr<LuaScripting> sc(new LuaScripting());
 
     sc->registerFunction(&set_i1, "set_i1", "", true);
     sc->registerFunction(&set_s1, "set_s1", "", true);
@@ -3232,7 +3232,7 @@ SUITE(TestLuaScriptingSystem)
   {
     TEST_HEADER;
 
-    auto_ptr<LuaScripting> sc(new LuaScripting());
+    unique_ptr<LuaScripting> sc(new LuaScripting());
 
     sc->registerFunction(&testParamReturn, "tpr", "", true);
     CHECK_EQUAL("Out: 65 1 4.3 str!",
@@ -3267,7 +3267,7 @@ SUITE(TestLuaScriptingSystem)
   {
     TEST_HEADER;
 
-    auto_ptr<LuaScripting> sc(new LuaScripting());
+    unique_ptr<LuaScripting> sc(new LuaScripting());
 
     sc->registerFunction(&strRef1, "set_r1", "", true);
     sc->setDefaults("set_r1", "ref 1", true);
@@ -3325,7 +3325,7 @@ SUITE(TestLuaScriptingSystem)
   {
     TEST_HEADER;
 
-    auto_ptr<LuaScripting> sc(new LuaScripting());
+    unique_ptr<LuaScripting> sc(new LuaScripting());
 
     sc->registerFunction(&vecIntString, "vecIntStr", "", true);
 

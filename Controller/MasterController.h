@@ -254,7 +254,7 @@ private:
   bool             m_bExperimentalFeatures;
 
   std::shared_ptr<LuaScripting>   m_pLuaScript;
-  std::auto_ptr<LuaMemberReg>     m_pMemReg;
+  std::unique_ptr<LuaMemberReg>   m_pMemReg;
 
   AbstrRendererList m_vVolumeRenderer;
   // The active renderer should point into a member of the renderer list.

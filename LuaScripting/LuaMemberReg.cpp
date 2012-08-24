@@ -115,11 +115,11 @@ SUITE(LuaTestMemberFunctionRegistration)
   {
     TEST_HEADER;
 
-    auto_ptr<A> a;
+    unique_ptr<A> a;
 
     shared_ptr<LuaScripting> sc(new LuaScripting());
 
-    a = auto_ptr<A>(new A(sc));
+    a = unique_ptr<A>(new A(sc));
 
     a->mReg.registerFunction(a.get(), &A::m1, "a.m1", "A::m1", true);
     a->mReg.registerFunction(a.get(), &A::m2, "a.m2", "A::m2", true);
@@ -140,7 +140,7 @@ SUITE(LuaTestMemberFunctionRegistration)
     shared_ptr<LuaScripting> sc(new LuaScripting());
 
     {
-      auto_ptr<A> a(new A(sc));
+      unique_ptr<A> a(new A(sc));
 
       a->mReg.registerFunction(a.get(), &A::m1, "a.m1", "A::m1", true);
       a->mReg.registerFunction(a.get(), &A::m2, "a.m2", "A::m2", true);
@@ -165,7 +165,7 @@ SUITE(LuaTestMemberFunctionRegistration)
 
     shared_ptr<LuaScripting> sc(new LuaScripting());
 
-    auto_ptr<A> a(new A(sc));
+    unique_ptr<A> a(new A(sc));
 
     a->mReg.registerFunction(a.get(), &A::m1, "m1", "A::m1", true);
     a->mReg.registerFunction(a.get(), &A::m2, "m2", "A::m2", true);
@@ -261,7 +261,7 @@ SUITE(LuaTestMemberFunctionRegistration)
     // Setup custom undo/redo hooks and test their efficacy.
     shared_ptr<LuaScripting> sc(new LuaScripting());
 
-    auto_ptr<B> b(new B(sc));
+    unique_ptr<B> b(new B(sc));
 
     b->mReg.registerFunction(b.get(), &B::set_i1, "set_i1", "", true);
     b->mReg.registerFunction(b.get(), &B::set_i2, "set_i2", "", true);
