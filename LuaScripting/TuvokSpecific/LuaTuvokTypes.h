@@ -155,6 +155,75 @@ public:
 };
 
 template<typename T>
+class LuaStrictStack<const VECTOR4<T>& >
+{
+public:
+
+  typedef VECTOR4<T> Type;
+
+  static VECTOR4<T> get(lua_State* L, int pos)
+  {
+    Type ret;
+
+    // There should be a table at 'pos', containing four numerical elements.
+    luaL_checktype(L, pos, LUA_TTABLE);
+
+    lua_pushinteger(L, 1);
+    lua_gettable(L, pos);
+    ret.x = static_cast<T>(luaL_checknumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_pushinteger(L, 2);
+    lua_gettable(L, pos);
+    ret.y = static_cast<T>(luaL_checknumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_pushinteger(L, 3);
+    lua_gettable(L, pos);
+    ret.z = static_cast<T>(luaL_checknumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_pushinteger(L, 4);
+    lua_gettable(L, pos);
+    ret.w = static_cast<T>(luaL_checknumber(L, -1));
+    lua_pop(L, 1);
+
+    return ret;
+  }
+
+  static void push(lua_State* L, VECTOR4<T> in)
+  {
+    lua_newtable(L);
+    int tbl = lua_gettop(L);
+
+    lua_pushinteger(L, 1);
+    lua_pushnumber(L, static_cast<lua_Number>(in.x));
+    lua_settable(L, tbl);
+
+    lua_pushinteger(L, 2);
+    lua_pushnumber(L, static_cast<lua_Number>(in.y));
+    lua_settable(L, tbl);
+
+    lua_pushinteger(L, 3);
+    lua_pushnumber(L, static_cast<lua_Number>(in.z));
+    lua_settable(L, tbl);
+
+    lua_pushinteger(L, 4);
+    lua_pushnumber(L, static_cast<lua_Number>(in.w));
+    lua_settable(L, tbl);
+  }
+
+  static std::string getValStr(VECTOR4<T> in)
+  {
+    std::ostringstream os;
+    os << "{" << in.x << ", " << in.y << ", " << in.z << ", " << in.w << "}";
+    return os.str();
+  }
+  static std::string getTypeStr() { return "Vector4"; }
+  static VECTOR4<T>  getDefault() { return VECTOR4<T>(); }
+};
+
+template<typename T>
 class LuaStrictStack<VECTOR3<T> >
 {
 public:

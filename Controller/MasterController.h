@@ -47,6 +47,7 @@
 
 #include "Basics/CommandReturn.h"
 #include "Basics/TuvokException.h"
+#include "Basics/Vectors.h"
 #include "../DebugOut/MultiplexOut.h"
 #include "../DebugOut/ConsoleOut.h"
 
@@ -217,13 +218,21 @@ private:
                                           bool bNoRCClipplanes,
                                           bool bBiasAndScaleTF);
 
-  /// Proxy function for IOManager::ExportDataset. Exists because IO does
-  /// not know about LuaScripting.
+  /// Proxy functions for IOManager. These functions exist because IO
+  /// does not known about LuaScripting. 
+  /// @{
   bool IOProxyExportDataset(LuaClassInstance ds,
                             uint64_t iLODlevel,
                             const std::string& strTargetFilename,
                             const std::string& strTempDir) const;
 
+  bool IOProxyExtractIsosurface(
+      LuaClassInstance ds,
+      uint64_t iLODlevel, double fIsovalue,
+      const FLOATVECTOR4& vfColor,
+      const std::string& strTargetFilename,
+      const std::string& strTempDir) const;
+  /// @}
 
 private:
   SystemInfo*      m_pSystemInfo;

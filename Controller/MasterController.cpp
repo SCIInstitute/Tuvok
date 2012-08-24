@@ -376,7 +376,10 @@ void MasterController::RegisterIOManagerLuaCommands() {
   const std::string nm = "tuvok.io."; // namespace
 
   id = m_pMemReg->registerFunction(this,&MasterController::IOProxyExportDataset,
-                                    nm + "exportDataset", "", false);
+                                   nm + "exportDataset", "", false);
+  id = m_pMemReg->registerFunction(this,
+                                   &MasterController::IOProxyExtractIsosurface,
+                                   nm + "extractIsosurface", "", false);
 }
 
 bool MasterController::IOProxyExportDataset(LuaClassInstance ds,
@@ -397,6 +400,29 @@ bool MasterController::IOProxyExportDataset(LuaClassInstance ds,
 
   return m_pIOManager->ExportDataset(uvf, iLODlevel, strTargetFilename, 
                                      strTempDir);
+}
+
+bool MasterController::IOProxyExtractIsosurface(
+    LuaClassInstance ds,
+    uint64_t iLODlevel, double fIsovalue,
+    const FLOATVECTOR4& vfColor,
+    const std::string& strTargetFilename,
+    const std::string& strTempDir) const {
+  if (m_pLuaScript->cexecRet<LuaDatasetProxy::DatasetType>(
+          ds.fqName() + ".getDSType") != LuaDatasetProxy::UVF) {
+    T_ERROR("tuvok.io.exportDataset only accepts UVF.");
+    return false;
+  }
+
+  // Convert LuaClassInstance -> LuaDatasetProxy -> UVFdataset
+  LuaDatasetProxy* dsProxy = ds.getRawPointer<LuaDatasetProxy>(m_pLuaScript);
+  UVFDataset* uvf = dynamic_cast<UVFDataset*>(dsProxy->getDataset());
+  assert(uvf != NULL);
+
+  return m_pIOManager->ExtractIsosurface(uvf, iLODlevel, fIsovalue,
+                                         vfColor, strTargetFilename,
+                                         strTempDir);
+                                         
 }
 
 bool MasterController::Execute(const std::string& strCommand,
