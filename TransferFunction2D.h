@@ -106,6 +106,11 @@ public:
                      unsigned short sUsedRange=4095);
   void GetFloatArray(float** pfData);
 
+  size_t SwatchArrayGetSize();
+  void SwatchPushBack(const TFPolygon& swatch);
+  void SwatchErase(size_t swatchIndex);
+  void SwatchInsert(size_t i, const TFPolygon& swatch);
+
   std::vector< TFPolygon > m_Swatches;
 
   const VECTOR2<size_t> GetSize() const {return m_iSize;}

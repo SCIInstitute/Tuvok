@@ -418,6 +418,24 @@ void TransferFunction2D::Update1DTrans(const TransferFunction1D* p1DTrans) {
 #endif
 }
 
+size_t TransferFunction2D::SwatchArrayGetSize() {
+  return m_Swatches.size();
+}
+
+void TransferFunction2D::SwatchPushBack(const TFPolygon& swatch) {
+  m_Swatches.push_back(swatch);
+}
+
+void TransferFunction2D::SwatchErase(size_t swatchIndex) {
+  vector<TFPolygon>::iterator nth = m_Swatches.begin() + swatchIndex;
+  m_Swatches.erase(nth);
+}
+
+void TransferFunction2D::SwatchInsert(size_t i, const TFPolygon& swatch) {
+  vector<TFPolygon>::iterator nth = m_Swatches.begin() + i;
+  m_Swatches.insert(nth, swatch);
+}
+
 // ***************************************************************************
 
 bool TFPolygon::Load(ifstream& file) {
