@@ -62,10 +62,14 @@ public:
   /// has 4-components per element, in RGBA order.
   void Set(const std::vector<unsigned char>&);
 
-  size_t GetSize() const {return vColorData.size();}
+  size_t GetSize() const {return m_pvColorData->size();}
   void Resize(size_t iSize);
   void Resample(size_t iTargetSize);
   void FillOrTruncate(size_t iTargetSize);
+
+  std::shared_ptr<std::vector<FLOATVECTOR4> > GetColorData();
+  FLOATVECTOR4 GetColor(size_t index) const;
+  void SetColor(size_t index, FLOATVECTOR4 color);
 
   bool Load(const std::string& filename);
   bool Load(const std::string& filename, size_t iTargetSize);
@@ -82,13 +86,15 @@ public:
                      unsigned short sUsedRange=4095) const;
   void GetFloatArray(float** pfData) const;
 
-  std::vector<FLOATVECTOR4> vColorData;
-
   void ComputeNonZeroLimits();
   const UINT64VECTOR2& GetNonZeroLimits() { return m_vValueBBox;}
 
 private:
   UINT64VECTOR2 m_vValueBBox;
+
+  /// m_pvColorData exists as a shared pointer so that it can be handed off in
+  /// an efficient manner to C++ code (from Lua inside of Tuvok).
+  std::shared_ptr<std::vector<FLOATVECTOR4> > m_pvColorData;
 
   float Smoothstep(float x) const;
 };

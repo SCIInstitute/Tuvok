@@ -404,11 +404,12 @@ void TransferFunction2D::Update1DTrans(const TransferFunction1D* p1DTrans) {
   size_t iSize = min<size_t>(m_iSize.x,  m_Trans1D.GetSize());
 
   m_Trans1DImage = QImage(int(iSize), 1, QImage::Format_ARGB32);
+  shared_ptr<vector<FLOATVECTOR4> > tfdata = m_Trans1D.GetColorData();
   for (size_t i = 0;i<iSize;i++) {
-    float r = std::max(0.0f,std::min(m_Trans1D.vColorData[i][0],1.0f));
-    float g = std::max(0.0f,std::min(m_Trans1D.vColorData[i][1],1.0f));
-    float b = std::max(0.0f,std::min(m_Trans1D.vColorData[i][2],1.0f));
-    float a = std::max(0.0f,std::min(m_Trans1D.vColorData[i][3],1.0f));
+    float r = std::max(0.0f,std::min((*tfdata)[i][0],1.0f));
+    float g = std::max(0.0f,std::min((*tfdata)[i][1],1.0f));
+    float b = std::max(0.0f,std::min((*tfdata)[i][2],1.0f));
+    float a = std::max(0.0f,std::min((*tfdata)[i][3],1.0f));
 
     m_Trans1DImage.setPixel(int(i),0,qRgba(int(r*255),int(g*255),int(b*255),int(a*255)));
   }

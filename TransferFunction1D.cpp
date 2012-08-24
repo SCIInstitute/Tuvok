@@ -47,12 +47,15 @@
 using namespace std;
 
 TransferFunction1D::TransferFunction1D(size_t iSize) :
-  m_vValueBBox(0,0)
+  m_vValueBBox(0,0),
+  m_pvColorData(new vector<FLOATVECTOR4>())
 {
   Resize(iSize);
 }
 
-TransferFunction1D::TransferFunction1D(const std::string& filename) {
+TransferFunction1D::TransferFunction1D(const std::string& filename) :
+  m_pvColorData(new vector<FLOATVECTOR4>())
+{
   Load(filename);
 }
 
@@ -61,7 +64,7 @@ TransferFunction1D::~TransferFunction1D(void)
 }
 
 void TransferFunction1D::Resize(size_t iSize) {
-  vColorData.resize(iSize);
+  m_pvColorData->resize(iSize);
 }
 
 float TransferFunction1D::Smoothstep(float x) const {
@@ -76,34 +79,34 @@ void TransferFunction1D::SetStdFunction(float fCenterPoint, float fInvGradient) 
 }
 
 void TransferFunction1D::SetStdFunction(float fCenterPoint, float fInvGradient, int iComponent, bool bInvertedStep) {
-  size_t iCenterPoint = size_t((vColorData.size()-1) * float(std::min<float>(std::max<float>(0,fCenterPoint),1)));
-  size_t iInvGradient = size_t((vColorData.size()-1) * float(std::min<float>(std::max<float>(0,fInvGradient),1)));
+  size_t iCenterPoint = size_t((m_pvColorData->size()-1) * float(std::min<float>(std::max<float>(0,fCenterPoint),1)));
+  size_t iInvGradient = size_t((m_pvColorData->size()-1) * float(std::min<float>(std::max<float>(0,fInvGradient),1)));
 
   size_t iRampStartPoint = (iInvGradient/2 > iCenterPoint)                      ? 0                 : iCenterPoint-(iInvGradient/2);
-  size_t iRampEndPoint   = (iInvGradient/2 + iCenterPoint > vColorData.size())  ? vColorData.size() : iCenterPoint+(iInvGradient/2);
+  size_t iRampEndPoint   = (iInvGradient/2 + iCenterPoint > m_pvColorData->size())  ? m_pvColorData->size() : iCenterPoint+(iInvGradient/2);
 
   if (bInvertedStep) {
     for (size_t i = 0;i<iRampStartPoint;i++)
-      vColorData[i][iComponent] = 1;
+      (*m_pvColorData)[i][iComponent] = 1;
 
     for (size_t i = iRampStartPoint;i<iRampEndPoint;i++) {
       float fValue = Smoothstep(float(i-iCenterPoint+(iInvGradient/2))/float(iInvGradient));
-      vColorData[i][iComponent] = 1.0f-fValue;
+      (*m_pvColorData)[i][iComponent] = 1.0f-fValue;
     }
 
-    for (size_t i = iRampEndPoint;i<vColorData.size();i++)
-      vColorData[i][iComponent] = 0;
+    for (size_t i = iRampEndPoint;i<m_pvColorData->size();i++)
+      (*m_pvColorData)[i][iComponent] = 0;
   } else {
     for (size_t i = 0;i<iRampStartPoint;i++)
-      vColorData[i][iComponent] = 0;
+      (*m_pvColorData)[i][iComponent] = 0;
 
     for (size_t i = iRampStartPoint;i<iRampEndPoint;i++) {
       float fValue = Smoothstep(float(i-iCenterPoint+(iInvGradient/2))/float(iInvGradient));
-      vColorData[i][iComponent] = fValue;
+      (*m_pvColorData)[i][iComponent] = fValue;
     }
 
-    for (size_t i = iRampEndPoint;i<vColorData.size();i++)
-      vColorData[i][iComponent] = 1;
+    for (size_t i = iRampEndPoint;i<m_pvColorData->size();i++)
+      (*m_pvColorData)[i][iComponent] = 1;
   }
 
   ComputeNonZeroLimits();
@@ -143,7 +146,7 @@ void minmax_component4(ForwardIter first, ForwardIter last,
 void TransferFunction1D::Set(const std::vector<unsigned char>& tf)
 {
   assert(!tf.empty());
-  vColorData.resize(tf.size()/4);
+  m_pvColorData->resize(tf.size()/4);
 
   unsigned char tfmin[4];
   unsigned char tfmax[4];
@@ -160,8 +163,8 @@ void TransferFunction1D::Set(const std::vector<unsigned char>& tf)
   assert(tfmin[2] <= tfmax[2]);
   assert(tfmin[3] <= tfmax[3]);
 
-  for(size_t i=0; i < vColorData.size(); ++i) {
-    vColorData[i] = FLOATVECTOR4(
+  for(size_t i=0; i < m_pvColorData->size(); ++i) {
+    (*m_pvColorData)[i] = FLOATVECTOR4(
       MathTools::lerp(tf[4*i+0], tfmin[0],tfmax[0], fmin,fmax),
       MathTools::lerp(tf[4*i+1], tfmin[1],tfmax[1], fmin,fmax),
       MathTools::lerp(tf[4*i+2], tfmin[2],tfmax[2], fmin,fmax),
@@ -174,8 +177,8 @@ void TransferFunction1D::Set(const std::vector<unsigned char>& tf)
 }
 
 void TransferFunction1D::Clear() {
-  for (size_t i = 0;i<vColorData.size();i++)
-    vColorData[i] = FLOATVECTOR4(0,0,0,0);
+  for (size_t i = 0;i<m_pvColorData->size();i++)
+    (*m_pvColorData)[i] = FLOATVECTOR4(0,0,0,0);
 
   m_vValueBBox = UINT64VECTOR2(0,0);
 }
@@ -183,17 +186,17 @@ void TransferFunction1D::Clear() {
 void TransferFunction1D::FillOrTruncate(size_t iTargetSize) {
   vector< FLOATVECTOR4 > vTmpColorData(iTargetSize);  
   for (size_t i = 0;i<vTmpColorData.size();i++) {   
-    if (i < vColorData.size()) 
-      vTmpColorData[i] = vColorData[i];
+    if (i < m_pvColorData->size()) 
+      vTmpColorData[i] = (*m_pvColorData)[i];
     else
       vTmpColorData[i] = FLOATVECTOR4(0,0,0,0);
   }
-  vColorData = vTmpColorData;
+  *m_pvColorData = vTmpColorData;
   ComputeNonZeroLimits();
 }
 
 void TransferFunction1D::Resample(size_t iTargetSize) {
-  size_t iSourceSize = vColorData.size();
+  size_t iSourceSize = m_pvColorData->size();
 
   if (iTargetSize == iSourceSize) return;
 
@@ -208,7 +211,7 @@ void TransferFunction1D::Resample(size_t iTargetSize) {
 
       vTmpColorData[i] = 0;
       for (size_t j = iFrom;j<iTo;j++) {
-        vTmpColorData[i] += vColorData[j];
+        vTmpColorData[i] += (*m_pvColorData)[j];
       }
       vTmpColorData[i] /= float(iTo-iFrom);
 
@@ -222,15 +225,15 @@ void TransferFunction1D::Resample(size_t iTargetSize) {
     for (size_t i = 0;i<vTmpColorData.size();i++) {
       float fPos = float(i) * float(iSourceSize-1)/float(iTargetSize);
       size_t iFloor = size_t(floor(fPos));
-      size_t iCeil  = std::min(iFloor+1, vColorData.size()-1);
+      size_t iCeil  = std::min(iFloor+1, m_pvColorData->size()-1);
       float fInterp = fPos - float(iFloor);
 
-      vTmpColorData[i] = vColorData[iFloor] * (1-fInterp) + vColorData[iCeil] * fInterp;
+      vTmpColorData[i] = (*m_pvColorData)[iFloor] * (1-fInterp) + (*m_pvColorData)[iCeil] * fInterp;
     }
 
   }
 
-  vColorData = vTmpColorData;
+  *m_pvColorData = vTmpColorData;
   ComputeNonZeroLimits();
 }
 
@@ -280,11 +283,11 @@ bool TransferFunction1D::Load(std::istream& tf) {
     T_ERROR("Size information invalid.");
     return false;
   }
-  vColorData.resize(iSize);
+  m_pvColorData->resize(iSize);
 
-  for(size_t i=0;i<vColorData.size();++i){
+  for(size_t i=0;i<m_pvColorData->size();++i){
     for(size_t j=0;j<4;++j){
-      tf >> vColorData[i][j];
+      tf >> (*m_pvColorData)[i][j];
     }
   }
 
@@ -293,11 +296,11 @@ bool TransferFunction1D::Load(std::istream& tf) {
 
 
 bool TransferFunction1D::Save(std::ostream& file) const {
-  file << vColorData.size() << endl;
+  file << m_pvColorData->size() << endl;
 
-  for(size_t i=0;i<vColorData.size();++i){
+  for(size_t i=0;i<m_pvColorData->size();++i){
     for(size_t j=0;j<4;++j){
-      file << vColorData[i][j] << " ";
+      file << (*m_pvColorData)[i][j] << " ";
     }
     file << endl;
   }
@@ -308,16 +311,16 @@ bool TransferFunction1D::Save(std::ostream& file) const {
 void TransferFunction1D::GetByteArray(std::vector<unsigned char>& vData,
                                       unsigned char cUsedRange) const {
   // bail out immediately if we've got no data
-  if(vColorData.empty()) { return; }
+  if(m_pvColorData->empty()) { return; }
 
-  vData.resize(vColorData.size() * 4);
+  vData.resize(m_pvColorData->size() * 4);
 
   unsigned char *pcDataIterator = &vData.at(0);
-  for (size_t i = 0;i<vColorData.size();i++) {
-    unsigned char r = (unsigned char)(std::max(0.0f,std::min(vColorData[i][0],1.0f))*cUsedRange);
-    unsigned char g = (unsigned char)(std::max(0.0f,std::min(vColorData[i][1],1.0f))*cUsedRange);
-    unsigned char b = (unsigned char)(std::max(0.0f,std::min(vColorData[i][2],1.0f))*cUsedRange);
-    unsigned char a = (unsigned char)(std::max(0.0f,std::min(vColorData[i][3],1.0f))*cUsedRange);
+  for (size_t i = 0;i<m_pvColorData->size();i++) {
+    unsigned char r = (unsigned char)(std::max(0.0f,std::min((*m_pvColorData)[i][0],1.0f))*cUsedRange);
+    unsigned char g = (unsigned char)(std::max(0.0f,std::min((*m_pvColorData)[i][1],1.0f))*cUsedRange);
+    unsigned char b = (unsigned char)(std::max(0.0f,std::min((*m_pvColorData)[i][2],1.0f))*cUsedRange);
+    unsigned char a = (unsigned char)(std::max(0.0f,std::min((*m_pvColorData)[i][3],1.0f))*cUsedRange);
 
     *pcDataIterator++ = r;
     *pcDataIterator++ = g;
@@ -329,16 +332,16 @@ void TransferFunction1D::GetByteArray(std::vector<unsigned char>& vData,
 void TransferFunction1D::GetShortArray(unsigned short** psData,
                                        unsigned short sUsedRange) const {
   // bail out immediately if we've got no data
-  if(vColorData.empty()) { return; }
+  if(m_pvColorData->empty()) { return; }
 
-  if (*psData == NULL) *psData = new unsigned short[vColorData.size()*4];
+  if (*psData == NULL) *psData = new unsigned short[m_pvColorData->size()*4];
 
   unsigned short *psDataIterator = *psData;
-  for (size_t i = 0;i<vColorData.size();i++) {
-    unsigned short r = (unsigned short)(std::max(0.0f,std::min(vColorData[i][0],1.0f))*sUsedRange);
-    unsigned short g = (unsigned short)(std::max(0.0f,std::min(vColorData[i][1],1.0f))*sUsedRange);
-    unsigned short b = (unsigned short)(std::max(0.0f,std::min(vColorData[i][2],1.0f))*sUsedRange);
-    unsigned short a = (unsigned short)(std::max(0.0f,std::min(vColorData[i][3],1.0f))*sUsedRange);
+  for (size_t i = 0;i<m_pvColorData->size();i++) {
+    unsigned short r = (unsigned short)(std::max(0.0f,std::min((*m_pvColorData)[i][0],1.0f))*sUsedRange);
+    unsigned short g = (unsigned short)(std::max(0.0f,std::min((*m_pvColorData)[i][1],1.0f))*sUsedRange);
+    unsigned short b = (unsigned short)(std::max(0.0f,std::min((*m_pvColorData)[i][2],1.0f))*sUsedRange);
+    unsigned short a = (unsigned short)(std::max(0.0f,std::min((*m_pvColorData)[i][3],1.0f))*sUsedRange);
 
     *psDataIterator++ = r;
     *psDataIterator++ = g;
@@ -349,20 +352,32 @@ void TransferFunction1D::GetShortArray(unsigned short** psData,
 
 void TransferFunction1D::GetFloatArray(float** pfData) const {
   // bail out immediately if we've got no data
-  if(vColorData.empty()) { return; }
+  if(m_pvColorData->empty()) { return; }
 
-  if (*pfData == NULL) *pfData = new float[4*vColorData.size()];
-  memcpy(*pfData, &pfData[0], sizeof(float)*4*vColorData.size());
+  if (*pfData == NULL) *pfData = new float[4*m_pvColorData->size()];
+  memcpy(*pfData, &pfData[0], sizeof(float)*4*m_pvColorData->size());
 }
 
 
 void TransferFunction1D::ComputeNonZeroLimits() {
-  m_vValueBBox = UINT64VECTOR2(uint64_t(vColorData.size()),0);
+  m_vValueBBox = UINT64VECTOR2(uint64_t(m_pvColorData->size()),0);
 
-  for (size_t i = 0;i<vColorData.size();i++) {
-    if (vColorData[i][3] != 0) {
+  for (size_t i = 0;i<m_pvColorData->size();i++) {
+    if ((*m_pvColorData)[i][3] != 0) {
       m_vValueBBox.x = MIN(m_vValueBBox.x, i);
       m_vValueBBox.y = i;
     }
   }
+}
+
+std::shared_ptr<std::vector<FLOATVECTOR4> > TransferFunction1D::GetColorData() {
+  return m_pvColorData;
+}
+
+FLOATVECTOR4 TransferFunction1D::GetColor(size_t index) const {
+  return (*m_pvColorData)[index];
+}
+
+void TransferFunction1D::SetColor(size_t index, FLOATVECTOR4 color) {
+  (*m_pvColorData)[index] = color;
 }

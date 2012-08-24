@@ -76,8 +76,8 @@ protected:
       size_t targetPos = 4 * sourcePos;
 
       size_t lookupVal = std::min(size_t(pData[sourcePos]*fRescale),
-                                  pTrans->vColorData.size()-1);
-      FLOATVECTOR4 fvColor = pTrans->vColorData[lookupVal];
+                                  pTrans->GetSize()-1);
+      FLOATVECTOR4 fvColor = pTrans->GetColor(lookupVal);
 
       pCharInterpOfData[targetPos+0] = (unsigned char)(fvColor.x*255);
       pCharInterpOfData[targetPos+1] = (unsigned char)(fvColor.y*255);
