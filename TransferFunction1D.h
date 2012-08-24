@@ -41,6 +41,7 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 #include "StdTuvokDefines.h"
 #include "Basics/Vectors.h"
 #include "Basics/Grids.h"
