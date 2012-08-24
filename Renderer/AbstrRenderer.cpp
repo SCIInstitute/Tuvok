@@ -63,6 +63,13 @@ using namespace tuvok;
 
 static bool unregistered = true;
 
+static const FLOATVECTOR3 s_vEye(0,0,1.6f);
+static const FLOATVECTOR3 s_vAt(0,0,0);
+static const FLOATVECTOR3 s_vUp(0,1,0);
+static const float s_fFOV = 50.0f;
+static const float s_fZNear = 0.01f;
+static const float s_fZFar = 1000.0f;
+
 AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
                              bool bUseOnlyPowerOfTwo, 
                              bool bDownSampleTo8Bits,
@@ -145,12 +152,13 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_bClipPlaneOn(false),
   m_bClipPlaneDisplayed(true),
   m_bClipPlaneLocked(true),
-  m_vEye(0,0,1.6f),
-  m_vAt(0,0,0),
-  m_vUp(0,1,0),
-  m_fFOV(50.0f),
-  m_fZNear(0.01f),
-  m_fZFar(1000.0f),
+  m_vEye(s_vEye),
+  m_vAt(s_vAt),
+  m_vUp(s_vUp),
+  m_fFOV(s_fFOV),
+  m_fZNear(s_fZNear),
+  m_fZFar(s_fZFar),
+  m_bFirstPersonMode(false),
   simpleRenderRegion3D(this),
   m_cAmbient(1.0f,1.0f,1.0f,0.1f),
   m_cDiffuse(1.0f,1.0f,1.0f,1.0f),
@@ -1571,6 +1579,50 @@ void AbstrRenderer::RegisterCalls(Scripting* eng) {
   unregistered = false;
 }
 
+void AbstrRenderer::SetViewPos(const FLOATVECTOR3& vPos) {
+  m_vAt += vPos-m_vEye;
+  m_vEye = vPos;
+  this->ScheduleCompleteRedraw();
+}
+
+FLOATVECTOR3 AbstrRenderer::GetViewPos() const {
+  return m_vEye;
+}
+
+void AbstrRenderer::ResetViewPos() {
+  m_vAt  = s_vAt;
+  m_vEye = s_vEye;
+  this->ScheduleCompleteRedraw();
+}
+
+void AbstrRenderer::SetViewDir(const FLOATVECTOR3& vDir) {
+  m_vAt = vDir+m_vEye;
+  this->ScheduleCompleteRedraw();
+}
+
+FLOATVECTOR3 AbstrRenderer::GetViewDir() const {
+  return (m_vAt-m_vEye).normalized();
+}
+
+void AbstrRenderer::ResetViewDir() {
+  m_vAt  = s_vAt;
+  this->ScheduleCompleteRedraw();
+}
+
+void AbstrRenderer::SetUpDir(const FLOATVECTOR3& vDir) {
+  m_vUp = vDir;
+  this->ScheduleCompleteRedraw();
+}
+
+FLOATVECTOR3 AbstrRenderer::GetUpDir() const {
+  return m_vUp.normalized();
+}
+
+void AbstrRenderer::ResetUpDir() {
+  m_vUp  = s_vUp;
+  this->ScheduleCompleteRedraw();
+}
+
 bool AbstrRenderer::Execute(const std::string& strCommand,
                             const std::vector<std::string>& strParams,
                             std::string& strMessage)
@@ -1687,12 +1739,46 @@ void AbstrRenderer::RegisterLuaFunctions(
                     "Renderer target specifies the interaction mode. "
                     "The two basic modes are interactive (standard ImageVis3D "
                     "mode), and high quality capture mode.", false);
-
   id = reg.function(&AbstrRenderer::SetRendererTarget,
                     "setRendererTarget",
                     "Specifies the renderer target. See getRendererTarget.",
                     true);
-
+  id = reg.function(&AbstrRenderer::SetViewPos,
+                    "setViewPos",
+                    "Set the camera's position",
+                    true);
+  id = reg.function(&AbstrRenderer::GetViewPos,
+                    "getViewPos",
+                    "Retrieve the camera's position",
+                    false);
+  id = reg.function(&AbstrRenderer::ResetViewPos,
+                    "resetViewPos",
+                    "Reset the camera's position",
+                    false);
+  id = reg.function(&AbstrRenderer::SetViewDir,
+                    "setViewDir",
+                    "Set the camera's viewing direction",
+                    true);
+  id = reg.function(&AbstrRenderer::GetViewDir,
+                    "getViewDir",
+                    "Retrieve the camera's viewing direction",
+                    false);
+  id = reg.function(&AbstrRenderer::ResetViewDir,
+                    "resetViewDir",
+                    "Reset the camera's direction",
+                    false);
+  id = reg.function(&AbstrRenderer::SetUpDir,
+                    "setUpDir",
+                    "Set the camera's up direction",
+                    true);
+  id = reg.function(&AbstrRenderer::GetUpDir,
+                    "getUpDir",
+                    "Retrieve the camera's up direction",
+                    false);
+  id = reg.function(&AbstrRenderer::ResetUpDir,
+                    "resetUpDir",
+                    "Reset the camera's up direction",
+                    false);
   id = reg.function(&AbstrRenderer::SetRendermode,
                     "setRenderMode",
                     "Set the render mode (1D transfer function, 2D transfer "

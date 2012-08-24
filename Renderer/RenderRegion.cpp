@@ -102,7 +102,6 @@ void RenderRegion::defineLuaInterface(LuaClassRegistration<RenderRegion>& reg,
                     "getSliceDepth",
                     "Retrieves the slice depth.",
                     false);
-
   id = reg.function(&RenderRegion::luaSetClipPlane,
                     "setClipPlane",
                     "Sets the arbitrary clipping plane against which to clip "

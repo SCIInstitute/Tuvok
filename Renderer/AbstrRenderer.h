@@ -478,6 +478,16 @@ class AbstrRenderer: public Scriptable {
       m_vShaderSearchDirs.insert(m_vShaderSearchDirs.begin(), path);
     }
 
+    void SetViewPos(const FLOATVECTOR3& vPos);
+    FLOATVECTOR3 GetViewPos() const;
+    void ResetViewPos();
+    void SetViewDir(const FLOATVECTOR3& vDir);
+    FLOATVECTOR3 GetViewDir() const;
+    void ResetViewDir();
+    void SetUpDir(const FLOATVECTOR3& vDir);
+    FLOATVECTOR3 GetUpDir() const;
+    void ResetUpDir();
+
     void SetViewParameters(float angle, float znear, float zfar,
                            const FLOATVECTOR3& eye,
                            const FLOATVECTOR3& ref,
@@ -542,6 +552,7 @@ class AbstrRenderer: public Scriptable {
         LuaClassRegistration<AbstrRenderer>&,
         LuaScripting*) 
     {}
+
 
   protected:
     /// Unsets the current transfer function, including deleting it from GPU
@@ -689,6 +700,7 @@ class AbstrRenderer: public Scriptable {
     FLOATVECTOR3        m_vEye, m_vAt, m_vUp;
     float               m_fFOV;
     float               m_fZNear, m_fZFar;
+    bool                m_bFirstPersonMode;
     ///@}
 
     std::vector<RenderRegion*> renderRegions;
