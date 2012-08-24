@@ -84,7 +84,12 @@ void LuaTransferFun1DProxy::bind(TransferFunction1D* tf)
                              false);
     id = mReg->functionProxy(tf, &TransferFunction1D::SetColor,
                              "setColor", "Sets the color at 'index'.",
-                             false);
+                             true);
+
+    /// @todo In order for provenance to work, we need to always call SetColor
+    ///       or have another function that sets all of the color data at once
+    ///       (setting all of the color data at once is the more efficient route
+    ///        and would transfer into a Lua setting quite easily).
   }
 }
 
@@ -95,5 +100,37 @@ void LuaTransferFun1DProxy::defineLuaInterface(
     LuaScripting*)
 {
   me->mReg = new LuaClassRegistration<LuaTransferFun1DProxy>(reg);
+
+  /// @todo Determine if the following function should be provenance enabled.
+  reg.function(&LuaTransferFun1DProxy::proxyLoadWithFilenameAndSize,
+               "loadFromFileWithSize", "Loads 'file' into the 1D "
+               " transfer function with 'size'.", false);
+  /// @todo Determine if the following function should be provenance enabled.
+  reg.function(&LuaTransferFun1DProxy::proxySetStdFunction,
+               "setStdFunction", "", true);
+  reg.function(&LuaTransferFun1DProxy::proxySave,
+               "save", "", false);
 }
 
+//------------------------------------------------------------------------------
+bool LuaTransferFun1DProxy::proxyLoadWithFilenameAndSize(
+    const std::string& file, size_t size)
+{
+  if (m1DTrans == NULL) return false;
+  return m1DTrans->Load(file, size);
+}
+
+//------------------------------------------------------------------------------
+void LuaTransferFun1DProxy::proxySetStdFunction(
+    float centerPoint, float invGradient, float component, bool invertedStep)
+{
+  if (m1DTrans == NULL) return;
+  m1DTrans->SetStdFunction(centerPoint, invGradient, component, invertedStep);
+}
+
+//------------------------------------------------------------------------------
+bool LuaTransferFun1DProxy::proxySave(const std::string& filename) const
+{
+  if (m1DTrans == NULL) return false;
+  return m1DTrans->Save(filename);
+}
