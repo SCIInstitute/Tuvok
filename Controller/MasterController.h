@@ -232,6 +232,14 @@ private:
       const FLOATVECTOR4& vfColor,
       const std::string& strTargetFilename,
       const std::string& strTempDir) const;
+
+  //bool IOProxyExtractImageStack(
+  //    LuaClassInstance ds,
+  //    const TransferFunction1D* pTrans,
+  //    uint64_t iLODlevel, 
+  //    const std::string& strTargetFilename,
+  //    const std::string& strTempDir,
+  //    bool bAllDirs) const;
   /// @}
 
 private:

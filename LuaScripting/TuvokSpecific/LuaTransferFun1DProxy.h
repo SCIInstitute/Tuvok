@@ -54,11 +54,17 @@ public:
                                  LuaTransferFun1DProxy* me,
                                  LuaScripting* ss);
 
+  /// Transfer function pointer retrieval. 
+  TransferFunction1D* get1DTransferFunction() {return m1DTrans;}
+
 private:
 
   /// Class registration we received from defineLuaInterface.
   /// @todo Change to unique pointer.
-  LuaClassRegistration<LuaTransferFun1DProxy>* mReg;
+  LuaClassRegistration<LuaTransferFun1DProxy>*  mReg;
+
+  /// The 1D transfer function that we represent.
+  TransferFunction1D*                           m1DTrans;
 };
 
 } // namespace tuvok

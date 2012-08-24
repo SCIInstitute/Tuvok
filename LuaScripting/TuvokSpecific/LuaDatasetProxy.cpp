@@ -71,10 +71,9 @@ void LuaDatasetProxy::bind(Dataset* ds, shared_ptr<LuaScripting> ss)
 
   mReg->clearProxyFunctions();
 
+  mDS = ds;
   if (ds != NULL)
   {
-    mDS = ds;
-
     // Register dataset functions using ds.
     string id;
 

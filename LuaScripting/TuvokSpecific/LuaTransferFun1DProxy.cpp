@@ -43,8 +43,9 @@ using namespace tuvok;
 
 //------------------------------------------------------------------------------
 LuaTransferFun1DProxy::LuaTransferFun1DProxy()
+  : mReg(NULL),
+    m1DTrans(NULL)
 {
-  mReg = NULL;
 }
 
 //------------------------------------------------------------------------------
@@ -63,12 +64,27 @@ void LuaTransferFun1DProxy::bind(TransferFunction1D* tf)
 
   mReg->clearProxyFunctions();
 
+  m1DTrans = tf;
   if (tf != NULL)
   {
     // Register TransferFunction1D functions using tf.
     std::string id;
     id = mReg->functionProxy(tf, &TransferFunction1D::GetSize,
-                             "getSize", "", true);
+                             "getSize", "", false);
+    /// Note: Lua could accept the vector<FLOATVECTOR4> datatype, mutate it,
+    /// and return it back to the transfer function.
+    id = mReg->functionProxy(tf, &TransferFunction1D::GetColorData,
+                             "getColorData", "Retrieves mutable color data. "
+                             "This function is for C++ use only, to change "
+                             "xfer function data in Lua, use getColor and "
+                             "setColor.",
+                             false);
+    id = mReg->functionProxy(tf, &TransferFunction1D::GetColor,
+                             "getColor", "Retrieves the color at 'index'.",
+                             false);
+    id = mReg->functionProxy(tf, &TransferFunction1D::SetColor,
+                             "setColor", "Sets the color at 'index'.",
+                             false);
   }
 }
 
