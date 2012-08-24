@@ -1737,8 +1737,11 @@ void AbstrRenderer::RegisterLuaFunctions(
                     true);
 
   id = reg.function(&AbstrRenderer::SupportsClearView,
-                    "doesSupportClearView", "Returns true if clear view is "
+                    "supportsClearView", "Returns true if clear view is "
                     "supported by this renderer instance.", false);
+  id = reg.function(&AbstrRenderer::SupportsMeshes,
+                    "supportsMeshes", "Returns true if meshes are supported "
+                    "by this renderer.", false);
 
   id = reg.function(&AbstrRenderer::SetCV, "setClearViewEnabled",
                     "Enables/Disables clear view.", true);
@@ -1928,6 +1931,8 @@ void AbstrRenderer::RegisterLuaFunctions(
                     "setDatasetIsInvalid", "", true);
   id = reg.function(&AbstrRenderer::RemoveMeshData,
                     "removeMeshData", "", true);
+  id = reg.function(&AbstrRenderer::ScanForNewMeshes,
+                    "scanForNewMeshes", "", true);
 
 
 

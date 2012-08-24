@@ -84,6 +84,8 @@ void LuaDatasetProxy::bind(Dataset* ds, shared_ptr<LuaScripting> ss)
                              "getNumberOfTimesteps", "", false);
     id = mReg->functionProxy(ds, &Dataset::GetMeshes,
                              "getMeshes", "", false);
+    id = mReg->functionProxy(ds, &Dataset::GetBitWidth,
+                             "getBitWidth", "", false);
     // We do NOT want the return values from GetMeshes stuck in the provenance
     // system (Okay, so the provenance system doesn't store return values, just
     // function parameters. But it's best to be safe).
@@ -100,9 +102,13 @@ void LuaDatasetProxy::bind(Dataset* ds, shared_ptr<LuaScripting> ss)
     UVFDataset* uvfDataset = dynamic_cast<UVFDataset*>(ds);
     if (uvfDataset != NULL)
     {
+      mDatasetType = UVF;
+
       id = mReg->functionProxy(fileDataset, &UVFDataset::RemoveMesh,
                                "removeMesh", "", true);
-      mDatasetType = UVF;
+      id = mReg->functionProxy(ds, &UVFDataset::AppendMesh,
+                               "appendMesh", "", false);
+      ss->setProvenanceExempt(id);
     }
   }
 
