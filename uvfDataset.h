@@ -170,7 +170,7 @@ public:
   virtual bool SaveRescaleFactors();
   virtual bool Crop( const PLANE<float>& plane, const std::string& strTempDir, bool bKeepOldData);
 
-  bool AppendMesh(const Mesh& m);
+  bool AppendMesh(std::shared_ptr<const Mesh> m);
   bool RemoveMesh(size_t iMeshIndex);
   bool GeometryTransformToFile(size_t iMeshIndex, const FLOATMATRIX4& m);
 

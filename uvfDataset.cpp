@@ -1334,7 +1334,9 @@ bool UVFDataset::RemoveMesh(size_t iMeshIndex) {
   }
 }
 
-bool UVFDataset::AppendMesh(const Mesh& m) {
+bool UVFDataset::AppendMesh(std::shared_ptr<const Mesh> meshIn) {
+  const Mesh& m = *meshIn;
+
   Close();
 
   MESSAGE("Attempting to reopen file in readwrite mode.");
