@@ -263,6 +263,7 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
      << "              out vec3 poolEntryCoords, out vec3 poolExitCoords," << std::endl
      << "              out vec3 normExitCoords, out bool bEmpty," << std::endl
      << "              out vec3 normToPoolScale, out vec3 normToPoolTrans) {" << std::endl
+     << "  normEntryCoords = clamp(normEntryCoords, 0.0, 1.0);" << std::endl
      << "  bool bFoundRequestedResolution = true;" << std::endl
      << "  uvec4 brickCoords = ComputeBrickCoords(normEntryCoords, iLOD);" << std::endl
      << "  uint  brickInfo   = GetBrickInfo(brickCoords);" << std::endl
