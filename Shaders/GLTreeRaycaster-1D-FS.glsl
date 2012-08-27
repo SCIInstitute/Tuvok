@@ -114,10 +114,10 @@ void main()
 
       if (!bEmpty) {
         // prepare the traversal
-        int iSteps = int(length(poolExitCoords-poolEntryCoords)/stepSize)+1;
+        int iSteps = int(ceil(length(poolExitCoords-poolEntryCoords)/stepSize));
 
         // compute opacity correction factor
-        float ocFactor = 1.0 / sampleRateModifier;
+        float ocFactor = exp2(iLOD) / sampleRateModifier;
 
         // now raycast through this brick
         vec3 currentPoolCoords = poolEntryCoords;
