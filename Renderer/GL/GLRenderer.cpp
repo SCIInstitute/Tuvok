@@ -50,6 +50,7 @@
 #include "IO/FileBackedDataset.h"
 #include "IO/TransferFunction1D.h"
 #include "IO/TransferFunction2D.h"
+#include "IO/IOManager.h"
 #include "Renderer/Context.h"
 #include "Renderer/SBVRGeogen.h"
 #include "Renderer/GPUMemMan/GPUMemMan.h"
@@ -2933,7 +2934,7 @@ bool GLRenderer::CropDataset(const std::string& strTempDir, bool bKeepOldData) {
   // get rid of the viewing transformation in the plane
   p.Transform(trans.inverse(),false);
 
-  if (!m_pDataset->Crop(p.Plane(),strTempDir,bKeepOldData)) return false;
+  if (!m_pDataset->Crop(p.Plane(),strTempDir,bKeepOldData, m_pMasterController->IOMan()->GetUseMedianFilter())) return false;
 
   FileBackedDataset* fbd = dynamic_cast<FileBackedDataset*>(m_pDataset);
   if (NULL != fbd)
