@@ -43,7 +43,7 @@ public:
       m_History.pop_front();
     }
     if (!m_History.empty()) {
-      std::deque<T>::iterator i = m_History.begin();
+      auto i = m_History.begin();
       m_Min = *i; // min in avg interval
       m_Max = *i; // max in avg interval
       for (; i != m_History.end(); ++i) {
