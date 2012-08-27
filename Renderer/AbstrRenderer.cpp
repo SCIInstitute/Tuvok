@@ -1626,6 +1626,7 @@ void AbstrRenderer::ResetUpDir() {
 
 void AbstrRenderer::SetDebugView(bool bDebugView) {
   m_bDebugView = bDebugView;
+  this->ScheduleCompleteRedraw();
 }
 
 bool AbstrRenderer::GetDebugView() const {
