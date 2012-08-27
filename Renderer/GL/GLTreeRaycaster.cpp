@@ -34,7 +34,7 @@ GLTreeRaycaster::GLTreeRaycaster(MasterController* pMasterController,
                          bool bUseOnlyPowerOfTwo, 
                          bool bDownSampleTo8Bits, 
                          bool bDisableBorder, 
-                         bool bNoRCClipplanes) :
+                         bool) :
   GLRenderer(pMasterController,
              bUseOnlyPowerOfTwo, 
              bDownSampleTo8Bits, 
@@ -50,9 +50,10 @@ GLTreeRaycaster::GLTreeRaycaster(MasterController* pMasterController,
   m_pToCDataset(NULL),
   m_bConverged(true),
   m_pFBODebug(NULL),
-  m_bNoRCClipplanes(bNoRCClipplanes)
+  m_pFBODebugNext(NULL),
+  m_FrameTimes(100)
 {
-  // a member of the parent class, henced it's initialized here
+  // a member of the parent class, hence it's initialized here
   m_bSupportsMeshes = false;
 
   std::fill(m_pFBOStartColor.begin(), m_pFBOStartColor.end(), (GLFBOTex*)NULL);
@@ -204,6 +205,7 @@ void GLTreeRaycaster::Cleanup() {
   std::for_each(m_pFBOStartColorNext.begin(), m_pFBOStartColorNext.end(), deleteFBO);
 
   deleteFBO(m_pFBODebug);
+  deleteFBO(m_pFBODebugNext);
 
   delete m_pBBoxVBO;
   m_pBBoxVBO = NULL;
@@ -256,6 +258,7 @@ void GLTreeRaycaster::CreateOffscreenBuffers() {
       bind(recreateFBO, _1, m_pContext ,m_vWinSize, intformat, GL_RGBA, type));
 
     recreateFBO(m_pFBODebug, m_pContext ,m_vWinSize, intformat, GL_RGBA, type);
+    recreateFBO(m_pFBODebugNext, m_pContext ,m_vWinSize, intformat, GL_RGBA, type);
   }
 }
 
@@ -380,180 +383,7 @@ bool GLTreeRaycaster::LoadShaders() {
 
 
   return true;
-/*
-  const char* shaderNames[7];
-  if (m_bNoRCClipplanes) {
-   shaderNames[0] = "GLTreeRaycaster-1D-FS-NC.glsl";
-   shaderNames[1] = "GLTreeRaycaster-1D-light-FS-NC.glsl";
-   shaderNames[2] = "GLTreeRaycaster-2D-FS-NC.glsl";
-   shaderNames[3] = "GLTreeRaycaster-2D-light-FS-NC.glsl";
-   shaderNames[4] = "GLTreeRaycaster-Color-FS-NC.glsl";
-   shaderNames[5] = "GLTreeRaycaster-ISO-CV-FS-NC.glsl";
-   shaderNames[6] = "GLTreeRaycaster-ISO-FS-NC.glsl";
-  } else {
-   shaderNames[0] = "GLTreeRaycaster-1D-FS.glsl";
-   shaderNames[1] = "GLTreeRaycaster-1D-light-FS.glsl";
-   shaderNames[2] = "GLTreeRaycaster-2D-FS.glsl";
-   shaderNames[3] = "GLTreeRaycaster-2D-light-FS.glsl";
-   shaderNames[4] = "GLTreeRaycaster-Color-FS.glsl";
-   shaderNames[5] = "GLTreeRaycaster-ISO-CV-FS.glsl";
-   shaderNames[6] = "GLTreeRaycaster-ISO-FS.glsl";
-  }
-
-  std::string tfqn = m_pDataset
-                     ? (m_pDataset->GetComponentCount() == 3 ||
-                        m_pDataset->GetComponentCount() == 4)
-                        ? "VRender1D-Color"
-                        : "VRender1D"
-                     : "VRender1D";
-
-  const std::string tfqnLit = m_pDataset
-                           ? (m_pDataset->GetComponentCount() == 3 ||
-                              m_pDataset->GetComponentCount() == 4)
-                              ? "VRender1DLit-Color.glsl"
-                              : "VRender1DLit.glsl"
-                           : "VRender1DLit.glsl";
-  const std::string bias = tfqn + "-BScale.glsl";
-  tfqn += ".glsl";
-
-  if(!LoadAndVerifyShader(&m_pProgramRenderFrontFaces, m_vShaderSearchDirs,
-                          "GLTreeRaycaster-VS.glsl",
-                          NULL,
-                          "GLTreeRaycaster-frontfaces-FS.glsl", NULL) ||
-     !LoadAndVerifyShader(&m_pProgramRenderFrontFacesNT, m_vShaderSearchDirs,
-                          "GLTreeRaycasterNoTransform-VS.glsl",
-                          NULL,
-                          "GLTreeRaycaster-frontfaces-FS.glsl", NULL) ||
-     !LoadAndVerifyShader(&m_pProgram1DTrans[0], m_vShaderSearchDirs,
-                          "GLTreeRaycaster-VS.glsl",
-                          NULL,
-                          "Compositing.glsl",   // UnderCompositing
-                          "clip-plane.glsl",    // ClipByPlane
-                          "Volume3D.glsl",      // SampleVolume
-                          tfqn.c_str(),         // VRender1D
-                          bias.c_str(),
-                          "VRender1DProxy.glsl",
-                          shaderNames[0],  NULL) ||
-     !LoadAndVerifyShader(&m_pProgram1DTrans[1], m_vShaderSearchDirs,
-                          "GLTreeRaycaster-VS.glsl",
-                          NULL,
-                          "Compositing.glsl",   // UnderCompositing
-                          "clip-plane.glsl",    // ClipByPlane
-                          "Volume3D.glsl",      // SampleVolume
-                          "lighting.glsl",      // Lighting
-                          tfqnLit.c_str(),      // VRender1DLit
-                          shaderNames[1], NULL) ||
-     !LoadAndVerifyShader(&m_pProgram2DTrans[0], m_vShaderSearchDirs,
-                          "GLTreeRaycaster-VS.glsl",
-                          NULL,
-                          "Compositing.glsl",   // UnderCompositing
-                          "clip-plane.glsl",    // ClipByPlane
-                          "Volume3D.glsl",      // SampleVolume, ComputeGradient
-                          shaderNames[2], NULL) ||
-     !LoadAndVerifyShader(&m_pProgram2DTrans[1], m_vShaderSearchDirs,
-                          "GLTreeRaycaster-VS.glsl",
-                          NULL,
-                          "Compositing.glsl",   // UnderCompositing
-                          "clip-plane.glsl",    // ClipByPlane
-                          "Volume3D.glsl",      // SampleVolume, ComputeGradient
-                          "lighting.glsl",      // Lighting
-                          shaderNames[3], NULL) ||
-     !LoadAndVerifyShader(&m_pProgramIso, m_vShaderSearchDirs,
-                          "GLTreeRaycaster-VS.glsl",
-                          NULL,
-                          "clip-plane.glsl",       // ClipByPlane
-                          "RefineIsosurface.glsl", // RefineIsosurface
-                          "Volume3D.glsl",        // SampleVolume, ComputeNormal
-                          shaderNames[6], NULL) ||
-     !LoadAndVerifyShader(&m_pProgramColor, m_vShaderSearchDirs,
-                          "GLTreeRaycaster-VS.glsl",
-                          NULL,
-                          "clip-plane.glsl",       // ClipByPlane
-                          "RefineIsosurface.glsl", // RefineIsosurface
-                          "Volume3D.glsl",        // SampleVolume, ComputeNormal
-                          shaderNames[4], NULL) ||
-     !LoadAndVerifyShader(&m_pProgramIso2, m_vShaderSearchDirs,
-                          "GLTreeRaycaster-VS.glsl",
-                          NULL,
-                          "clip-plane.glsl",       // ClipByPlane
-                          "RefineIsosurface.glsl", // RefineIsosurface
-                          "Volume3D.glsl",        // SampleVolume, ComputeNormal
-                          shaderNames[5], NULL) ||
-     !LoadAndVerifyShader(&m_pProgramHQMIPRot, m_vShaderSearchDirs,
-                          "GLTreeRaycaster-VS.glsl",
-                          NULL,
-                          "Volume3D.glsl",      // SampleVolume
-                          "GLTreeRaycaster-MIP-Rot-FS.glsl",
-                          NULL))
-  {
-      Cleanup();
-      T_ERROR("Error loading a shader.");
-      return false;
-  } else {
-    m_pProgram1DTrans[0]->ConnectTextureID("texVolume",0);
-    m_pProgram1DTrans[0]->ConnectTextureID("texTrans",1);
-    m_pProgram1DTrans[0]->ConnectTextureID("texRayExitPos",2);
-
-    m_pProgram1DTrans[1]->ConnectTextureID("texVolume",0);
-    m_pProgram1DTrans[1]->ConnectTextureID("texTrans",1);
-    m_pProgram1DTrans[1]->ConnectTextureID("texRayExitPos",2);
-
-    m_pProgram2DTrans[0]->ConnectTextureID("texVolume",0);
-    m_pProgram2DTrans[0]->ConnectTextureID("texTrans",1);
-    m_pProgram2DTrans[0]->ConnectTextureID("texRayExitPos",2);
-
-    m_pProgram2DTrans[1]->ConnectTextureID("texVolume",0);
-    m_pProgram2DTrans[1]->ConnectTextureID("texTrans",1);
-    m_pProgram2DTrans[1]->ConnectTextureID("texRayExitPos",2);
-
-    FLOATVECTOR2 vParams = m_FrustumCullingLOD.GetDepthScaleParams();
-
-    m_pProgramIso->ConnectTextureID("texVolume",0);
-    m_pProgramIso->ConnectTextureID("texRayExitPos",2);
-    m_pProgramIso->Set("vProjParam",vParams.x, vParams.y);
-    m_pProgramIso->Set("iTileID", 1); // just to make sure it is never 0
-
-    m_pProgramColor->ConnectTextureID("texVolume",0);
-    m_pProgramColor->ConnectTextureID("texRayExitPos",2);
-    m_pProgramColor->Set("vProjParam",vParams.x, vParams.y);
-
-    m_pProgramHQMIPRot->ConnectTextureID("texVolume",0);
-    m_pProgramHQMIPRot->ConnectTextureID("texRayExitPos",2);
-
-    m_pProgramIso2->ConnectTextureID("texVolume",0);
-    m_pProgramIso2->ConnectTextureID("texRayExitPos",2);
-    m_pProgramIso2->ConnectTextureID("texLastHit",4);
-    m_pProgramIso2->ConnectTextureID("texLastHitPos",5);
-
-    UpdateLightParamsInShaders();
-
-    /// We always clip against the plane in the shader, so initialize the plane
-    /// to be way out in left field, ensuring nothing will be clipped.
-    ClipPlaneToShader(ExtendedPlane::FarawayPlane(),0,true);
-    return true;
-  }
-  */
 }
-
-void GLTreeRaycaster::SetDataDepShaderVars() {
-/*  GLRenderer::SetDataDepShaderVars();
-  if (m_eRenderMode == RM_ISOSURFACE && m_bDoClearView) {
-    m_pProgramIso2->Enable();
-    m_pProgramIso2->Set("fIsoval", static_cast<float>
-                                                (GetNormalizedCVIsovalue()));
-  }
-
-  if(m_eRenderMode == RM_1DTRANS && m_TFScalingMethod == SMETH_BIAS_AND_SCALE) {
-    std::pair<float,float> bias_scale = scale_bias_and_scale(*m_pDataset);
-    MESSAGE("setting TF bias (%5.3f) and scale (%5.3f)", bias_scale.first,
-            bias_scale.second);
-    m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Enable();
-    m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Set("TFuncBias", bias_scale.first);
-    m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Set("fTransScale", bias_scale.second);
-  }
-  */
-}
-
 
 FLOATMATRIX4 GLTreeRaycaster::ComputeEyeToModelMatrix(const RenderRegion &renderRegion,
                                                       EStereoID eStereoID) const {
@@ -583,11 +413,11 @@ bool GLTreeRaycaster::Continue3DDraw() {
 }
 
 void GLTreeRaycaster::FillRayEntryBuffer(RenderRegion3D& rr, EStereoID eStereoID) {
-  m_TargetBinder.Bind(m_pFBOStartColor[size_t(eStereoID)]);
+
+  m_TargetBinder.Bind(m_pFBODebug, m_pFBODebugNext, m_pFBOStartColor[size_t(eStereoID)], m_pFBORayStart[size_t(eStereoID)]);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   m_TargetBinder.Bind(m_pFBORayStart[size_t(eStereoID)]);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // render nearplane into buffer
   GPUState localState = m_BaseState;
@@ -661,7 +491,7 @@ void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
   m_TargetBinder.Bind(m_pFBO3DImageNext[size_t(eStereoID)],                      
                       m_pFBOStartColorNext[size_t(eStereoID)],
                       m_pFBORayStartNext[size_t(eStereoID)],
-                      m_pFBODebug);
+                      m_pFBODebugNext);
 
   m_pFBORayStart[size_t(eStereoID)]->Read(0);
   m_pFBOStartColor[size_t(eStereoID)]->Read(1);
@@ -676,6 +506,7 @@ void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
   m_pVolumePool->Enable(m_FrustumCullingLOD.GetLoDFactor(), 
                         vExtend, vScale, m_pProgramRayCast1D); // bound to 3 and 4
   m_pglHashTable->Enable(); // bound to 5
+  m_pFBODebug->Read(6);
 
   // set shader parameters (shader is already enabled by m_pVolumePool->Enable)
   m_pProgramRayCast1D->Enable();
@@ -705,6 +536,7 @@ void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
   // unbind input textures
   m_pFBORayStart[size_t(eStereoID)]->FinishRead();
   m_pFBOStartColor[size_t(eStereoID)]->FinishRead();
+  m_pFBODebug->FinishRead();
 
   // done rendering for now
   m_TargetBinder.Unbind();
@@ -712,9 +544,7 @@ void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
   // swap current and next resume color
   std::swap(m_pFBOStartColorNext[size_t(eStereoID)], m_pFBOStartColor[size_t(eStereoID)]);
   std::swap(m_pFBORayStartNext[size_t(eStereoID)], m_pFBORayStart[size_t(eStereoID)]);
-
-  if (m_bDebugView) 
-    std::swap(m_pFBODebug, m_pFBO3DImageNext[size_t(eStereoID)]);
+  std::swap(m_pFBODebugNext, m_pFBODebug);
 }
 
 bool GLTreeRaycaster::CheckForRedraw() {
@@ -803,14 +633,22 @@ bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
 
   // upload missing bricks
   if (!m_bConverged) {
-//    MESSAGE("Last rendering pass was missing %i brick(s), paging in now...", int(hash.size()));
+    //    MESSAGE("Last rendering pass was missing %i brick(s), paging in now...", int(hash.size()));
     UpdateToVolumePool(hash);
+#if 0
     float fMsecPassed = float(m_Timer.Elapsed());
     OTHER("The current subframe took %g ms to render (%g sFPS)", fMsecPassed, 1000./fMsecPassed);
+#endif
+    m_iSubFrames++;
   } else {
 //    MESSAGE("All bricks rendered, frame complete.");
     float fMsecPassed = float(m_Timer.Elapsed());
-    OTHER("The total frame took %g ms to render (%g FPS)", fMsecPassed, 1000./fMsecPassed);
+    m_FrameTimes.Push(fMsecPassed);
+    OTHER("The total frame (with %d subframes) took %.2f ms to render (%.2f FPS)\t[avg: %.2f, min: %.2f, max: %.2f, samples: %d]", m_iSubFrames, fMsecPassed, 1000./fMsecPassed, m_FrameTimes.GetAvg(), m_FrameTimes.GetMin(), m_FrameTimes.GetMax(), m_FrameTimes.GetHistroryLength());
+    m_iSubFrames = 0;
+
+    if (m_bDebugView)
+      std::swap(m_pFBODebug, m_pFBO3DImageNext[size_t(eStereoID)]);
   }
 
 

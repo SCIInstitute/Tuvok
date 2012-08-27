@@ -7,6 +7,7 @@ layout(binding=2) uniform sampler1D transferFunction;
 // 3 is volume pool metadata (inside volume pool)
 // 4 is volume pool (inside volume pool)
 // 5 is hastable (inside hash table)
+layout(binding=6) uniform sampler2D debugColor;
 
 // get pixel coordinates
 layout(pixel_center_integer) in vec4 gl_FragCoord;
@@ -52,7 +53,7 @@ void main()
   ivec2 screenpos = ivec2(gl_FragCoord.xy);
   accRayColor     = texelFetch(rayStartColor, screenpos,0);
   rayResumeColor  = accRayColor;
-  debugFBO = vec4(1., 0., 0., 1.);
+  debugFBO        = texelFetch(debugColor, screenpos,0);
     
   // fetch ray entry from texture and get ray exit point from vs-shader
   rayResumePos = texelFetch(rayStartPoint, screenpos,0);
@@ -145,7 +146,10 @@ void main()
 
           // advance ray
           currentPoolCoords += voxelSpaceDirection;
-          debugFBO.b += 0.01;
+          if (bOptimalResolution) {
+            debugFBO.r += 0.01;
+            debugFBO.w = 1;
+          }
         }
 
         currentPos = (currentPoolCoords-normToPoolTrans)/normToPoolScale;
@@ -164,10 +168,10 @@ void main()
         return;
       }
 
-      if (!bEmpty) 
-        debugFBO.r += 0.1;
-      else
+      if (bEmpty && bOptimalResolution) {
         debugFBO.g += 0.1;
+        debugFBO.w = 1;
+      }
 
     }
   }

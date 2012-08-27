@@ -5,6 +5,7 @@
 
 #include "../../StdTuvokDefines.h"
 #include "GLRenderer.h"
+#include "AvgMinMaxTracker.h"
 
 class ExtendedPlane;
 
@@ -64,7 +65,12 @@ namespace tuvok {
       GLSLProgram*    m_pProgramRayCast1D;
       UVFDataset*     m_pToCDataset;
       bool            m_bConverged;
+
+      // the following are for debug only
       GLFBOTex*       m_pFBODebug;
+      GLFBOTex*       m_pFBODebugNext;
+      AvgMinMaxTracker<float> m_FrameTimes;
+      uint32_t        m_iSubFrames;
 
       /** Loads GLSL vertex and fragment shaders. */
       virtual bool LoadShaders();
@@ -106,13 +112,6 @@ namespace tuvok {
 
       virtual void SetRescaleFactors(const DOUBLEVECTOR3& vfRescale);
       void CreateVBO();
-
-      // all functions below are not "guaranteed" yet
-      // (ask Jens if you want to know what that means :-)
-
-      bool            m_bNoRCClipplanes;
-
-      virtual void SetDataDepShaderVars();
 
   };
 } // tuvok namespace.

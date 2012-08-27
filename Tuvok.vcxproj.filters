@@ -1947,6 +1947,9 @@
     <ClInclude Include="LuaScripting\TuvokSpecific\LuaTransferFun2DProxy.h">
       <Filter>LuaScripting\TuvokSpecific</Filter>
     </ClInclude>
+    <ClInclude Include="Basics\AvgMinMaxTracker.h">
+      <Filter>Basics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Basics\MC.inl">

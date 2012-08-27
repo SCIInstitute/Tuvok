@@ -1270,6 +1270,7 @@
     <ClInclude Include="3rdParty\LUA\lzio.h" />
     <ClInclude Include="Basics\Appendix.h" />
     <ClInclude Include="Basics\ArcBall.h" />
+    <ClInclude Include="Basics\AvgMinMaxTracker.h" />
     <ClInclude Include="Basics\Console.h" />
     <ClInclude Include="Basics\DynamicDX.h" />
     <ClInclude Include="Basics\EndianConvert.h" />

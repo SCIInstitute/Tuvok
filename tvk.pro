@@ -108,6 +108,7 @@ HEADERS += \
            Basics/TuvokException.h \
            Basics/Vectors.h \
            Basics/nonstd.h \
+           Basics/AvgMinMaxTracker.h \
            Controller/Controller.h \
            Controller/MasterController.h \
            DebugOut/AbstrDebugOut.h \
