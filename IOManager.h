@@ -287,6 +287,9 @@ public:
   void SetUseMedianFilter(bool bUseMedianFilter) {
     m_bUseMedianFilter = bUseMedianFilter;
   }
+  bool GetUseMedianFilter() const {
+    return m_bUseMedianFilter;
+  }
 
 private:
   std::vector<tuvok::AbstrGeoConverter*> m_vpGeoConverters;
