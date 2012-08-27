@@ -161,7 +161,7 @@ public:
                                     tuvok::AbstrRenderer* requester,
                                     const bool bQuantizeTo8Bit=false) const {
     return ConvertDataset(pStack, strTargetFilename, strTempDir, requester,
-                          m_iMaxBrickSize, m_iBrickOverlap, bQuantizeTo8Bit);
+                          m_iBuilderBrickSize, m_iBrickOverlap, bQuantizeTo8Bit);
   }
   tuvok::UVFDataset* ConvertDataset(const std::string& strFilename,
                                     const std::string& strTargetFilename,
@@ -169,13 +169,13 @@ public:
                                     tuvok::AbstrRenderer* requester,
                                     const bool bQuantizeTo8Bit=false) {
     return ConvertDataset(strFilename, strTargetFilename, strTempDir, requester,
-                          m_iMaxBrickSize, m_iBrickOverlap,bQuantizeTo8Bit);
+                          m_iBuilderBrickSize, m_iBrickOverlap,bQuantizeTo8Bit);
   }
   bool ConvertDataset(FileStackInfo* pStack,
                       const std::string& strTargetFilename,
                       const std::string& strTempDir,
                       const bool bQuantizeTo8Bit=false) const{
-    return ConvertDataset(pStack, strTargetFilename, strTempDir, m_iMaxBrickSize,
+    return ConvertDataset(pStack, strTargetFilename, strTempDir, m_iBuilderBrickSize,
                           m_iBrickOverlap, bQuantizeTo8Bit);
   }
   bool ConvertDataset(const std::string& strFilename,
@@ -184,7 +184,7 @@ public:
                       const bool bNoUserInteraction=false,
                       const bool bQuantizeTo8Bit=false) const {
     return ConvertDataset(strFilename, strTargetFilename, strTempDir,
-                          bNoUserInteraction, m_iMaxBrickSize, m_iBrickOverlap,
+                          bNoUserInteraction, m_iBuilderBrickSize, m_iBrickOverlap,
                           bQuantizeTo8Bit);
   }
   bool ConvertDataset(const std::list<std::string>& files,
@@ -193,14 +193,14 @@ public:
                       const bool bNoUserInteraction=false,
                       const bool bQuantizeTo8Bit=false) const {
     return ConvertDataset(files, strTargetFilename, strTempDir, bNoUserInteraction,
-                          m_iMaxBrickSize,m_iBrickOverlap, bQuantizeTo8Bit);
+                          m_iBuilderBrickSize,m_iBrickOverlap, bQuantizeTo8Bit);
   }
   bool ReBrickDataset(const std::string& strSourceFilename,
                       const std::string& strTargetFilename,
                       const std::string& strTempDir,
                       bool bQuantizeTo8Bit=false) const {
     return ReBrickDataset(strSourceFilename, strTargetFilename, strTempDir,
-                          m_iMaxBrickSize,m_iBrickOverlap,bQuantizeTo8Bit);
+                          m_iBuilderBrickSize,m_iBrickOverlap,bQuantizeTo8Bit);
   }
 
   std::shared_ptr<tuvok::Mesh> LoadMesh(const std::string& meshfile) const;
@@ -277,11 +277,16 @@ public:
 
 
   uint64_t GetMaxBrickSize() const {return m_iMaxBrickSize;}
+  uint64_t GetBuilderBrickSize() const {return m_iBuilderBrickSize;}
   uint64_t GetBrickOverlap() const {return m_iBrickOverlap;}
   uint64_t GetIncoresize() const {return m_iIncoresize;}
 
-  bool SetMaxBrickSize(const uint64_t iMaxBrickSize);
+  bool SetMaxBrickSize(const uint64_t iMaxBrickSize, const uint64_t iBuilderBrickSize);
   bool SetBrickOverlap(const uint64_t iBrickOverlap);
+
+  void SetUseMedianFilter(bool bUseMedianFilter) {
+    m_bUseMedianFilter = bUseMedianFilter;
+  }
 
 private:
   std::vector<tuvok::AbstrGeoConverter*> m_vpGeoConverters;
@@ -290,8 +295,10 @@ private:
   std::auto_ptr<tuvok::io::DSFactory> m_dsFactory;
 
   uint64_t m_iMaxBrickSize;
+  uint64_t m_iBuilderBrickSize;
   uint64_t m_iBrickOverlap;
   uint64_t m_iIncoresize;
+  bool m_bUseMedianFilter;
   std::function<tuvok::Dataset* (const std::string&,
                                  tuvok::AbstrRenderer*)> m_LoadDS;
 

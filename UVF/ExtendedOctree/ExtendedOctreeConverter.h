@@ -167,7 +167,8 @@ public:
     @param targetFile the target file for the processed data
     @param iOutOffset bytes to precede the data in the target file
     @param stats pointer to a vector to store the statistics of each brick, can be set to NULL to disable statistics computation
-    @param compression the desired compression method, defaults to none (=CT_NONE)
+    @param compression the desired compression method, defaults to none
+    @param use median as downsampling filter (uses average otherwise), defaults to true
     @return true if the conversion succeeded, the main reason for failure would be a disk I/O issue
   */
   bool Convert(const std::string& filename, uint64_t iOffset,
@@ -175,8 +176,9 @@ public:
                uint64_t iComponentCount, const UINT64VECTOR3& vVolumeSize,
                const DOUBLEVECTOR3& vVolumeAspect,
                const std::string& targetFile, uint64_t iOutOffset,
-               BrickStatVec* stats = NULL,
-               COMPORESSION_TYPE compression=CT_NONE);
+               BrickStatVec* stats,
+               COMPORESSION_TYPE compression,
+               bool bComputeMedian);
 
   /**
     This call starts the conversion process of a simple linear file of raw volume
@@ -191,7 +193,8 @@ public:
     @param pLargeRAWOutFile a large raw-file pointer to the target file for the processed data
     @param iOutOffset bytes to precede the data in the target file
     @param stats pointer to a vector to store the statistics of each brick, can be set to NULL to disable statistics computation
-    @param compression the desired compression method, defaults to none (=CT_NONE)
+    @param compression the desired compression method, defaults to none
+    @param bComputeMedian use median as downsampling filter (uses average otherwise), defaults to true
     @return  true if the conversion succeeded, the main reason for failure would be a disk I/O issue
   */
   bool Convert(LargeRAWFile_ptr pLargeRAWFile, uint64_t iOffset,
@@ -199,8 +202,9 @@ public:
                uint64_t iComponentCount, const UINT64VECTOR3& vVolumeSize,
                const DOUBLEVECTOR3& vVolumeAspect,
                LargeRAWFile_ptr pLargeRAWOutFile, uint64_t iOutOffset,
-               BrickStatVec* stats = NULL,
-               COMPORESSION_TYPE compression= CT_NONE);
+               BrickStatVec* stats,
+               COMPORESSION_TYPE compression,
+               bool bComputeMedian);
   /**
     Call this method from a second thread during the conversion to check on the progress of the operation
   */
@@ -524,7 +528,7 @@ private:
     @param sourceCoords brick coordinates of the source brick
     @param targetOffset coordinates were to place the down-sampled data in the target brick
   */
-  template<class T> void DownsampleBricktoBrick(ExtendedOctree &tree, T* pData,
+  template<class T, bool bComputeMedian> void DownsampleBricktoBrick(ExtendedOctree &tree, T* pData,
                                                 const UINT64VECTOR3& targetSize,
                                                 T* pSourceData,
                                                 const UINT64VECTOR4& sourceCoords,
@@ -540,7 +544,7 @@ private:
     @param pData pointer to hold the temp data during the downsampling process
     @param pSourceData pointer to hold the temp data during the downsampling process
   */
-  template<class T> void DownsampleBrick(ExtendedOctree &tree,
+  template<class T, bool bComputeMedian> void DownsampleBrick(ExtendedOctree &tree,
                                          const UINT64VECTOR4& vBrickCoords,
                                          T* pData, T* pSourceData);
 
@@ -550,7 +554,7 @@ private:
 
     @param tree target extended octree
   */
-  template<class T> void ComputeHierarchy(ExtendedOctree &tree);
+  template<class T, bool bComputeMedian> void ComputeHierarchy(ExtendedOctree &tree);
 
 
   /**

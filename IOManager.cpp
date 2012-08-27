@@ -140,7 +140,9 @@ IOManager::IOManager() :
   m_pFinalConverter(NULL),
   m_dsFactory(new io::DSFactory()),
   m_iMaxBrickSize(DEFAULT_BRICKSIZE),
+  m_iBuilderBrickSize(DEFAULT_BUILDER_BRICKSIZE),
   m_iBrickOverlap(DEFAULT_BRICKOVERLAP),
+  m_bUseMedianFilter(true),
   m_iIncoresize(m_iMaxBrickSize*m_iMaxBrickSize*m_iMaxBrickSize),
   m_LoadDS(NULL)
 {
@@ -489,6 +491,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
                                         ]->m_strFileName
                                       ),
                                       iMaxBrickSize, iBrickOverlap,
+                                      m_bUseMedianFilter,
                                       UVFTables::ES_UNDEFINED,
                                       0, bQuantizeTo8Bit
                                      );
@@ -555,7 +558,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
                                       iSize, pStack->m_fvfAspect,
                                       "Image stack",
                                       first_fn + " to " + last_fn,
-                                      iMaxBrickSize, iBrickOverlap);
+                                      iMaxBrickSize, iBrickOverlap, m_bUseMedianFilter);
 
     if(remove(strTempMergeFilename.c_str()) != 0) {
       WARNING("Unable to remove temp file %s", strTempMergeFilename.c_str());
@@ -996,7 +999,7 @@ bool IOManager::MergeDatasets(const vector <string>& strFilenames,
         size_t(iComponentSizeG), iComponentCountG, timesteps, bConvertEndianessG,
         bSignedG, bIsFloatG, vVolumeSizeG, vVolumeAspectG, strTitleG,
         SysTools::GetFilename(strMergedFile), m_iMaxBrickSize,
-        m_iBrickOverlap);
+        m_iBrickOverlap, m_bUseMedianFilter);
   } else {
     for (size_t k = 0;k<m_vpConverters.size();k++) {
       const vector<string>& vStrSupportedExtTarget =
@@ -1064,7 +1067,7 @@ bool IOManager::ConvertDataset(const list<string>& files,
   // performance across brick sizes.  However it's completely ridiculous in
   // actual use, and catches a confusing bug if you forget an argument in the
   // API call (which still compiles due to default arguments!).
-  assert(iMaxBrickSize >= 2 &&
+  assert(iMaxBrickSize >= 8 &&
          "Incredibly small bricks -- are you sure?");
 
   /// @todo verify the list of files is `compatible':
@@ -1087,7 +1090,7 @@ bool IOManager::ConvertDataset(const list<string>& files,
 
       if((*conv)->ConvertToUVF(files, strTargetFilename, strTempDir,
                                bNoUserInteraction, iMaxBrickSize, iBrickOverlap,
-                               bQuantizeTo8Bit)) {
+                               m_bUseMedianFilter,bQuantizeTo8Bit)) {
         return true;
       } else {
         WARNING("Converter %s can read files, but conversion failed!",
@@ -1102,7 +1105,7 @@ bool IOManager::ConvertDataset(const list<string>& files,
       return m_pFinalConverter->ConvertToUVF(files, strTargetFilename,
                                              strTempDir, bNoUserInteraction,
                                              iMaxBrickSize, iBrickOverlap,
-                                             bQuantizeTo8Bit);
+                                             m_bUseMedianFilter, bQuantizeTo8Bit);
     } else {
       return false;
     }
@@ -2638,15 +2641,16 @@ void IOManager::AddMesh(const UVF* sourceDataset,
   uvfFile.Close();
 }
 
-bool IOManager::SetMaxBrickSize(const uint64_t iMaxBrickSize) {
-  if (iMaxBrickSize > m_iBrickOverlap) {
+bool IOManager::SetMaxBrickSize(const uint64_t iMaxBrickSize, const uint64_t iBuilderBrickSize) {
+  if (iMaxBrickSize > m_iBrickOverlap && iBuilderBrickSize > m_iBrickOverlap) {
     m_iMaxBrickSize = iMaxBrickSize;
+    m_iBuilderBrickSize = iBuilderBrickSize;
     return true;
   } else return false;
 }
 
 bool IOManager::SetBrickOverlap(const uint64_t iBrickOverlap) {
-  if (m_iMaxBrickSize > iBrickOverlap) {
+  if (m_iMaxBrickSize > iBrickOverlap && m_iBuilderBrickSize > m_iBrickOverlap) {
     m_iBrickOverlap = iBrickOverlap;
     return true;
   } else return false;

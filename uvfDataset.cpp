@@ -1419,7 +1419,7 @@ bool UVFDataset::AppendMesh(std::shared_ptr<const Mesh> meshIn) {
 
 
 bool UVFDataset::Crop(const PLANE<float>& plane, const std::string& strTempDir,
-                      bool bKeepOldData)
+                      bool bKeepOldData, bool bUseMedianFilter)
 {
   MESSAGE("Flattening dataset");
   string strTempRawFilename = SysTools::FindNextSequenceName(
@@ -1510,7 +1510,7 @@ bool UVFDataset::Crop(const PLANE<float>& plane, const std::string& strTempDir,
       size_t(GetComponentCount()), 1, !IsSameEndianness(), GetIsSigned(),
       GetIsFloat(), GetDomainSize(), FLOATVECTOR3(GetScale()), strDesc,
       strSource, Controller::Instance().IOMan()->GetMaxBrickSize(),
-      Controller::Instance().IOMan()->GetBrickOverlap())) {
+      Controller::Instance().IOMan()->GetBrickOverlap(), bUseMedianFilter)) {
     T_ERROR("Unable to convert cropped data back to UVF");
     return false;
   }

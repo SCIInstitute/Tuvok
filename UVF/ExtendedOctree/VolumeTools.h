@@ -56,57 +56,85 @@ namespace VolumeTools {
 
 
   /**
-   Computes the mean value (a+b)/2 of a and b
-   intermediate computations are carried out in F (usually double) precision to
+   Computes the mean value ( (a+b)/2) of a and b or the median (just picking a) 
+   the mean computations is carried out in F (usually double) precision to
    avoid clamping and-or quantization. This function is used when neighbors in
    two dimensions are missing
    
-   @param a value to be averaged
-   @param b value to be averaged
-   @return the average/mean of values a and b
+   @param a value to be filterd
+   @param b value to be filterd
+   @return the Filter/mean of values a and b
    */
-   template<typename T, typename F> T Average(T a, T b) {
-    return T((F(a) + F(b)) / 2.0);
+   template<typename T, typename F, bool bComputeMedian> T Filter(T a, T b) {
+    if (bComputeMedian) 
+      return a;
+    else
+      return T((F(a) + F(b)) / F(2));
   }
   
   /**
-   Computes the mean value of inputs a to d
+   Computes the mean or the median value of inputs a to d for the mean computation
    intermediate computations are carried out in F (usually double) precision to
    avoid clamping and-or quantization. This function is used when neighbors in
    one dimension are missing
    
-   @param a value to be averaged
-   @param b value to be averaged
-   @param c value to be averaged
-   @param d value to be averaged
-   @return the average/mean of values a to d
+   @param a value to be filterd
+   @param b value to be filterd
+   @param c value to be filterd
+   @param d value to be filterd
+   @return the Filter/mean of values a to d
   */
-   template<typename T, typename F> T Average(T a, T b, T c, T d) {
-    return T((F(a) + F(b) + F(c) + F(d)) / 4.0);
+   template<typename T, typename F, bool bComputeMedian> T Filter(T a, T b, T c, T d) {
+    if (bComputeMedian) {
+      if (a > b) std::swap(a,b);
+      if (c > d) std::swap(c,d);
+      if (a > c) {
+        std::swap(a,c);
+        std::swap(b,d);
+      }
+
+      return c;
+      /*
+      // to return always the 2nd out of 4 include the follwoing code
+      // but as we don't care íf we get the 2nd or 3rd value we skip it
+
+      if (b > d) 
+        return c;
+      else 
+        return min(b,c);
+      */
+
+    } else
+      return T((F(a) + F(b) + F(c) + F(d)) / F(4));
   }
   
   /**
-   Computes the mean value of inputs a to h
+   Computes the mean or median value of inputs a to h for the mean computation
    intermediate computations are carried out in F (usually double) precision to
    avoid clamping and-or quantization. This function is used for the majority
    of values when downsampling the bricks, only when no neighbors are present
-   in one or multiple directions are the other Average functions (with 4
+   in one or multiple directions are the other Filter functions (with 4
    and 2 parameters) called
    
-   @param a value to be averaged
-   @param b value to be averaged
-   @param c value to be averaged
-   @param d value to be averaged
-   @param e value to be averaged
-   @param f value to be averaged
-   @param g value to be averaged
-   @param h value to be averaged
-   @return the average/mean of values a to h
+   @param a value to be filterd
+   @param b value to be filterd
+   @param c value to be filterd
+   @param d value to be filterd
+   @param e value to be filterd
+   @param f value to be filterd
+   @param g value to be filterd
+   @param h value to be filterd
+   @return the Filter/mean of values a to h
    */
-   template<typename T, typename F> T Average(T a, T b, T c, T d, 
-                                                     T e, T f, T g, T h) {
-    return T((F(a) + F(b) + F(c) + F(d) +
-              F(e) + F(f) + F(g) + F(h)) / 8.0);
+   template<typename T, typename F, bool bComputeMedian> T Filter(T a, T b, T c, T d, 
+                                                                  T e, T f, T g, T h) {
+    if (bComputeMedian) {
+      T elems[8] = {a,b,c,d,e,f,g,h};
+      std::nth_element (elems, elems+3, elems+8);
+      return elems[3];
+   } else
+      return T((F(a) + F(b) + F(c) + F(d) +
+                F(e) + F(f) + F(g) + F(h)) / F(8));
   }
 
   template<typename T> void ComputeGradientVolumeFloat(T* pSourceData, T* pTargetData, const UINT64VECTOR3& vVolumeSize) {

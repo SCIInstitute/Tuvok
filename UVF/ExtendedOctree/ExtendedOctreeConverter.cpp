@@ -41,7 +41,8 @@ bool ExtendedOctreeConverter::Convert(const std::string& filename,
                                       const std::string& targetFilename,
                                       uint64_t iOutOffset,
                                       BrickStatVec* stats,
-                                      COMPORESSION_TYPE compression) {
+                                      COMPORESSION_TYPE compression,
+                                      bool bComputeMedian) {
   LargeRAWFile_ptr inFile(new LargeRAWFile(filename));
   LargeRAWFile_ptr outFile(new LargeRAWFile(targetFilename));
 
@@ -54,7 +55,7 @@ bool ExtendedOctreeConverter::Convert(const std::string& filename,
   }
 
   return Convert(inFile, iOffset, eComponentType, iComponentCount, vVolumeSize,
-                 vVolumeAspect, outFile, iOutOffset, stats, compression);
+                 vVolumeAspect, outFile, iOutOffset, stats, compression, bComputeMedian);
 }
 
 /*
@@ -80,7 +81,8 @@ bool ExtendedOctreeConverter::Convert(LargeRAWFile_ptr pLargeRAWFileIn,
                                       LargeRAWFile_ptr pLargeRAWFileOut,
                                       uint64_t iOutOffset,
                                       BrickStatVec* stats,
-                                      COMPORESSION_TYPE compression) {
+                                      COMPORESSION_TYPE compression,
+                                      bool bComputeMedian) {
   m_pBrickStatVec = stats;
   m_fProgress = 0; // TODO: do something smart with the progress
 
@@ -105,39 +107,73 @@ bool ExtendedOctreeConverter::Convert(LargeRAWFile_ptr pLargeRAWFileIn,
   PermuteInputData(e, pLargeRAWFileIn, iInOffset);
 
   // compute hierarchy
-  switch (e.m_eComponentType) {
-    case ExtendedOctree::CT_UINT8:
-      ComputeHierarchy<uint8_t>(e);
-      break;
-    case ExtendedOctree::CT_UINT16:
-      ComputeHierarchy<uint16_t>(e);
-      break;
-    case ExtendedOctree::CT_UINT32:
-      ComputeHierarchy<uint32_t>(e);
-      break;
-    case ExtendedOctree::CT_UINT64:
-      ComputeHierarchy<uint64_t>(e);
-      break;
-    case ExtendedOctree::CT_INT8:
-      ComputeHierarchy<int8_t>(e);
-      break;
-    case ExtendedOctree::CT_INT16:
-      ComputeHierarchy<int16_t>(e);
-      break;
-    case ExtendedOctree::CT_INT32:
-      ComputeHierarchy<int32_t>(e);
-      break;
-    case ExtendedOctree::CT_INT64:
-      ComputeHierarchy<int64_t>(e);
-      break;
-    case ExtendedOctree::CT_FLOAT32:
-      ComputeHierarchy<float>(e);
-      break;
-    case ExtendedOctree::CT_FLOAT64:
-      ComputeHierarchy<double>(e);
-      break;
+  if (bComputeMedian)  {
+    switch (e.m_eComponentType) {
+      case ExtendedOctree::CT_UINT8:
+        ComputeHierarchy<uint8_t, true>(e);
+        break;
+      case ExtendedOctree::CT_UINT16:
+        ComputeHierarchy<uint16_t, true>(e);
+        break;
+      case ExtendedOctree::CT_UINT32:
+        ComputeHierarchy<uint32_t, true>(e);
+        break;
+      case ExtendedOctree::CT_UINT64:
+        ComputeHierarchy<uint64_t, true>(e);
+        break;
+      case ExtendedOctree::CT_INT8:
+        ComputeHierarchy<int8_t, true>(e);
+        break;
+      case ExtendedOctree::CT_INT16:
+        ComputeHierarchy<int16_t, true>(e);
+        break;
+      case ExtendedOctree::CT_INT32:
+        ComputeHierarchy<int32_t, true>(e);
+        break;
+      case ExtendedOctree::CT_INT64:
+        ComputeHierarchy<int64_t, true>(e);
+        break;
+      case ExtendedOctree::CT_FLOAT32:
+        ComputeHierarchy<float, true>(e);
+        break;
+      case ExtendedOctree::CT_FLOAT64:
+        ComputeHierarchy<double, true>(e);
+        break;
+    }
+  } else {
+    switch (e.m_eComponentType) {
+      case ExtendedOctree::CT_UINT8:
+        ComputeHierarchy<uint8_t, false>(e);
+        break;
+      case ExtendedOctree::CT_UINT16:
+        ComputeHierarchy<uint16_t, false>(e);
+        break;
+      case ExtendedOctree::CT_UINT32:
+        ComputeHierarchy<uint32_t, false>(e);
+        break;
+      case ExtendedOctree::CT_UINT64:
+        ComputeHierarchy<uint64_t, false>(e);
+        break;
+      case ExtendedOctree::CT_INT8:
+        ComputeHierarchy<int8_t, false>(e);
+        break;
+      case ExtendedOctree::CT_INT16:
+        ComputeHierarchy<int16_t, false>(e);
+        break;
+      case ExtendedOctree::CT_INT32:
+        ComputeHierarchy<int32_t, false>(e);
+        break;
+      case ExtendedOctree::CT_INT64:
+        ComputeHierarchy<int64_t, false>(e);
+        break;
+      case ExtendedOctree::CT_FLOAT32:
+        ComputeHierarchy<float, false>(e);
+        break;
+      case ExtendedOctree::CT_FLOAT64:
+        ComputeHierarchy<double, false>(e);
+        break;
+    }
   }
-
   // add header to file
   e.WriteHeader(pLargeRAWFileOut, iOutOffset);
 
@@ -167,7 +203,7 @@ void ExtendedOctreeConverter::GetInputBrick(std::vector<uint8_t>& vData,
   uint64_t iBricksSize = (tree.m_vTOC.end()-1)->m_iLength;
   if (vData.size() != size_t(iBricksSize)) vData.resize(size_t(iBricksSize));
 
-  // zero out the data (this makes sure boundaries are zero
+  // zero out the data (this makes sure boundaries are zero)
   memset (&vData[0],0,size_t(iBricksSize));
 
   uint64_t iVoxelSize = tree.GetComponentTypeSize() * tree.GetComponentCount();

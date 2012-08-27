@@ -1,4 +1,4 @@
-template<class T> void ExtendedOctreeConverter::DownsampleBricktoBrick(ExtendedOctree &tree, T* pData,
+template<class T, bool bComputeMedian> void ExtendedOctreeConverter::DownsampleBricktoBrick(ExtendedOctree &tree, T* pData,
                                               const UINT64VECTOR3& targetSize,
                                               T* pSourceData,
                                               const UINT64VECTOR4& sourceCoords,
@@ -37,9 +37,9 @@ template<class T> void ExtendedOctreeConverter::DownsampleBricktoBrick(ExtendedO
 
       for (uint64_t x = 0;x<evenSizeX;x++) {
         for (uint32_t c = 0;c<iCompCount;c++) {
-          T Average = VolumeTools::Average<T, double>(*(p0+c), *(p1+c), *(p2+c), *(p3+c),
+          T filtered = VolumeTools::Filter<T, double, bComputeMedian>(*(p0+c), *(p1+c), *(p2+c), *(p3+c),
                                                            *(p4+c), *(p5+c), *(p6+c), *(p7+c));
-          *(pTargetData+c) = Average;
+          *(pTargetData+c) = filtered;
         }
         p0+=2*iCompCount;
         p1+=2*iCompCount;
@@ -76,8 +76,8 @@ template<class T> void ExtendedOctreeConverter::DownsampleBricktoBrick(ExtendedO
                                 );
 
         for (uint32_t c = 0;c<iCompCount;c++) {
-          T Average = VolumeTools::Average<T, double>(*(p0+c), *(p1+c), *(p2+c), *(p3+c));
-          *(pTargetData+c) = Average;
+          T filtered = VolumeTools::Filter<T, double, bComputeMedian>(*(p0+c), *(p1+c), *(p2+c), *(p3+c));
+          *(pTargetData+c) = filtered;
         }
       }
     }
@@ -103,8 +103,8 @@ template<class T> void ExtendedOctreeConverter::DownsampleBricktoBrick(ExtendedO
 
       for (uint64_t x = 0;x<evenSizeX;x++) {
         for (uint32_t c = 0;c<iCompCount;c++) {
-          T Average = VolumeTools::Average<T, double>(*(p0+c), *(p1+c), *(p4+c), *(p5+c));
-          *(pTargetData+c) = Average;
+          T filtered = VolumeTools::Filter<T, double, bComputeMedian>(*(p0+c), *(p1+c), *(p4+c), *(p5+c));
+          *(pTargetData+c) = filtered;
         }
         p0+=2*iCompCount;
         p1+=2*iCompCount;
@@ -135,8 +135,8 @@ template<class T> void ExtendedOctreeConverter::DownsampleBricktoBrick(ExtendedO
 
       for (uint64_t x = 0;x<evenSizeX;x++) {
         for (uint32_t c = 0;c<iCompCount;c++) {
-          T Average = VolumeTools::Average<T, double>(*(p0+c), *(p2+c), *(p4+c), *(p6+c));
-          *(pTargetData+c) = Average;
+          T filtered = VolumeTools::Filter<T, double, bComputeMedian>(*(p0+c), *(p2+c), *(p4+c), *(p6+c));
+          *(pTargetData+c) = filtered;
         }
         p0+=2*iCompCount;
         p2+=2*iCompCount;
@@ -164,8 +164,8 @@ template<class T> void ExtendedOctreeConverter::DownsampleBricktoBrick(ExtendedO
                               );
 
       for (uint32_t c = 0;c<iCompCount;c++) {
-        T Average = VolumeTools::Average<T, double>(*(p0+c), *(p1+c));
-        *(pTargetData+c) = Average;
+        T filtered = VolumeTools::Filter<T, double, bComputeMedian>(*(p0+c), *(p1+c));
+        *(pTargetData+c) = filtered;
       }
     }
   }
@@ -186,8 +186,8 @@ template<class T> void ExtendedOctreeConverter::DownsampleBricktoBrick(ExtendedO
 
     for (uint64_t x = 0;x<evenSizeX;x++) {
       for (uint32_t c = 0;c<iCompCount;c++) {
-        T Average = VolumeTools::Average<T, double>(*(p0+c), *(p4+c));
-        *(pTargetData+c) = Average;
+        T filtered = VolumeTools::Filter<T, double, bComputeMedian>(*(p0+c), *(p4+c));
+        *(pTargetData+c) = filtered;
       }
       p0+=2*iCompCount;
       p4+=2*iCompCount;
@@ -211,8 +211,8 @@ template<class T> void ExtendedOctreeConverter::DownsampleBricktoBrick(ExtendedO
                               +  (evenSizeZ+m_iOverlap+targetOffset.z)*targetSize.x*targetSize.y
                               );
       for (uint32_t c = 0;c<iCompCount;c++) {
-        T Average = VolumeTools::Average<T, double>(*(p0+c), *(p2+c));
-        *(pTargetData+c) = Average;
+        T filtered = VolumeTools::Filter<T, double, bComputeMedian>(*(p0+c), *(p2+c));
+        *(pTargetData+c) = filtered;
       }
     }
   }
@@ -235,7 +235,7 @@ template<class T> void ExtendedOctreeConverter::DownsampleBricktoBrick(ExtendedO
   }
 }
 
-template<class T> void ExtendedOctreeConverter::DownsampleBrick(ExtendedOctree &tree, const UINT64VECTOR4& vBrickCoords, T* pData, T* pSourceData) {
+template<class T, bool bComputeMedian> void ExtendedOctreeConverter::DownsampleBrick(ExtendedOctree &tree, const UINT64VECTOR4& vBrickCoords, T* pData, T* pSourceData) {
 
   const UINT64VECTOR3& vTargetBricksize = tree.ComputeBrickSize(vBrickCoords);
   const uint64_t iUncompressedBrickSize = vTargetBricksize.volume() * tree.GetComponentTypeSize() * tree.GetComponentCount();
@@ -254,57 +254,57 @@ template<class T> void ExtendedOctreeConverter::DownsampleBrick(ExtendedOctree &
                              uint64_t(ceil((tree.m_iBrickSize.y-2*m_iOverlap)/2.0)),
                              uint64_t(ceil((tree.m_iBrickSize.z-2*m_iOverlap)/2.0)));
 
-  // read up to eight bricks and average them into the one brick
+  // read up to eight bricks and filter them into the one brick
   UINT64VECTOR4 sourceIndex(vBrickCoords.x*2, vBrickCoords.y*2, vBrickCoords.z*2, vBrickCoords.w-1);
   UINT64VECTOR3 targetOffset(0,0,0);
-  DownsampleBricktoBrick<T>(tree, pData, vTargetBricksize, pSourceData, sourceIndex, targetOffset);
+  DownsampleBricktoBrick<T, bComputeMedian>(tree, pData, vTargetBricksize, pSourceData, sourceIndex, targetOffset);
 
   if (bHasBrickRight) {
     sourceIndex = UINT64VECTOR4(vBrickCoords.x*2+1, vBrickCoords.y*2, vBrickCoords.z*2, vBrickCoords.w-1);
     targetOffset = UINT64VECTOR3(splitPos.x,0,0);
-    DownsampleBricktoBrick<T>(tree, pData, vTargetBricksize, pSourceData, sourceIndex, targetOffset);
+    DownsampleBricktoBrick<T, bComputeMedian>(tree, pData, vTargetBricksize, pSourceData, sourceIndex, targetOffset);
   }
 
   if (bHasBrickBottom) {
     sourceIndex = UINT64VECTOR4(vBrickCoords.x*2, vBrickCoords.y*2+1, vBrickCoords.z*2, vBrickCoords.w-1);
     targetOffset = UINT64VECTOR3(0,splitPos.y,0);
-    DownsampleBricktoBrick<T>(tree, pData, vTargetBricksize, pSourceData, sourceIndex, targetOffset);
+    DownsampleBricktoBrick<T, bComputeMedian>(tree, pData, vTargetBricksize, pSourceData, sourceIndex, targetOffset);
   }
 
   if (bHasBrickBack) {
     sourceIndex = UINT64VECTOR4(vBrickCoords.x*2, vBrickCoords.y*2, vBrickCoords.z*2+1, vBrickCoords.w-1);
     targetOffset = UINT64VECTOR3(0,0,splitPos.z);
-    DownsampleBricktoBrick<T>(tree, pData, vTargetBricksize, pSourceData, sourceIndex, targetOffset);
+    DownsampleBricktoBrick<T, bComputeMedian>(tree, pData, vTargetBricksize, pSourceData, sourceIndex, targetOffset);
   }
 
   if (bHasBrickRight && bHasBrickBottom) {
     sourceIndex = UINT64VECTOR4(vBrickCoords.x*2+1, vBrickCoords.y*2+1, vBrickCoords.z*2, vBrickCoords.w-1);
     targetOffset = UINT64VECTOR3(splitPos.x,splitPos.y,0);
-    DownsampleBricktoBrick<T>(tree, pData, vTargetBricksize, pSourceData, sourceIndex, targetOffset);
+    DownsampleBricktoBrick<T, bComputeMedian>(tree, pData, vTargetBricksize, pSourceData, sourceIndex, targetOffset);
   }
 
   if (bHasBrickRight && bHasBrickBack) {
     sourceIndex = UINT64VECTOR4(vBrickCoords.x*2+1, vBrickCoords.y*2, vBrickCoords.z*2+1, vBrickCoords.w-1);
     targetOffset = UINT64VECTOR3(splitPos.x,0,splitPos.z);
-    DownsampleBricktoBrick<T>(tree, pData, vTargetBricksize, pSourceData, sourceIndex, targetOffset);
+    DownsampleBricktoBrick<T, bComputeMedian>(tree, pData, vTargetBricksize, pSourceData, sourceIndex, targetOffset);
   }
 
   if (bHasBrickBottom && bHasBrickBack) {
     sourceIndex = UINT64VECTOR4(vBrickCoords.x*2, vBrickCoords.y*2+1, vBrickCoords.z*2+1, vBrickCoords.w-1);
     targetOffset = UINT64VECTOR3(0,splitPos.y,splitPos.z);
-    DownsampleBricktoBrick<T>(tree, pData, vTargetBricksize, pSourceData, sourceIndex, targetOffset);
+    DownsampleBricktoBrick<T, bComputeMedian>(tree, pData, vTargetBricksize, pSourceData, sourceIndex, targetOffset);
   }
 
   if (bHasBrickRight && bHasBrickBottom && bHasBrickBack) {
     sourceIndex = UINT64VECTOR4(vBrickCoords.x*2+1, vBrickCoords.y*2+1, vBrickCoords.z*2+1, vBrickCoords.w-1);
     targetOffset = splitPos;
-    DownsampleBricktoBrick<T>(tree, pData, vTargetBricksize, pSourceData, sourceIndex, targetOffset);
+    DownsampleBricktoBrick<T, bComputeMedian>(tree, pData, vTargetBricksize, pSourceData, sourceIndex, targetOffset);
   }
 
   SetBrick((uint8_t*)pData, tree, vBrickCoords);
 }
 
-template<class T> void ExtendedOctreeConverter::ComputeHierarchy(ExtendedOctree &tree) {
+template<class T, bool bComputeMedian> void ExtendedOctreeConverter::ComputeHierarchy(ExtendedOctree &tree) {
   T* pTempDataSource = new T[size_t(tree.m_iBrickSize.volume()*tree.m_iComponentCount)];
   T* pTempDataTarget = new T[size_t(tree.m_iBrickSize.volume()*tree.m_iComponentCount)];
   for (size_t LoD = 1;LoD<tree.m_vLODTable.size();LoD++) {
@@ -312,7 +312,7 @@ template<class T> void ExtendedOctreeConverter::ComputeHierarchy(ExtendedOctree 
     for (uint64_t z = 0;z<bricksInThisLoD.z;z++) {
       for (uint64_t y = 0;y<bricksInThisLoD.y;y++) {
         for (uint64_t x = 0;x<bricksInThisLoD.x;x++) {
-          DownsampleBrick<T>(tree,UINT64VECTOR4(x,y,z, LoD), pTempDataSource, pTempDataTarget);
+          DownsampleBrick<T, bComputeMedian>(tree,UINT64VECTOR4(x,y,z, LoD), pTempDataSource, pTempDataTarget);
         }
       }
     }
