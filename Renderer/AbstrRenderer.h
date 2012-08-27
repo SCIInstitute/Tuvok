@@ -488,6 +488,9 @@ class AbstrRenderer: public Scriptable {
     FLOATVECTOR3 GetUpDir() const;
     void ResetUpDir();
 
+    void SetDebugView(bool bDebugView);
+    bool GetDebugView() const;
+
     void SetViewParameters(float angle, float znear, float zfar,
                            const FLOATVECTOR3& eye,
                            const FLOATVECTOR3& ref,
@@ -602,6 +605,7 @@ class AbstrRenderer: public Scriptable {
     UINTVECTOR2         m_vWinSize;
     int                 m_iLogoPos;
     std::string         m_strLogoFilename;
+    bool                m_bDebugView;
 
     Interpolant         m_eInterpolant;
 

@@ -92,6 +92,7 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_vWinSize(0,0),
   m_iLogoPos(3),
   m_strLogoFilename(""),
+  m_bDebugView(false),
   m_eInterpolant(Linear),
   m_bSupportsMeshes(false),
   msecPassedCurrentFrame(-1.0f),
@@ -1623,6 +1624,14 @@ void AbstrRenderer::ResetUpDir() {
   this->ScheduleCompleteRedraw();
 }
 
+void AbstrRenderer::SetDebugView(bool bDebugView) {
+  m_bDebugView = bDebugView;
+}
+
+bool AbstrRenderer::GetDebugView() const {
+  return m_bDebugView;
+}
+
 bool AbstrRenderer::Execute(const std::string& strCommand,
                             const std::vector<std::string>& strParams,
                             std::string& strMessage)
@@ -1779,6 +1788,14 @@ void AbstrRenderer::RegisterLuaFunctions(
                     "resetUpDir",
                     "Reset the camera's up direction",
                     false);
+  id = reg.function(&AbstrRenderer::SetDebugView,
+                    "setDebugView",
+                    "Set whether debug view mode is enabled",
+                    true);
+  id = reg.function(&AbstrRenderer::GetDebugView,
+                    "getDebugView",
+                    "Retrieve whether debug view mode is enabled",
+                    true);
   id = reg.function(&AbstrRenderer::SetRendermode,
                     "setRenderMode",
                     "Set the render mode (1D transfer function, 2D transfer "
