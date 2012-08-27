@@ -142,8 +142,8 @@ IOManager::IOManager() :
   m_iMaxBrickSize(DEFAULT_BRICKSIZE),
   m_iBuilderBrickSize(DEFAULT_BUILDER_BRICKSIZE),
   m_iBrickOverlap(DEFAULT_BRICKOVERLAP),
-  m_bUseMedianFilter(true),
   m_iIncoresize(m_iMaxBrickSize*m_iMaxBrickSize*m_iMaxBrickSize),
+  m_bUseMedianFilter(false),
   m_LoadDS(NULL)
 {
   m_vpGeoConverters.push_back(new GeomViewConverter());
