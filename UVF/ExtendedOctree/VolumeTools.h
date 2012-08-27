@@ -8,6 +8,7 @@
 // for the small fixed size vectors
 #include "Basics/Vectors.h"
 
+#include <algorithm>
 
 namespace VolumeTools {
 
