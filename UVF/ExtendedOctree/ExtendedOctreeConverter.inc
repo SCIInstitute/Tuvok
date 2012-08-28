@@ -9,9 +9,9 @@ template<class T, bool bComputeMedian> void ExtendedOctreeConverter::DownsampleB
   const UINT64VECTOR3& sourceSize = tree.ComputeBrickSize(sourceCoords);
   GetBrick((uint8_t*)pSourceData, tree, sourceCoords);
 
-  uint64_t evenSizeX = (sourceSize.x-2*m_iOverlap)/2;
-  uint64_t evenSizeY = (sourceSize.y-2*m_iOverlap)/2;
-  uint64_t evenSizeZ = (sourceSize.z-2*m_iOverlap)/2;
+  const uint64_t evenSizeX = (sourceSize.x-2*m_iOverlap)/2;
+  const uint64_t evenSizeY = (sourceSize.y-2*m_iOverlap)/2;
+  const uint64_t evenSizeZ = (sourceSize.z-2*m_iOverlap)/2;
 
   // process inner even-sized area
   for (uint64_t z = 0;z<evenSizeZ;z++) {
@@ -58,8 +58,8 @@ template<class T, bool bComputeMedian> void ExtendedOctreeConverter::DownsampleB
 
   // plane at the end of the x-axis
   if (sourceSize.x%2) {
-    for (uint64_t z = 0;z<(sourceSize.z-2*m_iOverlap)/2;z++) {
-      for (uint64_t y = 0;y<(sourceSize.y-2*m_iOverlap)/2;y++) {
+    for (uint64_t z = 0;z<evenSizeZ;z++) {
+      for (uint64_t y = 0;y<evenSizeY;y++) {
         T *p0 = pSourceData + iCompCount* (
                                (2*(evenSizeX)+m_iOverlap)
                             +  (2*y+m_iOverlap)*sourceSize.x
@@ -149,7 +149,7 @@ template<class T, bool bComputeMedian> void ExtendedOctreeConverter::DownsampleB
 
   // line at the end of the x/y-axes
   if (sourceSize.x%2 && sourceSize.y%2) {
-    for (uint64_t z = 0;z<(sourceSize.z-2*m_iOverlap)/2;z++) {
+    for (uint64_t z = 0;z<evenSizeZ;z++) {
       T *p0 = pSourceData + iCompCount* (
                              (2*(evenSizeX)+m_iOverlap)
                           +  (2*(evenSizeY)+m_iOverlap)*sourceSize.x
