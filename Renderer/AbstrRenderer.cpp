@@ -375,6 +375,12 @@ void AbstrRenderer::Changed2DTrans() {
   }
 }
 
+void AbstrRenderer::SetFoV(float fFoV) {
+  if(m_fFOV != fFoV) {
+    m_fFOV = fFoV;
+    Schedule3DWindowRedraws();
+  }
+}
 
 void AbstrRenderer::SetSampleRateModifier(float fSampleRateModifier) {
   if(m_fSampleRateModifier != fSampleRateModifier) {
@@ -1955,7 +1961,13 @@ void AbstrRenderer::RegisterLuaFunctions(
                     "Returns lighting enabled state.", false);
 
   id = reg.function(&AbstrRenderer::SetSampleRateModifier,
-                    "setSampleRateModifier", "", true);
+                    "setSampleRateModifier", "Sets the multiplicator for the sampling rate, e.g. setting it to two will double the samples.", true);
+
+  id = reg.function(&AbstrRenderer::SetFoV,
+                    "setFoV", "Sets the angle/field of view for the virtual camera.", true);
+  
+  id = reg.function(&AbstrRenderer::GetFoV,
+                    "getFoV", "Returns the angle/field of view for the virtual camera.", false);
 
   id = reg.function(&AbstrRenderer::SetIsoValue,
                     "setIsoValue", "changes the current isovalue", true);

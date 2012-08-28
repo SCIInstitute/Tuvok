@@ -275,6 +275,9 @@ class AbstrRenderer: public Scriptable {
     virtual void SetSampleRateModifier(float fSampleRateModifier);
     float GetSampleRateModifier() const { return m_fSampleRateModifier; }
 
+    void SetFoV(float fFoV);
+    float GetFoV() const {return m_fFOV;}
+
     virtual void SetIsoValue(float fIsovalue);
     /// the given isovalue is in the range [0,1] and is interpreted as a
     /// percentage of the available isovalues.
