@@ -307,6 +307,10 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
      << "  return bFoundRequestedResolution;" << std::endl
      << "}" << std::endl
      << "" << std::endl
+     << "vec3 GetSampleDelta() {" << std::endl
+     << "  return 1.0/vec3(iPoolSize);" << std::endl
+     << "}" << std::endl
+     << "" << std::endl
      << "vec3 TransformToPoolSpace(in vec3 direction, in float sampleRateModifier) {" << std::endl
      << "  // normalize the direction" << std::endl
      << "  direction *= volumeSize;" << std::endl

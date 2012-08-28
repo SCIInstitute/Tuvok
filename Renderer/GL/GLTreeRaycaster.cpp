@@ -47,6 +47,7 @@ GLTreeRaycaster::GLTreeRaycaster(MasterController* pMasterController,
   m_pProgramRenderFrontFaces(NULL),
   m_pProgramRenderFrontFacesNearPlane(NULL),
   m_pProgramRayCast1D(NULL),
+  m_pProgramRayCast1DLighting(NULL),
   m_pToCDataset(NULL),
   m_bConverged(true),
   m_pFBODebug(NULL),
@@ -184,7 +185,7 @@ void GLTreeRaycaster::CleanupShaders() {
 
   CleanupShader(&m_pProgramRenderFrontFaces);
   CleanupShader(&m_pProgramRenderFrontFacesNearPlane);
-  CleanupShader(&m_pProgramRayCast1D);
+  CleanupTraversalShaders();
 }
 
 struct {
@@ -273,24 +274,9 @@ bool GLTreeRaycaster::Initialize(std::shared_ptr<Context> ctx) {
 
   if (!CreateVolumePool()) return false;
 
-  // now that we've created the hastable and the volume pool
+  // now that we've created the hashtable and the volume pool
   // we can load the rest of the shader that depend on those
-  std::vector<std::string> vs, fs;
-  vs.push_back(FindFileInDirs("GLTreeRaycaster-entry-VS.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLTreeRaycaster-1D-FS.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
-  ShaderDescriptor sd(vs, fs);
-  sd.AddFragmentShaderString(m_pVolumePool->GetShaderFragment(3,4));
-  sd.AddFragmentShaderString(m_pglHashTable->GetShaderFragment(5));
-  m_pProgramRayCast1D = m_pMasterController->MemMan()->GetGLSLProgram(sd, m_pContext->GetShareGroupID());
-
-
-  if (!m_pProgramRayCast1D || !m_pProgramRayCast1D->IsValid())
-  {
-      Cleanup();
-      T_ERROR("Error loading a shader.");
-      return false;
-  } 
+  LoadTraversalShaders();
 
   // init near plane vbo
   m_pNearPlaneQuad = new GLVBO();
@@ -305,6 +291,53 @@ bool GLTreeRaycaster::Initialize(std::shared_ptr<Context> ctx) {
   CreateVBO();
 
   return true;
+}
+
+bool GLTreeRaycaster::LoadTraversalShaders() {
+  std::vector<std::string> vs, fs;
+  vs.push_back(FindFileInDirs("GLTreeRaycaster-entry-VS.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLTreeRaycaster-blend.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLTreeRaycaster-Method-1D.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
+  ShaderDescriptor sd(vs, fs);
+  sd.AddFragmentShaderString(m_pVolumePool->GetShaderFragment(3,4));
+  sd.AddFragmentShaderString(m_pglHashTable->GetShaderFragment(5));
+  m_pProgramRayCast1D = m_pMasterController->MemMan()->GetGLSLProgram(sd, m_pContext->GetShareGroupID());
+
+
+  if (!m_pProgramRayCast1D || !m_pProgramRayCast1D->IsValid())
+  {
+      Cleanup();
+      T_ERROR("Error loading 1D TF shader.");
+      return false;
+  } 
+
+  vs.clear(); fs.clear();
+  vs.push_back(FindFileInDirs("GLTreeRaycaster-entry-VS.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLTreeRaycaster-blend.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLTreeRaycaster-Method-1D-L.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("lighting.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
+  sd = ShaderDescriptor(vs, fs);
+  sd.AddFragmentShaderString(m_pVolumePool->GetShaderFragment(3,4));
+  sd.AddFragmentShaderString(m_pglHashTable->GetShaderFragment(5));
+  m_pProgramRayCast1DLighting = m_pMasterController->MemMan()->GetGLSLProgram(sd, m_pContext->GetShareGroupID());
+
+
+  if (!m_pProgramRayCast1DLighting || !m_pProgramRayCast1DLighting->IsValid())
+  {
+      Cleanup();
+      T_ERROR("Error loading 1D TF lighting shader.");
+      return false;
+  }
+
+  return true;
+}
+
+
+void GLTreeRaycaster::CleanupTraversalShaders() {
+  CleanupShader(&m_pProgramRayCast1D);
+  CleanupShader(&m_pProgramRayCast1DLighting);
 }
 
 void GLTreeRaycaster::SetRescaleFactors(const DOUBLEVECTOR3& vfRescale) {
@@ -503,25 +536,60 @@ void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
   vExtend /= vExtend.maxVal();
   vScale /= vScale.minVal();
 
+  GLSLProgram* shaderProgram = NULL;
+  
+  if (m_bUseLighting) 
+    shaderProgram = m_pProgramRayCast1DLighting;
+  else
+    shaderProgram = m_pProgramRayCast1D;
+
+  FLOATMATRIX4 emm = ComputeEyeToModelMatrix(rr, eStereoID);
+
   m_pVolumePool->Enable(m_FrustumCullingLOD.GetLoDFactor(), 
-                        vExtend, vScale, m_pProgramRayCast1D); // bound to 3 and 4
+                        vExtend, vScale, shaderProgram); // bound to 3 and 4
   m_pglHashTable->Enable(); // bound to 5
   m_pFBODebug->Read(6);
 
   // set shader parameters (shader is already enabled by m_pVolumePool->Enable)
-  m_pProgramRayCast1D->Enable();
-  m_pProgramRayCast1D->Set("sampleRateModifier", m_fSampleRateModifier);
-  m_pProgramRayCast1D->Set("mEyeToModel", ComputeEyeToModelMatrix(rr, eStereoID), 4, false); 
-  m_pProgramRayCast1D->Set("mModelView", rr.modelView[size_t(eStereoID)], 4, false); 
-  m_pProgramRayCast1D->Set("mModelViewProjection", rr.modelView[size_t(eStereoID)]*m_mProjection[size_t(eStereoID)], 4, false); 
+  shaderProgram->Enable();
+  shaderProgram->Set("sampleRateModifier", m_fSampleRateModifier);
+  shaderProgram->Set("mEyeToModel", emm, 4, false); 
+  shaderProgram->Set("mModelView", rr.modelView[size_t(eStereoID)], 4, false); 
+  shaderProgram->Set("mModelViewProjection", rr.modelView[size_t(eStereoID)]*m_mProjection[size_t(eStereoID)], 4, false); 
 
   float fScale         = CalculateScaling();
+  shaderProgram->Set("fTransScale",fScale);
+
 #if 0
   float fGradientScale = (m_pDataset->MaxGradientMagnitude() == 0) ?
                           1.0f : 1.0f/m_pDataset->MaxGradientMagnitude();
 #endif
 
-  m_pProgramRayCast1D->Set("fTransScale",fScale);
+
+  if (m_bUseLighting) {
+    FLOATVECTOR3 a = m_cAmbient.xyz()*m_cAmbient.w;
+    FLOATVECTOR3 d = m_cDiffuse.xyz()*m_cDiffuse.w;
+    FLOATVECTOR3 s = m_cSpecular.xyz()*m_cSpecular.w;
+
+    FLOATVECTOR3 aM = m_cAmbientM.xyz()*m_cAmbientM.w;
+    FLOATVECTOR3 dM = m_cDiffuseM.xyz()*m_cDiffuseM.w;
+    FLOATVECTOR3 sM = m_cSpecularM.xyz()*m_cSpecularM.w;
+
+    FLOATVECTOR3 scale = 1.0f/vScale;
+
+
+    FLOATVECTOR3 vModelSpaceLightDir = ( FLOATVECTOR4(m_vLightDir,0.0f) * emm ).xyz().normalized();
+    FLOATVECTOR3 vModelSpaceEyePos   = (FLOATVECTOR4(0,0,0,1) * emm).xyz();
+
+    shaderProgram->Set("vLightAmbient",a.x,a.y,a.z);
+    shaderProgram->Set("vLightDiffuse",d.x,d.y,d.z);
+    shaderProgram->Set("vLightSpecular",s.x,s.y,s.z);
+    shaderProgram->Set("vModelSpaceLightDir",vModelSpaceLightDir.x,vModelSpaceLightDir.y,vModelSpaceLightDir.z);
+    shaderProgram->Set("vModelSpaceEyePos",vModelSpaceEyePos.x,vModelSpaceEyePos.y,vModelSpaceEyePos.z);
+    shaderProgram->Set("vDomainScale",scale.x,scale.y,scale.z);
+
+  }
+
 
   // clear the buffers 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

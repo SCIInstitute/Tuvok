@@ -30,15 +30,21 @@
   \file  lighting.glsl
 */
 
-vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient,
+vec3 Lighting(vec3 vEyePos, 
+              vec3 vPosition, vec3 vNormal, vec3 vLightAmbient,
               vec3 vLightDiffuse, vec3 vLightSpecular, vec3 vLightDir) {
-  vNormal.z = abs(vNormal.z);
-
-  vec3 vViewDir    = normalize(vec3(0.0,0.0,0.0)-vPosition);
+  vec3 vViewDir    = normalize(vEyePos-vPosition);
   vec3 vReflection = normalize(reflect(vViewDir, vNormal));
   return clamp(
     vLightAmbient +
-    vLightDiffuse * max(abs(dot(vNormal, -vLightDir)),0.0) +
+    vLightDiffuse * max(abs(dot(vNormal, vLightDir)),0.0) +
     vLightSpecular * pow(max(dot(vReflection, vLightDir),0.0),8.0), 0.0,1.0
   );
+}
+
+vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient,
+              vec3 vLightDiffuse, vec3 vLightSpecular, vec3 vLightDir) {
+
+  return Lighting(vec3(0.0,0.0,0.0), vPosition, vNormal, vLightAmbient,
+                  vLightDiffuse, vLightSpecular, vLightDir);
 }

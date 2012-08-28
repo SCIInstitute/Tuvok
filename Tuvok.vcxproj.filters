@@ -2155,9 +2155,6 @@
     <None Include="Shaders\GLTreeRaycaster-VS.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\GLTreeRaycaster-1D-FS.glsl">
-      <Filter>Shaders</Filter>
-    </None>
     <None Include="Shaders\GLTreeRaycaster-frontfaces-FS.glsl">
       <Filter>Shaders</Filter>
     </None>
@@ -2165,6 +2162,15 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="Shaders\GLTreeRaycaster-entry-VS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\GLTreeRaycaster-blend.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\GLTreeRaycaster-Method-1D.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\GLTreeRaycaster-Method-1D-L.glsl">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

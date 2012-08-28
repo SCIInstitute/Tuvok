@@ -63,6 +63,7 @@ namespace tuvok {
       GLSLProgram*    m_pProgramRenderFrontFaces;
       GLSLProgram*    m_pProgramRenderFrontFacesNearPlane;
       GLSLProgram*    m_pProgramRayCast1D;
+      GLSLProgram*    m_pProgramRayCast1DLighting;
       UVFDataset*     m_pToCDataset;
       bool            m_bConverged;
 
@@ -112,6 +113,13 @@ namespace tuvok {
 
       virtual void SetRescaleFactors(const DOUBLEVECTOR3& vfRescale);
       void CreateVBO();
+      
+      bool LoadTraversalShaders();
+      void CleanupTraversalShaders();
+
+      // disable this function, in our implementation parameters are set once 
+      // the frame begins
+      virtual void UpdateLightParamsInShaders() {};
 
   };
 } // tuvok namespace.
