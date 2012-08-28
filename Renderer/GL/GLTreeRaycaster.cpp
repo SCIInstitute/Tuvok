@@ -12,6 +12,8 @@
 #include "Basics/MathTools.h"
 
 #include "IO/uvfDataset.h"
+#include "IO/TransferFunction1D.h"
+#include "IO/TransferFunction2D.h"
 
 #include "GLHashTable.h"
 #include "GLVolumePool.h"
@@ -507,17 +509,61 @@ void GLTreeRaycaster::SetRendermode(AbstrRenderer::ERenderMode eRenderMode) {
 }
 
 void GLTreeRaycaster::RecomputeBrickVisibility() {
+
   if (!m_pVolumePool) return;
 
-  for(auto brick = m_pDataset->BricksBegin(); brick != m_pDataset->BricksEnd(); ++brick) {
-    const BrickKey key = brick->first;
-    const bool bContainsData = ContainsData(key);
-
-    m_pVolumePool->BrickIsVisible(uint32_t(std::get<1>(key)), 
-                                     uint32_t(std::get<2>(key)),
-                                     bContainsData, bContainsData); // TODO: compute the children visibility
+  if(this->ColorData()) {
+    // We don't have good metadata for color data currently, so it can never be
+    // skipped.
+    return;
   }
+
+  //Timer timer; timer.Start();
+
+  double const fMaxValue = (m_pDataset->GetRange().first > m_pDataset->GetRange().second) ? m_p1DTrans->GetSize() : m_pDataset->GetRange().second;
+  double const fRescaleFactor = fMaxValue / double(m_p1DTrans->GetSize()-1);
+  
+  // render mode dictates how we look at data ...
+  switch (m_eRenderMode) {
+  case RM_1DTRANS: {
+    double const fMin = double(m_p1DTrans->GetNonZeroLimits().x) * fRescaleFactor;
+    double const fMax = double(m_p1DTrans->GetNonZeroLimits().y) * fRescaleFactor;
+    // ... in 1D we only care about the range of data in a brick
+    for(auto brick = m_pDataset->BricksBegin(); brick != m_pDataset->BricksEnd(); ++brick) {
+      const BrickKey key = brick->first;
+      const bool bContainsData = m_pDataset->ContainsData(key, fMin, fMax);
+      m_pVolumePool->BrickIsVisible(uint32_t(std::get<1>(key)), uint32_t(std::get<2>(key)), bContainsData);
+    }
+    break; }
+  case RM_2DTRANS: {
+    double const fMin = double(m_p2DTrans->GetNonZeroLimits().x) * fRescaleFactor;
+    double const fMax = double(m_p2DTrans->GetNonZeroLimits().y) * fRescaleFactor;
+    double const fMinGradient = double(m_p2DTrans->GetNonZeroLimits().z);
+    double const fMaxGradient = double(m_p2DTrans->GetNonZeroLimits().w);
+    // ... in 2D we also need to concern ourselves w/ min/max gradients
+    for(auto brick = m_pDataset->BricksBegin(); brick != m_pDataset->BricksEnd(); ++brick) {
+      const BrickKey key = brick->first;
+      const bool bContainsData = m_pDataset->ContainsData(key, fMin, fMax, fMinGradient, fMaxGradient);
+      m_pVolumePool->BrickIsVisible(uint32_t(std::get<1>(key)), uint32_t(std::get<2>(key)), bContainsData);
+    }
+    break; }
+  case RM_ISOSURFACE:
+    // ... and in isosurface mode we only care about a single value.
+    for(auto brick = m_pDataset->BricksBegin(); brick != m_pDataset->BricksEnd(); ++brick) {
+      const BrickKey key = brick->first;
+      const bool bContainsData = m_pDataset->ContainsData(key, GetIsoValue());
+      m_pVolumePool->BrickIsVisible(uint32_t(std::get<1>(key)), uint32_t(std::get<2>(key)), bContainsData);
+    }
+    break;
+  default:
+    T_ERROR("Unhandled rendering mode.");
+    return;
+  }
+
+  m_pVolumePool->EvaluateChildEmptiness();
   m_pVolumePool->UploadMetaData();
+
+  //OTHER("%.5f msec", timer.Elapsed());
 }
 
 void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {

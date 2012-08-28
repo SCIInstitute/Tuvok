@@ -541,11 +541,7 @@ void GLVolumePool::UploadMetaData() {
   m_iInsertPos = 0;
 }
 
-void GLVolumePool::BrickIsVisible(uint32_t iLoD, uint32_t iIndexInLoD, bool bVisible, bool bChildrenVisible) {
-/*  
-  bVisible = false;
-  bChildrenVisible = true;
-  */
+void GLVolumePool::BrickIsVisible(uint32_t iLoD, uint32_t iIndexInLoD, bool bVisible) {
 
   size_t index = iIndexInLoD+m_vLoDOffsetTable[iLoD];
 
@@ -574,8 +570,190 @@ void GLVolumePool::BrickIsVisible(uint32_t iLoD, uint32_t iIndexInLoD, bool bVis
       m_brickToPoolMapping[index]->FlagEmpty();
     }
     // mark brick as empty
-    m_brickMetaData[index] = bChildrenVisible ? BI_EMPTY : BI_CHILD_EMPTY;
+    m_brickMetaData[index] = BI_CHILD_EMPTY; // child emptiness will be evaluated next through downgrading emptiness flag
   }
+}
+
+void GLVolumePool::EvaluateChildEmptiness() {
+
+  // walk up hierarchy (from finest to coarsest level) and propagate child visibility
+  uint32_t const iLodCount = GetLoDCount(m_volumeSize);
+  UINTVECTOR3 iChildLayout = GetBrickLayout(m_volumeSize, m_maxInnerBrickSize, 0);
+
+  for (uint32_t iLoD = 1; iLoD < iLodCount; iLoD++)
+  {
+    UINTVECTOR3 const iLayout = GetBrickLayout(m_volumeSize, m_maxInnerBrickSize, iLoD);
+
+    // process even-sized volume
+    UINTVECTOR3 const iEvenLayout = iChildLayout / 2;
+    for (uint32_t z = 0; z < iEvenLayout.z; z++) {
+      for (uint32_t y = 0; y < iEvenLayout.y; y++) {
+        for (uint32_t x = 0; x < iEvenLayout.x; x++) {
+
+          uint32_t const brickIndex = GetIntegerBrickID(UINTVECTOR4(x, y, z, iLoD));
+          if (m_brickMetaData[brickIndex] <= BI_EMPTY)
+          {
+            UINTVECTOR4 const childPosition(x*2, y*2, z*2, iLoD-1);
+            if ((m_brickMetaData[GetIntegerBrickID(childPosition)] > BI_CHILD_EMPTY) ||
+                (m_brickMetaData[GetIntegerBrickID(childPosition + UINTVECTOR4(0, 0, 1, 0))] > BI_CHILD_EMPTY) ||
+                (m_brickMetaData[GetIntegerBrickID(childPosition + UINTVECTOR4(0, 1, 0, 0))] > BI_CHILD_EMPTY) ||
+                (m_brickMetaData[GetIntegerBrickID(childPosition + UINTVECTOR4(0, 1, 1, 0))] > BI_CHILD_EMPTY) ||
+                (m_brickMetaData[GetIntegerBrickID(childPosition + UINTVECTOR4(1, 0, 0, 0))] > BI_CHILD_EMPTY) ||
+                (m_brickMetaData[GetIntegerBrickID(childPosition + UINTVECTOR4(1, 0, 1, 0))] > BI_CHILD_EMPTY) ||
+                (m_brickMetaData[GetIntegerBrickID(childPosition + UINTVECTOR4(1, 1, 0, 0))] > BI_CHILD_EMPTY) ||
+                (m_brickMetaData[GetIntegerBrickID(childPosition + UINTVECTOR4(1, 1, 1, 0))] > BI_CHILD_EMPTY))
+            {
+              m_brickMetaData[brickIndex] = BI_EMPTY; // downgrade parent brick if we found a non-empty child
+            }
+          }
+        } // for x
+      } // for y
+    } // for z
+
+    // process odd boundaries (if any)
+
+    // plane at the end of the x-axis
+    if (iChildLayout.x % 2) {
+      for (uint32_t z = 0; z < iEvenLayout.z; z++) {
+        for (uint32_t y = 0; y < iEvenLayout.y; y++) {
+
+          uint32_t const x = iLayout.x - 1;
+          uint32_t const brickIndex = GetIntegerBrickID(UINTVECTOR4(x, y, z, iLoD));
+          if (m_brickMetaData[brickIndex] <= BI_EMPTY)
+          {
+            UINTVECTOR4 const childPosition(x*2, y*2, z*2, iLoD-1);
+            if ((m_brickMetaData[GetIntegerBrickID(childPosition)] > BI_CHILD_EMPTY) ||
+                (m_brickMetaData[GetIntegerBrickID(childPosition + UINTVECTOR4(0, 0, 1, 0))] > BI_CHILD_EMPTY) ||
+                (m_brickMetaData[GetIntegerBrickID(childPosition + UINTVECTOR4(0, 1, 0, 0))] > BI_CHILD_EMPTY) ||
+                (m_brickMetaData[GetIntegerBrickID(childPosition + UINTVECTOR4(0, 1, 1, 0))] > BI_CHILD_EMPTY))
+            {
+              m_brickMetaData[brickIndex] = BI_EMPTY; // downgrade parent brick if we found a non-empty child
+            }
+          }
+        } // for y
+      } // for z
+    } // if x is odd
+
+    // plane at the end of the y-axis
+    if (iChildLayout.y % 2) {
+      for (uint32_t z = 0; z < iEvenLayout.z; z++) {
+        for (uint32_t x = 0; x < iEvenLayout.x; x++) {
+
+          uint32_t const y = iLayout.y - 1;
+          uint32_t const brickIndex = GetIntegerBrickID(UINTVECTOR4(x, y, z, iLoD));
+          if (m_brickMetaData[brickIndex] <= BI_EMPTY)
+          {
+            UINTVECTOR4 const childPosition(x*2, y*2, z*2, iLoD-1);
+            if ((m_brickMetaData[GetIntegerBrickID(childPosition)] > BI_CHILD_EMPTY) ||
+                (m_brickMetaData[GetIntegerBrickID(childPosition + UINTVECTOR4(0, 0, 1, 0))] > BI_CHILD_EMPTY) ||
+                (m_brickMetaData[GetIntegerBrickID(childPosition + UINTVECTOR4(1, 0, 0, 0))] > BI_CHILD_EMPTY) ||
+                (m_brickMetaData[GetIntegerBrickID(childPosition + UINTVECTOR4(1, 0, 1, 0))] > BI_CHILD_EMPTY))
+            {
+              m_brickMetaData[brickIndex] = BI_EMPTY; // downgrade parent brick if we found a non-empty child
+            }
+          }
+        } // for x
+      } // for z
+    } // if y is odd
+
+    // plane at the end of the z-axis
+    if (iChildLayout.z % 2) {
+      for (uint32_t y = 0; y < iEvenLayout.y; y++) {
+        for (uint32_t x = 0; x < iEvenLayout.x; x++) {
+
+          uint32_t const z = iLayout.z - 1;
+          uint32_t const brickIndex = GetIntegerBrickID(UINTVECTOR4(x, y, z, iLoD));
+          if (m_brickMetaData[brickIndex] <= BI_EMPTY)
+          {
+            UINTVECTOR4 const childPosition(x*2, y*2, z*2, iLoD-1);
+            if ((m_brickMetaData[GetIntegerBrickID(childPosition)] > BI_CHILD_EMPTY) ||
+                (m_brickMetaData[GetIntegerBrickID(childPosition + UINTVECTOR4(0, 1, 0, 0))] > BI_CHILD_EMPTY) ||
+                (m_brickMetaData[GetIntegerBrickID(childPosition + UINTVECTOR4(1, 0, 0, 0))] > BI_CHILD_EMPTY) ||
+                (m_brickMetaData[GetIntegerBrickID(childPosition + UINTVECTOR4(1, 1, 0, 0))] > BI_CHILD_EMPTY))
+            {
+              m_brickMetaData[brickIndex] = BI_EMPTY; // downgrade parent brick if we found a non-empty child
+            }
+          }
+        } // for x
+      } // for y
+    } // if z is odd
+
+    // line at the end of the x/y-axes
+    if (iChildLayout.x % 2 && iChildLayout.y % 2) {
+      for (uint32_t z = 0; z < iEvenLayout.z; z++) {
+
+        uint32_t const y = iLayout.y - 1;
+        uint32_t const x = iLayout.x - 1;
+        uint32_t const brickIndex = GetIntegerBrickID(UINTVECTOR4(x, y, z, iLoD));
+        if (m_brickMetaData[brickIndex] <= BI_EMPTY)
+        {
+          UINTVECTOR4 const childPosition(x*2, y*2, z*2, iLoD-1);
+          if ((m_brickMetaData[GetIntegerBrickID(childPosition)] > BI_CHILD_EMPTY) ||
+              (m_brickMetaData[GetIntegerBrickID(childPosition + UINTVECTOR4(0, 0, 1, 0))] > BI_CHILD_EMPTY))
+          {
+            m_brickMetaData[brickIndex] = BI_EMPTY; // downgrade parent brick if we found a non-empty child
+          }
+        }
+      } // for z
+    } // if x and y are odd
+
+    // line at the end of the x/z-axes
+    if (iChildLayout.x % 2 && iChildLayout.z % 2) {
+      for (uint32_t y = 0; y < iEvenLayout.y; y++) {
+
+        uint32_t const z = iLayout.z - 1;
+        uint32_t const x = iLayout.x - 1;
+        uint32_t const brickIndex = GetIntegerBrickID(UINTVECTOR4(x, y, z, iLoD));
+        if (m_brickMetaData[brickIndex] <= BI_EMPTY)
+        {
+          UINTVECTOR4 const childPosition(x*2, y*2, z*2, iLoD-1);
+          if ((m_brickMetaData[GetIntegerBrickID(childPosition)] > BI_CHILD_EMPTY) ||
+              (m_brickMetaData[GetIntegerBrickID(childPosition + UINTVECTOR4(0, 1, 0, 0))] > BI_CHILD_EMPTY))
+          {
+            m_brickMetaData[brickIndex] = BI_EMPTY; // downgrade parent brick if we found a non-empty child
+          }
+        }
+      } // for y
+    } // if x and z are odd
+
+    // line at the end of the y/z-axes
+    if (iChildLayout.y % 2 && iChildLayout.z % 2) {
+      for (uint32_t x = 0; x < iEvenLayout.x; x++) {
+
+        uint32_t const z = iLayout.z - 1;
+        uint32_t const y = iLayout.y - 1;
+        uint32_t const brickIndex = GetIntegerBrickID(UINTVECTOR4(x, y, z, iLoD));
+        if (m_brickMetaData[brickIndex] <= BI_EMPTY)
+        {
+          UINTVECTOR4 const childPosition(x*2, y*2, z*2, iLoD-1);
+          if ((m_brickMetaData[GetIntegerBrickID(childPosition)] > BI_CHILD_EMPTY) ||
+              (m_brickMetaData[GetIntegerBrickID(childPosition + UINTVECTOR4(1, 0, 0, 0))] > BI_CHILD_EMPTY))
+          {
+            m_brickMetaData[brickIndex] = BI_EMPTY; // downgrade parent brick if we found a non-empty child
+          }
+        }
+      } // for x
+    } // if y and z are odd
+
+    // single brick at the x/y/z corner
+    if (iChildLayout.x % 2 && iChildLayout.y % 2 && iChildLayout.z % 2) {
+
+      uint32_t const z = iLayout.z - 1;
+      uint32_t const y = iLayout.y - 1;
+      uint32_t const x = iLayout.x - 1;
+      uint32_t const brickIndex = GetIntegerBrickID(UINTVECTOR4(x, y, z, iLoD));
+      if (m_brickMetaData[brickIndex] <= BI_EMPTY)
+      {
+        UINTVECTOR4 const childPosition(x*2, y*2, z*2, iLoD-1);
+        if (m_brickMetaData[GetIntegerBrickID(childPosition)] > BI_CHILD_EMPTY)
+        {
+          m_brickMetaData[brickIndex] = BI_EMPTY; // downgrade parent brick if we found a non-empty child
+        }
+      }
+    } // if x, y and z are odd
+
+    iChildLayout = iLayout;
+  } // for all levels
 }
 
 void GLVolumePool::FreeGLResources() {

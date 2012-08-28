@@ -62,8 +62,8 @@ namespace tuvok {
       bool UploadBrick(const BrickElemInfo& metaData, void* pData);
       void UploadFirstBrick(const UINTVECTOR3& m_vVoxelSize, void* pData);
       void UploadMetaData();
-      void BrickIsVisible(uint32_t iLoD, uint32_t iIndexInLoD,
-                             bool bVisible, bool bChildrenVisible);
+      void BrickIsVisible(uint32_t iLoD, uint32_t iIndexInLoD, bool bVisible);
+      void EvaluateChildEmptiness();
       bool IsBrickResident(const UINTVECTOR4& vBrickID) const;
       void Enable(float fLoDFactor, const FLOATVECTOR3& vExtend,
                   const FLOATVECTOR3& vAspect,
@@ -96,16 +96,16 @@ namespace tuvok {
       UINTVECTOR2 m_metaTexSize;
       uint32_t m_iTotalBrickCount;
 
-      std::vector<uint32_t>      m_brickMetaData;
-      std::vector<PoolSlotData*> m_brickToPoolMapping;
-      std::vector<PoolSlotData*> m_PoolSlotData;
-      std::vector<uint32_t>      m_vLoDOffsetTable;
+      std::vector<uint32_t>      m_brickMetaData; // ref by iBrickID, size of total brick count + some unused 2d texture padding
+      std::vector<PoolSlotData*> m_brickToPoolMapping; // ref by iBrickID, size of total brick count + some unused 2d texture padding
+      std::vector<PoolSlotData*> m_PoolSlotData; // size of available pool slots
+      std::vector<uint32_t>      m_vLoDOffsetTable; // size of LoDs, stores index sums, level 0 is finest
 
       void CreateGLResources();
       void FreeGLResources();
 
       void UpdateMetadata();
-      uint32_t GetIntegerBrickID(const UINTVECTOR4& vBrickID) const;
+      uint32_t GetIntegerBrickID(const UINTVECTOR4& vBrickID) const; // x, y , z, lod (w) to iBrickID
       void UploadBrick(uint32_t iBrickID, const UINTVECTOR3& vVoxelSize, void* pData, 
                        size_t iInsertPos, uint64_t iTimeOfCreation);
   };
