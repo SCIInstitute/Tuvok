@@ -280,7 +280,7 @@ bool GLTreeRaycaster::Initialize(std::shared_ptr<Context> ctx) {
 
   // now that we've created the hashtable and the volume pool
   // we can load the rest of the shader that depend on those
-  LoadTraversalShaders();
+  if (!LoadTraversalShaders()) return false;
 
   // init near plane vbo
   m_pNearPlaneQuad = new GLVBO();
@@ -455,15 +455,6 @@ FLOATMATRIX4 GLTreeRaycaster::ComputeEyeToModelMatrix(const RenderRegion &render
   mTrans.Translation(-vCenter);
   mScale.Scaling(1.0f/vExtend);
   mNormalize.Translation(0.5f, 0.5f, 0.5f);
-
-  // skip the border voxels (two voxels each side) 
-  // to get rid of float inaccuracies with the starting point computation
-  // (by skipping another hundredth of a voxel
-  UINTVECTOR3 vDomainSize = UINTVECTOR3(m_pToCDataset->GetDomainSize());
-  mScale.Scaling((1.0f-(4.02f/vDomainSize.x))/vExtend.x, 
-                 (1.0f-(4.02f/vDomainSize.y))/vExtend.y, 
-                 (1.0f-(4.02f/vDomainSize.z))/vExtend.z);
-
 
   return renderRegion.modelView[size_t(eStereoID)].inverse() * mTrans * mScale * mNormalize;
 }
@@ -751,6 +742,8 @@ void GLTreeRaycaster::UpdateToVolumePool(std::vector<UINTVECTOR4>& hash) {
 }
 
 bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
+  glClearColor(0,0,0,0);  
+
   size_t iStereoBufferCount = (m_bDoStereoRendering) ? 2 : 1;
 
   // prepare a new view

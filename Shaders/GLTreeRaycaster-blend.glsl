@@ -25,7 +25,7 @@ uniform mat4x4 mEyeToModel;
 bool GetBrick(in vec3 normEntryCoords, inout uint iLOD, in vec3 direction,
               out vec3 poolEntryCoords, out vec3 poolExitCoords,
               out vec3 normExitCoords, out bool bEmpty,
-              out vec3 normToPoolScale, out vec3 normToPoolTrans);
+              out vec3 normToPoolScale, out vec3 normToPoolTrans, out uvec4 brickCoords);
 vec3 TransformToPoolSpace(in vec3 direction,
                           in float sampleRateModifier);
 vec3 GetSampleDelta();
@@ -61,7 +61,6 @@ void TerminateRay(bool bOptimalResolution) {
 }
 
 vec4 ComputeColorFromVolume(vec3 currentPoolCoords, vec3 modelSpacePosition, vec3 sampleDelta);
-
 
 // go
 void main()
@@ -101,7 +100,7 @@ void main()
   float t = 0;
   bool bOptimalResolution = true;
 
-  float voxelSize = .125/8192.; // TODO make this a quater of one voxel (or smaller)
+  float voxelSize = 0.125/2000.; // TODO make this a quater of one voxel (or smaller)
   vec3 currentPos = normEntryPos;
 
   // fetch brick coords at the current position with the 
@@ -111,6 +110,8 @@ void main()
   vec3 poolExitCoords;
   vec3 normBrickExitCoords;
   bool bEmpty;
+  uvec4 brickCoords;
+  uvec4 lastBrickCoords = uvec4(0,0,0,9999);
 
   if (rayLength > voxelSize) {
     for(uint j = 0;j<100;++j) { // j is just for savety, stop traversal after 100 bricks
@@ -125,7 +126,9 @@ void main()
                                  iLOD, direction,
                                  poolEntryCoords, poolExitCoords,
                                  normBrickExitCoords, bEmpty,
-                                 normToPoolScale, normToPoolTrans);
+                                 normToPoolScale, normToPoolTrans, brickCoords);
+
+
       if (!bRequestOK && bOptimalResolution) {
         // for the first time in this pass, we got a brick
         // at lower than requested resolution then record this 
@@ -135,7 +138,7 @@ void main()
         rayResumeColor = accRayColor;
       }
 
-      if (!bEmpty) {
+      if (!bEmpty && lastBrickCoords != brickCoords) {
         // prepare the traversal
         int iSteps = int(ceil(length(poolExitCoords-poolEntryCoords)/stepSize));
 
@@ -176,10 +179,12 @@ void main()
         currentPos = normBrickExitCoords+voxelSize*direction/rayLength;
       }
 
+      lastBrickCoords = brickCoords;
+
      // global position along the ray
       t = length(normEntryPos-normBrickExitCoords)/rayLength;
 
-      if (t > 0.99) {
+      if (t > 0.9999) {
         TerminateRay(bOptimalResolution);
         return;
       }

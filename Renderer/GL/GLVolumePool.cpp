@@ -161,8 +161,8 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
                                             << m_maxInnerBrickSize.z <<")" << std::endl
      << "// brick overlap voxels (in pool texcoords" << std::endl
      << "#define overlap vec3(" << (m_maxTotalBrickSize.x-m_maxInnerBrickSize.x)/(2.0f*m_PoolDataTexture->GetSize().x) << ", " 
-                                     << (m_maxTotalBrickSize.y-m_maxInnerBrickSize.y)/(2.0f*m_PoolDataTexture->GetSize().y) << ", " 
-                                     << (m_maxTotalBrickSize.z-m_maxInnerBrickSize.z)/(2.0f*m_PoolDataTexture->GetSize().z) <<")" << std::endl
+                                << (m_maxTotalBrickSize.y-m_maxInnerBrickSize.y)/(2.0f*m_PoolDataTexture->GetSize().y) << ", " 
+                                << (m_maxTotalBrickSize.z-m_maxInnerBrickSize.z)/(2.0f*m_PoolDataTexture->GetSize().z) <<")" << std::endl
      << "uniform float fLoDFactor;" << std::endl
      << "uniform float fLevelZeroWorldSpaceError;" << std::endl
      << "uniform vec3 volumeAspect;" << std::endl
@@ -262,10 +262,10 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
      << "bool GetBrick(in vec3 normEntryCoords, inout uint iLOD, in vec3 direction," << std::endl
      << "              out vec3 poolEntryCoords, out vec3 poolExitCoords," << std::endl
      << "              out vec3 normExitCoords, out bool bEmpty," << std::endl
-     << "              out vec3 normToPoolScale, out vec3 normToPoolTrans) {" << std::endl
+     << "              out vec3 normToPoolScale, out vec3 normToPoolTrans, out uvec4 brickCoords) {" << std::endl
      << "  normEntryCoords = clamp(normEntryCoords, 0.0, 1.0);" << std::endl
      << "  bool bFoundRequestedResolution = true;" << std::endl
-     << "  uvec4 brickCoords = ComputeBrickCoords(normEntryCoords, iLOD);" << std::endl
+     << "  brickCoords = ComputeBrickCoords(normEntryCoords, iLOD);" << std::endl
      << "  uint  brickInfo   = GetBrickInfo(brickCoords);" << std::endl
      << "  if (brickInfo == BI_MISSING) {" << std::endl
      << "    uint iStartLOD = iLOD;" << std::endl
