@@ -1613,8 +1613,11 @@
     <None Include="Shaders\GLTreeRaycaster-blend.glsl" />
     <None Include="Shaders\GLTreeRaycaster-entry-VS.glsl" />
     <None Include="Shaders\GLTreeRaycaster-frontfaces-FS.glsl" />
+    <None Include="Shaders\GLTreeRaycaster-GradientTools.glsl" />
     <None Include="Shaders\GLTreeRaycaster-Method-1D-L.glsl" />
     <None Include="Shaders\GLTreeRaycaster-Method-1D.glsl" />
+    <None Include="Shaders\GLTreeRaycaster-Method-2D-L.glsl" />
+    <None Include="Shaders\GLTreeRaycaster-Method-2D.glsl" />
     <None Include="Shaders\GLTreeRaycaster-NearPlane-VS.glsl" />
     <None Include="Shaders\GLTreeRaycaster-VS.glsl" />
     <None Include="Shaders\lighting.glsl" />

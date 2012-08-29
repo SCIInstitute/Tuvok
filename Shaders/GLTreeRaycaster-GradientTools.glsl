@@ -1,17 +1,24 @@
 #version 420 core
 
-layout(binding=2) uniform sampler1D transferFunction;
-
-uniform float fTransScale;
-
 float samplePool(vec3 coords);
 
-vec4 ComputeColorFromVolume(vec3 currentPoolCoords, vec3 modelSpacePosition, vec3 sampleDelta) {
-  // fetch volume
-  float data = samplePool(currentPoolCoords);
+vec3 ComputeGradient(vec3 vCenter, vec3 sampleDelta) {
+  float fVolumValXp = samplePool(vCenter+vec3(+sampleDelta.x,0,0));
+  float fVolumValXm = samplePool(vCenter+vec3(-sampleDelta.x,0,0));
+  float fVolumValYp = samplePool(vCenter+vec3(0,-sampleDelta.y,0));
+  float fVolumValYm = samplePool(vCenter+vec3(0,+sampleDelta.y,0));
+  float fVolumValZp = samplePool(vCenter+vec3(0,0,+sampleDelta.z));
+  float fVolumValZm = samplePool(vCenter+vec3(0,0,-sampleDelta.z));
+  return vec3(fVolumValXm - fVolumValXp,
+              fVolumValYp - fVolumValYm,
+              fVolumValZm - fVolumValZp) / 2.0;
+}
 
-  // apply 1D TF
-  return texture(transferFunction, data*fTransScale);
+vec3 ComputeNormal(vec3 vCenter, vec3 StepSize, vec3 DomainScale) {
+  vec3 vGradient = ComputeGradient(vCenter, StepSize);
+  vec3 vNormal   = vGradient * DomainScale;
+  float l = length(vNormal); if (l>0.0) vNormal /= l; // safe normalization
+  return vNormal;
 }
 
 /*

@@ -50,6 +50,8 @@ GLTreeRaycaster::GLTreeRaycaster(MasterController* pMasterController,
   m_pProgramRenderFrontFacesNearPlane(NULL),
   m_pProgramRayCast1D(NULL),
   m_pProgramRayCast1DLighting(NULL),
+  m_pProgramRayCast2D(NULL),
+  m_pProgramRayCast2DLighting(NULL),
   m_pToCDataset(NULL),
   m_bConverged(true),
   m_pFBODebug(NULL),
@@ -295,6 +297,17 @@ bool GLTreeRaycaster::Initialize(std::shared_ptr<Context> ctx) {
   return true;
 }
 
+bool GLTreeRaycaster::LoadCheckShader(GLSLProgram** shader, ShaderDescriptor& sd, std::string name)  {
+  MESSAGE("Loading %s shader.", name.c_str());
+  *shader = m_pMasterController->MemMan()->GetGLSLProgram(sd, m_pContext->GetShareGroupID());
+  if (!(*shader) || !(*shader)->IsValid())
+  {
+      Cleanup();
+      T_ERROR("Error loading %s shader.", name.c_str());
+      return false;
+  } 
+}
+
 bool GLTreeRaycaster::LoadTraversalShaders() {
   std::vector<std::string> vs, fs;
   vs.push_back(FindFileInDirs("GLTreeRaycaster-entry-VS.glsl", m_vShaderSearchDirs, false));
@@ -304,34 +317,42 @@ bool GLTreeRaycaster::LoadTraversalShaders() {
   ShaderDescriptor sd(vs, fs);
   sd.AddFragmentShaderString(m_pVolumePool->GetShaderFragment(3,4));
   sd.AddFragmentShaderString(m_pglHashTable->GetShaderFragment(5));
-  m_pProgramRayCast1D = m_pMasterController->MemMan()->GetGLSLProgram(sd, m_pContext->GetShareGroupID());
-
-
-  if (!m_pProgramRayCast1D || !m_pProgramRayCast1D->IsValid())
-  {
-      Cleanup();
-      T_ERROR("Error loading 1D TF shader.");
-      return false;
-  } 
+  if (!LoadCheckShader(&m_pProgramRayCast1D, sd, "1D TF")) return false;
 
   vs.clear(); fs.clear();
   vs.push_back(FindFileInDirs("GLTreeRaycaster-entry-VS.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("GLTreeRaycaster-blend.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("GLTreeRaycaster-Method-1D-L.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLTreeRaycaster-GradientTools.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("lighting.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
   sd = ShaderDescriptor(vs, fs);
   sd.AddFragmentShaderString(m_pVolumePool->GetShaderFragment(3,4));
   sd.AddFragmentShaderString(m_pglHashTable->GetShaderFragment(5));
-  m_pProgramRayCast1DLighting = m_pMasterController->MemMan()->GetGLSLProgram(sd, m_pContext->GetShareGroupID());
+  if (!LoadCheckShader(&m_pProgramRayCast1DLighting, sd, "1D TF lighitng")) return false;
 
+  vs.clear(); fs.clear();
+  vs.push_back(FindFileInDirs("GLTreeRaycaster-entry-VS.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLTreeRaycaster-blend.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLTreeRaycaster-Method-2D.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLTreeRaycaster-GradientTools.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
+  sd = ShaderDescriptor(vs, fs);
+  sd.AddFragmentShaderString(m_pVolumePool->GetShaderFragment(3,4));
+  sd.AddFragmentShaderString(m_pglHashTable->GetShaderFragment(5));
+  if (!LoadCheckShader(&m_pProgramRayCast2D, sd, "2D TF")) return false;
 
-  if (!m_pProgramRayCast1DLighting || !m_pProgramRayCast1DLighting->IsValid())
-  {
-      Cleanup();
-      T_ERROR("Error loading 1D TF lighting shader.");
-      return false;
-  }
+  vs.clear(); fs.clear();
+  vs.push_back(FindFileInDirs("GLTreeRaycaster-entry-VS.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLTreeRaycaster-blend.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLTreeRaycaster-Method-2D-L.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLTreeRaycaster-GradientTools.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("lighting.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
+  sd = ShaderDescriptor(vs, fs);
+  sd.AddFragmentShaderString(m_pVolumePool->GetShaderFragment(3,4));
+  sd.AddFragmentShaderString(m_pglHashTable->GetShaderFragment(5));
+  if (!LoadCheckShader(&m_pProgramRayCast2DLighting, sd, "2D TF lighitng")) return false;
 
   return true;
 }
@@ -340,6 +361,8 @@ bool GLTreeRaycaster::LoadTraversalShaders() {
 void GLTreeRaycaster::CleanupTraversalShaders() {
   CleanupShader(&m_pProgramRayCast1D);
   CleanupShader(&m_pProgramRayCast1DLighting);
+  CleanupShader(&m_pProgramRayCast2D);
+  CleanupShader(&m_pProgramRayCast2DLighting);
 }
 
 void GLTreeRaycaster::SetRescaleFactors(const DOUBLEVECTOR3& vfRescale) {
@@ -432,12 +455,13 @@ FLOATMATRIX4 GLTreeRaycaster::ComputeEyeToModelMatrix(const RenderRegion &render
   mScale.Scaling(1.0f/vExtend);
   mNormalize.Translation(0.5f, 0.5f, 0.5f);
 
-  // start a little (actually a thousandth of a voxel) into the volume 
+  // skip the border voxels (two voxels each side) 
   // to get rid of float inaccuracies with the starting point computation
+  // (by skipping another hundredth of a voxel
   UINTVECTOR3 vDomainSize = UINTVECTOR3(m_pToCDataset->GetDomainSize());
-  mScale.Scaling((1.0f-(0.001f/vDomainSize.x))/vExtend.x, 
-                 (1.0f-(0.001f/vDomainSize.y))/vExtend.y, 
-                 (1.0f-(0.001f/vDomainSize.z))/vExtend.z);
+  mScale.Scaling((1.0f-(4.02f/vDomainSize.x))/vExtend.x, 
+                 (1.0f-(4.02f/vDomainSize.y))/vExtend.y, 
+                 (1.0f-(4.02f/vDomainSize.z))/vExtend.z);
 
 
   return renderRegion.modelView[size_t(eStereoID)].inverse() * mTrans * mScale * mNormalize;
@@ -574,7 +598,6 @@ void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
 
   m_pFBORayStart[size_t(eStereoID)]->Read(0);
   m_pFBOStartColor[size_t(eStereoID)]->Read(1);
-  m_p1DTransTex->Bind(2);   // todo: use m_eRenderMode, this is only for RM_1DTRANS
 
   UINTVECTOR3 vDomainSize = UINTVECTOR3(m_pToCDataset->GetDomainSize());
   FLOATVECTOR3 vScale = FLOATVECTOR3(m_pToCDataset->GetScale());
@@ -584,11 +607,23 @@ void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
 
   GLSLProgram* shaderProgram = NULL;
   
-  if (m_bUseLighting) 
-    shaderProgram = m_pProgramRayCast1DLighting;
-  else
-    shaderProgram = m_pProgramRayCast1D;
-
+  switch (m_eRenderMode) {
+    default: // TODO
+    case RM_1DTRANS : 
+       m_p1DTransTex->Bind(2);
+      if (m_bUseLighting) 
+        shaderProgram = m_pProgramRayCast1DLighting;
+      else
+        shaderProgram = m_pProgramRayCast1D;
+      break;
+    case RM_2DTRANS : 
+      m_p2DTransTex->Bind(2);
+      if (m_bUseLighting) 
+        shaderProgram = m_pProgramRayCast2DLighting;
+      else
+        shaderProgram = m_pProgramRayCast2D;
+      break;
+  }
   FLOATMATRIX4 emm = ComputeEyeToModelMatrix(rr, eStereoID);
 
   m_pVolumePool->Enable(m_FrustumCullingLOD.GetLoDFactor(), 
@@ -606,11 +641,11 @@ void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
   float fScale         = CalculateScaling();
   shaderProgram->Set("fTransScale",fScale);
 
-#if 0
-  float fGradientScale = (m_pDataset->MaxGradientMagnitude() == 0) ?
-                          1.0f : 1.0f/m_pDataset->MaxGradientMagnitude();
-#endif
-
+  if (m_eRenderMode == RM_2DTRANS) {
+    float fGradientScale = (m_pDataset->MaxGradientMagnitude() == 0) ?
+                            1.0f : 1.0f/m_pDataset->MaxGradientMagnitude();
+    shaderProgram->Set("fGradientScale",fGradientScale);
+  }
 
   if (m_bUseLighting) {
     FLOATVECTOR3 a = m_cAmbient.xyz()*m_cAmbient.w;

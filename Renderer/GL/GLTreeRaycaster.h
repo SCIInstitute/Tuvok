@@ -15,6 +15,7 @@ namespace tuvok {
   class GLVolumePool;
   class GLVBO;
   class UVFDataset;
+  class ShaderDescriptor;
 
 
   /** \class GLTreeRaycaster
@@ -64,6 +65,8 @@ namespace tuvok {
       GLSLProgram*    m_pProgramRenderFrontFacesNearPlane;
       GLSLProgram*    m_pProgramRayCast1D;
       GLSLProgram*    m_pProgramRayCast1DLighting;
+      GLSLProgram*    m_pProgramRayCast2D;
+      GLSLProgram*    m_pProgramRayCast2DLighting;
       UVFDataset*     m_pToCDataset;
       bool            m_bConverged;
 
@@ -120,7 +123,8 @@ namespace tuvok {
       // disable this function, in our implementation parameters are set once 
       // the frame begins
       virtual void UpdateLightParamsInShaders() {};
-
+      
+      bool LoadCheckShader(GLSLProgram** shader, ShaderDescriptor& sd, std::string name);
   };
 } // tuvok namespace.
 

@@ -1,17 +1,39 @@
 #version 420 core
 
-layout(binding=2) uniform sampler1D transferFunction;
+layout(binding=2) uniform sampler2D transferFunction;
 
 uniform float fTransScale;
+uniform float fGradientScale;
+
+uniform vec3 vLightAmbient;
+uniform vec3 vLightDiffuse;
+uniform vec3 vLightSpecular;
+uniform vec3 vModelSpaceLightDir;
+uniform vec3 vModelSpaceEyePos;
+uniform vec3 vDomainScale;
 
 float samplePool(vec3 coords);
+vec3 ComputeGradient(vec3 vCenter, vec3 sampleDelta);
+vec3 Lighting(vec3 vEyePos, vec3 vPosition, vec3 vNormal, vec3 vLightAmbient,
+              vec3 vLightDiffuse, vec3 vLightSpecular, vec3 vLightDir);
 
 vec4 ComputeColorFromVolume(vec3 currentPoolCoords, vec3 modelSpacePosition, vec3 sampleDelta) {
   // fetch volume
   float data = samplePool(currentPoolCoords);
 
-  // apply 1D TF
-  return texture(transferFunction, data*fTransScale);
+  // compute the gradient
+  vec3  vGradient = ComputeGradient(currentPoolCoords, sampleDelta);
+  float fGradientMag = length(vGradient);
+
+  // apply 2D transfer function
+  vec4 color = texture(transferFunction, vec2(data*fTransScale, 1.0-fGradientMag*fGradientScale));
+
+  // compute normal
+  vec3 normal = vDomainScale * ((fGradientMag > 0) ? vGradient/fGradientMag : vGradient);
+
+  // compute lighting
+  vec3 litColor = Lighting(vModelSpaceEyePos, modelSpacePosition, normal, vLightAmbient, color.rgb*vLightDiffuse, vLightSpecular, vModelSpaceLightDir);
+  return vec4(litColor,color.a);
 }
 
 /*

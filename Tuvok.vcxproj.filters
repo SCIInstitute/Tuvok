@@ -2173,5 +2173,14 @@
     <None Include="Shaders\GLTreeRaycaster-Method-1D-L.glsl">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="Shaders\GLTreeRaycaster-Method-2D.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\GLTreeRaycaster-Method-2D-L.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\GLTreeRaycaster-GradientTools.glsl">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
