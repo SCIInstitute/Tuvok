@@ -750,56 +750,72 @@ void GLTreeRaycaster::UpdateToVolumePool(std::vector<UINTVECTOR4>& hash) {
 }
 
 bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
-  // for DEBUG render always MONO
-  EStereoID eStereoID = SI_LEFT_OR_MONO;
+  size_t iStereoBufferCount = (m_bDoStereoRendering) ? 2 : 1;
 
   // prepare a new view
   if (rr.isBlank) {
-//    MESSAGE("Starting a new frame");
-    // compute new ray start
-    m_Timer.Start();
-    FillRayEntryBuffer(rr,eStereoID);
-    msecPassedCurrentFrame = 0;
-  } else {
-//    MESSAGE("Continuing a frame");
+    for (size_t i = 0;i<iStereoBufferCount;i++) {
+      // compute new ray start
+      m_Timer.Start();
+      FillRayEntryBuffer(rr,EStereoID(i));
+      msecPassedCurrentFrame = 0;
+    }
   }
 
-  // reset state
-  GPUState localState = m_BaseState;
-  localState.enableBlend = false;
-  m_pContext->GetStateManager()->Apply(localState);
 
-  // clear hastable
-  m_pglHashTable->ClearData();
+  size_t iPagedBricks = 0;
+  for (size_t i = 0;i<iStereoBufferCount;i++) {
+    // reset state
+    GPUState localState = m_BaseState;
+    localState.enableBlend = false;
+    m_pContext->GetStateManager()->Apply(localState);
 
-  // do raycasting
-  Raycast(rr, eStereoID);
+    // clear hastable
+    m_pglHashTable->ClearData();
 
-  // evaluate hastable
-  std::vector<UINTVECTOR4> hash = m_pglHashTable->GetData();
-  //hash.push_back(UINTVECTOR4(0,0,0,0));  // DEBUG Code
-  m_bConverged = hash.empty();
+    // do raycasting
+    Raycast(rr, EStereoID(i));
 
-  // upload missing bricks
-  if (!m_bConverged) {
-    //    MESSAGE("Last rendering pass was missing %i brick(s), paging in now...", int(hash.size()));
-    UpdateToVolumePool(hash);
-#if 0
-    float fMsecPassed = float(m_Timer.Elapsed());
-    OTHER("The current subframe took %g ms to render (%g sFPS)", fMsecPassed, 1000./fMsecPassed);
-#endif
-    m_iSubFrames++;
-  } else {
-//    MESSAGE("All bricks rendered, frame complete.");
-    float fMsecPassed = float(m_Timer.Elapsed());
-    m_FrameTimes.Push(fMsecPassed);
-    OTHER("The total frame (with %d subframes) took %.2f ms to render (%.2f FPS)\t[avg: %.2f, min: %.2f, max: %.2f, samples: %d]", m_iSubFrames, fMsecPassed, 1000./fMsecPassed, m_FrameTimes.GetAvg(), m_FrameTimes.GetMin(), m_FrameTimes.GetMax(), m_FrameTimes.GetHistroryLength());
-    m_iSubFrames = 0;
+    // evaluate hastable
+    std::vector<UINTVECTOR4> hash = m_pglHashTable->GetData();
+    //hash.push_back(UINTVECTOR4(0,0,0,0));  // DEBUG Code
 
-    if (m_bDebugView)
-      std::swap(m_pFBODebug, m_pFBO3DImageNext[size_t(eStereoID)]);
+    // upload missing bricks
+    if (!hash.empty()) {
+      //    MESSAGE("Last rendering pass was missing %i brick(s), paging in now...", int(hash.size()));
+      UpdateToVolumePool(hash);
+  #if 0
+      float fMsecPassed = float(m_Timer.Elapsed());
+      OTHER("The current subframe took %g ms to render (%g sFPS)", fMsecPassed, 1000./fMsecPassed);
+  #endif
+      m_iSubFrames++;
+    } else {
+  //    MESSAGE("All bricks rendered, frame complete.");
+      float fMsecPassed = float(m_Timer.Elapsed());
+      m_FrameTimes.Push(fMsecPassed);
+      OTHER("The total frame (with %d subframes) took %.2f ms to render (%.2f FPS)\t[avg: %.2f, min: %.2f, max: %.2f, samples: %d]", m_iSubFrames, fMsecPassed, 1000./fMsecPassed, m_FrameTimes.GetAvg(), m_FrameTimes.GetMin(), m_FrameTimes.GetMax(), m_FrameTimes.GetHistroryLength());
+      m_iSubFrames = 0;
+
+      if (m_bDebugView)
+        std::swap(m_pFBODebug, m_pFBO3DImageNext[i]);
+    }
+
+    iPagedBricks += hash.size();
   }
 
+   m_bConverged = iPagedBricks == 0;
+
+
+  if (m_eRenderMode == RM_ISOSURFACE &&
+      m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) {
+     
+      for (size_t i = 0;i<iStereoBufferCount;i++) {
+        m_TargetBinder.Bind(m_pFBO3DImageNext[i]);
+        ComposeSurfaceImage(rr, EStereoID(i));
+      } 
+
+      m_TargetBinder.Unbind();
+  }
 
   // always display intermediate results
   return true;
