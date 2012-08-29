@@ -978,6 +978,9 @@
     <ClCompile Include="LuaScripting\TuvokSpecific\LuaTransferFun2DProxy.cpp">
       <Filter>LuaScripting\TuvokSpecific</Filter>
     </ClCompile>
+    <ClCompile Include="Basics\Threads.cpp">
+      <Filter>Basics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Basics\Appendix.h">
@@ -1948,6 +1951,9 @@
       <Filter>LuaScripting\TuvokSpecific</Filter>
     </ClInclude>
     <ClInclude Include="Basics\AvgMinMaxTracker.h">
+      <Filter>Basics</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\Threads.h">
       <Filter>Basics</Filter>
     </ClInclude>
   </ItemGroup>

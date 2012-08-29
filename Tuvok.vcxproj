@@ -518,6 +518,7 @@
     <ClCompile Include="Basics\Plane.cpp" />
     <ClCompile Include="Basics\SystemInfo.cpp" />
     <ClCompile Include="Basics\SysTools.cpp" />
+    <ClCompile Include="Basics\Threads.cpp" />
     <ClCompile Include="Basics\Timer.cpp" />
     <ClCompile Include="Basics\Systeminfo\VidMemViaDDraw.cpp" />
     <ClCompile Include="Basics\Systeminfo\VidMemViaDXGI.cpp" />
@@ -1285,6 +1286,7 @@
     <ClInclude Include="Basics\StdDefines.h" />
     <ClInclude Include="Basics\SystemInfo.h" />
     <ClInclude Include="Basics\SysTools.h" />
+    <ClInclude Include="Basics\Threads.h" />
     <ClInclude Include="Basics\Timer.h" />
     <ClInclude Include="Basics\Vectors.h" />
     <ClInclude Include="Basics\Checksums\crc32.h" />

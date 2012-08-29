@@ -17,7 +17,7 @@ INCLUDEPATH      += Basics IO/exception
 QT               += opengl
 QMAKE_LIBDIR     += IO/expressions
 LIBS              = -ltuvokexpr
-unix:LIBS        += -lz
+unix:LIBS        += -lz -lpthread
 win32:LIBS       += shlwapi.lib
 unix:QMAKE_CXXFLAGS += -std=c++0x
 unix:QMAKE_CXXFLAGS += -fno-strict-aliasing
@@ -109,6 +109,7 @@ HEADERS += \
            Basics/Vectors.h \
            Basics/nonstd.h \
            Basics/AvgMinMaxTracker.h \
+           Basics/Threads.h \           
            Controller/Controller.h \
            Controller/MasterController.h \
            DebugOut/AbstrDebugOut.h \
@@ -326,6 +327,7 @@ SOURCES += \
            Basics/SysTools.cpp \
            Basics/Mesh.cpp \
            Basics/KDTree.cpp \
+           Basics/Threads.cpp \
            Controller/MasterController.cpp \
            DebugOut/AbstrDebugOut.cpp \
            DebugOut/ConsoleOut.cpp \
