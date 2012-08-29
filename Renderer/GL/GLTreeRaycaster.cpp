@@ -306,6 +306,7 @@ bool GLTreeRaycaster::LoadCheckShader(GLSLProgram** shader, ShaderDescriptor& sd
       T_ERROR("Error loading %s shader.", name.c_str());
       return false;
   } 
+  return true;
 }
 
 bool GLTreeRaycaster::LoadTraversalShaders() {
