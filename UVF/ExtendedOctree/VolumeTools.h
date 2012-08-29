@@ -62,8 +62,8 @@ namespace VolumeTools {
    avoid clamping and-or quantization. This function is used when neighbors in
    two dimensions are missing
    
-   @param a value to be filterd
-   @param b value to be filterd
+   @param a value to be filtered
+   @param b value to be filtered
    @return the Filter/mean of values a and b
    */
    template<typename T, typename F, bool bComputeMedian> T Filter(T a, T b) {
@@ -79,32 +79,20 @@ namespace VolumeTools {
    avoid clamping and-or quantization. This function is used when neighbors in
    one dimension are missing
    
-   @param a value to be filterd
-   @param b value to be filterd
-   @param c value to be filterd
-   @param d value to be filterd
+   @param a value to be filtered
+   @param b value to be filtered
+   @param c value to be filtered
+   @param d value to be filtered
    @return the Filter/mean of values a to d
   */
    template<typename T, typename F, bool bComputeMedian> T Filter(T a, T b, T c, T d) {
     if (bComputeMedian) {
+      // here we compute the median of a,b,c (ignoring d) which means
+      // that we will either get the second or third smallest value
+      // in the original a,b,c,d sequence
       if (a > b) std::swap(a,b);
-      if (c > d) std::swap(c,d);
-      if (a > c) {
-        std::swap(a,c);
-        std::swap(b,d);
-      }
-
-      return c;
-      /*
-      // to return always the 2nd out of 4 include the follwoing code
-      // but as we don't care íf we get the 2nd or 3rd value we skip it
-
-      if (b > d) 
-        return c;
-      else 
-        return min(b,c);
-      */
-
+      if (b > c) std::swap(b,c);
+      return std::max(a,b);
     } else
       return T((F(a) + F(b) + F(c) + F(d)) / F(4));
   }
@@ -117,14 +105,14 @@ namespace VolumeTools {
    in one or multiple directions are the other Filter functions (with 4
    and 2 parameters) called
    
-   @param a value to be filterd
-   @param b value to be filterd
-   @param c value to be filterd
-   @param d value to be filterd
-   @param e value to be filterd
-   @param f value to be filterd
-   @param g value to be filterd
-   @param h value to be filterd
+   @param a value to be filtered
+   @param b value to be filtered
+   @param c value to be filtered
+   @param d value to be filtered
+   @param e value to be filtered
+   @param f value to be filtered
+   @param g value to be filtered
+   @param h value to be filtered
    @return the Filter/mean of values a to h
    */
    template<typename T, typename F, bool bComputeMedian> T Filter(T a, T b, T c, T d, 
