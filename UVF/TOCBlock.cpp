@@ -101,6 +101,7 @@ bool TOCBlock::FlatDataToBrickedLOD(
   const UINT64VECTOR3& vMaxBrickSize,
   uint32_t iOverlap,
   bool bUseMedian,
+  bool bClampToEdge,
   size_t iCacheSize,
   std::shared_ptr<MaxMinDataBlock> pMaxMinDatBlock,
   AbstrDebugOut* debugOut
@@ -113,8 +114,8 @@ bool TOCBlock::FlatDataToBrickedLOD(
 
   return FlatDataToBrickedLOD(inFile, strTempFile, eType, iComponentCount,
                               vVolumeSize, vScale, vMaxBrickSize,
-                              iOverlap, bUseMedian, iCacheSize,
-                              pMaxMinDatBlock, debugOut);
+                              iOverlap, bUseMedian, bClampToEdge,
+                              iCacheSize, pMaxMinDatBlock, debugOut);
 }
 
 bool TOCBlock::FlatDataToBrickedLOD(
@@ -125,6 +126,7 @@ bool TOCBlock::FlatDataToBrickedLOD(
   const UINT64VECTOR3& vMaxBrickSize,
   uint32_t iOverlap,
   bool bUseMedian,
+  bool bClampToEdge,
   size_t iCacheSize,
   std::shared_ptr<MaxMinDataBlock> pMaxMinDatBlock,
   AbstrDebugOut*
@@ -144,7 +146,7 @@ bool TOCBlock::FlatDataToBrickedLOD(
   if (!pSourceData->IsOpen()) pSourceData->Open();
 
   bool bResult = c.Convert(pSourceData, 0, eType, iComponentCount, vVolumeSize,
-                           vScale, outFile, 0, &statsVec, CT_ZIP, bUseMedian);
+                           vScale, outFile, 0, &statsVec, CT_ZIP, bUseMedian, bClampToEdge);
   outFile->Close();
 
   if (bResult) {

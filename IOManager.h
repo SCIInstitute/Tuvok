@@ -290,6 +290,14 @@ public:
   bool GetUseMedianFilter() const {
     return m_bUseMedianFilter;
   }
+  
+  void SetClampToEdge(bool bClampToEdge) {
+    m_bClampToEdge = bClampToEdge;
+  }
+  bool GetClampToEdge() const {
+    return m_bClampToEdge;
+  }
+
 
 private:
   std::vector<tuvok::AbstrGeoConverter*> m_vpGeoConverters;
@@ -302,6 +310,7 @@ private:
   uint64_t m_iBrickOverlap;
   uint64_t m_iIncoresize;
   bool m_bUseMedianFilter;
+  bool m_bClampToEdge;
   std::function<tuvok::Dataset* (const std::string&,
                                  tuvok::AbstrRenderer*)> m_LoadDS;
 

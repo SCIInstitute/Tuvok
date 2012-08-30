@@ -70,6 +70,7 @@ public:
                             const uint64_t iTargetBrickSize,
                             const uint64_t iTargetBrickOverlap,
                             const bool bUseMedian,
+                            const bool bClampToEdge,
                             const bool bQuantizeTo8Bit) = 0;
 
   virtual bool ConvertToUVF(const std::list<std::string>& files,
@@ -79,6 +80,7 @@ public:
                             const uint64_t iTargetBrickSize,
                             const uint64_t iTargetBrickOverlap,
                             const bool bUseMedian,
+                            const bool bClampToEdge,
                             const bool bQuantizeTo8Bit) = 0;
 
   virtual bool ConvertToRAW(const std::string& strSourceFilename,

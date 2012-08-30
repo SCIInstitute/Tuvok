@@ -42,7 +42,8 @@ bool ExtendedOctreeConverter::Convert(const std::string& filename,
                                       uint64_t iOutOffset,
                                       BrickStatVec* stats,
                                       COMPORESSION_TYPE compression,
-                                      bool bComputeMedian) {
+                                      bool bComputeMedian,
+                                      bool bClampToEdge) {
   LargeRAWFile_ptr inFile(new LargeRAWFile(filename));
   LargeRAWFile_ptr outFile(new LargeRAWFile(targetFilename));
 
@@ -55,7 +56,7 @@ bool ExtendedOctreeConverter::Convert(const std::string& filename,
   }
 
   return Convert(inFile, iOffset, eComponentType, iComponentCount, vVolumeSize,
-                 vVolumeAspect, outFile, iOutOffset, stats, compression, bComputeMedian);
+                 vVolumeAspect, outFile, iOutOffset, stats, compression, bComputeMedian, bClampToEdge);
 }
 
 /*
@@ -82,7 +83,8 @@ bool ExtendedOctreeConverter::Convert(LargeRAWFile_ptr pLargeRAWFileIn,
                                       uint64_t iOutOffset,
                                       BrickStatVec* stats,
                                       COMPORESSION_TYPE compression,
-                                      bool bComputeMedian) {
+                                      bool bComputeMedian,
+                                      bool bClampToEdge) {
   m_pBrickStatVec = stats;
   m_fProgress = 0; // TODO: do something smart with the progress
 
@@ -104,73 +106,77 @@ bool ExtendedOctreeConverter::Convert(LargeRAWFile_ptr pLargeRAWFileIn,
   SetupCache(e);
 
   // brick (permute) the input data
-  PermuteInputData(e, pLargeRAWFileIn, iInOffset);
+  PermuteInputData(e, pLargeRAWFileIn, iInOffset, bClampToEdge);
 
   // compute hierarchy
+
+  // now comes the really nasty part where we convert the input arguments
+  // to template parameters, effectively writing out all branches
+
   if (bComputeMedian)  {
     switch (e.m_eComponentType) {
       case ExtendedOctree::CT_UINT8:
-        ComputeHierarchy<uint8_t, true>(e);
+        ComputeHierarchy<uint8_t, true>(e, bClampToEdge);
         break;
       case ExtendedOctree::CT_UINT16:
-        ComputeHierarchy<uint16_t, true>(e);
+        ComputeHierarchy<uint16_t, true>(e, bClampToEdge);
         break;
       case ExtendedOctree::CT_UINT32:
-        ComputeHierarchy<uint32_t, true>(e);
+        ComputeHierarchy<uint32_t, true>(e, bClampToEdge);
         break;
       case ExtendedOctree::CT_UINT64:
-        ComputeHierarchy<uint64_t, true>(e);
+        ComputeHierarchy<uint64_t, true>(e, bClampToEdge);
         break;
       case ExtendedOctree::CT_INT8:
-        ComputeHierarchy<int8_t, true>(e);
+        ComputeHierarchy<int8_t, true>(e, bClampToEdge);
         break;
       case ExtendedOctree::CT_INT16:
-        ComputeHierarchy<int16_t, true>(e);
+        ComputeHierarchy<int16_t, true>(e, bClampToEdge);
         break;
       case ExtendedOctree::CT_INT32:
-        ComputeHierarchy<int32_t, true>(e);
+        ComputeHierarchy<int32_t, true>(e, bClampToEdge);
         break;
       case ExtendedOctree::CT_INT64:
-        ComputeHierarchy<int64_t, true>(e);
+        ComputeHierarchy<int64_t, true>(e, bClampToEdge);
         break;
       case ExtendedOctree::CT_FLOAT32:
-        ComputeHierarchy<float, true>(e);
+        ComputeHierarchy<float, true>(e, bClampToEdge);
         break;
       case ExtendedOctree::CT_FLOAT64:
-        ComputeHierarchy<double, true>(e);
+        ComputeHierarchy<double, true>(e, bClampToEdge);
         break;
     }
   } else {
     switch (e.m_eComponentType) {
       case ExtendedOctree::CT_UINT8:
-        ComputeHierarchy<uint8_t, false>(e);
+        ComputeHierarchy<uint8_t, false>(e, bClampToEdge);
         break;
       case ExtendedOctree::CT_UINT16:
-        ComputeHierarchy<uint16_t, false>(e);
+        ComputeHierarchy<uint16_t, false>(e, bClampToEdge);
         break;
       case ExtendedOctree::CT_UINT32:
-        ComputeHierarchy<uint32_t, false>(e);
+        ComputeHierarchy<uint32_t, false>(e, bClampToEdge);
         break;
       case ExtendedOctree::CT_UINT64:
-        ComputeHierarchy<uint64_t, false>(e);
+        ComputeHierarchy<uint64_t, false>(e, bClampToEdge);
         break;
       case ExtendedOctree::CT_INT8:
-        ComputeHierarchy<int8_t, false>(e);
+        ComputeHierarchy<int8_t, false>(e, bClampToEdge);
         break;
       case ExtendedOctree::CT_INT16:
-        ComputeHierarchy<int16_t, false>(e);
+        ComputeHierarchy<int16_t, false>(e, bClampToEdge);
         break;
       case ExtendedOctree::CT_INT32:
-        ComputeHierarchy<int32_t, false>(e);
+        ComputeHierarchy<int32_t, false>(e, bClampToEdge);
         break;
       case ExtendedOctree::CT_INT64:
-        ComputeHierarchy<int64_t, false>(e);
+        ComputeHierarchy<int64_t, false>(e, bClampToEdge);
         break;
       case ExtendedOctree::CT_FLOAT32:
-        ComputeHierarchy<float, false>(e);
+        ComputeHierarchy<float, false>(e, bClampToEdge);
         break;
       case ExtendedOctree::CT_FLOAT64:
-        ComputeHierarchy<double, false>(e);
+        ComputeHierarchy<double, false>(e, bClampToEdge);
         break;
     }
   }
@@ -198,26 +204,31 @@ bool ExtendedOctreeConverter::Convert(LargeRAWFile_ptr pLargeRAWFileIn,
 void ExtendedOctreeConverter::GetInputBrick(std::vector<uint8_t>& vData,
                                             ExtendedOctree &tree,
                                             LargeRAWFile_ptr pLargeRAWFileIn,
-                                            uint64_t iInOffset, const UINT64VECTOR4& coords) {
-  UINT64VECTOR3 vBrickSize = tree.ComputeBrickSize(coords);
-  uint64_t iBricksSize = (tree.m_vTOC.end()-1)->m_iLength;
+                                            uint64_t iInOffset, 
+                                            const UINT64VECTOR4& coords,
+                                            bool bClampToEdge) {
+  const UINT64VECTOR3 vBrickSize = tree.ComputeBrickSize(coords);
+  const uint64_t iBricksSize = (tree.m_vTOC.end()-1)->m_iLength;
   if (vData.size() != size_t(iBricksSize)) vData.resize(size_t(iBricksSize));
 
   // zero out the data (this makes sure boundaries are zero)
-  memset (&vData[0],0,size_t(iBricksSize));
+  // if we use bClampToEdge then we need to init the borders
+  // here as they are overriden later
+  if (!bClampToEdge)
+    memset (&vData[0],0,size_t(iBricksSize));
 
-  uint64_t iVoxelSize = tree.GetComponentTypeSize() * tree.GetComponentCount();
-  uint64_t iMaxLineSize = vBrickSize.x * iVoxelSize;
+  const uint64_t iVoxelSize = tree.GetComponentTypeSize() * tree.GetComponentCount();
+  const uint64_t iMaxLineSize = vBrickSize.x * iVoxelSize;
 
   const UINT64VECTOR4 bricksInZeroLevel = tree.GetBrickCount(0);
 
   // first we figure out if the requested brick is a boundary brick
   // for boundary bricks we have to skip the overlap regions
-  uint64_t xStart = (coords.x == 0) ? m_iOverlap : 0;
-  uint64_t yStart = (coords.y == 0) ? m_iOverlap : 0;
-  uint64_t zStart = (coords.z == 0) ? m_iOverlap : 0;
-  uint64_t yEnd = vBrickSize.y - ((coords.y == bricksInZeroLevel.y-1) ? m_iOverlap : 0);
-  uint64_t zEnd = vBrickSize.z - ((coords.z == bricksInZeroLevel.z-1) ? m_iOverlap : 0);
+  const uint64_t xStart = (coords.x == 0) ? m_iOverlap : 0;
+  const uint64_t yStart = (coords.y == 0) ? m_iOverlap : 0;
+  const uint64_t zStart = (coords.z == 0) ? m_iOverlap : 0;
+  const uint64_t yEnd = vBrickSize.y - ((coords.y == bricksInZeroLevel.y-1) ? m_iOverlap : 0);
+  const uint64_t zEnd = vBrickSize.z - ((coords.z == bricksInZeroLevel.z-1) ? m_iOverlap : 0);
 
   // now iterate over the x-scanlines (as x is stored continuous in the
   // input file we only need to loop over y and z)
@@ -235,7 +246,7 @@ void ExtendedOctreeConverter::GetInputBrick(std::vector<uint8_t>& vData,
       // length of a line (tree.m_vVolumeSize.x) and the z coordinate with the size
       // of a slice (tree.m_vVolumeSize.x * tree.m_vVolumeSize.y) since we are indexing
       // into the input volume we need to use tree.m_vVolumeSize for this
-      uint64_t iCurrentInOffset = iInOffset + iVoxelSize * (0-(m_iOverlap-xStart) + coords.x * (m_vBrickSize.x-m_iOverlap*2) +
+      const uint64_t iCurrentInOffset = iInOffset + iVoxelSize * (0-(m_iOverlap-xStart) + coords.x * (m_vBrickSize.x-m_iOverlap*2) +
                                                          (y-(m_iOverlap-yStart) + coords.y * (m_vBrickSize.y-m_iOverlap*2)) * tree.m_vVolumeSize.x +
                                                          (z-(m_iOverlap-zStart) + coords.z * (m_vBrickSize.z-m_iOverlap*2)) * tree.m_vVolumeSize.x * tree.m_vVolumeSize.y);
 
@@ -243,7 +254,7 @@ void ExtendedOctreeConverter::GetInputBrick(std::vector<uint8_t>& vData,
       // this is just a simple 3D to 1D conversion of the current position
       // y & z plus the overlap skip (xStart, yStart, yStart) which we need
       // to add if this is the first brick (otherwise these are all 0
-      size_t iOutOffset = size_t(iVoxelSize * (  xStart +
+      const size_t iOutOffset = size_t(iVoxelSize * (  xStart +
                                               (y+yStart) * vBrickSize.x +
                                               (z+zStart) * vBrickSize.x * vBrickSize.y));
 
@@ -263,7 +274,109 @@ void ExtendedOctreeConverter::GetInputBrick(std::vector<uint8_t>& vData,
       pLargeRAWFileIn->ReadRAW((uint8_t*)&vData[iOutOffset], iLineSize);
     }
   }
+
+  if (bClampToEdge) {
+    ClampToEdge(vData,
+                coords.x == 0, 
+                coords.y == 0, 
+                coords.z == 0,
+                coords.x == bricksInZeroLevel.x-1, 
+                coords.y == bricksInZeroLevel.y-1, 
+                coords.z == bricksInZeroLevel.z-1,
+                iVoxelSize,
+                vBrickSize);
+  }
 }
+
+
+void ExtendedOctreeConverter::ClampToEdge(std::vector<uint8_t>& vData,
+                                          bool bCopyXs,
+                                          bool bCopyYs,
+                                          bool bCopyZs,
+                                          bool bCopyXe,
+                                          bool bCopyYe,
+                                          bool bCopyZe,
+                                          uint64_t iVoxelSize,
+                                          const UINT64VECTOR3& vBrickSize) {
+
+  // copy left (line-Start) border-plane into left overlap region
+  if (bCopyXs) {
+    for (uint64_t z = 0;z<vBrickSize.z;z++) {
+      for (uint64_t y = 0;y<vBrickSize.y;y++) {
+        auto pSource = vData.begin() + iVoxelSize * (m_iOverlap + y * vBrickSize.x + z * vBrickSize.x * vBrickSize.y);
+        auto pTarget = pSource;
+        for (uint64_t o = 0;o<m_iOverlap;o++) {
+          pTarget-=iVoxelSize;
+          std::copy(pSource, pSource+iVoxelSize, pTarget);
+        }
+      }
+    }
+  }
+  
+  // copy right (line-End) border-plane into right overlap region
+  if (bCopyXe) {
+    for (uint64_t z = 0;z<vBrickSize.z;z++) {
+      for (uint64_t y = 0;y<vBrickSize.y;y++) {
+        auto pSource = vData.begin() + iVoxelSize * (((vBrickSize.x-1)-m_iOverlap) + y * vBrickSize.x + z * vBrickSize.x * vBrickSize.y);
+        auto pTarget = pSource;
+        for (uint64_t o = 0;o<m_iOverlap;o++) {
+          pTarget+=iVoxelSize;
+          std::copy(pSource, pSource+iVoxelSize, pTarget);
+        }
+      }
+    }
+  }
+  
+  // copy top border-plane into top overlap region
+  if (bCopyYs) {
+    for (uint64_t z = 0;z<vBrickSize.z;z++) {
+      auto pSource = vData.begin() + iVoxelSize * (m_iOverlap*vBrickSize.x + z * vBrickSize.x * vBrickSize.y);
+      auto pTarget = pSource;
+      for (uint64_t o = 0;o<m_iOverlap;o++) {
+        pTarget-=iVoxelSize*vBrickSize.x;
+        std::copy(pSource, pSource+iVoxelSize*vBrickSize.x, pTarget);
+      }
+    }
+  }
+
+
+  // copy bottom border-plane into bottom overlap region
+  if (bCopyYe) {
+    for (uint64_t z = 0;z<vBrickSize.z;z++) {
+      auto pSource = vData.begin() + iVoxelSize * ( ((vBrickSize.y-1)-m_iOverlap)*vBrickSize.x + z * vBrickSize.x * vBrickSize.y);
+      auto pTarget = pSource;
+      for (uint64_t o = 0;o<m_iOverlap;o++) {
+        pTarget+=iVoxelSize*vBrickSize.x;
+        std::copy(pSource, pSource+iVoxelSize*vBrickSize.x, pTarget);
+      }
+    }
+  }
+
+  // copy front border-plane into front overlap region
+  if (bCopyZs) {
+    for (uint64_t y = 0;y<vBrickSize.y;y++) {
+      auto pSource = vData.begin() + iVoxelSize * (m_iOverlap*(vBrickSize.x*vBrickSize.y) + y * vBrickSize.x);
+      auto pTarget = pSource;
+      for (uint64_t o = 0;o<m_iOverlap;o++) {
+        pTarget-=iVoxelSize*(vBrickSize.x*vBrickSize.y);
+        std::copy(pSource, pSource+iVoxelSize*vBrickSize.x, pTarget);
+      }
+    }
+  }
+
+  // copy back border-plane into back overlap region
+  if (bCopyZe) {
+    for (uint64_t y = 0;y<vBrickSize.y;y++) {
+      auto pSource = vData.begin() + iVoxelSize * (((vBrickSize.z-1)-m_iOverlap)*(vBrickSize.x*vBrickSize.y) + y * vBrickSize.x);
+      auto pTarget = pSource;
+      for (uint64_t o = 0;o<m_iOverlap;o++) {
+        pTarget+=iVoxelSize*(vBrickSize.x*vBrickSize.y);
+        std::copy(pSource, pSource+iVoxelSize*vBrickSize.x, pTarget);
+      }
+    }
+  }
+}
+
 
 /*
   Compress:
@@ -591,7 +704,7 @@ void ExtendedOctreeConverter::CopyBrickToBrick(std::vector<uint8_t>& vSourceData
   of the six direct neighbors we only need to consider one diagonal neighbors
   in the same plane and the three neighbors to fill the bottom right corner.
 */
-void ExtendedOctreeConverter::FillOverlap(ExtendedOctree &tree, uint64_t iLoD) {
+void ExtendedOctreeConverter::FillOverlap(ExtendedOctree &tree, uint64_t iLoD, bool bClampToEdge) {
   UINT64VECTOR3 baseBricks = tree.GetBrickCount(iLoD);
 
   size_t iElementSize = tree.GetComponentTypeSize() * size_t(tree.GetComponentCount());
@@ -726,6 +839,21 @@ void ExtendedOctreeConverter::FillOverlap(ExtendedOctree &tree, uint64_t iLoD) {
                            iElementSize);
         }
 
+
+        if (bClampToEdge) {
+          ClampToEdge(vTargetData,
+                      !bHasLeftNeighbour,
+                      !bHasTopNeighbour, 
+                      !bHasFrontNeighbour,
+                      !bHasRightNeighbour, 
+                      !bHasBottomNeighbour, 
+                      !bHasBackNeighbour,
+                      iElementSize,
+                      targetBrickSize);
+        }
+        
+
+
         // now that brick is complete, write it back to the tree
         SetBrick(&vTargetData[0], tree, coords);
       }
@@ -743,7 +871,9 @@ void ExtendedOctreeConverter::FillOverlap(ExtendedOctree &tree, uint64_t iLoD) {
   to be created and grabs each from the source data. In the process it
   also fills the tree ToC.
 */
-void ExtendedOctreeConverter::PermuteInputData(ExtendedOctree &tree, LargeRAWFile_ptr pLargeRAWFileIn, uint64_t iInOffset) {
+void ExtendedOctreeConverter::PermuteInputData(ExtendedOctree &tree, LargeRAWFile_ptr 
+                                               pLargeRAWFileIn, uint64_t iInOffset,
+                                               bool bClampToEdge) {
   std::vector<uint8_t> vData;
   UINT64VECTOR3 baseBricks = tree.GetBrickCount(0);
 
@@ -756,13 +886,14 @@ void ExtendedOctreeConverter::PermuteInputData(ExtendedOctree &tree, LargeRAWFil
         TOCEntry t = {iCurrentOutOffset, iUncompressedBrickSize, CT_NONE, iUncompressedBrickSize, UINTVECTOR2(0,0)};
         tree.m_vTOC.push_back(t);
 
-        GetInputBrick(vData, tree, pLargeRAWFileIn, iInOffset, coords);
+        GetInputBrick(vData, tree, pLargeRAWFileIn, iInOffset, coords, bClampToEdge);
         SetBrick(&(vData[0]), tree, coords);
 
         iCurrentOutOffset += iUncompressedBrickSize;
       }
     }
   }
+
   // apply compression to the first LoD
   Compress(tree,0);
 }

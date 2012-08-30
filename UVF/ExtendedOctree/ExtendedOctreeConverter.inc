@@ -235,11 +235,13 @@ template<class T, bool bComputeMedian> void ExtendedOctreeConverter::DownsampleB
   }
 }
 
-template<class T, bool bComputeMedian> void ExtendedOctreeConverter::DownsampleBrick(ExtendedOctree &tree, const UINT64VECTOR4& vBrickCoords, T* pData, T* pSourceData) {
+template<class T, bool bComputeMedian> void ExtendedOctreeConverter::DownsampleBrick(ExtendedOctree &tree, bool bClampToEdge, const UINT64VECTOR4& vBrickCoords, T* pData, T* pSourceData) {
 
   const UINT64VECTOR3& vTargetBricksize = tree.ComputeBrickSize(vBrickCoords);
   const uint64_t iUncompressedBrickSize = vTargetBricksize.volume() * tree.GetComponentTypeSize() * tree.GetComponentCount();
-  memset (pData,0,size_t(iUncompressedBrickSize));
+  
+  if (!bClampToEdge )
+    memset (pData,0,size_t(iUncompressedBrickSize));
 
   const TOCEntry t = {(tree.m_vTOC.end()-1)->m_iLength+(tree.m_vTOC.end()-1)->m_iOffset, iUncompressedBrickSize, CT_NONE, iUncompressedBrickSize, UINTVECTOR2(0,0)};
   tree.m_vTOC.push_back(t);
@@ -251,8 +253,8 @@ template<class T, bool bComputeMedian> void ExtendedOctreeConverter::DownsampleB
   const bool bHasBrickBack   = vBrickCoords.z*2+1 < bricksInLowerLevel.z;
 
   const UINT64VECTOR3 splitPos(uint64_t(ceil((tree.m_iBrickSize.x-2*m_iOverlap)/2.0)),
-                             uint64_t(ceil((tree.m_iBrickSize.y-2*m_iOverlap)/2.0)),
-                             uint64_t(ceil((tree.m_iBrickSize.z-2*m_iOverlap)/2.0)));
+                               uint64_t(ceil((tree.m_iBrickSize.y-2*m_iOverlap)/2.0)),
+                               uint64_t(ceil((tree.m_iBrickSize.z-2*m_iOverlap)/2.0)));
 
   // read up to eight bricks and filter them into the one brick
   UINT64VECTOR4 sourceIndex(vBrickCoords.x*2, vBrickCoords.y*2, vBrickCoords.z*2, vBrickCoords.w-1);
@@ -304,7 +306,7 @@ template<class T, bool bComputeMedian> void ExtendedOctreeConverter::DownsampleB
   SetBrick((uint8_t*)pData, tree, vBrickCoords);
 }
 
-template<class T, bool bComputeMedian> void ExtendedOctreeConverter::ComputeHierarchy(ExtendedOctree &tree) {
+template<class T, bool bComputeMedian> void ExtendedOctreeConverter::ComputeHierarchy(ExtendedOctree &tree, bool bClampToEdge) {
   T* pTempDataSource = new T[size_t(tree.m_iBrickSize.volume()*tree.m_iComponentCount)];
   T* pTempDataTarget = new T[size_t(tree.m_iBrickSize.volume()*tree.m_iComponentCount)];
   for (size_t LoD = 1;LoD<tree.m_vLODTable.size();LoD++) {
@@ -312,12 +314,12 @@ template<class T, bool bComputeMedian> void ExtendedOctreeConverter::ComputeHier
     for (uint64_t z = 0;z<bricksInThisLoD.z;z++) {
       for (uint64_t y = 0;y<bricksInThisLoD.y;y++) {
         for (uint64_t x = 0;x<bricksInThisLoD.x;x++) {
-          DownsampleBrick<T, bComputeMedian>(tree,UINT64VECTOR4(x,y,z, LoD), pTempDataSource, pTempDataTarget);
+          DownsampleBrick<T, bComputeMedian>(tree, bClampToEdge, UINT64VECTOR4(x,y,z, LoD), pTempDataSource, pTempDataTarget);
         }
       }
     }
     // fill overlaps in this LoD
-    FillOverlap(tree, LoD);
+    FillOverlap(tree, LoD, bClampToEdge);
 
     // apply compression to this LoD
     Compress(tree, size_t(tree.m_vTOC.size()-bricksInThisLoD.volume()));

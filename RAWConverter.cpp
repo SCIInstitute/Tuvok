@@ -421,6 +421,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
                                      const uint64_t iTargetBrickSize,
                                      const uint64_t iTargetBrickOverlap,
                                      const bool bUseMedian,
+                                     const bool bClampToEdge,
                                      UVFTables::ElementSemanticTable eType,
                                      KVPairs* pKVPairs,
                                      const bool bQuantizeTo8Bit)
@@ -648,7 +649,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
         vVolumeSize,
         DOUBLEVECTOR3(vVolumeAspect),
         UINT64VECTOR3(iTargetBrickSize,iTargetBrickSize,iTargetBrickSize),
-        uint32_t(iTargetBrickOverlap), bUseMedian, 
+        uint32_t(iTargetBrickOverlap), bUseMedian, bClampToEdge,
         size_t(Controller::ConstInstance().SysInfo()->GetCPUMemSize()),
         MaxMinData,
         &Controller::Debug::Out()
@@ -1401,13 +1402,14 @@ bool RAWConverter::ConvertToUVF(const std::string& strSourceFilename,
                                 const uint64_t iTargetBrickSize,
                                 const uint64_t iTargetBrickOverlap,
                                 const bool bUseMedian,
+                                const bool bClampToEdge,
                                 const bool bQuantizeTo8Bit)
 {
   std::list<std::string> files;
   files.push_front(strSourceFilename);
   return ConvertToUVF(files, strTargetFilename, strTempDir, bNoUserInteraction,
                       iTargetBrickSize, iTargetBrickOverlap, bUseMedian,
-                      bQuantizeTo8Bit);
+                      bClampToEdge, bQuantizeTo8Bit);
 }
 
 static void RemoveStdString(std::string s) { remove(s.c_str()); }
@@ -1419,6 +1421,7 @@ bool RAWConverter::ConvertToUVF(const std::list<std::string>& files,
                                 const uint64_t iTargetBrickSize,
                                 const uint64_t iTargetBrickOverlap,
                                 const bool bUseMedian,
+                                const bool bClampToEdge,
                                 const bool bQuantizeTo8Bit)
 {
   // all the parameters set here are just defaults, they should all be
@@ -1528,6 +1531,7 @@ bool RAWConverter::ConvertToUVF(const std::list<std::string>& files,
                                        dataSource,
                                        iTargetBrickSize, iTargetBrickOverlap,
                                        bUseMedian, 
+                                       bClampToEdge,
                                        UVFTables::ES_UNDEFINED, 0,
                                        bQuantizeTo8Bit);
 

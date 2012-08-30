@@ -30,6 +30,7 @@ public:
                             const UINT64VECTOR3& vMaxBrickSize,
                             uint32_t iOverlap,
                             bool bUseMedian,
+                            bool bClampToEdge,
                             size_t iCacheSize,
                             std::shared_ptr<MaxMinDataBlock>
                               pMaxMinDatBlock =
@@ -44,6 +45,7 @@ public:
                             const UINT64VECTOR3& vMaxBrickSize,
                             uint32_t iOverlap,
                             bool bUseMedian,
+                            bool bClampToEdge,
                             size_t iCacheSize,
                             std::shared_ptr<MaxMinDataBlock>
                               pMaxMinDatBlock =

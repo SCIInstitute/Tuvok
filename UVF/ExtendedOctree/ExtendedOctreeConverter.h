@@ -168,7 +168,8 @@ public:
     @param iOutOffset bytes to precede the data in the target file
     @param stats pointer to a vector to store the statistics of each brick, can be set to NULL to disable statistics computation
     @param compression the desired compression method, defaults to none
-    @param use median as downsampling filter (uses average otherwise), defaults to true
+    @param use median as downsampling filter (uses average otherwise)
+    @param bClampToEdge use outer values to fill border (uses zeroes otherwise)
     @return true if the conversion succeeded, the main reason for failure would be a disk I/O issue
   */
   bool Convert(const std::string& filename, uint64_t iOffset,
@@ -178,7 +179,8 @@ public:
                const std::string& targetFile, uint64_t iOutOffset,
                BrickStatVec* stats,
                COMPORESSION_TYPE compression,
-               bool bComputeMedian);
+               bool bComputeMedian,
+               bool bClampToEdge);
 
   /**
     This call starts the conversion process of a simple linear file of raw volume
@@ -194,7 +196,8 @@ public:
     @param iOutOffset bytes to precede the data in the target file
     @param stats pointer to a vector to store the statistics of each brick, can be set to NULL to disable statistics computation
     @param compression the desired compression method, defaults to none
-    @param bComputeMedian use median as downsampling filter (uses average otherwise), defaults to true
+    @param bComputeMedian use median as downsampling filter (uses average otherwise)
+    @param bClampToEdge use outer values to fill border (uses zeroes otherwise)
     @return  true if the conversion succeeded, the main reason for failure would be a disk I/O issue
   */
   bool Convert(LargeRAWFile_ptr pLargeRAWFile, uint64_t iOffset,
@@ -204,7 +207,8 @@ public:
                LargeRAWFile_ptr pLargeRAWOutFile, uint64_t iOutOffset,
                BrickStatVec* stats,
                COMPORESSION_TYPE compression,
-               bool bComputeMedian);
+               bool bComputeMedian,
+               bool bClampToEdge);
   /**
     Call this method from a second thread during the conversion to check on the progress of the operation
   */
@@ -384,6 +388,30 @@ private:
   void Compress(ExtendedOctree &tree, size_t iBrickSkip);
 
   /**
+    Copies the outer voxels into the border to implement clamp to border
+
+    @param vData vector to load and store the brick data
+    @param bCopyXs true iff x-start side is a bounday and the values need to be copied
+    @param bCopyYs true iff y-start side is a bounday and the values need to be copied
+    @param bCopyZs true iff z-start side is a bounday and the values need to be copied
+    @param bCopyXe true iff x-end side is a bounday and the values need to be copied
+    @param bCopyYe true iff y-end side is a bounday and the values need to be copied
+    @param bCopyZe true iff z-end side is a bounday and the values need to be copied
+    @param voxelSize the size (in bytes) of a brick voxel (i.e. component-size*component-count)
+    @param vBrickSize the size (in voxels) of the brick
+  */
+  void ClampToEdge(std::vector<uint8_t>& vData,
+                   bool bCopyXs, 
+                   bool bCopyYs, 
+                   bool bCopyZs, 
+                   bool bCopyXe, 
+                   bool bCopyYe, 
+                   bool bCopyZe, 
+                   uint64_t iVoxelSize,
+                   const UINT64VECTOR3& vBrickSize);
+
+
+  /**
     Copies (parts) of one brick into another
 
     @param vSourceData pointer to the source brick data
@@ -412,10 +440,12 @@ private:
     @param pLargeRAWFileIn source raw file
     @param iInOffset offset into the source file
     @param coords brick coordinates of the brick to be extracted
+    @param bClampToEdge use outer values to fill border (uses zeroes otherwise)
   */
   void GetInputBrick(std::vector<uint8_t>& vData,
                      ExtendedOctree &tree, LargeRAWFile_ptr pLargeRAWFileIn,
-                     uint64_t iInOffset, const UINT64VECTOR4& coords);
+                     uint64_t iInOffset, const UINT64VECTOR4& coords,
+                     bool bClampToEdge);
 
   /**
     This method reorders the large input raw file into smaller bricks
@@ -425,10 +455,12 @@ private:
     @param tree target extended octree
     @param pLargeRAWFileIn source raw file
     @param iInOffset offset into the source file
+    @param bClampToEdge use outer values to fill border (uses zeroes otherwise)
   */
   void PermuteInputData(ExtendedOctree &tree,
                         LargeRAWFile_ptr pLargeRAWFileIn,
-                        uint64_t iInOffset);
+                        uint64_t iInOffset,
+                        bool bClampToEdge);
 
   /**
     This method fills the overlaps between the bricks, it assumes
@@ -436,8 +468,9 @@ private:
 
     @param tree target extended octree
     @param iLoD the level of detail to be processed
+    @param bClampToEdge use outer values to fill border (uses zeroes otherwise)
   */
-  void FillOverlap(ExtendedOctree &tree, uint64_t iLoD);
+  void FillOverlap(ExtendedOctree &tree, uint64_t iLoD, bool bClampToEdge);
 
   /**
     Loads a specific brick from disk (or cache) into pData
@@ -540,11 +573,13 @@ private:
     arrays of sufficient size to hold the largest bricks
 
     @param tree target extended octree
+    @param bClampToEdge use outer values to fill border (uses zeroes otherwise)
     @param vBrickCoords brick coordinates of the target brick of the downsampling
     @param pData pointer to hold the temp data during the downsampling process
     @param pSourceData pointer to hold the temp data during the downsampling process
   */
   template<class T, bool bComputeMedian> void DownsampleBrick(ExtendedOctree &tree,
+                                         bool bClampToEdge,
                                          const UINT64VECTOR4& vBrickCoords,
                                          T* pData, T* pSourceData);
 
@@ -553,8 +588,10 @@ private:
     top of the highest resolution (level 0)
 
     @param tree target extended octree
+    @param bClampToEdge use outer values to fill border (uses zeroes otherwise)
   */
-  template<class T, bool bComputeMedian> void ComputeHierarchy(ExtendedOctree &tree);
+  template<class T, bool bComputeMedian> void ComputeHierarchy(ExtendedOctree &tree,
+                                                               bool bClampToEdge);
 
 
   /**
