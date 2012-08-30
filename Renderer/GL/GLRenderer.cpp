@@ -614,9 +614,6 @@ bool GLRenderer::Paint() {
       m_pFBOResizeQuickBlit = NULL;
     }
   } else {
-
-
-
     for (size_t i=0; i < renderRegions.size(); ++i) {
       if (renderRegions[i]->redrawMask) {
         SetRenderTargetArea(*renderRegions[i], this->decreaseScreenResNow);
@@ -2934,7 +2931,9 @@ bool GLRenderer::CropDataset(const std::string& strTempDir, bool bKeepOldData) {
   // get rid of the viewing transformation in the plane
   p.Transform(trans.inverse(),false);
 
-  if (!m_pDataset->Crop(p.Plane(),strTempDir,bKeepOldData, m_pMasterController->IOMan()->GetUseMedianFilter())) return false;
+  if (!m_pDataset->Crop(p.Plane(),strTempDir,bKeepOldData, 
+      m_pMasterController->IOMan()->GetUseMedianFilter(), 
+      m_pMasterController->IOMan()->GetClampToEdge() )) return false;
 
   FileBackedDataset* fbd = dynamic_cast<FileBackedDataset*>(m_pDataset);
   if (NULL != fbd)
