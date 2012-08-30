@@ -79,15 +79,19 @@ bool GLTreeRaycaster::CreateVolumePool() {
   uint64_t iCompCount = m_pToCDataset->GetComponentCount();
 
   // todo: let the mem-man decide the size
+
+  // Compute the pool size as a (almost) cubed texture that fits 
+  // into the user specified GPU mem, is a multiple of the bricksize
+  // and is no bigger than what OpenGL tells us is possible
   GLint iMaxVolumeDims;
   glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE_EXT, &iMaxVolumeDims);
   const uint64_t iMaxGPUMem = Controller::Instance().SysInfo()->GetMaxUsableGPUMem();
   const uint64_t iElemSize = iMaxGPUMem/(iCompCount*iBitWidth/8);
   const uint64_t r3ElemSize = std::min(uint32_t(iMaxVolumeDims), uint32_t(pow(iElemSize, 1.0f/3.0f)));
-  UINTVECTOR3 poolSize;
-  poolSize.x = (r3ElemSize/m_pToCDataset->GetMaxUsedBrickSizes().x)*m_pToCDataset->GetMaxUsedBrickSizes().x;
-  poolSize.y = (r3ElemSize/m_pToCDataset->GetMaxUsedBrickSizes().y)*m_pToCDataset->GetMaxUsedBrickSizes().y;
-  poolSize.z = (r3ElemSize/m_pToCDataset->GetMaxUsedBrickSizes().z)*m_pToCDataset->GetMaxUsedBrickSizes().z;
+  const UINTVECTOR3 poolSize(
+         (r3ElemSize/m_pToCDataset->GetMaxUsedBrickSizes().x)*m_pToCDataset->GetMaxUsedBrickSizes().x,
+         (r3ElemSize/m_pToCDataset->GetMaxUsedBrickSizes().y)*m_pToCDataset->GetMaxUsedBrickSizes().y,
+         (r3ElemSize/m_pToCDataset->GetMaxUsedBrickSizes().z)*m_pToCDataset->GetMaxUsedBrickSizes().z);
 
   switch (iCompCount) {
     case 1 : glFormat = GL_LUMINANCE; break;
