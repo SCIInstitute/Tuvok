@@ -10,6 +10,7 @@
 #include "GLTexture2D.h"
 #include "Renderer/TFScaling.h"
 #include "Basics/MathTools.h"
+#include "Basics/SystemInfo.h"
 
 #include "IO/uvfDataset.h"
 #include "IO/TransferFunction1D.h"
@@ -70,9 +71,6 @@ GLTreeRaycaster::GLTreeRaycaster(MasterController* pMasterController,
 
 bool GLTreeRaycaster::CreateVolumePool() {
 
-  // todo: make this configurable
-  const UINTVECTOR3 poolSize = UINTVECTOR3(1024, 1024, 512);
-
   GLenum glInternalformat=0;
   GLenum glFormat=0;
   GLenum glType=0;
@@ -80,6 +78,16 @@ bool GLTreeRaycaster::CreateVolumePool() {
   uint64_t iBitWidth  = m_pToCDataset->GetBitWidth();
   uint64_t iCompCount = m_pToCDataset->GetComponentCount();
 
+  // todo: let the mem-man decide the size
+  GLint iMaxVolumeDims;
+  glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE_EXT, &iMaxVolumeDims);
+  const uint64_t iMaxGPUMem = Controller::Instance().SysInfo()->GetMaxUsableGPUMem();
+  const uint64_t iElemSize = iMaxGPUMem/(iCompCount*iBitWidth/8);
+  const uint64_t r3ElemSize = std::min(uint32_t(iMaxVolumeDims), uint32_t(pow(iElemSize, 1.0f/3.0f)));
+  UINTVECTOR3 poolSize;
+  poolSize.x = (r3ElemSize/m_pToCDataset->GetMaxUsedBrickSizes().x)*m_pToCDataset->GetMaxUsedBrickSizes().x;
+  poolSize.y = (r3ElemSize/m_pToCDataset->GetMaxUsedBrickSizes().y)*m_pToCDataset->GetMaxUsedBrickSizes().y;
+  poolSize.z = (r3ElemSize/m_pToCDataset->GetMaxUsedBrickSizes().z)*m_pToCDataset->GetMaxUsedBrickSizes().z;
 
   switch (iCompCount) {
     case 1 : glFormat = GL_LUMINANCE; break;
