@@ -72,6 +72,10 @@ namespace VolumeTools {
     else
       return T((F(a) + F(b)) / F(2));
   }
+
+  template<typename T> void Order(T& a, T& b) {
+    if (a > b) std::swap(a, b);
+  }
   
   /**
    Computes the mean or the median value of inputs a to d for the mean computation
@@ -90,11 +94,27 @@ namespace VolumeTools {
       // here we compute the median of a,b,c (ignoring d) which means
       // that we will either get the second or third smallest value
       // in the original a,b,c,d sequence
-      if (a > b) std::swap(a,b);
-      if (b > c) std::swap(b,c);
+      Order(a,b);
+      Order(b,c);
       return std::max(a,b);
     } else
       return T((F(a) + F(b) + F(c) + F(d)) / F(4));
+  }
+
+  template<typename T> void InsertIntoQuadruple(T& a, T& b, T& c, T& d, T& p) {
+    if (p > c) {
+      Order(d, p);
+    } else {
+      if (p < b) {
+        d = c; 
+        c = b;
+        b = p;
+        Order(a, b);				
+      }	else {
+        d = c;
+        c = p;
+      }
+    }
   }
   
   /**
@@ -118,9 +138,25 @@ namespace VolumeTools {
    template<typename T, typename F, bool bComputeMedian> T Filter(T a, T b, T c, T d, 
                                                                   T e, T f, T g, T h) {
     if (bComputeMedian) {
+      /* the std solution should be equivalent to the optimized version below
       T elems[8] = {a,b,c,d,e,f,g,h};
       std::nth_element (elems, elems+3, elems+8);
-      return elems[3];
+      return elems[3]; */
+
+      // this version considers only 7 values, the computed median is thus the lower or the upper median for 8
+      // sort first 4 values
+      Order(a, b);
+      Order(c, d);
+      Order(a, c);
+      Order(b, d);
+      Order(b, c);
+
+      //find 4 minimum values out of 6
+      InsertIntoQuadruple(a, b, c, d, e);
+      InsertIntoQuadruple(a, b, c, d, f);
+
+      // 7th value is only relevant when it is smaller than d and larger than c
+      return std::max(std::min(d, g), c);
    } else
       return T((F(a) + F(b) + F(c) + F(d) +
                 F(e) + F(f) + F(g) + F(h)) / F(8));
