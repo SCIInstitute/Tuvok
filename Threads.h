@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef THREADS_H
-#define THREADS_H
+#ifndef TUVOK_THREADS_H
+#define TUVOK_THREADS_H
 
 #include "StdDefines.h"
 #include <memory>
@@ -176,9 +176,10 @@ namespace tuvok
     T m_Value;
     std::unique_ptr<CriticalSection> m_pGuard;
   };
-}
 
-#endif // THREADS_H
+} // namespace tuvok
+
+#endif // TUVOK_THREADS_H
 
 /*
    For more information, please see: http://software.sci.utah.edu

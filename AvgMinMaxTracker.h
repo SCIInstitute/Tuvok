@@ -1,69 +1,73 @@
 #pragma once
 
-#ifndef AVGMINMAXTRACKER_H
-#define AVGMINMAXTRACKER_H
+#ifndef TUVOK_AVGMINMAXTRACKER_H
+#define TUVOK_AVGMINMAXTRACKER_H
 
 #include <deque>
 #include <vector>
 #include <iostream>
 
-template<class T>
-struct AvgMinMaxStruct {
-  AvgMinMaxStruct(T const& average, T const& minimum, T const& maximum) : avg(average), min(minimum), max(maximum) {}
-  T avg, min, max;
-  friend std::ostream& operator<<(std::ostream &os, AvgMinMaxStruct const& amm) { return os << amm.avg << " [" << amm.min << ", " << amm.max << "]"; }
-};
+namespace tuvok
+{
+  template<class T>
+  struct AvgMinMaxStruct {
+    AvgMinMaxStruct(T const& average, T const& minimum, T const& maximum) : avg(average), min(minimum), max(maximum) {}
+    T avg, min, max;
+    friend std::ostream& operator<<(std::ostream &os, AvgMinMaxStruct const& amm) { return os << amm.avg << " [" << amm.min << ", " << amm.max << "]"; }
+  };
 
-template<class T>
-class AvgMinMaxTracker {
-public:
-  AvgMinMaxTracker(uint32_t historyLength)
-    : m_History()
-    , m_Avg()
-    , m_Min()
-    , m_Max()
-    , m_MaxHistoryLength(historyLength)
-  {}
+  template<class T>
+  class AvgMinMaxTracker {
+  public:
+    AvgMinMaxTracker(uint32_t historyLength)
+      : m_History()
+      , m_Avg()
+      , m_Min()
+      , m_Max()
+      , m_MaxHistoryLength(historyLength)
+    {}
 
-  void SetMaxHistoryLength(uint32_t maxHistoryLength) { m_MaxHistoryLength = maxHistoryLength; }
-  uint32_t GetMaxHistoryLength() const { return m_MaxHistoryLength; }
-  uint32_t GetHistroryLength() const { return (uint32_t)m_History.size(); }
+    void SetMaxHistoryLength(uint32_t maxHistoryLength) { m_MaxHistoryLength = maxHistoryLength; }
+    uint32_t GetMaxHistoryLength() const { return m_MaxHistoryLength; }
+    uint32_t GetHistroryLength() const { return (uint32_t)m_History.size(); }
 
-  AvgMinMaxStruct<T> GetAvgMinMax() const { return AvgMinMaxStruct<T>(GetAvg(), GetMin(), GetMax()); }
-  T const GetAvg() const { if (m_History.empty()) return 0; else return m_Avg / GetHistroryLength(); }
-  T const& GetMin() const { return m_Min; }
-  T const& GetMax() const { return m_Max; }
+    AvgMinMaxStruct<T> GetAvgMinMax() const { return AvgMinMaxStruct<T>(GetAvg(), GetMin(), GetMax()); }
+    T const GetAvg() const { if (m_History.empty()) return 0; else return m_Avg / GetHistroryLength(); }
+    T const& GetMin() const { return m_Min; }
+    T const& GetMax() const { return m_Max; }
 
-  void Push(T const& value)
-  {
-    m_History.push_back(value);
-    m_Avg += value;
-    while (m_MaxHistoryLength < m_History.size()) {
-      m_Avg -= m_History.front();
-      m_History.pop_front();
-    }
-    if (!m_History.empty()) {
-      auto i = m_History.begin();
-      m_Min = *i; // min in avg interval
-      m_Max = *i; // max in avg interval
-      for (; i != m_History.end(); ++i) {
-        m_Min = std::min(m_Min, *i);
-        m_Max = std::max(m_Max, *i);
+    void Push(T const& value)
+    {
+      m_History.push_back(value);
+      m_Avg += value;
+      while (m_MaxHistoryLength < m_History.size()) {
+        m_Avg -= m_History.front();
+        m_History.pop_front();
+      }
+      if (!m_History.empty()) {
+        auto i = m_History.begin();
+        m_Min = *i; // min in avg interval
+        m_Max = *i; // max in avg interval
+        for (; i != m_History.end(); ++i) {
+          m_Min = std::min(m_Min, *i);
+          m_Max = std::max(m_Max, *i);
+        }
       }
     }
-  }
 
-  std::vector<T> GetHistory() const { return std::vector<T>(m_History.begin(), m_History.end()); }
+    std::vector<T> GetHistory() const { return std::vector<T>(m_History.begin(), m_History.end()); }
 
-private:
-  std::deque<T> m_History;
-  T m_Avg;
-  T m_Min;
-  T m_Max;
-  uint32_t m_MaxHistoryLength;
-};
+  private:
+    std::deque<T> m_History;
+    T m_Avg;
+    T m_Min;
+    T m_Max;
+    uint32_t m_MaxHistoryLength;
+  };
 
-#endif // AVGMINMAXTRACKER_H
+} // namespace tuvok
+
+#endif // TUVOK_AVGMINMAXTRACKER_H
 
 /*
    For more information, please see: http://software.sci.utah.edu
