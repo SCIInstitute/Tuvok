@@ -58,6 +58,13 @@ public:
   /// @todo FIXME make the argument a brickKey && just ignore the brick index.
   virtual BrickTable::size_type GetBrickCount(size_t lod, size_t ts) const;
 
+  virtual uint64_t GetTotalBrickCount() const{
+    uint64_t iCount = 0;
+    for (auto i = BricksBegin();i!=BricksEnd();++i)
+      ++iCount;
+    return iCount;
+  }
+
   virtual const BrickMD& GetBrickMetadata(const BrickKey&) const;
 
   virtual void Clear();
