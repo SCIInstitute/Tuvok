@@ -70,78 +70,9 @@ GLTreeRaycaster::GLTreeRaycaster(MasterController* pMasterController,
 
 
 bool GLTreeRaycaster::CreateVolumePool() {
+  m_pVolumePool = Controller::Instance().MemMan()->GetVolumePool(m_pToCDataset, m_pContext->GetShareGroupID());
 
-  GLenum glInternalformat=0;
-  GLenum glFormat=0;
-  GLenum glType=0;
-
-  uint64_t iBitWidth  = m_pToCDataset->GetBitWidth();
-  uint64_t iCompCount = m_pToCDataset->GetComponentCount();
-
-  // todo: let the mem-man decide the size
-
-  // Compute the pool size as a (almost) cubed texture that fits 
-  // into the user specified GPU mem, is a multiple of the bricksize
-  // and is no bigger than what OpenGL tells us is possible
-  GLint iMaxVolumeDims;
-  glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE_EXT, &iMaxVolumeDims);
-  const uint64_t iMaxGPUMem = Controller::Instance().SysInfo()->GetMaxUsableGPUMem();
-  const uint64_t iElemSize = iMaxGPUMem/(iCompCount*iBitWidth/8);
-  const uint64_t r3ElemSize = std::min(uint32_t(iMaxVolumeDims), uint32_t(pow(iElemSize, 1.0f/3.0f)));
-  const UINTVECTOR3 poolSize(
-         (r3ElemSize/m_pToCDataset->GetMaxUsedBrickSizes().x)*m_pToCDataset->GetMaxUsedBrickSizes().x,
-         (r3ElemSize/m_pToCDataset->GetMaxUsedBrickSizes().y)*m_pToCDataset->GetMaxUsedBrickSizes().y,
-         (r3ElemSize/m_pToCDataset->GetMaxUsedBrickSizes().z)*m_pToCDataset->GetMaxUsedBrickSizes().z);
-
-  switch (iCompCount) {
-    case 1 : glFormat = GL_LUMINANCE; break;
-    case 3 : glFormat = GL_RGB; break;
-    case 4 : glFormat = GL_RGBA; break;
-    default : T_ERROR("Invalid Component Count"); return false;
-  }
-
-  switch (iBitWidth) {
-    case 8 :  {
-        glType = GL_UNSIGNED_BYTE;
-        switch (iCompCount) {
-          case 1 : glInternalformat = GL_LUMINANCE8; break;
-          case 3 : glInternalformat = GL_RGB8; break;
-          case 4 : glInternalformat = GL_RGBA8; break;
-          default : T_ERROR("Invalid Component Count"); return false;
-        }
-      } 
-      break;
-    case 16 :  {
-        glType = GL_UNSIGNED_SHORT;
-        switch (iCompCount) {
-          case 1 : glInternalformat = GL_LUMINANCE16; break;
-          case 3 : glInternalformat = GL_RGB16; break;
-          case 4 : glInternalformat = GL_RGBA16; break;
-          default : T_ERROR("Invalid Component Count"); return false;
-        }
-      } 
-      break;
-    case 32 :  {
-        glType = GL_FLOAT;
-        switch (iCompCount) {
-          case 1 : glInternalformat = GL_LUMINANCE32F_ARB; break;
-          case 3 : glInternalformat = GL_RGB32F; break;
-          case 4 : glInternalformat = GL_RGBA32F; break;
-          default : T_ERROR("Invalid Component Count"); return false;
-        }
-      } 
-      break;
-    default : T_ERROR("Invalid bit width"); return false;
-  }
-
-  UINTVECTOR3 vDomainSize = UINTVECTOR3(m_pToCDataset->GetDomainSize());
-
-
-  m_pVolumePool = new GLVolumePool(poolSize, UINTVECTOR3(m_pToCDataset->GetMaxUsedBrickSizes()), 
-                                   m_pToCDataset->GetBrickOverlapSize(), 
-                                   vDomainSize, glInternalformat, glFormat, glType);
-
-
+  if (!m_pVolumePool) return false;
   // upload a brick that covers the entire domain to make sure have something to render
 
   if (m_vUploadMem.empty()) {
@@ -164,7 +95,6 @@ bool GLTreeRaycaster::CreateVolumePool() {
     }
   }
 
-  
   RecomputeBrickVisibility();
 
   return true;
@@ -192,7 +122,7 @@ bool GLTreeRaycaster::LoadDataset(const string& strFilename) {
 }
 GLTreeRaycaster::~GLTreeRaycaster() {
   delete m_pglHashTable; m_pglHashTable = NULL;
-  delete  m_pVolumePool; m_pVolumePool = NULL;
+  Controller::Instance().MemMan()->DeleteVolumePool(&m_pVolumePool);
 }
 
 

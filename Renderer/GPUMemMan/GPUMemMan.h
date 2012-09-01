@@ -49,8 +49,10 @@ class GLSLProgram;
 class GLTexture1D;
 class GLTexture2D;
 class MasterController;
+class GLVolumePool; 
 
-class Dataset;
+class Dataset;  
+class UVFDataset;
 
 class GPUMemMan {
   public:
@@ -123,6 +125,9 @@ class GPUMemMan {
     GLSLProgram* GetGLSLProgram(const ShaderDescriptor& sdesc,
                                 int iShareGroupID);
     void FreeGLSLProgram(GLSLProgram* pGLSLProgram);
+
+    GLVolumePool* GetVolumePool(UVFDataset* dataSet, int iShareGroupID);
+    void DeleteVolumePool(GLVolumePool** pool);
 
     void MemSizesChanged();
 

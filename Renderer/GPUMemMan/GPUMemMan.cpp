@@ -63,6 +63,9 @@
 #include "Renderer/GL/GLTexture2D.h"
 #include "Renderer/GL/GLVolume.h"
 
+#include "IO/uvfDataset.h"
+#include "Renderer/GL/GLVolumePool.h"
+
 #include "../LuaScripting/LuaScripting.h"
 #include "../LuaScripting/LuaMemberReg.h"
 #include "../LuaScripting/TuvokSpecific/LuaTransferFun1DProxy.h"
@@ -746,6 +749,102 @@ void GPUMemMan::DeleteArbitraryBrick(int iShareGroupID) {
   }
   WARNING("All bricks are (heavily) in use: "
           "cannot make space for a new brick.");
+}
+
+void GPUMemMan::DeleteVolumePool(GLVolumePool** pool) {
+  delete  *pool;
+  *pool = NULL;
+}
+
+GLVolumePool* GPUMemMan::GetVolumePool(UVFDataset* dataSet, int /* iShareGroupID */) {
+
+  GLenum glInternalformat=0;
+  GLenum glFormat=0;
+  GLenum glType=0;
+
+  const uint64_t iBitWidth  = dataSet->GetBitWidth();
+  const uint64_t iCompCount = dataSet->GetComponentCount();
+  const UINTVECTOR3 vMaxBS = UINTVECTOR3(dataSet->GetMaxUsedBrickSizes());
+
+  // Compute the pool size as a (almost) cubed texture that fits 
+  // into the user specified GPU mem, is a multiple of the bricksize
+  // and is no bigger than what OpenGL tells us is possible
+  GLint iMaxVolumeDims;
+  glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE_EXT, &iMaxVolumeDims);
+  const uint64_t iMaxGPUMem = Controller::Instance().SysInfo()->GetMaxUsableGPUMem()-m_iAllocatedGPUMemory;
+  const uint64_t iElemSize = iMaxGPUMem/(iCompCount*iBitWidth/8);
+  const uint32_t r3ElemSize = std::min(uint32_t(iMaxVolumeDims), uint32_t(pow(iElemSize, 1.0f/3.0f)));
+
+
+
+  // the max brick layout the GPU would let us create
+  // based on the max texture size an the available memory
+  const UINTVECTOR3 maxBricksForGPU( (r3ElemSize/vMaxBS.x)*vMaxBS.x,
+                                     (r3ElemSize/vMaxBS.y)*vMaxBS.y,
+                                     (r3ElemSize/vMaxBS.z)*vMaxBS.z);
+
+  const uint64_t iTotalBrickCount = dataSet->GetTotalBrickCount();
+
+  // the max brick layout required by the dataset
+  const uint32_t r3Bricks = uint32_t(pow(iTotalBrickCount, 1.0f/3.0f));
+  UINTVECTOR3 maxBricksForDataset;
+  maxBricksForDataset.x = std::min(uint32_t(iMaxVolumeDims), vMaxBS.x*r3Bricks);
+  maxBricksForDataset.y = std::min(uint32_t(iMaxVolumeDims), vMaxBS.y*uint32_t(ceil(float(iTotalBrickCount) / ((maxBricksForDataset.x/vMaxBS.x) * (maxBricksForDataset.x/vMaxBS.x)))));
+  maxBricksForDataset.z = std::min(uint32_t(iMaxVolumeDims), vMaxBS.z*uint32_t(ceil(float(iTotalBrickCount) / ((maxBricksForDataset.x/vMaxBS.x) * (maxBricksForDataset.y/vMaxBS.y)))));
+
+  // now use the smaller of the two layouts, normally that
+  // would be the maxBricksForGPU but for small datasets that
+  // can be rendered entirely in-core we may need less space
+  const UINTVECTOR3 poolSize = (maxBricksForDataset.volume() < maxBricksForGPU.volume())
+                                    ? maxBricksForDataset
+                                    : maxBricksForGPU;
+
+  switch (iCompCount) {
+    case 1 : glFormat = GL_LUMINANCE; break;
+    case 3 : glFormat = GL_RGB; break;
+    case 4 : glFormat = GL_RGBA; break;
+    default : T_ERROR("Invalid Component Count"); return NULL;
+  }
+
+  switch (iBitWidth) {
+    case 8 :  {
+        glType = GL_UNSIGNED_BYTE;
+        switch (iCompCount) {
+          case 1 : glInternalformat = GL_LUMINANCE8; break;
+          case 3 : glInternalformat = GL_RGB8; break;
+          case 4 : glInternalformat = GL_RGBA8; break;
+          default : T_ERROR("Invalid Component Count"); return NULL;
+        }
+      } 
+      break;
+    case 16 :  {
+        glType = GL_UNSIGNED_SHORT;
+        switch (iCompCount) {
+          case 1 : glInternalformat = GL_LUMINANCE16; break;
+          case 3 : glInternalformat = GL_RGB16; break;
+          case 4 : glInternalformat = GL_RGBA16; break;
+          default : T_ERROR("Invalid Component Count"); return NULL;
+        }
+      } 
+      break;
+    case 32 :  {
+        glType = GL_FLOAT;
+        switch (iCompCount) {
+          case 1 : glInternalformat = GL_LUMINANCE32F_ARB; break;
+          case 3 : glInternalformat = GL_RGB32F; break;
+          case 4 : glInternalformat = GL_RGBA32F; break;
+          default : T_ERROR("Invalid Component Count"); return NULL;
+        }
+      } 
+      break;
+    default : T_ERROR("Invalid bit width"); return NULL;
+  }
+
+  UINTVECTOR3 vDomainSize = UINTVECTOR3(dataSet->GetDomainSize());
+
+  return new GLVolumePool(poolSize, UINTVECTOR3(vMaxBS), 
+                          dataSet->GetBrickOverlapSize(), 
+                          vDomainSize, glInternalformat, glFormat, glType);
 }
 
 GLVolume* GPUMemMan::GetVolume(Dataset* pDataset, const BrickKey& key,
