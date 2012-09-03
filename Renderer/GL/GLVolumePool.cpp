@@ -60,7 +60,7 @@ static UINTVECTOR3 GetBrickLayout(const UINTVECTOR3& volumeSize,
 
 GLVolumePool::GLVolumePool(const UINTVECTOR3& poolSize, const UINTVECTOR3& maxBrickSize,
                            const UINTVECTOR3& overlap, const UINTVECTOR3& volumeSize,
-                           GLint internalformat, GLenum format, GLenum type, 
+                           GLenum filter, GLint internalformat, GLenum format, GLenum type, 
                            bool bUseGLCore)
   : m_PoolMetadataTexture(NULL),
     m_PoolDataTexture(NULL),
@@ -69,6 +69,7 @@ GLVolumePool::GLVolumePool(const UINTVECTOR3& poolSize, const UINTVECTOR3& maxBr
     m_maxInnerBrickSize(maxBrickSize-overlap*2),
     m_maxTotalBrickSize(maxBrickSize),
     m_volumeSize(volumeSize),
+    m_filter(filter),
     m_internalformat(internalformat),
     m_format(format),
     m_type(type),
@@ -505,7 +506,7 @@ void GLVolumePool::CreateGLResources() {
 
   m_PoolMetadataTexture = new GLTexture2D(
     vTexSize.x, vTexSize.y, GL_R32UI,
-    GL_RED_INTEGER, GL_UNSIGNED_INT
+    GL_RED_INTEGER, GL_UNSIGNED_INT, 0, m_filter, m_filter
   );
 }
 
@@ -773,6 +774,11 @@ uint64_t GLVolumePool::GetCPUSize() const {
 
 uint64_t GLVolumePool::GetGPUSize() const {
   return m_PoolMetadataTexture->GetGPUSize() + m_PoolDataTexture->GetGPUSize();
+}
+
+void GLVolumePool::SetFilterMode(GLenum filter) {
+  m_filter = filter;
+  m_PoolDataTexture->SetFilter(filter, filter);
 }
 
 /*

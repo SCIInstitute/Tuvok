@@ -756,7 +756,7 @@ void GPUMemMan::DeleteVolumePool(GLVolumePool** pool) {
   *pool = NULL;
 }
 
-GLVolumePool* GPUMemMan::GetVolumePool(UVFDataset* dataSet, int /* iShareGroupID */) {
+GLVolumePool* GPUMemMan::GetVolumePool(UVFDataset* dataSet, GLenum filter, int /* iShareGroupID */) {
 
   GLenum glInternalformat=0;
   GLenum glFormat=0;
@@ -844,7 +844,8 @@ GLVolumePool* GPUMemMan::GetVolumePool(UVFDataset* dataSet, int /* iShareGroupID
 
   return new GLVolumePool(poolSize, UINTVECTOR3(vMaxBS), 
                           dataSet->GetBrickOverlapSize(), 
-                          vDomainSize, glInternalformat, glFormat, glType);
+                          vDomainSize, filter, glInternalformat, 
+                          glFormat, glType);
 }
 
 GLVolume* GPUMemMan::GetVolume(Dataset* pDataset, const BrickKey& key,

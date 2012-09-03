@@ -51,6 +51,8 @@ namespace tuvok {
 
       bool CheckForRedraw();
 
+      virtual void SetInterpolant(Interpolant eInterpolant);
+
     protected:
       GLHashTable*    m_pglHashTable;
       GLVolumePool*   m_pVolumePool;

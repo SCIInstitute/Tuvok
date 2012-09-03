@@ -126,7 +126,7 @@ class GPUMemMan {
                                 int iShareGroupID);
     void FreeGLSLProgram(GLSLProgram* pGLSLProgram);
 
-    GLVolumePool* GetVolumePool(UVFDataset* dataSet, int iShareGroupID);
+    GLVolumePool* GetVolumePool(UVFDataset* dataSet, GLenum filter, int iShareGroupID);
     void DeleteVolumePool(GLVolumePool** pool);
 
     void MemSizesChanged();

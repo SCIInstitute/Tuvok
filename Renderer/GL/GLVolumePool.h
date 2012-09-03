@@ -55,7 +55,7 @@ namespace tuvok {
     public:
       GLVolumePool(const UINTVECTOR3& poolSize, const UINTVECTOR3& maxBrickSize,
                    const UINTVECTOR3& overlap, const UINTVECTOR3& volumeSize,
-                   GLint internalformat, GLenum format, GLenum type, 
+                   GLenum filter, GLint internalformat, GLenum format, GLenum type, 
                    bool bUseGLCore=true);
       virtual ~GLVolumePool();
 
@@ -71,6 +71,9 @@ namespace tuvok {
 
       std::string GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t iDataTextureUnit);
 
+      
+      void SetFilterMode(GLenum filter);
+
       virtual uint64_t GetCPUSize() const;
       virtual uint64_t GetGPUSize() const;
 
@@ -82,6 +85,7 @@ namespace tuvok {
       UINTVECTOR3 m_maxInnerBrickSize;
       UINTVECTOR3 m_maxTotalBrickSize;
       UINTVECTOR3 m_volumeSize;
+      GLenum m_filter;
       GLint m_internalformat;
       GLenum m_format;
       GLenum m_type;

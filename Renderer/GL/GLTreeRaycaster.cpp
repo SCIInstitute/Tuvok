@@ -70,7 +70,7 @@ GLTreeRaycaster::GLTreeRaycaster(MasterController* pMasterController,
 
 
 bool GLTreeRaycaster::CreateVolumePool() {
-  m_pVolumePool = Controller::Instance().MemMan()->GetVolumePool(m_pToCDataset, m_pContext->GetShareGroupID());
+  m_pVolumePool = Controller::Instance().MemMan()->GetVolumePool(m_pToCDataset, ComputeGLFilter(),  m_pContext->GetShareGroupID());
 
   if (!m_pVolumePool) return false;
   // upload a brick that covers the entire domain to make sure have something to render
@@ -756,6 +756,12 @@ bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
   // always display intermediate results
   return true;
 }
+
+void GLTreeRaycaster::SetInterpolant(Interpolant eInterpolant) {  
+  AbstrRenderer::SetInterpolant(eInterpolant);
+  m_pVolumePool->SetFilterMode(ComputeGLFilter());
+}
+
 
 /*
    For more information, please see: http://software.sci.utah.edu
