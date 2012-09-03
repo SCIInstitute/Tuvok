@@ -428,6 +428,7 @@ void ExtendedOctreeConverter::GetBrick(uint8_t* pData, ExtendedOctree &tree, con
 void ExtendedOctreeConverter::SetupCache(ExtendedOctree &tree) {
   size_t CacheElementDataSize = size_t(tree.GetComponentTypeSize() * tree.GetComponentCount() * tree.m_iBrickSize.volume());
   uint64_t iCacheElemCount = m_iMemLimit / (CacheElementDataSize + sizeof(CacheEntry));
+  iCacheElemCount = std::min(iCacheElemCount, tree.ComputeBrickCount());
   m_vBrickCache.resize(size_t(iCacheElemCount));
 
   for (BrickCacheIter i = m_vBrickCache.begin();i != m_vBrickCache.end();++i) {
