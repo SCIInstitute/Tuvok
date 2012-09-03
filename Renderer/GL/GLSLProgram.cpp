@@ -211,8 +211,8 @@ static void detach_shaders(GLuint program)
               static_cast<unsigned>(program), static_cast<unsigned>(err));
     }
 
-    MESSAGE("%d shaders attached to %u", static_cast<int>(num_shaders),
-          static_cast<unsigned>(program));
+//    MESSAGE("%d shaders attached to %u", static_cast<int>(num_shaders),
+//          static_cast<unsigned>(program));
 
            
     // detach each shader
@@ -369,8 +369,8 @@ static bool attachshader(GLuint program, const std::string& source,
     }
   }
 
-  MESSAGE("Adding shader '%s' to program %u", filename.c_str(),
-          static_cast<unsigned>(program));
+//  MESSAGE("Adding shader '%s' to program %u", filename.c_str(),
+//          static_cast<unsigned>(program));
 
   gl::AttachShader(program, sh);
   if(glGetError() != GL_NO_ERROR) {
