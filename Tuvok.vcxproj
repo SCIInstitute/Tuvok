@@ -509,6 +509,7 @@
     <ClCompile Include="3rdParty\LUA\lzio.cpp" />
     <ClCompile Include="Basics\Appendix.cpp" />
     <ClCompile Include="Basics\ArcBall.cpp" />
+    <ClCompile Include="Basics\Clipper.cpp" />
     <ClCompile Include="Basics\DynamicDX.cpp" />
     <ClCompile Include="Basics\GeometryGenerator.cpp" />
     <ClCompile Include="Basics\LargeRAWFile.cpp" />
@@ -1272,6 +1273,7 @@
     <ClInclude Include="Basics\Appendix.h" />
     <ClInclude Include="Basics\ArcBall.h" />
     <ClInclude Include="Basics\AvgMinMaxTracker.h" />
+    <ClInclude Include="Basics\Clipper.h" />
     <ClInclude Include="Basics\Console.h" />
     <ClInclude Include="Basics\DynamicDX.h" />
     <ClInclude Include="Basics\EndianConvert.h" />

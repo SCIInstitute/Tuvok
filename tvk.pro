@@ -105,6 +105,7 @@ HEADERS += \
            Basics/Plane.h \
            Basics/SysTools.h \
            Basics/Timer.h \
+           Basics/Clipper.h \
            Basics/TuvokException.h \
            Basics/Vectors.h \
            Basics/nonstd.h \
@@ -324,6 +325,7 @@ SOURCES += \
            Basics/Plane.cpp \
            Basics/SystemInfo.cpp \
            Basics/Timer.cpp \           
+           Basics/Clipper.cpp \           
            Basics/SysTools.cpp \
            Basics/Mesh.cpp \
            Basics/KDTree.cpp \
