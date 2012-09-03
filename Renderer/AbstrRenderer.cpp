@@ -539,7 +539,6 @@ bool AbstrRenderer::IsClipPlaneEnabled(RenderRegion *renderRegion) {
     return m_bClipPlaneOn; /// @todo: Make this per RenderRegion.
   else
     return false;
-
 }
 
 void AbstrRenderer::EnableClipPlane(RenderRegion *renderRegion) {
@@ -553,6 +552,7 @@ void AbstrRenderer::EnableClipPlane(RenderRegion *renderRegion) {
     }
   }
 }
+
 void AbstrRenderer::DisableClipPlane(RenderRegion *renderRegion) {
   if (!renderRegion)
     renderRegion = GetFirst3DRegion();

@@ -320,7 +320,7 @@ class AbstrRenderer: public Scriptable {
     virtual const FLOATMATRIX4& GetTranslation(
                                         const RenderRegion *renderRegion) const;
 
-    void SetClipPlane(RenderRegion *renderRegion,
+    virtual void SetClipPlane(RenderRegion *renderRegion,
                       const ExtendedPlane& plane);
     virtual bool IsClipPlaneEnabled(RenderRegion *renderRegion=NULL);
     virtual void EnableClipPlane(RenderRegion *renderRegion=NULL);
