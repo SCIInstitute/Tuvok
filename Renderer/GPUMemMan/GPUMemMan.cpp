@@ -770,7 +770,7 @@ GLVolumePool* GPUMemMan::GetVolumePool(UVFDataset* dataSet, int /* iShareGroupID
   // into the user specified GPU mem, is a multiple of the bricksize
   // and is no bigger than what OpenGL tells us is possible
   GLint iMaxVolumeDims;
-  glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE_EXT, &iMaxVolumeDims);
+  GL(glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE_EXT, &iMaxVolumeDims));
   const uint64_t iMaxGPUMem = Controller::Instance().SysInfo()->GetMaxUsableGPUMem()-m_iAllocatedGPUMemory;
   const uint64_t iElemSize = iMaxGPUMem/(iCompCount*iBitWidth/8);
   const uint32_t r3ElemSize = std::min(uint32_t(iMaxVolumeDims), uint32_t(pow(iElemSize, 1.0f/3.0f)));
@@ -786,17 +786,17 @@ GLVolumePool* GPUMemMan::GetVolumePool(UVFDataset* dataSet, int /* iShareGroupID
   const uint64_t iTotalBrickCount = dataSet->GetTotalBrickCount();
 
   // the max brick layout required by the dataset
-  const uint32_t r3Bricks = uint32_t(pow(iTotalBrickCount, 1.0f/3.0f));
-  UINTVECTOR3 maxBricksForDataset;
-  maxBricksForDataset.x = std::min(uint32_t(iMaxVolumeDims), vMaxBS.x*r3Bricks);
-  maxBricksForDataset.y = std::min(uint32_t(iMaxVolumeDims), vMaxBS.y*uint32_t(ceil(float(iTotalBrickCount) / ((maxBricksForDataset.x/vMaxBS.x) * (maxBricksForDataset.x/vMaxBS.x)))));
-  maxBricksForDataset.z = std::min(uint32_t(iMaxVolumeDims), vMaxBS.z*uint32_t(ceil(float(iTotalBrickCount) / ((maxBricksForDataset.x/vMaxBS.x) * (maxBricksForDataset.y/vMaxBS.y)))));
+  const uint64_t r3Bricks = uint64_t(pow(iTotalBrickCount, 1.0f/3.0f));
+  UINT64VECTOR3 maxBricksForDataset;
+  maxBricksForDataset.x = std::min(uint64_t(iMaxVolumeDims), vMaxBS.x*r3Bricks);
+  maxBricksForDataset.y = std::min(uint64_t(iMaxVolumeDims), vMaxBS.y*uint64_t(ceil(float(iTotalBrickCount) / ((maxBricksForDataset.x/vMaxBS.x) * (maxBricksForDataset.x/vMaxBS.x)))));
+  maxBricksForDataset.z = std::min(uint64_t(iMaxVolumeDims), vMaxBS.z*uint64_t(ceil(float(iTotalBrickCount) / ((maxBricksForDataset.x/vMaxBS.x) * (maxBricksForDataset.y/vMaxBS.y)))));
 
   // now use the smaller of the two layouts, normally that
   // would be the maxBricksForGPU but for small datasets that
   // can be rendered entirely in-core we may need less space
-  const UINTVECTOR3 poolSize = (maxBricksForDataset.volume() < maxBricksForGPU.volume())
-                                    ? maxBricksForDataset
+  const UINTVECTOR3 poolSize = (maxBricksForDataset.volume() < UINT64VECTOR3(maxBricksForGPU).volume())
+                                    ? UINTVECTOR3(maxBricksForDataset)
                                     : maxBricksForGPU;
 
   switch (iCompCount) {
