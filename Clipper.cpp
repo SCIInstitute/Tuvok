@@ -1,6 +1,6 @@
 #include "Clipper.h"
 
-void Clipper::BoxPlane(std::vector<FLOATVECTOR3>& posData, ExtendedPlane clipPlane) {
+void Clipper::BoxPlane(std::vector<FLOATVECTOR3>& /*posData*/, ExtendedPlane /*clipPlane*/) {
 
 }
 
