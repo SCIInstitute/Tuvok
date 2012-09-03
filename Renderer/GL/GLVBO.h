@@ -64,6 +64,8 @@ namespace tuvok {
       void AddVertexData(const std::vector< VECTOR3<uint8_t> >& vertexData);
       void AddVertexData(const std::vector< VECTOR4<uint8_t> >& vertexData);
 
+      void ClearVertexData();
+
       void SetIndexData(const std::vector<uint16_t>& indexData);
       void SetIndexData(const std::vector<uint32_t>& indexData);
 

@@ -22,12 +22,16 @@ GLuint GLVBO::GetNewAB() {
   return vboHandle;
 }
 
-void GLVBO::FreeGL() {
+void GLVBO::ClearVertexData() {
   if(m_vboHandles.size()) {
     for (auto buffer = m_vboHandles.begin();buffer<m_vboHandles.end();buffer++) 
       GL(glDeleteBuffers(1, &(buffer->second)));
     m_vboHandles.clear();
   }
+}
+
+void GLVBO::FreeGL() {
+  ClearVertexData();
   if(m_iboHandle.first.count) {
     GL(glDeleteBuffers(1, &(m_iboHandle.second)));
     m_iboHandle.first.count = 0;
