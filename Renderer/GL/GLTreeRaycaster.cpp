@@ -11,6 +11,7 @@
 #include "Renderer/TFScaling.h"
 #include "Basics/MathTools.h"
 #include "Basics/SystemInfo.h"
+#include "Basics/Clipper.h"
 
 #include "IO/uvfDataset.h"
 #include "IO/TransferFunction1D.h"
@@ -218,6 +219,8 @@ bool GLTreeRaycaster::Initialize(std::shared_ptr<Context> ctx) {
   m_pglHashTable = new GLHashTable(UINTVECTOR3( m_pToCDataset->GetBrickLayout(0, 0)) );
   m_pglHashTable->InitGL();
 
+  CreateVBO();
+
   if (!CreateVolumePool()) return false;
 
   // now that we've created the hashtable and the volume pool
@@ -233,8 +236,6 @@ bool GLTreeRaycaster::Initialize(std::shared_ptr<Context> ctx) {
   posData.push_back(FLOATVECTOR3(-1.0f, -1.0f, -0.5f));
   m_pNearPlaneQuad->AddVertexData(posData);
 
-  // init bbox vbo
-  CreateVBO();
 
   return true;
 }
@@ -327,6 +328,7 @@ void GLTreeRaycaster::CreateVBO() {
 
   m_pBBoxVBO = new GLVBO();
   std::vector<FLOATVECTOR3> posData;
+
   // BACK
   posData.push_back(FLOATVECTOR3(vMaxPoint.x, vMinPoint.y, vMinPoint.z));
   posData.push_back(FLOATVECTOR3(vMinPoint.x, vMinPoint.y, vMinPoint.z));
@@ -357,6 +359,11 @@ void GLTreeRaycaster::CreateVBO() {
   posData.push_back(FLOATVECTOR3(vMinPoint.x, vMaxPoint.y, vMinPoint.z));
   posData.push_back(FLOATVECTOR3(vMinPoint.x, vMaxPoint.y, vMaxPoint.z));
   posData.push_back(FLOATVECTOR3(vMaxPoint.x, vMaxPoint.y, vMaxPoint.z));
+
+  if ( m_bClipPlaneOn )
+    Clipper::BoxPlane(posData, m_ClipPlane);
+
+
   m_pBBoxVBO->AddVertexData(posData);
 }
 
@@ -758,10 +765,30 @@ bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
 }
 
 void GLTreeRaycaster::SetInterpolant(Interpolant eInterpolant) {  
-  AbstrRenderer::SetInterpolant(eInterpolant);
+  GLRenderer::SetInterpolant(eInterpolant);
   m_pVolumePool->SetFilterMode(ComputeGLFilter());
 }
 
+void GLTreeRaycaster::SetClipPlane(RenderRegion *renderRegion,
+                                   const ExtendedPlane& plane) {
+  GLRenderer::SetClipPlane(renderRegion, plane);
+  CreateVBO();
+}
+
+void GLTreeRaycaster::EnableClipPlane(RenderRegion *renderRegion) {
+  GLRenderer::EnableClipPlane(renderRegion);
+  CreateVBO();  
+}
+
+void GLTreeRaycaster::DisableClipPlane(RenderRegion *renderRegion) {
+  GLRenderer::DisableClipPlane(renderRegion);
+  CreateVBO();
+}
+
+void GLTreeRaycaster::ClipPlaneRelativeLock(bool bRelative) {
+  GLRenderer::ClipPlaneRelativeLock(bRelative);
+  CreateVBO();
+}
 
 /*
    For more information, please see: http://software.sci.utah.edu

@@ -39,9 +39,9 @@ namespace tuvok {
 
       // this is work in  progress so before we start we disable all we can 
       virtual bool SupportsClearView() {return false;}
-      virtual bool CanDoClipPlane() {return false;}
       virtual void Set1DTrans(const std::vector<unsigned char>& rgba);
 
+      virtual bool CanDoClipPlane() {return true;}
 
       virtual std::string ClearViewDisableReason() const {
         return "this renderer is work in progress and clearview is simply not implemented yet";
@@ -115,6 +115,14 @@ namespace tuvok {
       virtual void Changed1DTrans();
       virtual void SetRendermode(AbstrRenderer::ERenderMode eRenderMode);
 
+      // intercept cliplane changes
+      virtual void SetClipPlane(RenderRegion *renderRegion,
+                        const ExtendedPlane& plane);
+      virtual void EnableClipPlane(RenderRegion *renderRegion=NULL);
+      virtual void DisableClipPlane(RenderRegion *renderRegion=NULL);
+
+      virtual void ClipPlaneRelativeLock(bool);
+
 
       virtual void SetRescaleFactors(const DOUBLEVECTOR3& vfRescale);
       void CreateVBO();
@@ -137,7 +145,7 @@ namespace tuvok {
 
    The MIT License
 
-   Copyright (c) 2011 Interactive Visualization and Data Analysis Group.
+   Copyright (c) 2012 Interactive Visualization and Data Analysis Group.
 
 
    Permission is hereby granted, free of charge, to any person obtaining a
