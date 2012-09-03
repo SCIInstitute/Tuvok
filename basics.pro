@@ -34,7 +34,8 @@ SOURCES += \
   ./Systeminfo/VidMemViaDDraw.cpp \
   ./Systeminfo/VidMemViaDXGI.cpp \
   ./SysTools.cpp \
-  ./Timer.cpp
+  ./Timer.cpp \
+  ./Clipper.cpp
 
 HEADERS += \
   ./Appendix.h \
@@ -58,6 +59,7 @@ HEADERS += \
   ./SystemInfo.h \
   ./SysTools.h \
   ./Timer.h \
+  ./Clipper.h \
   ./tr1.h \
   ./TuvokException.h \
   ./Vectors.h
