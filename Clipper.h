@@ -5,13 +5,13 @@
 
 #include "StdDefines.h"
 #include "Vectors.h"
-#include "Plane.h"
 
 /** \class Clipper */
 class Clipper
 {
 public:
-  static void BoxPlane(std::vector<FLOATVECTOR3>& posData, ExtendedPlane clipPlane);
+  static std::vector<FLOATVECTOR3> TriPlane(std::vector<FLOATVECTOR3>& posData, const VECTOR3<float> &normal, const float D);
+  static void BoxPlane(std::vector<FLOATVECTOR3>& posData, const VECTOR3<float> &normal, const float D);
 
 };
 
