@@ -253,14 +253,18 @@ bool GLTreeRaycaster::LoadCheckShader(GLSLProgram** shader, ShaderDescriptor& sd
 }
 
 bool GLTreeRaycaster::LoadTraversalShaders() {
+
+  const std::string poolFragment = m_pVolumePool->GetShaderFragment(3,4);
+  const std::string hashFragment = m_pglHashTable->GetShaderFragment(5);
+
   std::vector<std::string> vs, fs;
   vs.push_back(FindFileInDirs("GLTreeRaycaster-entry-VS.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("GLTreeRaycaster-blend.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("GLTreeRaycaster-Method-1D.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
   ShaderDescriptor sd(vs, fs);
-  sd.AddFragmentShaderString(m_pVolumePool->GetShaderFragment(3,4));
-  sd.AddFragmentShaderString(m_pglHashTable->GetShaderFragment(5));
+  sd.AddFragmentShaderString(poolFragment);
+  sd.AddFragmentShaderString(hashFragment);
   if (!LoadCheckShader(&m_pProgramRayCast1D, sd, "1D TF")) return false;
 
   vs.clear(); fs.clear();
@@ -271,9 +275,9 @@ bool GLTreeRaycaster::LoadTraversalShaders() {
   fs.push_back(FindFileInDirs("lighting.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
   sd = ShaderDescriptor(vs, fs);
-  sd.AddFragmentShaderString(m_pVolumePool->GetShaderFragment(3,4));
-  sd.AddFragmentShaderString(m_pglHashTable->GetShaderFragment(5));
-  if (!LoadCheckShader(&m_pProgramRayCast1DLighting, sd, "1D TF lighitng")) return false;
+  sd.AddFragmentShaderString(poolFragment);
+  sd.AddFragmentShaderString(hashFragment);
+  if (!LoadCheckShader(&m_pProgramRayCast1DLighting, sd, "1D TF lighting")) return false;
 
   vs.clear(); fs.clear();
   vs.push_back(FindFileInDirs("GLTreeRaycaster-entry-VS.glsl", m_vShaderSearchDirs, false));
@@ -282,8 +286,8 @@ bool GLTreeRaycaster::LoadTraversalShaders() {
   fs.push_back(FindFileInDirs("GLTreeRaycaster-GradientTools.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
   sd = ShaderDescriptor(vs, fs);
-  sd.AddFragmentShaderString(m_pVolumePool->GetShaderFragment(3,4));
-  sd.AddFragmentShaderString(m_pglHashTable->GetShaderFragment(5));
+  sd.AddFragmentShaderString(poolFragment);
+  sd.AddFragmentShaderString(hashFragment);
   if (!LoadCheckShader(&m_pProgramRayCast2D, sd, "2D TF")) return false;
 
   vs.clear(); fs.clear();
@@ -294,9 +298,9 @@ bool GLTreeRaycaster::LoadTraversalShaders() {
   fs.push_back(FindFileInDirs("lighting.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
   sd = ShaderDescriptor(vs, fs);
-  sd.AddFragmentShaderString(m_pVolumePool->GetShaderFragment(3,4));
-  sd.AddFragmentShaderString(m_pglHashTable->GetShaderFragment(5));
-  if (!LoadCheckShader(&m_pProgramRayCast2DLighting, sd, "2D TF lighitng")) return false;
+  sd.AddFragmentShaderString(poolFragment);
+  sd.AddFragmentShaderString(hashFragment);
+  if (!LoadCheckShader(&m_pProgramRayCast2DLighting, sd, "2D TF lighting")) return false;
 
   return true;
 }
