@@ -95,7 +95,6 @@ void main()
   vec3 sampleDelta = GetSampleDelta();
   float stepSize = length(voxelSpaceDirection);
 
-
   // iterate over the bricks along the ray
   float t = 0;
   bool bOptimalResolution = true;
@@ -128,7 +127,6 @@ void main()
                                  normBrickExitCoords, bEmpty,
                                  normToPoolScale, normToPoolTrans, brickCoords);
 
-
       if (!bRequestOK && bOptimalResolution) {
         // for the first time in this pass, we got a brick
         // at lower than requested resolution then record this 
@@ -139,8 +137,13 @@ void main()
       }
 
       if (!bEmpty && lastBrickCoords != brickCoords) {
-        // prepare the traversal
+        // compute the number of steps it takes to
+
+        // leave the brick
         int iSteps = int(ceil(length(poolExitCoords-poolEntryCoords)/stepSize));
+        
+        // or leave the entire voluem (min = whatever comes first)
+        iSteps = min(iSteps, int(ceil(length((normExitCoords-currentPos)*normToPoolScale)/stepSize)));
 
         // compute opacity correction factor
         float ocFactor = exp2(iLOD) / sampleRateModifier;

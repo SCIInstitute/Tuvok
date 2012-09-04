@@ -106,68 +106,87 @@ void GLVBO::SetIndexData(const std::vector<uint16_t>& indexData) {
 }
 
 void GLVBO::AddVertexData(const std::vector<float>& vertexData) {
-  AddVertexData(1, sizeof(float), GL_FLOAT, vertexData.size(), &(vertexData[0]));
+  if (!vertexData.empty())
+    AddVertexData(1, sizeof(float), GL_FLOAT, vertexData.size(), &(vertexData[0]));
 }
 void GLVBO::AddVertexData(const std::vector<FLOATVECTOR2>& vertexData){
-  AddVertexData(2, sizeof(float), GL_FLOAT, vertexData.size(), &(vertexData[0]));
+  if (!vertexData.empty())
+    AddVertexData(2, sizeof(float), GL_FLOAT, vertexData.size(), &(vertexData[0]));
 }
 void GLVBO::AddVertexData(const std::vector<FLOATVECTOR3>& vertexData){
-  AddVertexData(3, sizeof(float), GL_FLOAT, vertexData.size(), &(vertexData[0]));
+  if (!vertexData.empty())
+    AddVertexData(3, sizeof(float), GL_FLOAT, vertexData.size(), &(vertexData[0]));
 }
 void GLVBO::AddVertexData(const std::vector<FLOATVECTOR4>& vertexData){
   AddVertexData(4, sizeof(float), GL_FLOAT, vertexData.size(), &(vertexData[0]));
 }
 
 void GLVBO::AddVertexData(const std::vector<int32_t>& vertexData){
-  AddVertexData(1, sizeof(int32_t), GL_INT, vertexData.size(), &(vertexData[0]));
+  if (!vertexData.empty())
+    AddVertexData(1, sizeof(int32_t), GL_INT, vertexData.size(), &(vertexData[0]));
 }
 void GLVBO::AddVertexData(const std::vector<INTVECTOR2>& vertexData){
-  AddVertexData(2, sizeof(int32_t), GL_INT, vertexData.size(), &(vertexData[0]));
+  if (!vertexData.empty())
+    AddVertexData(2, sizeof(int32_t), GL_INT, vertexData.size(), &(vertexData[0]));
 }
 void GLVBO::AddVertexData(const std::vector<INTVECTOR3>& vertexData){
-  AddVertexData(3, sizeof(int32_t), GL_INT, vertexData.size(), &(vertexData[0]));
+  if (!vertexData.empty())
+    AddVertexData(3, sizeof(int32_t), GL_INT, vertexData.size(), &(vertexData[0]));
 }
 void GLVBO::AddVertexData(const std::vector<INTVECTOR4>& vertexData){
-  AddVertexData(4, sizeof(int32_t), GL_INT, vertexData.size(), &(vertexData[0]));
+  if (!vertexData.empty())
+    AddVertexData(4, sizeof(int32_t), GL_INT, vertexData.size(), &(vertexData[0]));
 }
 
 void GLVBO::AddVertexData(const std::vector<uint32_t>& vertexData){
-  AddVertexData(1, sizeof(uint32_t), GL_UNSIGNED_INT, vertexData.size(), &(vertexData[0]));
+  if (!vertexData.empty())
+    AddVertexData(1, sizeof(uint32_t), GL_UNSIGNED_INT, vertexData.size(), &(vertexData[0]));
 }
 void GLVBO::AddVertexData(const std::vector<UINTVECTOR2>& vertexData){
-  AddVertexData(2, sizeof(uint32_t), GL_UNSIGNED_INT, vertexData.size(), &(vertexData[0]));
+  if (!vertexData.empty())
+    AddVertexData(2, sizeof(uint32_t), GL_UNSIGNED_INT, vertexData.size(), &(vertexData[0]));
 }
 void GLVBO::AddVertexData(const std::vector<UINTVECTOR3>& vertexData){
-  AddVertexData(3, sizeof(uint32_t), GL_UNSIGNED_INT, vertexData.size(), &(vertexData[0]));
+  if (!vertexData.empty())
+    AddVertexData(3, sizeof(uint32_t), GL_UNSIGNED_INT, vertexData.size(), &(vertexData[0]));
 }
 void GLVBO::AddVertexData(const std::vector<UINTVECTOR4>& vertexData){
-  AddVertexData(4, sizeof(uint32_t), GL_UNSIGNED_INT, vertexData.size(), &(vertexData[0]));
+  if (!vertexData.empty())
+    AddVertexData(4, sizeof(uint32_t), GL_UNSIGNED_INT, vertexData.size(), &(vertexData[0]));
 }
 
 void GLVBO::AddVertexData(const std::vector<int8_t>& vertexData){
-  AddVertexData(1, sizeof(int8_t), GL_BYTE, vertexData.size(), &(vertexData[0]));
+  if (!vertexData.empty())
+    AddVertexData(1, sizeof(int8_t), GL_BYTE, vertexData.size(), &(vertexData[0]));
 }
 void GLVBO::AddVertexData(const std::vector< VECTOR2<int8_t> >& vertexData){
-  AddVertexData(2, sizeof(int8_t), GL_BYTE, vertexData.size(), &(vertexData[0]));
+  if (!vertexData.empty())
+    AddVertexData(2, sizeof(int8_t), GL_BYTE, vertexData.size(), &(vertexData[0]));
 }
 void GLVBO::AddVertexData(const std::vector< VECTOR3<int8_t> >& vertexData){
-  AddVertexData(3, sizeof(int8_t), GL_BYTE, vertexData.size(), &(vertexData[0]));
+  if (!vertexData.empty())
+    AddVertexData(3, sizeof(int8_t), GL_BYTE, vertexData.size(), &(vertexData[0]));
 }
 void GLVBO::AddVertexData(const std::vector< VECTOR4<int8_t> >& vertexData){
-  AddVertexData(4, sizeof(int8_t), GL_BYTE, vertexData.size(), &(vertexData[0]));
+  if (!vertexData.empty())
+    AddVertexData(4, sizeof(int8_t), GL_BYTE, vertexData.size(), &(vertexData[0]));
 }
 
 void GLVBO::AddVertexData(const std::vector<uint8_t>& vertexData){
-  AddVertexData(1, sizeof(int8_t), GL_UNSIGNED_BYTE, vertexData.size(), &(vertexData[0]));
+  if (!vertexData.empty())
+    AddVertexData(1, sizeof(int8_t), GL_UNSIGNED_BYTE, vertexData.size(), &(vertexData[0]));
 }
 void GLVBO::AddVertexData(const std::vector< VECTOR2<uint8_t> >& vertexData){
-  AddVertexData(2, sizeof(int8_t), GL_UNSIGNED_BYTE, vertexData.size(), &(vertexData[0]));
+  if (!vertexData.empty())
+    AddVertexData(2, sizeof(int8_t), GL_UNSIGNED_BYTE, vertexData.size(), &(vertexData[0]));
 }
 void GLVBO::AddVertexData(const std::vector< VECTOR3<uint8_t> >& vertexData){
-  AddVertexData(3, sizeof(int8_t), GL_UNSIGNED_BYTE, vertexData.size(), &(vertexData[0]));
+  if (!vertexData.empty())
+    AddVertexData(3, sizeof(int8_t), GL_UNSIGNED_BYTE, vertexData.size(), &(vertexData[0]));
 }
 void GLVBO::AddVertexData(const std::vector< VECTOR4<uint8_t> >& vertexData){
-  AddVertexData(4, sizeof(int8_t), GL_UNSIGNED_BYTE, vertexData.size(), &(vertexData[0]));
+  if (!vertexData.empty())
+    AddVertexData(4, sizeof(int8_t), GL_UNSIGNED_BYTE, vertexData.size(), &(vertexData[0]));
 }
 
 void GLVBO::AddVertexData(size_t elemCount, size_t elemSize, GLenum type, size_t count, const GLvoid * pointer) {
