@@ -4,6 +4,8 @@
 #include "Basics/MathTools.h"
 #include <stdexcept>
 #include <algorithm>
+#include <limits>
+#include <iomanip>
 #include "GLSLProgram.h"
 
 enum BrickIDFlags {
@@ -45,7 +47,18 @@ static FLOATVECTOR3 GetFloatBrickLayout(const UINTVECTOR3& volumeSize,
   FLOATVECTOR3 baseBrickCount(float(volumeSize.x)/maxInnerBrickSize.x, 
                               float(volumeSize.y)/maxInnerBrickSize.y,
                               float(volumeSize.z)/maxInnerBrickSize.z);
-  return baseBrickCount/float(MathTools::Pow2(iLoD));
+
+  baseBrickCount /= float(MathTools::Pow2(iLoD));
+
+  // subtract smallest possible floating point epsilon from integer values that would mess up the brick index computation in the shader
+  if (float(uint32_t(baseBrickCount.x)) == baseBrickCount.x)
+    baseBrickCount.x -= baseBrickCount.x * std::numeric_limits<float>::epsilon();
+  if (float(uint32_t(baseBrickCount.y)) == baseBrickCount.y)
+    baseBrickCount.y -= baseBrickCount.y * std::numeric_limits<float>::epsilon();
+  if (float(uint32_t(baseBrickCount.z)) == baseBrickCount.z)
+    baseBrickCount.z -= baseBrickCount.z * std::numeric_limits<float>::epsilon();
+
+  return baseBrickCount;
 }
 
 
@@ -130,6 +143,7 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
   FLOATVECTOR3 poolAspect(m_PoolDataTexture->GetSize());
   poolAspect /= poolAspect.minVal();
 
+  ss << std::setprecision(36); // get the maximum precision for floats (larger precisions would just append zeros)
   ss << "" << std::endl
      << "layout(binding = " << m_iMetaTextureUnit << ") uniform usampler2D metaData;" << std::endl
      << "#define iMetaTextureWidth " << m_PoolMetadataTexture->GetSize().x << std::endl
@@ -145,7 +159,7 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
                                    << m_PoolDataTexture->GetSize().z <<")" << std::endl
      << "#define volumeSize vec3(" << m_volumeSize.x << ", " 
                                          << m_volumeSize.y << ", " 
-                                         << m_volumeSize.z <<")" << std::endl                                         
+                                         << m_volumeSize.z <<")" << std::endl
      << "#define poolAspect vec3(" << poolAspect.x << ", " 
                                          << poolAspect.y << ", " 
                                          << poolAspect.z <<")" << std::endl
@@ -178,7 +192,7 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
   ss << ");" << std::endl
      << "uniform vec3 vLODLayout[" << iLodCount << "] = vec3[](" << std::endl;
   for (uint32_t i = 0;i<m_vLoDOffsetTable.size();++i) {
-    FLOATVECTOR3 vLoDSize = GetFloatBrickLayout(m_volumeSize, m_maxInnerBrickSize, i);    
+    FLOATVECTOR3 vLoDSize = GetFloatBrickLayout(m_volumeSize, m_maxInnerBrickSize, i);
     ss << "   vec3(" << vLoDSize.x << ", " << vLoDSize.y << ", " << vLoDSize.z << ")";
     if (i<iLodCount-1) {
       ss << ",";
@@ -316,7 +330,7 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
      << "  // normalize the direction" << std::endl
      << "  direction *= volumeSize;" << std::endl
      << "  direction = normalize(direction);" << std::endl
-     << "  // scale to volume pool's norm coodinates" << std::endl
+     << "  // scale to volume pool's norm coordinates" << std::endl
      << "  direction /= vec3(iPoolSize);" << std::endl
      << "  // do (roughly) two samples per voxel and apply user defined sample density" << std::endl
      << "  return direction / (2.0*sampleRateModifier);" << std::endl
