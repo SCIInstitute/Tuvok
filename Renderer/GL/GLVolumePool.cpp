@@ -468,7 +468,7 @@ void GLVolumePool::CreateGLResources() {
 
   MESSAGE("Creating brick pool of size [%u,%u,%u] to hold a "
         "max of [%u,%u,%u] bricks of size [%u,%u,%u] ("
-        "adressable size [%u,%u,%u]) and smaler.",
+        "adressable size [%u,%u,%u]) and smaller.",
          m_PoolDataTexture->GetSize().x,
          m_PoolDataTexture->GetSize().y,
          m_PoolDataTexture->GetSize().z,
@@ -525,7 +525,7 @@ void GLVolumePool::CreateGLResources() {
 }
 
 struct {
-  bool operator() (const PoolSlotData* i, const PoolSlotData* j) { 
+  bool operator() (const PoolSlotData* i, const PoolSlotData* j) const { 
     return (i->m_iTimeOfCreation<j->m_iTimeOfCreation);
   }
 } PoolSorter;

@@ -567,7 +567,7 @@ void GLTreeRaycaster::RecomputeBrickVisibility() {
 }
 
 void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
-  m_TargetBinder.Bind(m_pFBO3DImageNext[size_t(eStereoID)],                      
+  m_TargetBinder.Bind(m_pFBO3DImageNext[size_t(eStereoID)],
                       m_pFBOStartColorNext[size_t(eStereoID)],
                       m_pFBORayStartNext[size_t(eStereoID)],
                       m_pFBODebugNext);
@@ -720,13 +720,13 @@ void GLTreeRaycaster::UpdateToVolumePool(std::vector<UINTVECTOR4>& hash) {
     m_pToCDataset->GetBrick(bkey, m_vUploadMem);
     if (!m_pVolumePool->UploadBrick(BrickElemInfo(*missingBrick, vVoxelSize), &m_vUploadMem[0])) break;
   }
-  
+
   if (!hash.empty())
     m_pVolumePool->UploadMetaData();
 }
 
 bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
-  glClearColor(0,0,0,0);  
+  glClearColor(0,0,0,0);
 
   size_t iStereoBufferCount = (m_bDoStereoRendering) ? 2 : 1;
 
@@ -739,7 +739,6 @@ bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
       msecPassedCurrentFrame = 0;
     }
   }
-
 
   size_t iPagedBricks = 0;
   for (size_t i = 0;i<iStereoBufferCount;i++) {
@@ -756,7 +755,6 @@ bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
 
     // evaluate hastable
     std::vector<UINTVECTOR4> hash = m_pglHashTable->GetData();
-    //hash.push_back(UINTVECTOR4(0,0,0,0));  // DEBUG Code
 
     // upload missing bricks
     if (!hash.empty()) {
