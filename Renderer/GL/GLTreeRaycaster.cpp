@@ -322,7 +322,6 @@ void GLTreeRaycaster::CreateVBO() {
   delete m_pBBoxVBO;
   m_pBBoxVBO = NULL;
 
-
   FLOATVECTOR3 vCenter, vExtend;
   GetVolumeAABB(vCenter, vExtend);
 
@@ -631,9 +630,7 @@ void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
     FLOATVECTOR3 aM = m_cAmbientM.xyz()*m_cAmbientM.w;
     FLOATVECTOR3 dM = m_cDiffuseM.xyz()*m_cDiffuseM.w;
     FLOATVECTOR3 sM = m_cSpecularM.xyz()*m_cSpecularM.w;
-
     FLOATVECTOR3 scale = 1.0f/vScale;
-
 
     FLOATVECTOR3 vModelSpaceLightDir = ( FLOATVECTOR4(m_vLightDir,0.0f) * emm ).xyz().normalized();
     FLOATVECTOR3 vModelSpaceEyePos   = (FLOATVECTOR4(0,0,0,1) * emm).xyz();
@@ -644,9 +641,7 @@ void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
     shaderProgram->Set("vModelSpaceLightDir",vModelSpaceLightDir.x,vModelSpaceLightDir.y,vModelSpaceLightDir.z);
     shaderProgram->Set("vModelSpaceEyePos",vModelSpaceEyePos.x,vModelSpaceEyePos.y,vModelSpaceEyePos.z);
     shaderProgram->Set("vDomainScale",scale.x,scale.y,scale.z);
-
   }
-
 
   // clear the buffers 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -781,7 +776,6 @@ bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
 
    m_bConverged = iPagedBricks == 0;
 
-
   if (m_eRenderMode == RM_ISOSURFACE &&
       m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) {
      
@@ -810,7 +804,7 @@ void GLTreeRaycaster::SetClipPlane(RenderRegion *renderRegion,
 
 void GLTreeRaycaster::EnableClipPlane(RenderRegion *renderRegion) {
   GLRenderer::EnableClipPlane(renderRegion);
-  CreateVBO();  
+  CreateVBO();
 }
 
 void GLTreeRaycaster::DisableClipPlane(RenderRegion *renderRegion) {

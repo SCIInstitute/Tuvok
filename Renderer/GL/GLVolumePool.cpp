@@ -174,7 +174,7 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
      << "#define maxInnerBrickSize  ivec3(" << m_maxInnerBrickSize.x << ", " 
                                             << m_maxInnerBrickSize.y << ", " 
                                             << m_maxInnerBrickSize.z <<")" << std::endl
-     << "// brick overlap voxels (in pool texcoords" << std::endl
+     << "// brick overlap voxels (in pool texcoords)" << std::endl
      << "#define overlap vec3(" << (m_maxTotalBrickSize.x-m_maxInnerBrickSize.x)/(2.0f*m_PoolDataTexture->GetSize().x) << ", " 
                                 << (m_maxTotalBrickSize.y-m_maxInnerBrickSize.y)/(2.0f*m_PoolDataTexture->GetSize().y) << ", " 
                                 << (m_maxTotalBrickSize.z-m_maxInnerBrickSize.z)/(2.0f*m_PoolDataTexture->GetSize().z) <<")" << std::endl
@@ -468,7 +468,7 @@ void GLVolumePool::CreateGLResources() {
 
   MESSAGE("Creating brick pool of size [%u,%u,%u] to hold a "
         "max of [%u,%u,%u] bricks of size [%u,%u,%u] ("
-        "adressable size [%u,%u,%u]) and smaller.",
+        "adressable size [%u,%u,%u]) and smaler.",
          m_PoolDataTexture->GetSize().x,
          m_PoolDataTexture->GetSize().y,
          m_PoolDataTexture->GetSize().z,
@@ -525,7 +525,7 @@ void GLVolumePool::CreateGLResources() {
 }
 
 struct {
-  bool operator() (const PoolSlotData* i, const PoolSlotData* j) const { 
+  bool operator() (const PoolSlotData* i, const PoolSlotData* j) { 
     return (i->m_iTimeOfCreation<j->m_iTimeOfCreation);
   }
 } PoolSorter;
