@@ -112,7 +112,6 @@ std::vector<FLOATVECTOR3> Clipper::TriPlane(std::vector<FLOATVECTOR3>& posData, 
   return newVertices;
 }
 
-
 struct {
   bool operator() (const FLOATVECTOR3& i, const FLOATVECTOR3& j) { 
     return i.x < j.x || (i.x == j.x && i.y < j.y) || (i.x == j.x && i.y == j.y && i.z < j.z);
@@ -133,7 +132,6 @@ static bool AngleSorter(const FLOATVECTOR3& i, const FLOATVECTOR3& j, const FLOA
 
   return acI > acJ;
 }
-
 
 void Clipper::BoxPlane(std::vector<FLOATVECTOR3>& posData, const FLOATVECTOR3 &normal, const float D) {
 
