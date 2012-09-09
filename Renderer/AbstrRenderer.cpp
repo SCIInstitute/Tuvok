@@ -1899,6 +1899,8 @@ void AbstrRenderer::RegisterLuaFunctions(
                     "Enables/Disables clear view.", true);
   id = reg.function(&AbstrRenderer::GetCV, "getClearViewEnabled",
                     "Returns clear view enabled state.", false);
+  id = reg.function(&AbstrRenderer::ClearViewDisableReason,
+                    "getClearViewDisabledReason", "", false);
 
   id = reg.function(&AbstrRenderer::SetRenderCoordArrows,
                     "setCoordinateArrowsEnabled", "Enables/Disables rendering "
@@ -2012,12 +2014,20 @@ void AbstrRenderer::RegisterLuaFunctions(
 
   id = reg.function(&AbstrRenderer::SetCVIsoValue,
                     "setCVIsoValue", "", true);
+  id = reg.function(&AbstrRenderer::GetCVIsoValue,
+                    "getCVIsoValue", "", false);
   id = reg.function(&AbstrRenderer::SetCVSize,
                     "setCVSize", "", true);
+  id = reg.function(&AbstrRenderer::GetCVSize,
+                    "getCVSize", "", false);
   id = reg.function(&AbstrRenderer::SetCVContextScale,
                     "setCVContextScale", "", true);
+  id = reg.function(&AbstrRenderer::GetCVContextScale,
+                    "getCVContextScale", "", false);
   id = reg.function(&AbstrRenderer::SetCVBorderScale,
                     "setCVBorderScale", "", true);
+  id = reg.function(&AbstrRenderer::GetCVBorderScale,
+                    "getCVBorderScale", "", false);
   id = reg.function(&AbstrRenderer::SetCVColor,
                     "setCVColor", "", true);
   id = reg.function(&AbstrRenderer::GetCVColor,

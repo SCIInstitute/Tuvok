@@ -93,6 +93,9 @@ void LuaDatasetProxy::bind(Dataset* ds, shared_ptr<LuaScripting> ss)
                              "get1DHistogram", "", false);
     id = mReg->functionProxy(ds, &Dataset::Get2DHistogram,
                              "get2DHistogram", "", false);
+    id = mReg->functionProxy(ds, &Dataset::Name,
+                             "name", "Dataset descriptive name.",
+                             false);
     // We do NOT want the return values from GetMeshes stuck in the provenance
     // system (Okay, so the provenance system doesn't store return values, just
     // function parameters. But it's best to be safe).
@@ -115,6 +118,8 @@ void LuaDatasetProxy::bind(Dataset* ds, shared_ptr<LuaScripting> ss)
                                "removeMesh", "", true);
       id = mReg->functionProxy(uvfDataset, &UVFDataset::AppendMesh,
                                "appendMesh", "", false);
+      id = mReg->functionProxy(uvfDataset, &UVFDataset::GeometryTransformToFile,
+                               "geomTransformToFile", "", false);
       ss->setProvenanceExempt(id);
     }
 

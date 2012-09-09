@@ -663,6 +663,87 @@ public:
   static MATRIX4<T>  getDefault() { return MATRIX4<T>(); }
 };
 
+template<typename T>
+class LuaStrictStack<const MATRIX4<T>& >
+{
+public:
+
+  typedef MATRIX4<T> Type;
+
+  static MATRIX4<T> get(lua_State* L, int pos)
+  {
+    VECTOR4<T> rows[4];
+
+    luaL_checktype(L, pos, LUA_TTABLE);
+
+    lua_pushinteger(L, 1);
+    lua_gettable(L, pos);
+    rows[0] = LuaStrictStack<VECTOR4<T> >::get(L, lua_gettop(L));
+    lua_pop(L, 1);
+
+    lua_pushinteger(L, 2);
+    lua_gettable(L, pos);
+    rows[1] = LuaStrictStack<VECTOR4<T> >::get(L, lua_gettop(L));
+    lua_pop(L, 1);
+
+    lua_pushinteger(L, 3);
+    lua_gettable(L, pos);
+    rows[2] = LuaStrictStack<VECTOR4<T> >::get(L, lua_gettop(L));
+    lua_pop(L, 1);
+
+    lua_pushinteger(L, 4);
+    lua_gettable(L, pos);
+    rows[3] = LuaStrictStack<VECTOR4<T> >::get(L, lua_gettop(L));
+    lua_pop(L, 1);
+
+    return MATRIX4<T>(rows);
+  }
+
+  static void push(lua_State* L, MATRIX4<T> in)
+  {
+    lua_newtable(L);
+    int tbl = lua_gettop(L);
+
+    // Push rows of the matrix.
+    lua_pushinteger(L, 1);
+    LuaStrictStack<VECTOR4<T> >::push(L, VECTOR4<T>(in.m11, in.m12, in.m13, in.m14));
+    lua_settable(L, tbl);
+
+    lua_pushinteger(L, 2);
+    LuaStrictStack<VECTOR4<T> >::push(L, VECTOR4<T>(in.m21, in.m22, in.m23, in.m24));
+    lua_settable(L, tbl);
+
+    lua_pushinteger(L, 3);
+    LuaStrictStack<VECTOR4<T> >::push(L, VECTOR4<T>(in.m31, in.m32, in.m33, in.m34));
+    lua_settable(L, tbl);
+
+    lua_pushinteger(L, 4);
+    LuaStrictStack<VECTOR4<T> >::push(L, VECTOR4<T>(in.m41, in.m42, in.m43, in.m44));
+    lua_settable(L, tbl);
+  }
+
+  static std::string getValStr(MATRIX4<T> in)
+  {
+    std::ostringstream os;
+    os << "{ \n  ";
+    os << LuaStrictStack<VECTOR4<T> >::getValStr(VECTOR4<T>(in.m11, in.m12, in.m13, in.m14));
+    os << ",\n";
+    os << "  ";
+    os << LuaStrictStack<VECTOR4<T> >::getValStr(VECTOR4<T>(in.m21, in.m22, in.m23, in.m24));
+    os << ",\n";
+    os << "  ";
+    os << LuaStrictStack<VECTOR4<T> >::getValStr(VECTOR4<T>(in.m31, in.m32, in.m33, in.m34));
+    os << ",\n";
+    os << "  ";
+    os << LuaStrictStack<VECTOR4<T> >::getValStr(VECTOR4<T>(in.m41, in.m42, in.m43, in.m44));
+    os << " }";
+    return os.str();
+  }
+  static std::string getTypeStr() { return "Matrix44"; }
+  static MATRIX4<T>  getDefault() { return MATRIX4<T>(); }
+};
+
+
 
 /// @todo Write extended plane type and update RenderWindow.cpp to use this
 ///       instead of bypassing the LuaClassInstance.
