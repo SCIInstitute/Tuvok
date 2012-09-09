@@ -418,7 +418,7 @@ void TransferFunction2D::Update1DTrans(const TransferFunction1D* p1DTrans) {
 #endif
 }
 
-size_t TransferFunction2D::SwatchArrayGetSize() {
+size_t TransferFunction2D::SwatchArrayGetSize() const {
   return m_Swatches.size();
 }
 
@@ -434,6 +434,23 @@ void TransferFunction2D::SwatchErase(size_t swatchIndex) {
 void TransferFunction2D::SwatchInsert(size_t i, const TFPolygon& swatch) {
   vector<TFPolygon>::iterator nth = m_Swatches.begin() + i;
   m_Swatches.insert(nth, swatch);
+}
+
+size_t TransferFunction2D::SwatchGetNumPoints(size_t i) const {
+  return m_Swatches[i].pPoints.size();
+}
+
+bool TransferFunction2D::SwatchIsRadial(size_t i) const {
+  return m_Swatches[i].bRadial;
+}
+
+size_t TransferFunction2D::SwatchGetGradientCount(size_t i) const {
+  return m_Swatches[i].pGradientStops.size();
+}
+
+GradientStop TransferFunction2D::SwatchGetGradient(size_t point, size_t i) const
+{
+  return m_Swatches[point].pGradientStops[i];
 }
 
 // ***************************************************************************
