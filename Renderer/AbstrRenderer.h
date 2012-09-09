@@ -328,6 +328,7 @@ class AbstrRenderer: public Scriptable {
     virtual void ShowClipPlane(bool, RenderRegion *renderRegion=NULL);
     void LuaShowClipPlane(bool bShown, LuaClassInstance inst);
     const ExtendedPlane& GetClipPlane() const;
+    ExtendedPlane LuaGetClipPlane() const;
 
     virtual void ClipPlaneRelativeLock(bool);
     virtual bool CanDoClipPlane() {return true;}

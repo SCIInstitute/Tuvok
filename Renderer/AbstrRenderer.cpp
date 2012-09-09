@@ -588,6 +588,10 @@ const ExtendedPlane& AbstrRenderer::GetClipPlane() const {
   return m_ClipPlane;
 }
 
+ExtendedPlane AbstrRenderer::LuaGetClipPlane() const {
+  return GetClipPlane();
+}
+
 void AbstrRenderer::ClipPlaneRelativeLock(bool bRel) {
   m_bClipPlaneLocked = bRel;/// @todo: Make this per RenderRegion ?
 }
@@ -1932,17 +1936,25 @@ void AbstrRenderer::RegisterLuaFunctions(
                     "getStereoEnabled", "Returns stereo enabled state.",
                     false);
   id = reg.function(&AbstrRenderer::GetStereoEyeDist,
-                    "getStereoEyeDist", "",
-                    false);
+                    "getStereoEyeDist", "", false);
+  id = reg.function(&AbstrRenderer::SetStereoEyeDist,
+                    "setStereoEyeDist", "", false);
   id = reg.function(&AbstrRenderer::GetStereoFocalLength,
-                    "getStereoFocalLength", "",
-                    false);
+                    "getStereoFocalLength", "", false);
+  id = reg.function(&AbstrRenderer::SetStereoFocalLength,
+                    "setStereoFocalLength", "", false);
   id = reg.function(&AbstrRenderer::GetStereoEyeSwap,
-                    "getStereoEyeSwap", "",
-                    false);
+                    "getStereoEyeSwap", "", false);
+  id = reg.function(&AbstrRenderer::SetStereoEyeSwap,
+                    "setStereoEyeSwap", "", false);
   id = reg.function(&AbstrRenderer::GetStereoMode,
-                    "getStereoMode", "",
-                    false);
+                    "getStereoMode", "", false);
+  id = reg.function(&AbstrRenderer::SetStereoMode,
+                    "setStereoMode", "", false);
+  id = reg.function(&AbstrRenderer::InitStereoFrame,
+                    "initStereoFrame", "", false);
+  id = reg.function(&AbstrRenderer::ToggleStereoFrame,
+                    "toggleStereoFrame", "", false);
 
   id = reg.function(&AbstrRenderer::SetTimeSlice,
                     "setTimeSlice", "", false);
@@ -2127,6 +2139,8 @@ void AbstrRenderer::RegisterLuaFunctions(
                     "getIsoValue", "", false);
   id = reg.function(&AbstrRenderer::GetRescaleFactors,
                     "getRescaleFactors", "", false);
+  id = reg.function(&AbstrRenderer::SetRescaleFactors,
+                    "setRescaleFactors", "", false);
   id = reg.function(&AbstrRenderer::GetGlobalBBox,
                     "getGlobalBBox", "", false);
   id = reg.function(&AbstrRenderer::GetLocalBBox,
@@ -2145,6 +2159,15 @@ void AbstrRenderer::RegisterLuaFunctions(
                     "getVolumeAABBCenter", "", false);
   id = reg.function(&AbstrRenderer::LuaGetVolumeAABBExtents,
                     "getVolumeAABBExtents", "", false);
+  id = reg.function(&AbstrRenderer::CropDataset,
+                    "cropDataset", "", false);
+  id = reg.function(&AbstrRenderer::LuaGetClipPlane,
+                    "getClipPlane", "", false);
+
+  id = reg.function(&AbstrRenderer::FixedFunctionality,
+                    "fixedFunctionality", "", false);
+  id = reg.function(&AbstrRenderer::SyncStateManager,
+                    "SyncStateManager", "", false);
 
   /// Register renderer specific functions.
   me->RegisterDerivedClassLuaFunctions(reg, ss);

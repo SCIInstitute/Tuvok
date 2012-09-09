@@ -68,6 +68,8 @@ public:
 
 private:
 
+  std::vector< std::pair < std::string, std::string > > proxyGetMetadata();
+
   /// Class registration we received from defineLuaInterface.
   /// @todo Change to unique pointer.
   LuaClassRegistration<LuaDatasetProxy>*  mReg;

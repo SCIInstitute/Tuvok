@@ -94,8 +94,11 @@ void LuaDatasetProxy::bind(Dataset* ds, shared_ptr<LuaScripting> ss)
     id = mReg->functionProxy(ds, &Dataset::Get2DHistogram,
                              "get2DHistogram", "", false);
     id = mReg->functionProxy(ds, &Dataset::Name,
-                             "name", "Dataset descriptive name.",
-                             false);
+                             "name", "Dataset descriptive name.", false);
+    id = mReg->functionProxy(ds, &Dataset::SaveRescaleFactors,
+                             "saveRescaleFactors", "", false);
+    id = mReg->functionProxy(ds, &Dataset::GetRescaleFactors,
+                             "getRescaleFactors", "", false);
     // We do NOT want the return values from GetMeshes stuck in the provenance
     // system (Okay, so the provenance system doesn't store return values, just
     // function parameters. But it's best to be safe).
@@ -148,6 +151,15 @@ void LuaDatasetProxy::defineLuaInterface(
 
   // Register our functions
   id = reg.function(&LuaDatasetProxy::getDatasetType, "getDSType", "", false);
+  id = reg.function(&LuaDatasetProxy::proxyGetMetadata, "getMetadata", "", 
+                    false);
+}
+
+
+std::vector< std::pair < std::string, std::string > > 
+LuaDatasetProxy::proxyGetMetadata()
+{
+  return mDS->GetMetadata();
 }
 
 } /* namespace tuvok */
