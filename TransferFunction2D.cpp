@@ -451,13 +451,32 @@ size_t TransferFunction2D::SwatchGetGradientCount(size_t i) const {
   return (*m_pvSwatches)[i].pGradientStops.size();
 }
 
-GradientStop TransferFunction2D::SwatchGetGradient(size_t point, size_t i) const
+GradientStop TransferFunction2D::SwatchGetGradient(size_t swatch, size_t i) const
 {
-  return (*m_pvSwatches)[point].pGradientStops[i];
+  return (*m_pvSwatches)[swatch].pGradientStops[i];
 }
+
+void TransferFunction2D::SwatchErasePoint(size_t swatch, size_t i) {
+  vector< FLOATVECTOR2 >::iterator nth = 
+      (*m_pvSwatches)[swatch].pPoints.begin() + i;
+  (*m_pvSwatches)[swatch].pPoints.erase(nth);
+}
+
+void TransferFunction2D::SwatchInsertPoint(size_t swatch, size_t i, 
+                                           FLOATVECTOR2 coord) {
+  vector< FLOATVECTOR2 >::iterator nth = 
+      (*m_pvSwatches)[swatch].pPoints.begin() + i;
+  (*m_pvSwatches)[swatch].pPoints.insert(nth, coord);
+}
+
 
 void TransferFunction2D::SwatchUpdate(size_t i, const TFPolygon& swatch) {
   (*m_pvSwatches)[i] = swatch;
+}
+
+std::shared_ptr<const std::vector<TFPolygon> > 
+TransferFunction2D::SwatchGet() const {
+  return m_pvSwatches;
 }
 
 // ***************************************************************************

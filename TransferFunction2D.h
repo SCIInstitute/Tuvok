@@ -106,6 +106,8 @@ public:
                      unsigned short sUsedRange=4095);
   void GetFloatArray(float** pfData);
 
+  // Functions bound into Lua.
+  std::shared_ptr<const std::vector<TFPolygon> > SwatchGet() const;
   size_t SwatchArrayGetSize() const;
   void SwatchPushBack(const TFPolygon& swatch);
   void SwatchErase(size_t swatchIndex);
@@ -113,10 +115,15 @@ public:
   void SwatchInsert(size_t i, const TFPolygon& swatch);
   /// Replaces the swatch at index 'i' with 'swatch'.
   void SwatchUpdate(size_t i, const TFPolygon& swatch);
-  size_t SwatchGetNumPoints(size_t i) const;
   bool SwatchIsRadial(size_t i) const;
+
   size_t SwatchGetGradientCount(size_t i) const;
-  GradientStop SwatchGetGradient(size_t point, size_t i) const;
+  GradientStop SwatchGetGradient(size_t swatch, size_t i) const;
+
+  void SwatchInsertPoint(size_t swatch, size_t i, FLOATVECTOR2 coord);
+  void SwatchErasePoint(size_t swatch, size_t i);
+  size_t SwatchGetNumPoints(size_t i) const;
+
 
   std::shared_ptr<std::vector< TFPolygon > > m_pvSwatches;
 
