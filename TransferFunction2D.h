@@ -116,9 +116,14 @@ public:
   /// Replaces the swatch at index 'i' with 'swatch'.
   void SwatchUpdate(size_t i, const TFPolygon& swatch);
   bool SwatchIsRadial(size_t i) const;
+  void SwatchSetRadial(size_t i, bool radial);
 
   size_t SwatchGetGradientCount(size_t i) const;
   GradientStop SwatchGetGradient(size_t swatch, size_t i) const;
+  void SwatchInsertGradient(size_t swatch, size_t i, GradientStop stop);
+  void SwatchPushBackGradient(size_t swatch, size_t i, GradientStop stop);
+  void SwatchEraseGradient(size_t swatch, size_t i);
+  void SwatchUpdateGradient(size_t swatch, size_t i, GradientStop stop);
 
   void SwatchInsertPoint(size_t swatch, size_t i, FLOATVECTOR2 coord);
   void SwatchErasePoint(size_t swatch, size_t i);

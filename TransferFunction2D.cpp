@@ -447,6 +447,10 @@ bool TransferFunction2D::SwatchIsRadial(size_t i) const {
   return (*m_pvSwatches)[i].bRadial;
 }
 
+void TransferFunction2D::SwatchSetRadial(size_t i, bool radial) {
+  (*m_pvSwatches)[i].bRadial = radial;
+}
+
 size_t TransferFunction2D::SwatchGetGradientCount(size_t i) const {
   return (*m_pvSwatches)[i].pGradientStops.size();
 }
@@ -454,6 +458,29 @@ size_t TransferFunction2D::SwatchGetGradientCount(size_t i) const {
 GradientStop TransferFunction2D::SwatchGetGradient(size_t swatch, size_t i) const
 {
   return (*m_pvSwatches)[swatch].pGradientStops[i];
+}
+
+void TransferFunction2D::SwatchInsertGradient(size_t swatch, size_t i, 
+                                              GradientStop stop) {
+  vector<GradientStop>::iterator nth = 
+      (*m_pvSwatches)[swatch].pGradientStops.begin() + i;
+  (*m_pvSwatches)[swatch].pGradientStops.insert(nth, stop);
+}
+
+void TransferFunction2D::SwatchPushBackGradient(size_t swatch, size_t i, 
+                                                GradientStop stop) {
+  (*m_pvSwatches)[swatch].pGradientStops.push_back(stop);
+}
+
+void TransferFunction2D::SwatchEraseGradient(size_t swatch, size_t i) {
+  vector<GradientStop>::iterator nth = 
+      (*m_pvSwatches)[swatch].pGradientStops.begin() + i;
+  (*m_pvSwatches)[swatch].pGradientStops.erase(nth);
+}
+
+void TransferFunction2D::SwatchUpdateGradient(size_t swatch, size_t i, 
+                                              GradientStop stop) {
+  (*m_pvSwatches)[swatch].pGradientStops[i] = stop;
 }
 
 void TransferFunction2D::SwatchErasePoint(size_t swatch, size_t i) {
