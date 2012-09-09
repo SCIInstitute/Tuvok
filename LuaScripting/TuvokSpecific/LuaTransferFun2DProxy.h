@@ -61,12 +61,30 @@ public:
 
 private:
 
+  /// Proxies to split apart overloaded functions.
+  /// @{
+  bool proxyLoadWithSize(const std::string& file, const VECTOR2<size_t>& size);
+  bool proxySave(const std::string& file);
+  /// @}
+
+  /// Update1DTrans proxy exists because IO does not understand Lua types
+  /// (in this case, LuaClassInstance).
+  void proxyUpdate1DTrans(LuaClassInstance tf1d);
+
+  /// The following proxies exist because it isn't necessary to create a new
+  /// LuaStrictStack template specialization because const we prepended onto
+  /// VECTOR2<size_t>.
+  VECTOR2<size_t> proxyGetSize();
+  VECTOR2<size_t> proxyGetRenderSize();
+
   /// Class registration we received from defineLuaInterface.
   /// @todo Change to unique pointer.
   LuaClassRegistration<LuaTransferFun2DProxy>*  mReg;
 
   /// The 2D transfer function that we represent.
   TransferFunction2D*                           m2DTrans;
+
+  LuaScripting*                                 mSS;
 };
 
 /// This template specialization converts what it means to be a swatch in C++

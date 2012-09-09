@@ -101,6 +101,8 @@ public:
   /// this pointer.
   template <typename T>
   T* getRawPointer(std::shared_ptr<LuaScripting> ss);
+  template <typename T>
+  T* getRawPointer_NoSharedPtr(LuaScripting* ss);
   void* getVoidPointer(LuaScripting* ss);
 
 private:
@@ -112,8 +114,14 @@ private:
 template <typename T>
 T* LuaClassInstance::getRawPointer(std::shared_ptr<LuaScripting> ss)
 {
+  return getRawPointer_NoSharedPtr<T>(ss.get());
+}
+
+template <typename T>
+T* LuaClassInstance::getRawPointer_NoSharedPtr(LuaScripting* ss)
+{
   // TODO: Add RTTI
-  return reinterpret_cast<T*>(getVoidPointer(ss.get()));
+  return reinterpret_cast<T*>(getVoidPointer(ss));
 }
 
 } /* namespace tuvok */

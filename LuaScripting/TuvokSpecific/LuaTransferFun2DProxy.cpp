@@ -37,13 +37,16 @@
 #include "../LuaClassRegistration.h"
 #include "LuaTuvokTypes.h"
 #include "LuaTransferFun2DProxy.h"
+#include "LuaTransferFun1DProxy.h"
 
 using namespace tuvok;
+using namespace std;
 
 //------------------------------------------------------------------------------
 LuaTransferFun2DProxy::LuaTransferFun2DProxy()
   : mReg(NULL),
-    m2DTrans(NULL)
+    m2DTrans(NULL),
+    mSS(NULL)
 {
 }
 
@@ -82,6 +85,8 @@ void LuaTransferFun2DProxy::bind(TransferFunction2D* tf)
                              "swatchUpdate", "", false);
     id = mReg->functionProxy(tf, &TransferFunction2D::SwatchIsRadial,
                              "swatchIsRadial", "", false);
+    id = mReg->functionProxy(tf, &TransferFunction2D::SwatchSetRadial,
+                             "swatchSetRadial", "", true);
     id = mReg->functionProxy(tf, &TransferFunction2D::SwatchGetNumPoints,
                              "swatchGetNumPoints", "", false);
     id = mReg->functionProxy(tf, &TransferFunction2D::SwatchErasePoint,
@@ -92,6 +97,14 @@ void LuaTransferFun2DProxy::bind(TransferFunction2D* tf)
                              "swatchGetGradientCount", "", false);
     id = mReg->functionProxy(tf, &TransferFunction2D::SwatchGetGradient,
                              "swatchGetGradient", "", false);
+    id = mReg->functionProxy(tf, &TransferFunction2D::SwatchInsertGradient,
+                             "swatchInsertGradient", "", true);
+    id = mReg->functionProxy(tf, &TransferFunction2D::SwatchPushBackGradient,
+                             "swatchPushBackGradient", "", true);
+    id = mReg->functionProxy(tf, &TransferFunction2D::SwatchEraseGradient,
+                             "swatchEraseGradient", "", true);
+    id = mReg->functionProxy(tf, &TransferFunction2D::SwatchUpdateGradient,
+                             "swatchUpdateGradient", "", true);
     id = mReg->functionProxy(tf, &TransferFunction2D::SwatchGet,
                              "swatchGet", "", false);
   }
@@ -101,13 +114,63 @@ void LuaTransferFun2DProxy::bind(TransferFunction2D* tf)
 void LuaTransferFun2DProxy::defineLuaInterface(
     LuaClassRegistration<LuaTransferFun2DProxy>& reg,
     LuaTransferFun2DProxy* me,
-    LuaScripting*)
+    LuaScripting* ss)
 {
   me->mReg = new LuaClassRegistration<LuaTransferFun2DProxy>(reg);
+  me->mSS = ss;
 
-  /// @todo Determine if the following function should be provenance enabled.
-  //reg.function(&LuaTransferFun2DProxy::proxyLoadWithFilenameAndSize,
-  //             "loadFromFileWithSize", "Loads 'file' into the 2D "
-  //             " transfer function with 'size'.", false);
+  reg.function(&LuaTransferFun2DProxy::proxyLoadWithSize,
+               "loadWithSize", "Loads 'file' into the 2D "
+               " transfer function given 'size'.", false);
+  reg.function(&LuaTransferFun2DProxy::proxyGetRenderSize,
+               "getRenderSize", "", false);
+  reg.function(&LuaTransferFun2DProxy::proxyGetSize,
+               "getSize", "", false);
+  reg.function(&LuaTransferFun2DProxy::proxySave,
+               "save", "", false);
+  reg.function(&LuaTransferFun2DProxy::proxyUpdate1DTrans,
+               "update1DTrans", "", false);
+}
+
+//------------------------------------------------------------------------------
+bool LuaTransferFun2DProxy::proxyLoadWithSize(const string& file, 
+                                              const VECTOR2<size_t>& size)
+{
+  if (m2DTrans == NULL) return false;
+  return m2DTrans->Load(file, size);
+}
+
+//------------------------------------------------------------------------------
+VECTOR2<size_t> LuaTransferFun2DProxy::proxyGetSize()
+{
+  if (m2DTrans == NULL) return VECTOR2<size_t>();
+  return m2DTrans->GetSize();
+}
+
+//------------------------------------------------------------------------------
+VECTOR2<size_t> LuaTransferFun2DProxy::proxyGetRenderSize()
+{
+  if (m2DTrans == NULL) return VECTOR2<size_t>();
+  return m2DTrans->GetRenderSize();
+}
+
+//------------------------------------------------------------------------------
+bool LuaTransferFun2DProxy::proxySave(const std::string& file)
+{
+  if (m2DTrans == NULL) return false;
+  return m2DTrans->Save(file);
+}
+
+//------------------------------------------------------------------------------
+void LuaTransferFun2DProxy::proxyUpdate1DTrans(LuaClassInstance tf1d)
+{
+  if (m2DTrans == NULL) return;
+
+  // Extract TransferFunction1D pointer from LuaClassInstance.
+  LuaTransferFun1DProxy* tfProxy = 
+      tf1d.getRawPointer_NoSharedPtr<LuaTransferFun1DProxy>(mSS);
+  const TransferFunction1D* p1DTrans = tfProxy->get1DTransferFunction();
+
+  m2DTrans->Update1DTrans(p1DTrans);
 }
 
