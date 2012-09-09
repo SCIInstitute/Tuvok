@@ -1867,6 +1867,12 @@ void AbstrRenderer::RegisterLuaFunctions(
   id = reg.function(&AbstrRenderer::ClipPlaneRelativeLock,
                     "setClipPlaneLocked", "Sets relative clip plane lock.",
                     true);
+  id = reg.function(&AbstrRenderer::ClipPlaneEnabled,
+                    "isClipPlaneEnabled", "", false);
+  id = reg.function(&AbstrRenderer::ClipPlaneShown,
+                    "isClipPlaneShown", "", false);
+  id = reg.function(&AbstrRenderer::CanDoClipPlane,
+                    "canDoClipPlane", "", false);
 
   id = reg.function(&AbstrRenderer::SupportsClearView,
                     "supportsClearView", "Returns true if clear view is "
@@ -1908,6 +1914,18 @@ void AbstrRenderer::RegisterLuaFunctions(
                     true);
   id = reg.function(&AbstrRenderer::GetStereo,
                     "getStereoEnabled", "Returns stereo enabled state.",
+                    false);
+  id = reg.function(&AbstrRenderer::GetStereoEyeDist,
+                    "getStereoEyeDist", "",
+                    false);
+  id = reg.function(&AbstrRenderer::GetStereoFocalLength,
+                    "getStereoFocalLength", "",
+                    false);
+  id = reg.function(&AbstrRenderer::GetStereoEyeSwap,
+                    "getStereoEyeSwap", "",
+                    false);
+  id = reg.function(&AbstrRenderer::GetStereoMode,
+                    "getStereoMode", "",
                     false);
 
   id = reg.function(&AbstrRenderer::SetTimeSlice,
@@ -2079,6 +2097,21 @@ void AbstrRenderer::RegisterLuaFunctions(
   id = reg.function(&AbstrRenderer::ClearRendererMeshes,
                     "clearMeshes", "", true);
 
+  id = reg.function(&AbstrRenderer::GetSampleRateModifier,
+                    "getSampleRateModifier", "", false);
+  id = reg.function(&AbstrRenderer::GetIsoValue,
+                    "getIsoValue", "", false);
+  id = reg.function(&AbstrRenderer::GetRescaleFactors,
+                    "getRescaleFactors", "", false);
+  id = reg.function(&AbstrRenderer::GetGlobalBBox,
+                    "getGlobalBBox", "", false);
+  id = reg.function(&AbstrRenderer::GetLocalBBox,
+                    "getLocalBBox", "", false);
+
+  id = reg.function(&AbstrRenderer::Timestep,
+                    "getTimestep", "", false);
+  id = reg.function(&AbstrRenderer::GetLODLimits,
+                    "getLODLimits", "", false);
 
 
   /// Register renderer specific functions.

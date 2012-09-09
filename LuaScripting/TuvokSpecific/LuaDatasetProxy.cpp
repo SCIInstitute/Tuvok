@@ -89,6 +89,10 @@ void LuaDatasetProxy::bind(Dataset* ds, shared_ptr<LuaScripting> ss)
                              "getMeshes", "", false);
     id = mReg->functionProxy(ds, &Dataset::GetBitWidth,
                              "getBitWidth", "", false);
+    id = mReg->functionProxy(ds, &Dataset::Get1DHistogram,
+                             "get1DHistogram", "", false);
+    id = mReg->functionProxy(ds, &Dataset::Get2DHistogram,
+                             "get2DHistogram", "", false);
     // We do NOT want the return values from GetMeshes stuck in the provenance
     // system (Okay, so the provenance system doesn't store return values, just
     // function parameters. But it's best to be safe).
