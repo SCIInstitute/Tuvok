@@ -140,16 +140,12 @@ class AbstrRenderer: public Scriptable {
       SI_INVALID
     };
 
-    virtual ERendererType GetRendererType() const {return RT_INVALID;}
-
     enum ERenderMode {
       RM_1DTRANS = 0,  /**< one dimensional transfer function */
       RM_2DTRANS,      /**< two dimensional transfer function */
       RM_ISOSURFACE,   /**< render isosurfaces                */
       RM_INVALID
     };
-    ERenderMode GetRendermode() {return m_eRenderMode;}
-    virtual void SetRendermode(ERenderMode eRenderMode);
 
     enum EBlendPrecision {
       BP_8BIT = 0,
@@ -157,11 +153,6 @@ class AbstrRenderer: public Scriptable {
       BP_32BIT,
       BP_INVALID
     };
-    EBlendPrecision GetBlendPrecision() {return m_eBlendPrecision;}
-    virtual void SetBlendPrecision(EBlendPrecision eBlendPrecision);
-
-    bool GetUseLighting() const { return m_bUseLighting; }
-    virtual void SetUseLighting(bool bUseLighting);
 
     enum ScalingMethod {
       SMETH_BIT_WIDTH=0,    ///< scaled based on DS and TF bit width
@@ -184,43 +175,7 @@ class AbstrRenderer: public Scriptable {
                   enum ScalingMethod smeth = SMETH_BIT_WIDTH);
     /** Deallocates dataset and transfer functions. */
     virtual ~AbstrRenderer();
-    /** Sends a message to the master to ask for a dataset to be loaded.
-     * @param strFilename path to a file */
-    virtual bool LoadDataset(const std::string& strFilename);
-    /** Query whether or not we should redraw the next frame, else we should
-     * reuse what is already rendered or continue with the current frame if it
-     * is not complete yet. */
-    virtual bool CheckForRedraw();
 
-    UINTVECTOR2 GetSize() const {return m_vWinSize;}
-
-    virtual bool Paint() {
-      if (m_bDatasetIsInvalid) return true;
-
-      if (renderRegions.empty()) {
-        renderRegions.push_back(&simpleRenderRegion3D);
-      }
-      if (renderRegions.size() == 1 && renderRegions[0] == &simpleRenderRegion3D) {
-        simpleRenderRegion3D.maxCoord = m_vWinSize; //minCoord is always (0,0)
-      }
-
-      // check if we are rendering a stereo frame
-      m_bDoStereoRendering = m_bRequestStereoRendering &&
-                             renderRegions.size() == 1 &&
-                             renderRegions[0]->is3D();
-
-      return true; // nothing can go wrong here
-    }
-
-    void SetDatasetIsInvalid(bool bDatasetIsInvalid) {
-      m_bDatasetIsInvalid = bDatasetIsInvalid;
-    }
-
-
-    virtual bool Initialize(std::shared_ptr<Context> ctx);
-
-    /** Deallocates GPU memory allocated during the rendering process. */
-    virtual void Cleanup() = 0;
 
     /// Sets the dataset from external source; only meant to be used by clients
     /// which don't want to use the LOD subsystem.
@@ -229,12 +184,8 @@ class AbstrRenderer: public Scriptable {
     void UpdateData(const BrickKey&,
                     std::shared_ptr<float> fp, size_t len);
 */
-    Dataset&       GetDataset()       { return *m_pDataset; }
-    const Dataset& GetDataset() const { return *m_pDataset; }
     void ClearBricks() { m_pDataset->Clear(); }
 
-    TransferFunction1D* Get1DTrans() {return m_p1DTrans;}
-    TransferFunction2D* Get2DTrans() {return m_p2DTrans;}
 
     virtual void Set1DTrans(const std::vector<unsigned char>& rgba) = 0;
     /** Notify renderer that 1D TF has changed.  In most cases, this will cause
@@ -244,8 +195,120 @@ class AbstrRenderer: public Scriptable {
      * the renderer to start anew. */
     virtual void Changed2DTrans();
 
-    virtual bool CropDataset(const std::string& strTempDir, bool bKeepOldData) = 0;
 
+    FLOATVECTOR4 GetTextColor() const {return m_vTextColor;}
+
+
+    virtual void SetViewPort(UINTVECTOR2 lower_left, UINTVECTOR2 upper_right,
+                             bool decrease_screen_res) = 0;
+
+
+
+    virtual void SetRotation(RenderRegion * region,
+                             const FLOATMATRIX4& rotation);
+    virtual const FLOATMATRIX4& GetRotation(const RenderRegion *renderRegion) const;
+
+    virtual void SetTranslation(RenderRegion *renderRegion,
+                                const FLOATMATRIX4& translation);
+    virtual const FLOATMATRIX4& GetTranslation(
+                                        const RenderRegion *renderRegion) const;
+
+    virtual void SetClipPlane(RenderRegion *renderRegion,
+                      const ExtendedPlane& plane);
+    virtual bool IsClipPlaneEnabled(RenderRegion *renderRegion=NULL);
+    virtual void EnableClipPlane(RenderRegion *renderRegion=NULL);
+    virtual void DisableClipPlane(RenderRegion *renderRegion=NULL);
+
+    /// slice parameter for slice views.
+    virtual void SetSliceDepth(RenderRegion *renderRegion, uint64_t fSliceDepth);
+    virtual uint64_t GetSliceDepth(const RenderRegion *renderRegion) const;
+
+    void SetClearFramebuffer(bool bClearFramebuffer) {
+      m_bClearFramebuffer = bClearFramebuffer;
+    }
+    bool GetClearFramebuffer() const {return m_bClearFramebuffer;}
+
+    void Set2DFlipMode(RenderRegion *renderRegion, bool bFlipX, bool bFlipY);
+    void Get2DFlipMode(const RenderRegion *renderRegion, bool& bFlipX,
+                       bool& bFlipY) const;
+    bool GetUseMIP(const RenderRegion *renderRegion) const;
+    void SetUseMIP(RenderRegion *renderRegion, bool bUseMIP);
+
+    virtual void SetUserMatrices(const FLOATMATRIX4& view, const FLOATMATRIX4& projection,
+                                 const FLOATMATRIX4& viewLeft, const FLOATMATRIX4& projectionLeft,
+                                 const FLOATMATRIX4& viewRight, const FLOATMATRIX4& projectionRight);
+    virtual void UnsetUserMatrices();
+
+    // ClearView
+
+    virtual INTVECTOR2 GetCVMousePos() const {return m_vCVMousePos;}
+
+    virtual FLOATVECTOR3 Pick(const UINTVECTOR2&) const = 0;
+
+    virtual void ScheduleWindowRedraw(RenderRegion *renderRegion);
+
+
+    void SetViewParameters(float angle, float znear, float zfar,
+                           const FLOATVECTOR3& eye,
+                           const FLOATVECTOR3& ref,
+                           const FLOATVECTOR3& vup) {
+      m_vEye = eye;
+      m_vAt = ref;
+      m_vUp = vup;
+      m_fFOV = angle;
+      m_fZNear = znear;
+      m_fZFar = zfar;
+      this->ScheduleCompleteRedraw();
+    }
+
+    void SetScalingMethod(enum ScalingMethod sm) {
+      this->m_TFScalingMethod = sm;
+    }
+
+    virtual void NewFrameClear(const RenderRegion &) = 0;
+
+
+    const FLOATMATRIX4& GetProjectionMatrix(size_t eyeIndex = 0) const {return m_mProjection[eyeIndex];}
+    const FLOATMATRIX4& GetViewMatrix(size_t eyeIndex = 0) const {return m_mView[eyeIndex];}
+
+    bool Execute(const std::string& strCommand,
+                 const std::vector<std::string>& strParams,
+                 std::string& strMessage);
+
+    std::shared_ptr<Context> GetContext() const {return m_pContext;}
+
+    /// Registers base class Lua functions.
+    static void RegisterLuaFunctions(LuaClassRegistration<AbstrRenderer>& reg,
+                                     AbstrRenderer* me,
+                                     LuaScripting* ss);
+
+    /// This function is called at the end of RegisterLuaFunctions.
+    /// Use it to register additional renderer specific functions.
+    /// (functions that don't make sense as an inherited abstract method).
+    virtual void RegisterDerivedClassLuaFunctions(
+        LuaClassRegistration<AbstrRenderer>&,
+        LuaScripting*) 
+    {}
+
+  public:
+    // The following functions are public ONLY because their are dependencies
+    // upon them within Tuvok. Their dependencies are listed.
+
+    // Dependency: RenderRegion.cpp
+    virtual void ShowClipPlane(bool, RenderRegion *renderRegion=NULL);
+
+    // Dependency: RenderRegion.cpp
+    const ExtendedPlane& GetClipPlane() const;
+
+
+  protected:
+    // Functions in this section were made protected due to the transition to 
+    // Lua. All functions in this section are exposed through the Lua interface.
+
+    virtual ERendererType GetRendererType() const {return RT_INVALID;}
+    virtual void SetRendermode(ERenderMode eRenderMode);
+    virtual void SetBlendPrecision(EBlendPrecision eBlendPrecision);
+    
     /** Sets up a gradient background which fades vertically.
      * @param vColors[0] is the color at the bottom;
      * @param vColors[1] is the color at the top. */
@@ -267,35 +330,193 @@ class AbstrRenderer: public Scriptable {
       } return false;
     }
 
-    FLOATVECTOR3 GetBackgroundColor(int i) const {
-      return m_vBackgroundColors[i];
+    virtual void SetLogoParams(std::string strLogoFilename, int iLogoPos);
+    virtual void ClipPlaneRelativeLock(bool);
+    virtual bool CanDoClipPlane() {return true;}
+
+    // Clear view
+    virtual bool SupportsClearView() {return false;}
+    virtual std::string ClearViewDisableReason() const {
+      return "this renderer does not support ClearView";
     }
-    FLOATVECTOR4 GetTextColor() const {return m_vTextColor;}
+    virtual void SetCV(bool bEnable);
+    virtual bool GetCV() const {return m_bDoClearView;}
+    virtual void SetCVIsoValue(float fIsovalue);
+    virtual float GetCVIsoValue() const { return m_fCVIsovalue; }
+    virtual void SetCVColor(const FLOATVECTOR3& vColor);
+    virtual FLOATVECTOR3 GetCVColor() const {return m_vCVColor;}
+    virtual void SetCVSize(float fSize);
+    virtual float GetCVSize() const {return m_fCVSize;}
+    virtual void SetCVContextScale(float fScale);
+    virtual float GetCVContextScale() const {return m_fCVContextScale;}
+    virtual void SetCVBorderScale(float fScale);
+    virtual float GetCVBorderScale() const {return m_fCVBorderScale;}
+    virtual void SetCVFocusPosFVec(const FLOATVECTOR4& vCVPos);
+    virtual void SetCVFocusPos(LuaClassInstance renderRegion,
+                               const INTVECTOR2& vPos);
+    virtual FLOATVECTOR4 GetCVFocusPos() const {return m_vCVPos;}
+
+    RenderRegion3D* GetFirst3DRegion();
+
+    virtual void SetRenderCoordArrows(bool bRenderCoordArrows);
+    virtual bool GetRenderCoordArrows() const {return m_bRenderCoordArrows;}
+
+    virtual void Transfer3DRotationToMIP();
+
+    void SetMIPLOD(bool bMIPLOD) {m_bMIPLOD = bMIPLOD;}
+
+    virtual void  SetStereo(bool bStereoRendering);
+    virtual void  SetStereoEyeDist(float fStereoEyeDist);
+    virtual void  SetStereoFocalLength(float fStereoFocalLength);
+    virtual void  SetStereoMode(EStereoMode mode);
+    virtual void  SetStereoEyeSwap(bool bSwap);
+    virtual bool  GetStereo() const {return m_bRequestStereoRendering;}
+    virtual float GetStereoEyeDist() const {return m_fStereoEyeDist;}
+    virtual float GetStereoFocalLength() const {return m_fStereoFocalLength;}
+    virtual EStereoMode GetStereoMode() const {return m_eStereoMode;}
+    virtual bool  GetStereoEyeSwap() const {return m_bStereoEyeSwap;}
+    virtual void InitStereoFrame();
+    virtual void ToggleStereoFrame();
+
+    virtual void ScheduleCompleteRedraw();
+    /** Query whether or not we should redraw the next frame, else we should
+     * reuse what is already rendered or continue with the current frame if it
+     * is not complete yet. */
+    virtual bool CheckForRedraw();
+
+    /** Deallocates GPU memory allocated during the rendering process. */
+    virtual void Cleanup() = 0;
+
+    virtual void SetOrthoView(bool bOrthoView);
+    virtual bool GetOrthoView() const {return m_bOrthoView;}
+
+    virtual void SetUseLighting(bool bUseLighting);
 
     virtual void SetSampleRateModifier(float fSampleRateModifier);
-    float GetSampleRateModifier() const { return m_fSampleRateModifier; }
-
-    void SetFoV(float fFoV);
-    float GetFoV() const {return m_fFOV;}
 
     virtual void SetIsoValue(float fIsovalue);
     /// the given isovalue is in the range [0,1] and is interpreted as a
     /// percentage of the available isovalues.
     virtual void SetIsoValueRelative(float fIsovalue);
-    float GetIsoValue() const { return m_fIsovalue; }
 
     virtual void SetIsosufaceColor(const FLOATVECTOR3& vColor);
     virtual FLOATVECTOR3 GetIsosufaceColor() const { return m_vIsoColor; }
 
-    virtual void SetOrthoView(bool bOrthoView);
-    virtual bool GetOrthoView() const {return m_bOrthoView;}
+    UINTVECTOR2 GetSize() const {return m_vWinSize;}
 
-    virtual void SetViewPort(UINTVECTOR2 lower_left, UINTVECTOR2 upper_right,
-                             bool decrease_screen_res) = 0;
+    /** Change the size of the render window.  Any previous image is
+     * destroyed, causing a full redraw on the next render.
+     * \param vWinSize  new width and height of the view window */
+    virtual void Resize(const UINTVECTOR2& vWinSize);
 
-    virtual void Transfer3DRotationToMIP();
-    virtual void SetRenderCoordArrows(bool bRenderCoordArrows);
-    virtual bool GetRenderCoordArrows() const {return m_bRenderCoordArrows;}
+    virtual bool Paint() {
+      if (m_bDatasetIsInvalid) return true;
+
+      if (renderRegions.empty()) {
+        renderRegions.push_back(&simpleRenderRegion3D);
+      }
+      if (renderRegions.size() == 1 && renderRegions[0] == &simpleRenderRegion3D) {
+        simpleRenderRegion3D.maxCoord = m_vWinSize; //minCoord is always (0,0)
+      }
+
+      // check if we are rendering a stereo frame
+      m_bDoStereoRendering = m_bRequestStereoRendering &&
+                             renderRegions.size() == 1 &&
+                             renderRegions[0]->is3D();
+
+      return true; // nothing can go wrong here
+    }
+
+    virtual void  SetConsiderPreviousDepthbuffer(bool bConsiderPreviousDepthbuffer);
+    virtual bool  GetConsiderPreviousDepthbuffer() const {
+      return m_bConsiderPreviousDepthbuffer;
+    }
+
+    /** Sends a message to the master to ask for a dataset to be loaded.
+     * @param strFilename path to a file */
+    virtual bool LoadDataset(const std::string& strFilename);
+
+    virtual bool Initialize(std::shared_ptr<Context> ctx);
+
+    virtual void SetInterpolant(Interpolant eInterpolant);
+
+    virtual void ScanForNewMeshes() {}
+    virtual void RemoveMeshData(size_t index);
+
+    virtual void SetRescaleFactors(const DOUBLEVECTOR3& vfRescale) {
+      m_pDataset->SetRescaleFactors(vfRescale);
+      ScheduleCompleteRedraw();
+    }
+
+    virtual void Schedule3DWindowRedraws(); // Redraw all 3D windows.
+
+    virtual bool CropDataset(const std::string& strTempDir, bool bKeepOldData) = 0;
+
+    ExtendedPlane LuaGetClipPlane() const;
+
+    void GetVolumeAABB(FLOATVECTOR3& vCenter, FLOATVECTOR3& vExtend) const;
+
+    float GetIsoValue() const { return m_fIsovalue; }
+
+  private:
+    // Functions in this section were made private due to the transition to Lua.
+    // All functions in this section are exposed through the Lua interface.
+    // If a derived class needs access to these functions, it is appropriate
+    // to move the function to protected, but not public.
+
+    ERendererTarget GetRendererTarget() const { return m_eRendererTarget; }
+
+    void SetRendererTarget(ERendererTarget eRendererTarget) {
+      m_eRendererTarget = eRendererTarget;
+    }
+
+    void SetViewPos(const FLOATVECTOR3& vPos);
+    FLOATVECTOR3 GetViewPos() const;
+    void ResetViewPos();
+    void SetViewDir(const FLOATVECTOR3& vDir);
+    FLOATVECTOR3 GetViewDir() const;
+    void ResetViewDir();
+    void SetUpDir(const FLOATVECTOR3& vDir);
+    FLOATVECTOR3 GetUpDir() const;
+    void ResetUpDir();
+
+    void SetDebugView(bool bDebugView);
+    bool GetDebugView() const;
+
+    ERenderMode GetRendermode() {return m_eRenderMode;}
+
+    Dataset&       GetDataset()       { return *m_pDataset; }
+    const Dataset& GetDataset() const { return *m_pDataset; }
+
+    TransferFunction1D* Get1DTrans() {return m_p1DTrans;}
+    TransferFunction2D* Get2DTrans() {return m_p2DTrans;}
+
+    FLOATVECTOR3 GetBackgroundColor(int i) const {
+      return m_vBackgroundColors[i];
+    }
+
+    EBlendPrecision GetBlendPrecision() {return m_eBlendPrecision;}
+
+    void SetRenderRegions(const std::vector<RenderRegion*>&);
+    void LuaSetRenderRegions(std::vector<LuaClassInstance>);
+
+    const std::vector<RenderRegion*>& GetRenderRegions() const {
+      return renderRegions;
+    }
+    std::vector<LuaClassInstance> LuaGetRenderRegions();
+
+    LuaClassInstance LuaGetFirst3DRegion();
+
+    bool ClipPlaneLocked() const  { return m_bClipPlaneLocked; }
+    bool ClipPlaneEnabled() const { return m_bClipPlaneOn; }
+    bool ClipPlaneShown() const   { return m_bClipPlaneDisplayed; }
+
+    bool SupportsMeshes() const {return m_bSupportsMeshes;}
+
+    void SetMIPRotationAngle(float fAngle) {
+      m_fMIPRotationAngle = fAngle;
+      ScheduleCompleteRedraw();
+    }
 
     virtual void Set2DPlanesIn3DView(bool bRenderPlanesIn3D,
                                      RenderRegion* renderRegion=NULL);
@@ -306,61 +527,30 @@ class AbstrRenderer: public Scriptable {
     void LuaSet2DPlanesIn3DView(bool bRenderPlanesIn3D,LuaClassInstance region);
     bool LuaGet2DPlanesIn3DView() const {return Get2DPlanesIn3DView();}
 
-    /** Change the size of the render window.  Any previous image is
-     * destroyed, causing a full redraw on the next render.
-     * \param vWinSize  new width and height of the view window */
-    virtual void Resize(const UINTVECTOR2& vWinSize);
+    void SetTimeSlice(uint32_t iMSecs) {m_iTimeSliceMSecs = iMSecs;}
 
-    virtual void SetRotation(RenderRegion * region,
-                             const FLOATMATRIX4& rotation);
-    virtual const FLOATMATRIX4& GetRotation(const RenderRegion *renderRegion) const;
+    void SetPerfMeasures(uint32_t iMinFramerate, 
+                         bool bRenderLowResIntermediateResults,
+                         float fScreenResDecFactor,
+                         float fSampleDecFactor, uint32_t iStartDelay);
 
-    virtual void SetTranslation(RenderRegion *renderRegion,
-                                const FLOATMATRIX4& translation);
-    virtual const FLOATMATRIX4& GetTranslation(
-                                        const RenderRegion *renderRegion) const;
+    void LuaCloneRenderMode(LuaClassInstance inst);
 
-    virtual void SetClipPlane(RenderRegion *renderRegion,
-                      const ExtendedPlane& plane);
-    virtual bool IsClipPlaneEnabled(RenderRegion *renderRegion=NULL);
-    virtual void EnableClipPlane(RenderRegion *renderRegion=NULL);
-    virtual void DisableClipPlane(RenderRegion *renderRegion=NULL);
-    virtual void ShowClipPlane(bool, RenderRegion *renderRegion=NULL);
-    void LuaShowClipPlane(bool bShown, LuaClassInstance inst);
-    const ExtendedPlane& GetClipPlane() const;
-    ExtendedPlane LuaGetClipPlane() const;
+    bool GetUseLighting() const { return m_bUseLighting; }
 
-    virtual void ClipPlaneRelativeLock(bool);
-    virtual bool CanDoClipPlane() {return true;}
-    bool ClipPlaneEnabled() const { return m_bClipPlaneOn; }
-    bool ClipPlaneShown() const   { return m_bClipPlaneDisplayed; }
-    bool ClipPlaneLocked() const  { return m_bClipPlaneLocked; }
+    void SetFoV(float fFoV);
+    float GetFoV() const {return m_fFOV;}
 
-    /// slice parameter for slice views.
-    virtual void SetSliceDepth(RenderRegion *renderRegion, uint64_t fSliceDepth);
-    virtual uint64_t GetSliceDepth(const RenderRegion *renderRegion) const;
+    void SetTimestep(size_t);
+    size_t Timestep() const;
 
-    void SetClearFramebuffer(bool bClearFramebuffer) {
-      m_bClearFramebuffer = bClearFramebuffer;
-    }
-    bool GetClearFramebuffer() const {return m_bClearFramebuffer;}
     void SetGlobalBBox(bool bRenderBBox);
     bool GetGlobalBBox() const {return m_bRenderGlobalBBox;}
     void SetLocalBBox(bool bRenderBBox);
     bool GetLocalBBox() const {return m_bRenderLocalBBox;}
 
-    virtual void SetLogoParams(std::string strLogoFilename, int iLogoPos);
-    void Set2DFlipMode(RenderRegion *renderRegion, bool bFlipX, bool bFlipY);
-    void Get2DFlipMode(const RenderRegion *renderRegion, bool& bFlipX,
-                       bool& bFlipY) const;
-    bool GetUseMIP(const RenderRegion *renderRegion) const;
-    void SetUseMIP(RenderRegion *renderRegion, bool bUseMIP);
+    void LuaShowClipPlane(bool bShown, LuaClassInstance inst);
 
-    uint64_t GetMaxLODIndex() const { return m_iMaxLODIndex; }
-    uint64_t GetMinLODIndex() const { return m_iMinLODForCurrentView; }
-
-    UINTVECTOR2 GetLODLimits() const { return m_iLODLimits; }
-    void SetLODLimits(const UINTVECTOR2 iLODLimits);
 
     // scheduling routines
     uint64_t GetCurrentSubFrameCount() const
@@ -383,98 +573,12 @@ class AbstrRenderer: public Scriptable {
                 float(m_vCurrentBrickList.size()));
     }
 
-    void SetTimeSlice(uint32_t iMSecs) {m_iTimeSliceMSecs = iMSecs;}
-    void SetPerfMeasures(uint32_t iMinFramerate, bool bRenderLowResIntermediateResults,
-                         float fScreenResDecFactor,
-                         float fSampleDecFactor, uint32_t iStartDelay);
-    virtual void SetRescaleFactors(const DOUBLEVECTOR3& vfRescale) {
-      m_pDataset->SetRescaleFactors(vfRescale);
-      ScheduleCompleteRedraw();
-    }
-    DOUBLEVECTOR3 GetRescaleFactors() const {
-      return m_pDataset->GetRescaleFactors();
-    }
-
-    void SetRendererTarget(ERendererTarget eRendererTarget) {
-      m_eRendererTarget = eRendererTarget;
-    }
-    ERendererTarget GetRendererTarget() const {
-      return m_eRendererTarget;
-    }
-    void SetMIPLOD(bool bMIPLOD) {m_bMIPLOD = bMIPLOD;}
-
-    virtual void  SetStereo(bool bStereoRendering);
-    virtual void  SetStereoEyeDist(float fStereoEyeDist);
-    virtual void  SetStereoFocalLength(float fStereoFocalLength);
-    virtual void  SetStereoMode(EStereoMode mode);
-    virtual void  SetStereoEyeSwap(bool bSwap);
-    virtual bool  GetStereo() const {return m_bRequestStereoRendering;}
-    virtual float GetStereoEyeDist() const {return m_fStereoEyeDist;}
-    virtual float GetStereoFocalLength() const {return m_fStereoFocalLength;}
-    virtual EStereoMode GetStereoMode() const {return m_eStereoMode;}
-    virtual bool  GetStereoEyeSwap() const {return m_bStereoEyeSwap;}
-
-    virtual void SetUserMatrices(const FLOATMATRIX4& view, const FLOATMATRIX4& projection,
-                                 const FLOATMATRIX4& viewLeft, const FLOATMATRIX4& projectionLeft,
-                                 const FLOATMATRIX4& viewRight, const FLOATMATRIX4& projectionRight);
-    virtual void UnsetUserMatrices();
-
-    virtual void InitStereoFrame();
-    virtual void ToggleStereoFrame();
-
-    virtual void  SetConsiderPreviousDepthbuffer(bool bConsiderPreviousDepthbuffer);
-    virtual bool  GetConsiderPreviousDepthbuffer() const {
-      return m_bConsiderPreviousDepthbuffer;
-    }
-
-    void SetColors(FLOATVECTOR4 ambient,
-                   FLOATVECTOR4 diffuse,
-                   FLOATVECTOR4 specular,
-                   FLOATVECTOR3 lightDir);
-
-    FLOATVECTOR4 GetAmbient() const;
-    FLOATVECTOR4 GetDiffuse() const;
-    FLOATVECTOR4 GetSpecular()const;
-    FLOATVECTOR3 GetLightDir()const;
-
-    // ClearView
-    virtual bool SupportsClearView() {return false;}
-    virtual std::string ClearViewDisableReason() const {
-      return "this renderer does not support ClearView";
-    }
-
-    virtual void SetCV(bool bEnable);
-    virtual bool GetCV() const {return m_bDoClearView;}
-    virtual void SetCVIsoValue(float fIsovalue);
-    virtual float GetCVIsoValue() const { return m_fCVIsovalue; }
-    virtual void SetCVColor(const FLOATVECTOR3& vColor);
-    virtual FLOATVECTOR3 GetCVColor() const {return m_vCVColor;}
-    virtual void SetCVSize(float fSize);
-    virtual float GetCVSize() const {return m_fCVSize;}
-    virtual void SetCVContextScale(float fScale);
-    virtual float GetCVContextScale() const {return m_fCVContextScale;}
-    virtual void SetCVBorderScale(float fScale);
-    virtual float GetCVBorderScale() const {return m_fCVBorderScale;}
-    virtual void SetCVFocusPosFVec(const FLOATVECTOR4& vCVPos);
-    virtual void SetCVFocusPos(LuaClassInstance renderRegion,
-                               const INTVECTOR2& vPos);
-    virtual FLOATVECTOR4 GetCVFocusPos() const {return m_vCVPos;}
-    virtual INTVECTOR2 GetCVMousePos() const {return m_vCVMousePos;}
-
-    virtual FLOATVECTOR3 Pick(const UINTVECTOR2&) const = 0;
-
-    virtual void ScheduleCompleteRedraw();
-    virtual void Schedule3DWindowRedraws(); // Redraw all 3D windows.
-    virtual void ScheduleWindowRedraw(RenderRegion *renderRegion);
+    uint64_t GetMaxLODIndex() const { return m_iMaxLODIndex; }
+    uint64_t GetMinLODIndex() const { return m_iMinLODForCurrentView; }
 
     bool GetUseOnlyPowerOfTwo() const {return m_bUseOnlyPowerOfTwo;}
     bool GetDownSampleTo8Bits() const {return m_bDownSampleTo8Bits;}
     bool GetDisableBorder() const {return m_bDisableBorder;}
-
-    void SetMIPRotationAngle(float fAngle) {
-      m_fMIPRotationAngle = fAngle;
-      ScheduleCompleteRedraw();
-    }
 
     /// Prepends the given directory to the list of paths Tuvok will
     /// try to find shaders in.
@@ -482,86 +586,40 @@ class AbstrRenderer: public Scriptable {
       m_vShaderSearchDirs.insert(m_vShaderSearchDirs.begin(), path);
     }
 
-    void SetViewPos(const FLOATVECTOR3& vPos);
-    FLOATVECTOR3 GetViewPos() const;
-    void ResetViewPos();
-    void SetViewDir(const FLOATVECTOR3& vDir);
-    FLOATVECTOR3 GetViewDir() const;
-    void ResetViewDir();
-    void SetUpDir(const FLOATVECTOR3& vDir);
-    FLOATVECTOR3 GetUpDir() const;
-    void ResetUpDir();
+    UINTVECTOR2 GetLODLimits() const { return m_iLODLimits; }
+    void SetLODLimits(const UINTVECTOR2 iLODLimits);
 
-    void SetDebugView(bool bDebugView);
-    bool GetDebugView() const;
+    void SetColors(FLOATVECTOR4 ambient,
+                   FLOATVECTOR4 diffuse,
+                   FLOATVECTOR4 specular,
+                   FLOATVECTOR3 lightDir);
 
-    void SetViewParameters(float angle, float znear, float zfar,
-                           const FLOATVECTOR3& eye,
-                           const FLOATVECTOR3& ref,
-                           const FLOATVECTOR3& vup) {
-      m_vEye = eye;
-      m_vAt = ref;
-      m_vUp = vup;
-      m_fFOV = angle;
-      m_fZNear = znear;
-      m_fZFar = zfar;
-      this->ScheduleCompleteRedraw();
+    Interpolant GetInterpolant() const {return m_eInterpolant;}
+
+    FLOATVECTOR4 GetAmbient() const;
+    FLOATVECTOR4 GetDiffuse() const;
+    FLOATVECTOR4 GetSpecular()const;
+    FLOATVECTOR3 GetLightDir()const;
+
+    void SetDatasetIsInvalid(bool bDatasetIsInvalid) {
+      m_bDatasetIsInvalid = bDatasetIsInvalid;
     }
 
-    void SetScalingMethod(enum ScalingMethod sm) {
-      this->m_TFScalingMethod = sm;
+    // Return value references are not supported by lua.
+    std::vector<std::shared_ptr<RenderMesh> > GetMeshes() {return m_Meshes;}
+    void ReloadMesh(size_t index, const std::shared_ptr<Mesh> m);
+
+    float GetSampleRateModifier() const { return m_fSampleRateModifier; }
+
+    DOUBLEVECTOR3 GetRescaleFactors() const {
+      return m_pDataset->GetRescaleFactors();
     }
 
-    virtual void NewFrameClear(const RenderRegion &) = 0;
-
-    const std::vector<RenderRegion*>& GetRenderRegions() const {
-      return renderRegions;
-    }
-    void SetRenderRegions(const std::vector<RenderRegion*>&);
-    void LuaSetRenderRegions(std::vector<LuaClassInstance>);
-    std::vector<LuaClassInstance> LuaGetRenderRegions();
-    void GetVolumeAABB(FLOATVECTOR3& vCenter, FLOATVECTOR3& vExtend) const;
     FLOATVECTOR3 LuaGetVolumeAABBExtents() const;
     FLOATVECTOR3 LuaGetVolumeAABBCenter() const;
 
-    virtual void ScanForNewMeshes() {}
-    virtual void RemoveMeshData(size_t index);
-    // Return value references are not supported by lua.
-    std::vector<std::shared_ptr<RenderMesh> > GetMeshes() {return m_Meshes;}
-    bool SupportsMeshes() const {return m_bSupportsMeshes;}
-    void ReloadMesh(size_t index, const std::shared_ptr<Mesh> m);
-
-    void SetTimestep(size_t);
-    size_t Timestep() const;
-
     virtual void FixedFunctionality() const = 0;
     virtual void SyncStateManager() = 0;
-
-    const FLOATMATRIX4& GetProjectionMatrix(size_t eyeIndex = 0) const {return m_mProjection[eyeIndex];}
-    const FLOATMATRIX4& GetViewMatrix(size_t eyeIndex = 0) const {return m_mView[eyeIndex];}
-
-    bool Execute(const std::string& strCommand,
-                 const std::vector<std::string>& strParams,
-                 std::string& strMessage);
-
-    virtual void SetInterpolant(Interpolant eInterpolant);
-    Interpolant GetInterpolant() const {return m_eInterpolant;}
-
-    std::shared_ptr<Context> GetContext() const {return m_pContext;}
-
-    /// Registers base class Lua functions.
-    static void RegisterLuaFunctions(LuaClassRegistration<AbstrRenderer>& reg,
-                                     AbstrRenderer* me,
-                                     LuaScripting* ss);
-
-    /// This function is called at the end of RegisterLuaFunctions.
-    /// Use it to register additional renderer specific functions.
-    /// (functions that don't make sense as an inherited abstract method).
-    virtual void RegisterDerivedClassLuaFunctions(
-        LuaClassRegistration<AbstrRenderer>&,
-        LuaScripting*) 
-    {}
-
 
   protected:
     /// Unsets the current transfer function, including deleting it from GPU
@@ -589,7 +647,6 @@ class AbstrRenderer: public Scriptable {
     /// @returns if the data we're rendering is color or not.
     virtual bool ColorData() const;
 
-    void LuaCloneRenderMode(LuaClassInstance inst);
 
   protected:
     MasterController*   m_pMasterController;
@@ -754,8 +811,6 @@ class AbstrRenderer: public Scriptable {
     double              MaxValue() const;
     bool                OnlyRecomposite(RenderRegion* region) const;
 
-    RenderRegion3D* GetFirst3DRegion();
-    LuaClassInstance LuaGetFirst3DRegion();
 
     virtual bool IsVolumeResident(const BrickKey& key) const = 0;
 

@@ -91,16 +91,16 @@ int main(int argc, char *argv[])
 //              false, false, false, false, false
 //            );
 
-      LuaClassInstance inst = ss->cexecRet<LuaClassInstance>(
+      LuaClassInstance luaRen = ss->cexecRet<LuaClassInstance>(
           "tuvok.renderer.new", i, false, false, false, false, false);
-      ren = inst.getRawPointer<AbstrRenderer>(ss);
 
       if(ren != NULL) {
-        ren->LoadDataset(uvf_file);
-        ren->AddShaderPath("../../Shaders");
-        ren->Resize(UINTVECTOR2(100,100));
-        ren->Initialize(GLContextID::Current(0));
-        ren->Cleanup();
+        ss->cexec(luaRen.fqName() + ".loadDataset", uvf_file);
+        ss->cexec(luaRen.fqName() + ".addShaderPath", "../../Shaders");
+        ss->cexec(luaRen.fqName() + ".resize", UINTVECTOR2(100,100));
+        ss->cexec(luaRen.fqName() + ".initialize", GLContextID::Current(0));
+        ss->cexec(luaRen.fqName() + ".cleanup");
+        ren = luaRen.getRawPointer<AbstrRenderer>(ss);
         Controller::Instance().ReleaseVolumeRenderer(ren);
       }
 
@@ -109,16 +109,16 @@ int main(int argc, char *argv[])
 //              static_cast<MasterController::EVolumeRendererType>(i),
 //              false, false, false, true, false
 //            );
-      inst = ss->cexecRet<LuaClassInstance>(
+      luaRen = ss->cexecRet<LuaClassInstance>(
           "tuvok.renderer.new", i, false, false, false, true, false);
-      ren = inst.getRawPointer<AbstrRenderer>(ss);
 
       if(ren != NULL) {
-        ren->LoadDataset(uvf_file);
-        ren->AddShaderPath("../../Shaders");
-        ren->Resize(UINTVECTOR2(100,100));
-        ren->Initialize(GLContextID::Current(0));
-        ren->Cleanup();
+        ss->cexec(luaRen.fqName() + ".loadDataset", uvf_file);
+        ss->cexec(luaRen.fqName() + ".addShaderPath", "../../Shaders");
+        ss->cexec(luaRen.fqName() + ".resize", UINTVECTOR2(100,100));
+        ss->cexec(luaRen.fqName() + ".initialize", GLContextID::Current(0));
+        ss->cexec(luaRen.fqName() + ".cleanup");
+        ren = luaRen.getRawPointer<AbstrRenderer>(ss);
         Controller::Instance().ReleaseVolumeRenderer(ren);
       }
     }

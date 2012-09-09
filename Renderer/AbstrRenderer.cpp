@@ -2044,8 +2044,6 @@ void AbstrRenderer::RegisterLuaFunctions(
                     "setCVColor", "", true);
   id = reg.function(&AbstrRenderer::GetCVColor,
                     "getCVColor", "", true);
-  id = reg.function(&AbstrRenderer::SetCV,
-                    "setCV", "", true);
   id = reg.function(&AbstrRenderer::SetCVFocusPos,
                     "setCVFocusPos", "", true);
 

@@ -118,10 +118,6 @@ public:
   const AbstrDebugOut *DebugOut() const;
   ///@}
 
-  /// Returns the most recently registered renderer.
-  const AbstrRenderer *Renderer() const {
-    return m_vVolumeRenderer[m_vVolumeRenderer.size()-1];
-  }
 
   /// The GPU memory manager moves data from CPU to GPU memory, and
   /// removes data from GPU memory.
@@ -190,6 +186,13 @@ public:
 
 
 private:
+
+  /// Returns the most recently registered renderer.
+  const AbstrRenderer *Renderer() const {
+    return m_vVolumeRenderer[m_vVolumeRenderer.size()-1];
+  }
+
+
   /// Initializer; add all our builtin commands.
   void RegisterInternalCommands();
   void RegisterLuaCommands();

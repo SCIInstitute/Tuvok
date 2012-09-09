@@ -93,17 +93,17 @@ int main(int argc, const char *argv[])
 //      MasterController::OPENGL_SBVR, false, false, false, false, false
 //    );
     std::shared_ptr<LuaScripting> ss = Controller::Instance().LuaScript();
-    LuaClassInstance inst = ss->cexecRet<LuaClassInstance>(
+    LuaClassInstance luaRen = ss->cexecRet<LuaClassInstance>(
         "tuvok.renderer.new",
         int(MasterController::OPENGL_SBVR), false, false, false, false, false);
-    AbstrRenderer* ren = inst.getRawPointer<AbstrRenderer>(ss);
-    ren->LoadDataset(uvf_file);
-    ren->AddShaderPath("../../Shaders");
-    ren->Initialize(GLContext::Current(0));
-    ren->Resize(UINTVECTOR2(640,480));
-    ren->SetRendererTarget(AbstrRenderer::RT_HEADLESS);
-    ren->Paint();
+    ss->cexec(luaRen.fqName() + ".loadDataset", uvf_file);
+    ss->cexec(luaRen.fqName() + ".addShaderPath", "../../Shaders");
+    ss->cexec(luaRen.fqName() + ".initialize", GLContext::Current(0));
+    ss->cexec(luaRen.fqName() + ".resize", UINTVECTOR2(640,480));
+    ss->cexec(luaRen.fqName() + ".setRendererTarget",AbstrRenderer::RT_HEADLESS);
+    ss->cexec(luaRen.fqName() + ".paint");
 
+    AbstrRenderer* ren = luaRen.getRawPointer<AbstrRenderer>(ss);
     GLRenderer* glren = dynamic_cast<GLRenderer*>(ren);
     GLFBOTex* fbo = glren->GetLastFBO();
     GLTargetBinder bind(&Controller::Instance());
@@ -111,7 +111,7 @@ int main(int argc, const char *argv[])
     GLFrameCapture fc;
     fc.CaptureSingleFrame("test.png", fbo);
 
-    ren->Cleanup();
+    ss->cexec(luaRen.fqName() + ".cleanup");
     Controller::Instance().ReleaseVolumeRenderer(ren);
   } catch(const std::exception& e) {
     std::cerr << "Exception: " << e.what() << "\n";

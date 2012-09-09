@@ -267,21 +267,7 @@ void MasterController::Filter(std::string, uint32_t,
 };
 
 
-void MasterController::RegisterCalls(Scripting* pScriptEngine) {
-  pScriptEngine->RegisterCommand(this, "seterrorlog", "on/off", "toggle recording of errors");
-  pScriptEngine->RegisterCommand(this, "setwarninglog", "on/off", "toggle recording of warnings");
-  pScriptEngine->RegisterCommand(this, "setmessagelog", "on/off", "toggle recording of messages");
-  pScriptEngine->RegisterCommand(this, "printerrorlog", "", "print recorded errors");
-  pScriptEngine->RegisterCommand(this, "printwarninglog", "", "print recorded warnings");
-  pScriptEngine->RegisterCommand(this, "printmessagelog", "", "print recorded messages");
-  pScriptEngine->RegisterCommand(this, "clearerrorlog", "", "clear recorded errors");
-  pScriptEngine->RegisterCommand(this, "clearwarninglog", "", "clear recorded warnings");
-  pScriptEngine->RegisterCommand(this, "clearmessagelog", "", "clear recorded messages");
-  pScriptEngine->RegisterCommand(this, "fileoutput", "filename","write debug output to 'filename'");
-  pScriptEngine->RegisterCommand(this, "toggleoutput", "on/off on/off on/off on/off","toggle messages, warning, errors, and other output");
-  pScriptEngine->RegisterCommand(this, "set_tf_1d", "",
-                                 "Sets the 1D transfer from the "
-                                 "(string) argument.");
+void MasterController::RegisterCalls(Scripting*) {
 }
 
 RenderRegion* MasterController::LuaCreateRenderRegion3D(LuaClassInstance ren) {
@@ -381,82 +367,10 @@ void MasterController::RegisterLuaCommands() {
           LuaTransferFun2DProxy::defineLuaInterface));
 }
 
-bool MasterController::Execute(const std::string& strCommand,
-                               const std::vector<std::string>& strParams,
+bool MasterController::Execute(const std::string&,
+                               const std::vector<std::string>&,
                                std::string& strMessage) {
   strMessage = "";
-  if (strCommand == "seterrorlog") {
-    m_DebugOut.SetListRecordingErrors(strParams[0] == "on");
-    if (m_DebugOut.GetListRecordingErrors()) {
-      m_DebugOut.printf("current state: true");
-    } else {
-      m_DebugOut.printf("current state: false");
-    }
-    return true;
-  }
-  if (strCommand == "setwarninglog") {
-    m_DebugOut.SetListRecordingWarnings(strParams[0] == "on");
-    if (m_DebugOut.GetListRecordingWarnings()) m_DebugOut.printf("current state: true"); else m_DebugOut.printf("current state: false");
-    return true;
-  }
-  if (strCommand == "setmessagelog") {
-    m_DebugOut.SetListRecordingMessages(strParams[0] == "on");
-    if (m_DebugOut.GetListRecordingMessages()) m_DebugOut.printf("current state: true"); else m_DebugOut.printf("current state: false");
-    return true;
-  }
-  if (strCommand == "printerrorlog") {
-    m_DebugOut.PrintErrorList();
-    return true;
-  }
-  if (strCommand == "printwarninglog") {
-    m_DebugOut.PrintWarningList();
-    return true;
-  }
-  if (strCommand == "printmessagelog") {
-    m_DebugOut.PrintMessageList();
-    return true;
-  }
-  if (strCommand == "clearerrorlog") {
-    m_DebugOut.ClearErrorList();
-    return true;
-  }
-  if (strCommand == "clearwarninglog") {
-    m_DebugOut.ClearWarningList();
-    return true;
-  }
-  if (strCommand == "clearmessagelog") {
-    m_DebugOut.ClearMessageList();
-    return true;
-  }
-  if (strCommand == "toggleoutput") {
-    m_DebugOut.SetOutput(strParams[0] == "on",
-                           strParams[1] == "on",
-                           strParams[2] == "on",
-                           strParams[3] == "on");
-    return true;
-  }
-  if (strCommand == "fileoutput") {
-    TextfileOut* textout = new TextfileOut(strParams[0]);
-    textout->SetShowErrors(m_DebugOut.ShowErrors());
-    textout->SetShowWarnings(m_DebugOut.ShowWarnings());
-    textout->SetShowMessages(m_DebugOut.ShowMessages());
-    textout->SetShowOther(m_DebugOut.ShowOther());
-
-    m_DebugOut.AddDebugOut(textout);
-
-    return true;
-  }
-  if(strCommand == "set_tf_1d") {
-    assert(strParams.size() > 0);
-    for(AbstrRendererList::iterator iter = m_vVolumeRenderer.begin();
-        iter != m_vVolumeRenderer.end(); ++iter) {
-      TransferFunction1D *tf1d = m_vVolumeRenderer[0]->Get1DTrans();
-      std::istringstream serialized_tf(strParams[0]);
-      tf1d->Load(serialized_tf);
-    }
-    return true;
-  }
-
   return false;
 }
 

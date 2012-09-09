@@ -73,14 +73,17 @@ void LuaIOManagerProxy::bind()
     const std::string nm = "tuvok.io."; // namespace
 
     id = mReg.registerFunction(this,
-                                &LuaIOManagerProxy::ExportDataset,
-                                nm + "exportDataset", "", false);
+                               &LuaIOManagerProxy::ExportDataset,
+                               nm + "exportDataset", "", false);
     id = mReg.registerFunction(this,
-                                &LuaIOManagerProxy::ExtractIsosurface,
-                                nm + "extractIsosurface", "", false);
+                               &LuaIOManagerProxy::ExtractIsosurface,
+                               nm + "extractIsosurface", "", false);
     id = mReg.registerFunction(this,
-                                &LuaIOManagerProxy::ExtractImageStack,
-                                nm + "extractImageStack", "", false);
+                               &LuaIOManagerProxy::ExtractImageStack,
+                               nm + "extractImageStack", "", false);
+    id = mReg.registerFunction(this,
+                               &LuaIOManagerProxy::ExportMesh,
+                               nm + "exportMesh", "", false);
   }
 
 }
@@ -139,9 +142,9 @@ bool LuaIOManagerProxy::ExtractImageStack(
 }
 
 bool LuaIOManagerProxy::ExportDataset(LuaClassInstance ds,
-                                     uint64_t iLODlevel,
-                                     const std::string& strTargetFilename,
-                                     const std::string& strTempDir) const
+                                      uint64_t iLODlevel,
+                                      const std::string& strTargetFilename,
+                                      const std::string& strTempDir) const
 {
   if (mSS->cexecRet<LuaDatasetProxy::DatasetType>(
           ds.fqName() + ".getDSType") != LuaDatasetProxy::UVF) {
@@ -156,6 +159,12 @@ bool LuaIOManagerProxy::ExportDataset(LuaClassInstance ds,
 
   return mIO->ExportDataset(uvf, iLODlevel, strTargetFilename, 
                             strTempDir);
+}
+
+bool LuaIOManagerProxy::ExportMesh(shared_ptr<Mesh> mesh,
+                                   const std::string& strTargetFilename) const
+{
+  return mIO->ExportMesh(mesh, strTargetFilename);
 }
 
 } /* namespace tuvok */

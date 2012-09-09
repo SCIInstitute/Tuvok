@@ -78,6 +78,9 @@ private:
       const std::string& strTargetFilename,
       const std::string& strTempDir,
       bool bAllDirs) const;
+
+  bool ExportMesh(std::shared_ptr<Mesh> mesh,
+                  const std::string& strTargetFilename) const;
   /// @}
 };
 
