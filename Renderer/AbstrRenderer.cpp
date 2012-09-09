@@ -1120,6 +1120,20 @@ void AbstrRenderer::GetVolumeAABB(FLOATVECTOR3& vCenter, FLOATVECTOR3& vExtend) 
   vCenter = FLOATVECTOR3(0,0,0);
 }
 
+FLOATVECTOR3 AbstrRenderer::LuaGetVolumeAABBCenter() const {
+  FLOATVECTOR3 vCenter;
+  FLOATVECTOR3 vExtend;
+  GetVolumeAABB(vCenter, vExtend);
+  return vCenter;
+}
+
+FLOATVECTOR3 AbstrRenderer::LuaGetVolumeAABBExtents() const {
+  FLOATVECTOR3 vCenter;
+  FLOATVECTOR3 vExtend;
+  GetVolumeAABB(vCenter, vExtend);
+  return vCenter;
+}
+
 void AbstrRenderer::PlanFrame(RenderRegion3D& region) {
   m_FrustumCullingLOD.SetViewMatrix(region.modelView[0]);
   m_FrustumCullingLOD.Update();
@@ -2113,6 +2127,14 @@ void AbstrRenderer::RegisterLuaFunctions(
   id = reg.function(&AbstrRenderer::GetLODLimits,
                     "getLODLimits", "", false);
 
+  id = reg.function(&AbstrRenderer::Schedule3DWindowRedraws,
+                    "schedule3DWindowRedraws", "", false);
+  id = reg.function(&AbstrRenderer::ReloadMesh,
+                    "reloadMesh", "", false);
+  id = reg.function(&AbstrRenderer::LuaGetVolumeAABBCenter,
+                    "getVolumeAABBCenter", "", false);
+  id = reg.function(&AbstrRenderer::LuaGetVolumeAABBExtents,
+                    "getVolumeAABBExtents", "", false);
 
   /// Register renderer specific functions.
   me->RegisterDerivedClassLuaFunctions(reg, ss);
