@@ -109,13 +109,16 @@ public:
   size_t SwatchArrayGetSize() const;
   void SwatchPushBack(const TFPolygon& swatch);
   void SwatchErase(size_t swatchIndex);
+  /// Inserts swatch at index 'i' whose value is 'swatch'.
   void SwatchInsert(size_t i, const TFPolygon& swatch);
+  /// Replaces the swatch at index 'i' with 'swatch'.
+  void SwatchUpdate(size_t i, const TFPolygon& swatch);
   size_t SwatchGetNumPoints(size_t i) const;
   bool SwatchIsRadial(size_t i) const;
   size_t SwatchGetGradientCount(size_t i) const;
   GradientStop SwatchGetGradient(size_t point, size_t i) const;
 
-  std::vector< TFPolygon > m_Swatches;
+  std::shared_ptr<std::vector< TFPolygon > > m_pvSwatches;
 
   const VECTOR2<size_t> GetSize() const {return m_iSize;}
   const VECTOR2<size_t> GetRenderSize() const {

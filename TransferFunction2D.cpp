@@ -42,6 +42,7 @@
 using namespace std;
 
 TransferFunction2D::TransferFunction2D() :
+  m_pvSwatches(new vector<TFPolygon>),
   m_iSize(0,0),
   m_pColorData(NULL),
   m_pPixelData(NULL),
@@ -51,6 +52,7 @@ TransferFunction2D::TransferFunction2D() :
 }
 
 TransferFunction2D::TransferFunction2D(const std::string& filename):
+  m_pvSwatches(new vector<TFPolygon>),
   m_iSize(0,0),
   m_pColorData(NULL),
   m_pPixelData(NULL),
@@ -61,6 +63,7 @@ TransferFunction2D::TransferFunction2D(const std::string& filename):
 }
 
 TransferFunction2D::TransferFunction2D(const VECTOR2<size_t>& iSize):
+  m_pvSwatches(new vector<TFPolygon>),
   m_iSize(iSize),
   m_pColorData(NULL),
   m_pPixelData(NULL),
@@ -127,14 +130,14 @@ bool TransferFunction2D::Load(const std::string& filename, const VECTOR2<size_t>
     return false;
   }
 
-  m_Swatches.resize(iSwatchCount);
+  m_pvSwatches->resize(iSwatchCount);
 
   // load Swatches
-  for (size_t i = 0;i<m_Swatches.size();i++) {
-    if(!m_Swatches[i].Load(file)) {
+  for (size_t i = 0;i<m_pvSwatches->size();i++) {
+    if(!(*m_pvSwatches)[i].Load(file)) {
       T_ERROR("Failed loading swatch %u/%u in %s",
               static_cast<unsigned>(i),
-              static_cast<unsigned>(m_Swatches.size()-1),
+              static_cast<unsigned>(m_pvSwatches->size()-1),
               filename.c_str());
       return false;
     }
@@ -172,18 +175,18 @@ bool TransferFunction2D::Load(const std::string& filename) {
     T_ERROR("Invalid swatch count in %s", filename.c_str());
     return false;
   }
-  m_Swatches.resize(iSwatchCount);
+  m_pvSwatches->resize(iSwatchCount);
   if(iSwatchCount == 0) {
     WARNING("No swatches?!  Ridiculous 2D TFqn, bailing...");
     return false;
   }
 
   // load Swatches
-  for (size_t i = 0;i<m_Swatches.size();i++) {
-    if(!m_Swatches[i].Load(file)) {
+  for (size_t i = 0;i<m_pvSwatches->size();i++) {
+    if(!(*m_pvSwatches)[i].Load(file)) {
       T_ERROR("Failed loading swatch %u/%u in %s",
               static_cast<unsigned>(i),
-              static_cast<unsigned>(m_Swatches.size()-1),
+              static_cast<unsigned>(m_pvSwatches->size()-1),
               filename.c_str());
       return false;
     }
@@ -206,10 +209,10 @@ bool TransferFunction2D::Save(const std::string& filename) const {
   m_Trans1D.Save(file);
 
   // save swatch count
-  file << m_Swatches.size() << endl;
+  file << m_pvSwatches->size() << endl;
 
   // save Swatches
-  for (size_t i = 0;i<m_Swatches.size();i++) m_Swatches[i].Save(file);
+  for (size_t i = 0;i<m_pvSwatches->size();i++) (*m_pvSwatches)[i].Save(file);
 
   file.close();
 
@@ -309,8 +312,8 @@ unsigned char* TransferFunction2D::RenderTransferFunction8Bit() {
   // render swatches
   QPen noBorderPen(Qt::NoPen);
   m_Painter.setPen(noBorderPen);
-  for (size_t i = 0;i<m_Swatches.size();i++) {
-    TFPolygon& currentSwatch = m_Swatches[i];
+  for (size_t i = 0;i<m_pvSwatches->size();i++) {
+    TFPolygon& currentSwatch = (*m_pvSwatches)[i];
 
     std::vector<QPoint> pointList(currentSwatch.pPoints.size());
     for (size_t j = 0;j<currentSwatch.pPoints.size();j++) {
@@ -348,8 +351,8 @@ unsigned char* TransferFunction2D::RenderTransferFunction8Bit() {
   memcpy(m_pPixelData, m_pRCanvas->scaled(int(m_iSize.x), int(m_iSize.y)).bits(), 4*m_iSize.area());
   m_bUseCachedData = true;
 #else
-  if (!m_Swatches.empty()) {
-	m_Swatches.clear();
+  if (!m_pvSwatches->empty()) {
+	m_pvSwatches->clear();
 	WARNING("Cannot render transfer functions without Qt, returning empty transfer function.");
 	memset(m_pPixelData, 0, 4*m_iSize.area());	
   }
@@ -419,38 +422,42 @@ void TransferFunction2D::Update1DTrans(const TransferFunction1D* p1DTrans) {
 }
 
 size_t TransferFunction2D::SwatchArrayGetSize() const {
-  return m_Swatches.size();
+  return m_pvSwatches->size();
 }
 
 void TransferFunction2D::SwatchPushBack(const TFPolygon& swatch) {
-  m_Swatches.push_back(swatch);
+  m_pvSwatches->push_back(swatch);
 }
 
 void TransferFunction2D::SwatchErase(size_t swatchIndex) {
-  vector<TFPolygon>::iterator nth = m_Swatches.begin() + swatchIndex;
-  m_Swatches.erase(nth);
+  vector<TFPolygon>::iterator nth = m_pvSwatches->begin() + swatchIndex;
+  m_pvSwatches->erase(nth);
 }
 
 void TransferFunction2D::SwatchInsert(size_t i, const TFPolygon& swatch) {
-  vector<TFPolygon>::iterator nth = m_Swatches.begin() + i;
-  m_Swatches.insert(nth, swatch);
+  vector<TFPolygon>::iterator nth = m_pvSwatches->begin() + i;
+  m_pvSwatches->insert(nth, swatch);
 }
 
 size_t TransferFunction2D::SwatchGetNumPoints(size_t i) const {
-  return m_Swatches[i].pPoints.size();
+  return (*m_pvSwatches)[i].pPoints.size();
 }
 
 bool TransferFunction2D::SwatchIsRadial(size_t i) const {
-  return m_Swatches[i].bRadial;
+  return (*m_pvSwatches)[i].bRadial;
 }
 
 size_t TransferFunction2D::SwatchGetGradientCount(size_t i) const {
-  return m_Swatches[i].pGradientStops.size();
+  return (*m_pvSwatches)[i].pGradientStops.size();
 }
 
 GradientStop TransferFunction2D::SwatchGetGradient(size_t point, size_t i) const
 {
-  return m_Swatches[point].pGradientStops[i];
+  return (*m_pvSwatches)[point].pGradientStops[i];
+}
+
+void TransferFunction2D::SwatchUpdate(size_t i, const TFPolygon& swatch) {
+  (*m_pvSwatches)[i] = swatch;
 }
 
 // ***************************************************************************
