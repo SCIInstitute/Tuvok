@@ -246,18 +246,16 @@ float ExternalDataset::MaxGradientMagnitude() const
 
 void ExternalDataset::SetHistogram(const std::vector<uint32_t>& hist)
 {
-  if(m_pHist1D) { delete m_pHist1D; }
-  m_pHist1D = new Histogram1D(hist.size());
+  m_pHist1D.reset(new Histogram1D(hist.size()));
   std::memcpy(m_pHist1D->GetDataPointer(), &(hist.at(0)),
               sizeof(uint32_t)*hist.size());
 }
 
 void ExternalDataset::SetHistogram(const std::vector<std::vector<uint32_t> >& hist)
 {
-  if(m_pHist2D) { delete m_pHist2D; }
   // assume the 2D histogram is square: hist[0].size() == hist[1].size() == ...
   const VECTOR2<size_t> sz(hist.size(), hist[0].size());
-  m_pHist2D = new Histogram2D(sz);
+  m_pHist2D.reset(new Histogram2D(sz));
 
   uint32_t *data = m_pHist2D->GetDataPointer();
   for(hist2d::const_iterator iter = hist.begin(); iter < hist.end(); ++iter) {
@@ -423,8 +421,7 @@ void ExternalDataset::Recalculate1DHistogram()
   // that client apps can pass this information to us, or perhaps compute it in
   // pieces, every AddBrick call.
 #if 0
-  if(m_pHist1D) { delete m_pHist1D; }
-  m_pHist1D = new Histogram1D(m_DataSize);
+  m_pHist1D.reset(new Histogram1D(m_DataSize));
   std::fill(m_pHist1D->GetDataPointer(),
             m_pHist1D->GetDataPointer()+m_pHist1D->GetSize(), 0);
 

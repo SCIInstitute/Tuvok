@@ -698,15 +698,15 @@ void UVFDataset::FindSuitableDataBlocks() {
 /// @todo fixme (hack): we only look at the first timestep for the
 /// histograms.  should really set a vector of histograms, one per timestep.
 void UVFDataset::GetHistograms(size_t) {
-  m_pHist1D = NULL;
+  m_pHist1D.reset();
 
   Timestep* ts = m_timesteps[0];
   if (ts->m_pHist1DDataBlock != NULL) {
     const std::vector<uint64_t>& vHist1D = ts->m_pHist1DDataBlock->GetHistogram();
 
-    m_pHist1D = new Histogram1D(std::min<size_t>(vHist1D.size(),
-                                    std::min<size_t>(MAX_TRANSFERFUNCTION_SIZE,
-                                                     1<<GetBitWidth())));
+    m_pHist1D.reset(new Histogram1D(std::min<size_t>(vHist1D.size(),
+                                     std::min<size_t>(MAX_TRANSFERFUNCTION_SIZE,
+                                                     1<<GetBitWidth()))));
 
     if (m_pHist1D->GetSize() != vHist1D.size()) {
       MESSAGE("1D Histogram too big to be drawn efficiently, resampling.");
@@ -754,7 +754,8 @@ void UVFDataset::GetHistograms(size_t) {
     }
   } else {
     // generate a zero 1D histogram (max 4k) if none is found in the file
-    m_pHist1D = new Histogram1D(std::min(MAX_TRANSFERFUNCTION_SIZE, 1<<GetBitWidth()));
+    m_pHist1D.reset(new Histogram1D(
+            std::min(MAX_TRANSFERFUNCTION_SIZE, 1<<GetBitWidth())));
 
     // set all values to one so "getFilledsize" later does not return a
     // completely empty dataset
@@ -763,7 +764,7 @@ void UVFDataset::GetHistograms(size_t) {
     }
   }
 
-  m_pHist2D = NULL;
+  m_pHist2D.reset();
   if (ts->m_pHist2DDataBlock != NULL) {
     const std::vector< std::vector<uint64_t> >& vHist2D =
       ts->m_pHist2DDataBlock->GetHistogram();
@@ -772,7 +773,7 @@ void UVFDataset::GetHistograms(size_t) {
 
     vSize.x = min<size_t>(MAX_TRANSFERFUNCTION_SIZE, vSize.x);
     vSize.y = min<size_t>(256, vSize.y);
-    m_pHist2D = new Histogram2D(vSize);
+    m_pHist2D.reset(new Histogram2D(vSize));
 
     if (vSize.x != vHist2D.size() || vSize.y != vHist2D[0].size() ) {
       MESSAGE("2D Histogram too big to be drawn efficiently, resampling.");
@@ -794,7 +795,7 @@ void UVFDataset::GetHistograms(size_t) {
     // generate a zero 2D histogram (max 4k) if none is found in the file
     VECTOR2<size_t> vec(256, std::min(MAX_TRANSFERFUNCTION_SIZE, 1<<GetBitWidth()));
 
-    m_pHist2D = new Histogram2D(vec);
+    m_pHist2D.reset(new Histogram2D(vec));
     for (size_t y=0; y < m_pHist2D->GetSize().y; y++) {
       // set all values to one so "getFilledsize" later does not return a
       // completely empty dataset

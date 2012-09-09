@@ -74,8 +74,8 @@ public:
   // shared_ptr's are fine however and are represented as lightuserdata in Lua.
   // See Tuvok's LuaDatasetProxy.
   std::vector<std::shared_ptr<Mesh> > GetMeshes() const { return m_vpMeshList; }
-  const Histogram1D& Get1DHistogram() const { return *m_pHist1D; }
-  const Histogram2D& Get2DHistogram() const { return *m_pHist2D; }
+  std::shared_ptr<const Histogram1D> Get1DHistogram() const {return m_pHist1D;}
+  std::shared_ptr<const Histogram2D> Get2DHistogram() const {return m_pHist2D;}
   virtual float MaxGradientMagnitude() const = 0;
 
   /// Remove all cached bricks / brick metadata.
@@ -173,8 +173,8 @@ public:
   virtual  std::pair<FLOATVECTOR3, FLOATVECTOR3> GetTextCoords(BrickTable::const_iterator brick, bool bUseOnlyPowerOfTwo) const;
 
 protected:
-  Histogram1D*                          m_pHist1D;
-  Histogram2D*                          m_pHist2D;
+  std::shared_ptr<Histogram1D>          m_pHist1D;
+  std::shared_ptr<Histogram2D>          m_pHist2D;
   std::vector<std::shared_ptr<Mesh> >   m_vpMeshList;
 
   DOUBLEVECTOR3      m_UserScale;
