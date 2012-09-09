@@ -71,13 +71,21 @@ void LuaTransferFun2DProxy::bind(TransferFunction2D* tf)
     /// @todo Determine which of the following functions should have provenance
     ///       enabled.
     id = mReg->functionProxy(tf, &TransferFunction2D::SwatchArrayGetSize,
-                             "swatchGetSize", "", false);
+                             "swatchGetCount", "", false);
     id = mReg->functionProxy(tf, &TransferFunction2D::SwatchPushBack,
                              "swatchPushBack", "", false);
     id = mReg->functionProxy(tf, &TransferFunction2D::SwatchErase,
                              "swatchErase", "", false);
     id = mReg->functionProxy(tf, &TransferFunction2D::SwatchInsert,
-                             "swtachInsert", "", false);
+                             "swatchInsert", "", false);
+    id = mReg->functionProxy(tf, &TransferFunction2D::SwatchIsRadial,
+                             "swatchIsRadial", "", false);
+    id = mReg->functionProxy(tf, &TransferFunction2D::SwatchGetNumPoints,
+                             "swatchGetNumPoints", "", false);
+    id = mReg->functionProxy(tf, &TransferFunction2D::SwatchGetGradientCount,
+                             "swatchGetGradientCount", "", false);
+    id = mReg->functionProxy(tf, &TransferFunction2D::SwatchGetGradient,
+                             "swatchGetGradient", "", false);
   }
 }
 
