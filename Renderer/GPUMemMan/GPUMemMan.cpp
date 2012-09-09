@@ -68,7 +68,9 @@
 
 #include "../LuaScripting/LuaScripting.h"
 #include "../LuaScripting/LuaMemberReg.h"
+#include "../LuaScripting/TuvokSpecific/LuaTuvokTypes.h"
 #include "../LuaScripting/TuvokSpecific/LuaTransferFun1DProxy.h"
+#include "../LuaScripting/TuvokSpecific/LuaTransferFun2DProxy.h"
 
 using namespace std;
 using namespace std::placeholders;
@@ -506,12 +508,25 @@ void GPUMemMan::Free1DTrans(TransferFunction1D* pTransferFunction1D,
 
 // ******************** 2D Trans
 
-void GPUMemMan::Changed2DTrans(const AbstrRenderer* requester,
-                               TransferFunction2D* pTransferFunction2D) {
+void GPUMemMan::Changed2DTrans(LuaClassInstance luaAbstrRen,
+                               LuaClassInstance tf2d) {
   MESSAGE("Sending change notification for 2D transfer function");
+
+  shared_ptr<LuaScripting> ss = m_MasterController->LuaScript();
+
+  // Convert LuaClassInstance -> LuaTransferFun2DProxy -> TransferFunction2D
+  LuaTransferFun2DProxy* tfProxy = 
+      tf2d.getRawPointer<LuaTransferFun2DProxy>(ss);
+  TransferFunction2D* pTransferFunction2D = tfProxy->get2DTransferFunction();
 
   pTransferFunction2D->InvalidateCache();
   pTransferFunction2D->ComputeNonZeroLimits();
+
+  // Retrieve raw pointer for the Abstract renderer.
+  AbstrRenderer* requester = NULL;
+  if (luaAbstrRen.isValid(ss)) {
+    requester = luaAbstrRen.getRawPointer<AbstrRenderer>(ss);
+  }
 
   for (Trans2DListIter i = m_vpTrans2DList.begin();
        i < m_vpTrans2DList.end(); ++i) {
@@ -1229,5 +1244,7 @@ void GPUMemMan::RegisterLuaCommands() {
 
   id = m_pMemReg->registerFunction(this,&GPUMemMan::Changed1DTrans,
                                    nm + "changed1DTrans", "", false);
+  id = m_pMemReg->registerFunction(this,&GPUMemMan::Changed2DTrans,
+                                   nm + "changed2DTrans", "", false);
 }
 

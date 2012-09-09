@@ -207,6 +207,7 @@ bool GLRenderer::Initialize(std::shared_ptr<Context> ctx) {
       mm.GetEmpty2DTrans(m_pDataset->Get2DHistogram().GetFilledSize(), this,
                          &m_p2DTrans, &m_p2DTransTex);
     }
+    LuaBindNew2DTrans();
   } else {
     mm.GetEmpty2DTrans(m_pDataset->Get2DHistogram().GetFilledSize(), this,
                        &m_p2DTrans, &m_p2DTransTex);
@@ -230,11 +231,12 @@ bool GLRenderer::Initialize(std::shared_ptr<Context> ctx) {
     newSwatch.pGradientStops.push_back(g3);
 
     m_p2DTrans->m_Swatches.push_back(newSwatch);
-    m_pMasterController->MemMan()->Changed2DTrans(NULL, m_p2DTrans);
+
+    /// LuaBindNew2DTrans needs to be called before using m_pLua2DTrans.
+    LuaBindNew2DTrans();
+    m_pMasterController->MemMan()->Changed2DTrans(LuaClassInstance(), 
+                                                  m_pLua2DTrans);
   }
-  // This is a bit of a kludge, but there's currently no way for AbstrRenderer
-  // to know when a new m_p2DTrans has been set.
-  LuaBindNew2DTrans();
 
   for (vector<shared_ptr<RenderMesh> >::iterator mesh = m_Meshes.begin();
        mesh != m_Meshes.end(); mesh++) {

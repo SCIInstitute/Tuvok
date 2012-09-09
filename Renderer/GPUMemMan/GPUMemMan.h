@@ -83,8 +83,8 @@ class GPUMemMan {
     void Free1DTrans(TransferFunction1D* pTransferFunction1D,
                      const AbstrRenderer* requester);
 
-    void Changed2DTrans(const AbstrRenderer* requester,
-                        TransferFunction2D* pTransferFunction2D);
+    void Changed2DTrans(LuaClassInstance luaAbstrRen,
+                        LuaClassInstance tf2d);
     void GetEmpty2DTrans(const VECTOR2<size_t>& vSize,
                          AbstrRenderer* requester,
                          TransferFunction2D** ppTransferFunction2D,

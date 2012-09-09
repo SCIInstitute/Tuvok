@@ -763,6 +763,10 @@ class AbstrRenderer: public Scriptable {
     /// lua.
     void ClearRendererMeshes();
 
+    LuaClassInstance m_pLua2DTrans;
+    LuaTransferFun2DProxy* m_pLua2DTransPtr; /// Used by GLRenderer.
+    LuaClassInstance LuaGet2DTrans();
+
   private:
     float               m_fIsovalue;
     float               m_fCVIsovalue;
@@ -779,9 +783,6 @@ class AbstrRenderer: public Scriptable {
     LuaTransferFun1DProxy* m_pLua1DTransPtr;
     LuaClassInstance LuaGet1DTrans();
 
-    LuaClassInstance m_pLua2DTrans;
-    LuaTransferFun2DProxy* m_pLua2DTransPtr;
-    LuaClassInstance LuaGet2DTrans();
 };
 
 }; //namespace tuvok
