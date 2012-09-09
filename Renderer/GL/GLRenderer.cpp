@@ -230,7 +230,7 @@ bool GLRenderer::Initialize(std::shared_ptr<Context> ctx) {
     newSwatch.pGradientStops.push_back(g2);
     newSwatch.pGradientStops.push_back(g3);
 
-    m_p2DTrans->m_Swatches.push_back(newSwatch);
+    m_p2DTrans->m_pvSwatches->push_back(newSwatch);
 
     /// LuaBindNew2DTrans needs to be called before using m_pLua2DTrans.
     LuaBindNew2DTrans();
