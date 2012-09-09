@@ -161,6 +161,98 @@ public:
   static TFPolygon   getDefault() { return TFPolygon(); }
 };
 
+// Duplicate of the above code, with only const TFPolygon& changed to TFPolygon.
+template<>
+class LuaStrictStack<TFPolygon>
+{
+public:
+
+  typedef TFPolygon Type;
+
+  static TFPolygon get(lua_State* L, int pos)
+  {
+    LuaStackRAII _a(L, 0, 0);
+
+    TFPolygon ret;
+
+    // There should be a table at 'pos', containing four numerical elements.
+    luaL_checktype(L, pos, LUA_TTABLE);
+
+    lua_pushstring(L, "radial");
+    lua_gettable(L, pos);
+    ret.bRadial = LuaStrictStack<bool>::get(L, lua_gettop(L));
+    lua_pop(L, 1);
+
+    lua_pushstring(L, "points");
+    lua_gettable(L, pos);
+    ret.pPoints = 
+        LuaStrictStack<std::vector<FLOATVECTOR2> >::get(L, lua_gettop(L));
+    lua_pop(L, 1);
+
+    lua_pushstring(L, "gradCoords0");
+    lua_gettable(L, pos);
+    ret.pGradientCoords[0] = LuaStrictStack<FLOATVECTOR2>::get(L,lua_gettop(L));
+    lua_pop(L, 1);
+
+    lua_pushstring(L, "gradCoords1");
+    lua_gettable(L, pos);
+    ret.pGradientCoords[1] = LuaStrictStack<FLOATVECTOR2>::get(L,lua_gettop(L));
+    lua_pop(L, 1);
+
+    lua_pushstring(L, "gradStops");
+    lua_gettable(L, pos);
+    ret.pGradientStops =
+        LuaStrictStack<std::vector<GradientStop> >::get(L,lua_gettop(L));
+
+    return ret;
+  }
+
+  static void push(lua_State* L, TFPolygon in)
+  {
+    LuaStackRAII _a(L, 0, 1);
+
+    lua_newtable(L);
+    int tbl = lua_gettop(L);
+
+    lua_pushstring(L, "radial");
+    LuaStrictStack<bool>::push(L, in.bRadial);
+    lua_settable(L, tbl);
+
+    lua_pushstring(L, "points");
+    LuaStrictStack<std::vector<FLOATVECTOR2> >::push(L, in.pPoints);
+    lua_settable(L, tbl);
+
+    lua_pushstring(L, "gradCoords0");
+    LuaStrictStack<FLOATVECTOR2>::push(L, in.pGradientCoords[0]);
+    lua_settable(L, tbl);
+
+    lua_pushstring(L, "gradCoords1");
+    LuaStrictStack<FLOATVECTOR2>::push(L, in.pGradientCoords[1]);
+    lua_settable(L, tbl);
+
+    lua_pushstring(L, "gradStops");
+    LuaStrictStack<std::vector<GradientStop> >::push(L, in.pGradientStops);
+    lua_settable(L, tbl);
+  }
+
+  static std::string getValStr(TFPolygon in)
+  {
+    std::ostringstream os;
+    os << "{" << LuaStrictStack<bool>::getValStr(in.bRadial)
+       << "," << LuaStrictStack<std::vector<FLOATVECTOR2> >::getValStr(
+           in.pPoints)
+       << "," << LuaStrictStack<FLOATVECTOR2>::getValStr(in.pGradientCoords[0])
+       << "," << LuaStrictStack<FLOATVECTOR2>::getValStr(in.pGradientCoords[1])
+       << "," << LuaStrictStack<std::vector<GradientStop> >::getValStr(
+           in.pGradientStops)
+       << "}";
+    return os.str();
+  }
+  static std::string getTypeStr() { return "TFPolygon"; }
+  static TFPolygon   getDefault() { return TFPolygon(); }
+};
+
+
 
 } // namespace tuvok
 
