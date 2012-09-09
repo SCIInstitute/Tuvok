@@ -113,6 +113,17 @@ void LuaDatasetProxy::bind(Dataset* ds, shared_ptr<LuaScripting> ss)
                                "appendMesh", "", false);
       ss->setProvenanceExempt(id);
     }
+
+    /// @todo Expose 1D/2D histogram? Currently, it is being transfered
+    ///       via shared_ptr. If lua wants to interpret this, the histogram
+    ///       will need to be placed in terms that lua can understand.
+    ///       Two approaches:
+    ///       1) Add Grid1D to the LuaStrictStack.
+    ///       2) Create a Histogram1D and Histogram2D proxy.
+    ///       
+    ///       The second solution would be more efficient, since there wouldn't
+    ///       be any time spent converting datatypes to and from Lua (and with
+    ///       histograms, that time wouldn't be negligible).
   }
 
 }

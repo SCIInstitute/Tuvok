@@ -188,10 +188,10 @@ bool GLRenderer::Initialize(std::shared_ptr<Context> ctx) {
     MESSAGE("Loading 1D TF from file.");
     mm.Get1DTransFromFile(strPotential1DTransName, this,
                           &m_p1DTrans, &m_p1DTransTex,
-                          m_pDataset->Get1DHistogram().GetFilledSize());
+                          m_pDataset->Get1DHistogram()->GetFilledSize());
   } else {
     MESSAGE("Creating empty 1D TF.");
-    mm.GetEmpty1DTrans(m_pDataset->Get1DHistogram().GetFilledSize(), this,
+    mm.GetEmpty1DTrans(m_pDataset->Get1DHistogram()->GetFilledSize(), this,
                        &m_p1DTrans, &m_p1DTransTex);
   }
   // This is a bit of a kludge, but there's currently no way for AbstrRenderer
@@ -201,15 +201,15 @@ bool GLRenderer::Initialize(std::shared_ptr<Context> ctx) {
   if (SysTools::FileExists(strPotential2DTransName)) {
     mm.Get2DTransFromFile(strPotential2DTransName, this,
                           &m_p2DTrans, &m_p2DTransTex,
-                          m_pDataset->Get2DHistogram().GetFilledSize());
+                          m_pDataset->Get2DHistogram()->GetFilledSize());
     if(m_p2DTrans == NULL) {
       WARNING("Falling back to empty 2D TFqn...");
-      mm.GetEmpty2DTrans(m_pDataset->Get2DHistogram().GetFilledSize(), this,
+      mm.GetEmpty2DTrans(m_pDataset->Get2DHistogram()->GetFilledSize(), this,
                          &m_p2DTrans, &m_p2DTransTex);
     }
     LuaBindNew2DTrans();
   } else {
-    mm.GetEmpty2DTrans(m_pDataset->Get2DHistogram().GetFilledSize(), this,
+    mm.GetEmpty2DTrans(m_pDataset->Get2DHistogram()->GetFilledSize(), this,
                        &m_p2DTrans, &m_p2DTransTex);
 
     // Setup a default polygon in the 2D TF, so it doesn't look like they're
