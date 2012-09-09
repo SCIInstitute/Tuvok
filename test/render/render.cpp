@@ -50,6 +50,7 @@
 #include "Renderer/GL/GLFrameCapture.h"
 #include "Renderer/GL/GLRenderer.h"
 #include "LuaScripting/LuaScripting.h"
+#include "LuaScripting/TuvokSpecific/LuaTuvokTypes.h"
 
 #include "context.h"
 
