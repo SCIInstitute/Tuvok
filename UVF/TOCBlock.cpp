@@ -146,7 +146,8 @@ bool TOCBlock::FlatDataToBrickedLOD(
   if (!pSourceData->IsOpen()) pSourceData->Open();
 
   bool bResult = c.Convert(pSourceData, 0, eType, iComponentCount, vVolumeSize,
-                           vScale, outFile, 0, &statsVec, CT_ZIP, bUseMedian, bClampToEdge);
+                           vScale, outFile, 0, &statsVec, CT_ZLIB, bUseMedian,
+                           bClampToEdge);
   outFile->Close();
 
   if (bResult) {

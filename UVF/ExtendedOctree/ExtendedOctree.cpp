@@ -242,7 +242,6 @@ const TOCEntry& ExtendedOctree::GetBrickToCData(size_t index) const {
   return m_vTOC[index];
 }
 
-
 /*
  GetBrickData (scalar):
  
