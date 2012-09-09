@@ -189,9 +189,9 @@ HEADERS += \
            IO/TuvokJPEG.h \
            IO/TuvokSizes.h \
            IO/Tuvok_QtPlugins.h \
-           IO/UVF/DataBlock.h \
            IO/uvfDataset.h \
            IO/uvfMesh.h \
+           IO/UVF/DataBlock.h \
            IO/UVF/GlobalHeader.h \
            IO/UVF/Histogram1DDataBlock.h \
            IO/UVF/Histogram2DDataBlock.h \
@@ -483,9 +483,9 @@ SOURCES += \
            IO/TransferFunction1D.cpp \
            IO/TransferFunction2D.cpp \
            IO/TuvokJPEG.cpp \
-           IO/UVF/DataBlock.cpp \
            IO/uvfDataset.cpp \
            IO/uvfMesh.cpp \
+           IO/UVF/DataBlock.cpp \
            IO/UVF/GlobalHeader.cpp \
            IO/UVF/Histogram1DDataBlock.cpp \
            IO/UVF/Histogram2DDataBlock.cpp \
