@@ -57,9 +57,25 @@ static std::string concat(std::string a, std::string b, std::string c) {
   return a + b + c;
 }
 
+/// expects a list of directories (filenames).  Removes any from the
+/// list which don't exist.
+static std::vector<std::string> existing(std::vector<std::string> directories)
+{
+  typedef std::vector<std::string> sv;
+  sv::iterator end = std::remove_if(directories.begin(), directories.end(),
+                                    std::not1(std::ptr_fun(exists)));
+  for(sv::const_iterator e = end; e != directories.end(); ++e) {
+    if (!e->empty())
+      WARNING("Directory %s does not exist!", e->c_str());
+  }
+  // also, we know they're junk, so don't search in them
+  directories.erase(end, directories.end());
+  return directories;
+}
+
 // Searches for the given filename in the given directories.  Returns the fully
 // qualified path of the file's location.
-static std::string find_filename(std::vector<std::string> directories,
+static std::string find_filename(const std::vector<std::string>& directories,
                                  std::string filename)
 {
   // if we're on Mac, first try to see if the file is in our bundle.
@@ -72,16 +88,6 @@ static std::string find_filename(std::vector<std::string> directories,
 #endif
 
   typedef std::vector<std::string> sv;
-  // check for garbage directories and warn the user about them
-  sv::iterator end = std::remove_if(directories.begin(), directories.end(),
-                                    std::not1(std::ptr_fun(exists)));
-  for(sv::const_iterator e = end; e != directories.end(); ++e) {
-    if (!e->empty())
-      WARNING("Directory %s does not exist!", e->c_str());
-  }
-  // also, we know they're junk, so don't search in them
-  directories.erase(end, directories.end());
-
   // okay, now prepend each directory into our flename and see if we find a
   // match.
   using namespace std::placeholders;
@@ -138,6 +144,7 @@ ShaderDescriptor ShaderDescriptor::Create(
   );
   directories.insert(directories.end(), dirs.begin(), dirs.end());
   directories.push_back(Controller::Instance().SysInfo()->GetProgramPath());
+  directories = existing(directories); // prune bad directories
     
   typedef std::vector<std::pair<std::string, enum shader_type> > sv;
   for(sv::iterator v = rv.si->vertex.begin(); v != rv.si->vertex.end(); ++v) {
@@ -187,6 +194,7 @@ ShaderDescriptor ShaderDescriptor::Create(
   );
   directories.insert(directories.end(), dirs.begin(), dirs.end());
   directories.push_back(Controller::Instance().SysInfo()->GetProgramPath());
+  directories = existing(directories); // prune bad directories
     
   typedef std::vector<std::pair<std::string, enum shader_type> > sv;
   for(sv::iterator v = rv.si->vertex.begin(); v != rv.si->vertex.end(); ++v) {
