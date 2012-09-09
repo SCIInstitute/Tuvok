@@ -84,10 +84,16 @@ void LuaTransferFun2DProxy::bind(TransferFunction2D* tf)
                              "swatchIsRadial", "", false);
     id = mReg->functionProxy(tf, &TransferFunction2D::SwatchGetNumPoints,
                              "swatchGetNumPoints", "", false);
+    id = mReg->functionProxy(tf, &TransferFunction2D::SwatchErasePoint,
+                             "swatchErasePoint", "", false);
+    id = mReg->functionProxy(tf, &TransferFunction2D::SwatchInsertPoint,
+                             "swatchInsertPoint", "", false);
     id = mReg->functionProxy(tf, &TransferFunction2D::SwatchGetGradientCount,
                              "swatchGetGradientCount", "", false);
     id = mReg->functionProxy(tf, &TransferFunction2D::SwatchGetGradient,
                              "swatchGetGradient", "", false);
+    id = mReg->functionProxy(tf, &TransferFunction2D::SwatchGet,
+                             "swatchGet", "", false);
   }
 }
 
