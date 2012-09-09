@@ -206,7 +206,8 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
 
   KeyValPair* kvpDim = parser.GetData("DIMENSION");
   if (kvpDim == NULL) {
-    T_ERROR("Could not open find token \"dimension\" in file %s", strSourceFilename.c_str());
+    T_ERROR("Could not open find token \"dimension\" in file %s",
+            strSourceFilename.c_str());
     return false;
   } else {
     if (kvpDim->iValue < 3)  {
@@ -227,7 +228,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
     bDetachedHeader = false;
 
     if (iHeaderSkip == 0) { // parser read the entire file and did not find a 
-                            // data part (seperated by an empty line) 
+                            // data part (separated by an empty line)
       T_ERROR("NRRD file does neither specify detached data file nor does it "
               "contain data after the header, separated by an empty line.");
       return false;
