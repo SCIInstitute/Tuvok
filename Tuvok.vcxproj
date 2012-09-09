@@ -545,6 +545,7 @@
     <ClCompile Include="LUAScripting\LUAScripting.cpp" />
     <ClCompile Include="LUAScripting\LUAStackRAII.cpp" />
     <ClCompile Include="LuaScripting\TuvokSpecific\LuaDatasetProxy.cpp" />
+    <ClCompile Include="LuaScripting\TuvokSpecific\LuaIOManagerProxy.cpp" />
     <ClCompile Include="LuaScripting\TuvokSpecific\LuaTransferFun1DProxy.cpp" />
     <ClCompile Include="LuaScripting\TuvokSpecific\LuaTransferFun2DProxy.cpp" />
     <ClCompile Include="Renderer\AbstrRenderer.cpp" />
@@ -1341,6 +1342,7 @@
     <ClInclude Include="LUAScripting\LUAScripting.h" />
     <ClInclude Include="LUAScripting\LUAStackRAII.h" />
     <ClInclude Include="LuaScripting\TuvokSpecific\LuaDatasetProxy.h" />
+    <ClInclude Include="LuaScripting\TuvokSpecific\LuaIOManagerProxy.h" />
     <ClInclude Include="LuaScripting\TuvokSpecific\LuaTransferFun1DProxy.h" />
     <ClInclude Include="LuaScripting\TuvokSpecific\LuaTransferFun2DProxy.h" />
     <ClInclude Include="LuaScripting\TuvokSpecific\LuaTuvokTypes.h" />

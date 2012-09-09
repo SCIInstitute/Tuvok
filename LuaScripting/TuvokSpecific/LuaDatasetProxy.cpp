@@ -107,9 +107,9 @@ void LuaDatasetProxy::bind(Dataset* ds, shared_ptr<LuaScripting> ss)
     {
       mDatasetType = UVF;
 
-      id = mReg->functionProxy(fileDataset, &UVFDataset::RemoveMesh,
+      id = mReg->functionProxy(uvfDataset, &UVFDataset::RemoveMesh,
                                "removeMesh", "", true);
-      id = mReg->functionProxy(ds, &UVFDataset::AppendMesh,
+      id = mReg->functionProxy(uvfDataset, &UVFDataset::AppendMesh,
                                "appendMesh", "", false);
       ss->setProvenanceExempt(id);
     }

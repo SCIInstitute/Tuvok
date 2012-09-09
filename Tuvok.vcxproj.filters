@@ -984,6 +984,9 @@
     <ClCompile Include="Basics\Clipper.cpp">
       <Filter>Basics</Filter>
     </ClCompile>
+    <ClCompile Include="LuaScripting\TuvokSpecific\LuaIOManagerProxy.cpp">
+      <Filter>LuaScripting\TuvokSpecific</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Basics\Appendix.h">
@@ -1959,8 +1962,13 @@
     <ClInclude Include="Basics\Threads.h">
       <Filter>Basics</Filter>
     </ClInclude>
+<<<<<<< HEAD
     <ClInclude Include="Basics\Clipper.h">
       <Filter>Basics</Filter>
+=======
+    <ClInclude Include="LuaScripting\TuvokSpecific\LuaIOManagerProxy.h">
+      <Filter>LuaScripting\TuvokSpecific</Filter>
+>>>>>>> Added LuaIOManagerProxy.
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

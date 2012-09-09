@@ -64,6 +64,7 @@ class GPUMemMan;
 class Scripting;
 class LuaScripting;
 class LuaMemberReg;
+class LuaIOManagerProxy;
 class RenderRegion;
 
 typedef std::deque<AbstrRenderer*> AbstrRendererList;
@@ -192,7 +193,6 @@ private:
   /// Initializer; add all our builtin commands.
   void RegisterInternalCommands();
   void RegisterLuaCommands();
-  void RegisterIOManagerLuaCommands();
 
   RenderRegion* LuaCreateRenderRegion3D(LuaClassInstance ren);
   RenderRegion* LuaCreateRenderRegion2D(int mode,  // RenderRegion::EWindowMode
@@ -218,30 +218,6 @@ private:
                                           bool bNoRCClipplanes,
                                           bool bBiasAndScaleTF);
 
-  /// Proxy functions for IOManager. These functions exist because IO
-  /// does not known about LuaScripting. 
-  /// @{
-  bool IOProxyExportDataset(LuaClassInstance ds,
-                            uint64_t iLODlevel,
-                            const std::string& strTargetFilename,
-                            const std::string& strTempDir) const;
-
-  bool IOProxyExtractIsosurface(
-      LuaClassInstance ds,
-      uint64_t iLODlevel, double fIsovalue,
-      const FLOATVECTOR4& vfColor,
-      const std::string& strTargetFilename,
-      const std::string& strTempDir) const;
-
-  bool IOProxyExtractImageStack(
-      LuaClassInstance ds,
-      LuaClassInstance tf1d,
-      uint64_t iLODlevel, 
-      const std::string& strTargetFilename,
-      const std::string& strTempDir,
-      bool bAllDirs) const;
-  /// @}
-
 private:
   SystemInfo*      m_pSystemInfo;
   GPUMemMan*       m_pGPUMemMan;
@@ -253,8 +229,9 @@ private:
   provenance_func* m_pProvenance;
   bool             m_bExperimentalFeatures;
 
-  std::shared_ptr<LuaScripting>   m_pLuaScript;
-  std::unique_ptr<LuaMemberReg>   m_pMemReg;
+  std::shared_ptr<LuaScripting>       m_pLuaScript;
+  std::unique_ptr<LuaMemberReg>       m_pMemReg;
+  std::unique_ptr<LuaIOManagerProxy>  m_pIOProxy; 
 
   AbstrRendererList m_vVolumeRenderer;
   // The active renderer should point into a member of the renderer list.

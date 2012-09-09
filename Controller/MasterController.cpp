@@ -56,6 +56,7 @@
 #include "../LuaScripting/TuvokSpecific/LuaDatasetProxy.h"
 #include "../LuaScripting/TuvokSpecific/LuaTransferFun1DProxy.h"
 #include "../LuaScripting/TuvokSpecific/LuaTransferFun2DProxy.h"
+#include "../LuaScripting/TuvokSpecific/LuaIOManagerProxy.h"
 
 using namespace tuvok;
 
@@ -79,6 +80,10 @@ MasterController::MasterController() :
   m_pIOManager->SetMemManLoadFunction(f);
 
   RegisterLuaCommands();
+
+  // Register IO commands.
+  m_pIOProxy = std::unique_ptr<LuaIOManagerProxy>(
+      new LuaIOManagerProxy(m_pIOManager, m_pLuaScript));
 
   // TEMPORARY -- Disable the provenance system.
   LuaScript()->cexec("provenance.enable", false);
@@ -374,100 +379,7 @@ void MasterController::RegisterLuaCommands() {
       "should be left to the renderer.",
       LuaClassRegCallback<LuaTransferFun2DProxy>::Type(
           LuaTransferFun2DProxy::defineLuaInterface));
-
-  // Register IO manager functions.
-  // This is not done in the IO manager class because IO does not know about
-  // the Lua scripting system.
-  RegisterIOManagerLuaCommands();
 }
-
-void MasterController::RegisterIOManagerLuaCommands() {
-  std::string id;
-  const std::string nm = "tuvok.io."; // namespace
-
-  id = m_pMemReg->registerFunction(this,&MasterController::IOProxyExportDataset,
-                                   nm + "exportDataset", "", false);
-  id = m_pMemReg->registerFunction(this,
-                                   &MasterController::IOProxyExtractIsosurface,
-                                   nm + "extractIsosurface", "", false);
-  id = m_pMemReg->registerFunction(this,
-                                   &MasterController::IOProxyExtractImageStack,
-                                   nm + "extractImageStack", "", false);
-}
-
-bool MasterController::IOProxyExportDataset(LuaClassInstance ds,
-                                            uint64_t iLODlevel,
-                                            const std::string& strTargetFilename,
-                                            const std::string& strTempDir) const
-{
-  if (m_pLuaScript->cexecRet<LuaDatasetProxy::DatasetType>(
-          ds.fqName() + ".getDSType") != LuaDatasetProxy::UVF) {
-    T_ERROR("tuvok.io.exportDataset only accepts UVF.");
-    return false;
-  }
-
-  // Convert LuaClassInstance -> LuaDatasetProxy -> UVFdataset
-  LuaDatasetProxy* dsProxy = ds.getRawPointer<LuaDatasetProxy>(m_pLuaScript);
-  UVFDataset* uvf = dynamic_cast<UVFDataset*>(dsProxy->getDataset());
-  assert(uvf != NULL);
-
-  return m_pIOManager->ExportDataset(uvf, iLODlevel, strTargetFilename, 
-                                     strTempDir);
-}
-
-bool MasterController::IOProxyExtractIsosurface(
-    LuaClassInstance ds,
-    uint64_t iLODlevel, double fIsovalue,
-    const FLOATVECTOR4& vfColor,
-    const std::string& strTargetFilename,
-    const std::string& strTempDir) const {
-  if (m_pLuaScript->cexecRet<LuaDatasetProxy::DatasetType>(
-          ds.fqName() + ".getDSType") != LuaDatasetProxy::UVF) {
-    T_ERROR("tuvok.io.exportDataset only accepts UVF.");
-    return false;
-  }
-
-  // Convert LuaClassInstance -> LuaDatasetProxy -> UVFdataset
-  LuaDatasetProxy* dsProxy = ds.getRawPointer<LuaDatasetProxy>(m_pLuaScript);
-  UVFDataset* uvf = dynamic_cast<UVFDataset*>(dsProxy->getDataset());
-  assert(uvf != NULL);
-
-  return m_pIOManager->ExtractIsosurface(uvf, iLODlevel, fIsovalue,
-                                         vfColor, strTargetFilename,
-                                         strTempDir);
-}
-
-bool MasterController::IOProxyExtractImageStack(
-    LuaClassInstance ds,
-    LuaClassInstance tf1d,
-    uint64_t iLODlevel, 
-    const std::string& strTargetFilename,
-    const std::string& strTempDir,
-    bool bAllDirs) const {
-  if (m_pLuaScript->cexecRet<LuaDatasetProxy::DatasetType>(
-          ds.fqName() + ".getDSType") != LuaDatasetProxy::UVF) {
-    T_ERROR("tuvok.io.exportDataset only accepts UVF.");
-    return false;
-  }
-
-  // Convert LuaClassInstance -> LuaDatasetProxy -> UVFdataset
-  LuaDatasetProxy* dsProxy = ds.getRawPointer<LuaDatasetProxy>(m_pLuaScript);
-  UVFDataset* uvf = dynamic_cast<UVFDataset*>(dsProxy->getDataset());
-  assert(uvf != NULL);
-
-  // Now we need to extract the transfer function...
-  LuaTransferFun1DProxy* tfProxy = tf1d.getRawPointer<LuaTransferFun1DProxy>(
-      m_pLuaScript);
-  TransferFunction1D* pTrans = tfProxy->get1DTransferFunction();
-  assert(pTrans != NULL);
-
-  return m_pIOManager->ExtractImageStack(
-      uvf, pTrans, iLODlevel,
-      strTargetFilename,
-      strTempDir,
-      bAllDirs);
-}
-
 
 bool MasterController::Execute(const std::string& strCommand,
                                const std::vector<std::string>& strParams,
