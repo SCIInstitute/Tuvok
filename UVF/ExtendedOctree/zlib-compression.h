@@ -1,7 +1,7 @@
 #ifndef UVF_ZLIB_COMPRESSION_H
 #define UVF_ZLIB_COMPRESSION_H
 
-#include <cinttypes>
+#include <cstdint>
 #include <memory>
 
 void zdecompress(std::shared_ptr<uint8_t> in, std::shared_ptr<uint8_t>& out,
