@@ -24,7 +24,10 @@
 
 // for find_if
 #include <algorithm>
+#include <memory>
+#include "Basics/nonstd.h"
 #include "ExtendedOctreeConverter.h"
+#include "zlib-compression.h"
 
 /*
   Convert (string):
@@ -504,25 +507,33 @@ void ExtendedOctreeConverter::WriteBrickToDisk(ExtendedOctree &tree, uint8_t* pD
 
   // compress brick if requested and beneficial
   tree.m_pLargeRAWFile->SeekPos(tree.m_iOffset+tree.m_vTOC[index].m_iOffset);
-  uint64_t uncompressedLength = tree.ComputeBrickSize(tree.IndexToBrickCoords(index)).volume() * tree.GetComponentTypeSize() * tree.GetComponentCount();
+  uint64_t uncompressedLength =
+    tree.ComputeBrickSize(tree.IndexToBrickCoords(index)).volume() *
+    tree.GetComponentTypeSize() *
+    tree.GetComponentCount();
   if (eCompression != CT_NONE) {
-    uint8_t* pCompressedData = new uint8_t[size_t(uncompressedLength)];
-    uint64_t compressedLength = uncompressedLength;
+    // We only support ZLib compression right now.
+    assert(eCompression == CT_ZLIB);
 
-    // TODO: compress into pCompressedData using m_eCompression method
+    std::shared_ptr<uint8_t> CompressedData(new uint8_t[uncompressedLength],
+                                            nonstd::DeleteArray<uint8_t>());
+    uint64_t compressedLength = zcompress(
+      // pData isn't 'ours', we shouldn't handle its memory.
+      std::shared_ptr<uint8_t>(pData, nonstd::null_deleter()),
+      uncompressedLength, CompressedData
+    );
 
     // did we gain anything from the compression?
     if (compressedLength < uncompressedLength) {
       tree.m_vTOC[index].m_iLength = compressedLength;
       tree.m_vTOC[index].m_eCompression = eCompression;
-      tree.m_pLargeRAWFile->WriteRAW(pCompressedData, tree.m_vTOC[index].m_iLength);
+      tree.m_pLargeRAWFile->WriteRAW(CompressedData.get(),
+                                     tree.m_vTOC[index].m_iLength);
     } else {
       tree.m_vTOC[index].m_iLength = uncompressedLength;
       tree.m_vTOC[index].m_eCompression = CT_NONE;
       tree.m_pLargeRAWFile->WriteRAW(pData, tree.m_vTOC[index].m_iLength);
     }
-
-    delete [] pCompressedData;
   } else {
     tree.m_vTOC[index].m_iLength = uncompressedLength;
     tree.m_vTOC[index].m_eCompression = CT_NONE;
@@ -544,12 +555,13 @@ struct HasIndex : public std::binary_function <CacheEntry, uint64_t, bool> {
 /*
   GetBrick:
 
-  Retrieves a brick from the tree. First we check if the cache is enabled, if not we simply request
-  the brick from the tree. Otherwise we check the cache and, if we have a hit, return the cache copy
-  otherwise we fetch the data from disk and put a copy into the cache, therefore we search for a suitable
-  cache entry (the entry with the oldest access counter). In either case (hit or miss) we update the
-  access counter, i.e. we use true LRU as caching strategy.
-*/
+  Retrieves a brick from the tree. First we check if the cache is
+  enabled, if not we simply request the brick from the tree. Otherwise
+  we check the cache and, if we have a hit, return the cache copy
+  otherwise we fetch the data from disk and put a copy into the cache,
+  therefore we search for a suitable cache entry (the entry with the
+  oldest access counter). In either case (hit or miss) we update the
+  access counter, i.e. we use true LRU as caching strategy. */
 void ExtendedOctreeConverter::GetBrick(uint8_t* pData, ExtendedOctree &tree, uint64_t index) {
   if (m_vBrickCache.empty()) {
     tree.GetBrickData(pData, index);

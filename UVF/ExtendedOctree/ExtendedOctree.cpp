@@ -23,6 +23,8 @@
  */
 
 #include "ExtendedOctree.h"
+#include "Basics/nonstd.h"
+#include "zlib-compression.h"
 
 ExtendedOctree::ExtendedOctree() :
   m_eComponentType(CT_UINT8), 
@@ -252,11 +254,27 @@ const TOCEntry& ExtendedOctree::GetBrickToCData(size_t index) const {
 */ 
 void ExtendedOctree::GetBrickData(uint8_t* pData, uint64_t index) const {
   m_pLargeRAWFile->SeekPos(m_iOffset+m_vTOC[size_t(index)].m_iOffset);
-  m_pLargeRAWFile->ReadRAW(pData, m_vTOC[size_t(index)].m_iLength);
 
-  if (m_vTOC[size_t(index)].m_eCompression != CT_NONE) {
-    // TODO uncompress
+  if(m_vTOC[size_t(index)].m_eCompression == CT_NONE) {
+    // not compressed, just read it directly into the buffer.
+    m_pLargeRAWFile->ReadRAW(pData, m_vTOC[size_t(index)].m_iLength);
+    return;
   }
+
+  // the data are compressed; read them into a temporary buffer and then expand
+  // that buffer into 'pData'.
+  assert(m_vTOC[size_t(index)].m_eCompression == CT_ZLIB &&
+         "currently we only support one compression method.");
+  const uint64_t uncompressedSize =
+    this->ComputeBrickSize(this->IndexToBrickCoords(index)).volume() *
+    this->GetComponentCount() *
+    this->GetComponentTypeSize();
+
+  std::shared_ptr<uint8_t> buf(new uint8_t[uncompressedSize],
+                               nonstd::DeleteArray<uint8_t>());
+  std::shared_ptr<uint8_t> out(pData, nonstd::null_deleter());
+  m_pLargeRAWFile->ReadRAW(buf.get(), m_vTOC[size_t(index)].m_iLength);
+  zdecompress(buf, out, uncompressedSize);
 }
 
 /*
