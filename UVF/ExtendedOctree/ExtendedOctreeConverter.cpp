@@ -558,6 +558,13 @@ void ExtendedOctreeConverter::GetBrick(uint8_t* pData, ExtendedOctree &tree, uin
 
   BrickCacheIter cacheEntry = std::find_if(m_vBrickCache.begin(), m_vBrickCache.end(), std::bind2nd(HasIndex(), index));
 
+  uint64_t uncompressedLength = tree.m_vTOC[cacheEntry->m_index].m_iLength;
+  if(tree.m_vTOC[index].m_eCompression != CT_NONE) {
+    uncompressedLength =
+      tree.ComputeBrickSize(tree.IndexToBrickCoords(index)).volume() *
+      tree.GetComponentTypeSize() *
+      tree.GetComponentCount();
+  }
   if (cacheEntry == m_vBrickCache.end()) {
     // cache miss
 
@@ -583,10 +590,10 @@ void ExtendedOctreeConverter::GetBrick(uint8_t* pData, ExtendedOctree &tree, uin
     cacheEntry->m_bDirty = false;
     cacheEntry->m_index = size_t(index);
     cacheEntry->m_iAccess = ++m_iCacheAccessCounter;
-    memcpy(cacheEntry->m_pData, pData, size_t(tree.m_vTOC[cacheEntry->m_index].m_iLength));
+    memcpy(cacheEntry->m_pData, pData, size_t(uncompressedLength));
   } else {
     // cache hit
-    memcpy(pData, cacheEntry->m_pData, size_t(tree.m_vTOC[size_t(index)].m_iLength));
+    memcpy(pData, cacheEntry->m_pData, size_t(uncompressedLength));
     cacheEntry->m_iAccess = ++m_iCacheAccessCounter;
   }
 }
@@ -610,6 +617,10 @@ void ExtendedOctreeConverter::SetBrick(uint8_t* pData, ExtendedOctree &tree, uin
 
   BrickCacheIter cacheEntry = std::find_if(m_vBrickCache.begin(), m_vBrickCache.end(), std::bind2nd(HasIndex(), index));
 
+  tree.m_vTOC[size_t(index)].m_iLength =
+    tree.ComputeBrickSize(tree.IndexToBrickCoords(index)).volume() *
+    tree.GetComponentTypeSize() *
+    tree.GetComponentCount();
   if (cacheEntry == m_vBrickCache.end()) {
     // cache miss
 
@@ -645,7 +656,6 @@ void ExtendedOctreeConverter::SetBrick(uint8_t* pData, ExtendedOctree &tree, uin
     memcpy(cacheEntry->m_pData, pData, size_t(tree.m_vTOC[size_t(index)].m_iLength));
     if (bForceWrite) WriteBrickToDisk(tree, cacheEntry, m_pBrickStatVec, m_eCompression);
   }
-
 }
 
 
