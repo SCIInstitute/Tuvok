@@ -77,6 +77,7 @@ public:
   UINT64VECTOR3 GetBrickSize(UINT64VECTOR4 coordinates) const;
   DOUBLEVECTOR3 GetBrickAspect(UINT64VECTOR4 coordinates) const;
   UINT64VECTOR3 GetLODDomainSize(uint64_t iLoD) const;
+  const TOCEntry& GetBrickInfo(UINT64VECTOR4 coordinates) const;
 
   uint64_t GetLinearBrickIndex(UINT64VECTOR4 coordinates) const;
 

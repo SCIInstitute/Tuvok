@@ -215,6 +215,10 @@ UINT64VECTOR3 TOCBlock::GetBrickSize(UINT64VECTOR4 coordinates) const {
   return m_ExtendedOctree.ComputeBrickSize(coordinates);
 }
 
+const TOCEntry& TOCBlock::GetBrickInfo(UINT64VECTOR4 coordinates) const {
+  return m_ExtendedOctree.GetBrickToCData(coordinates);
+}
+
 DOUBLEVECTOR3 TOCBlock::GetBrickAspect(UINT64VECTOR4 coordinates) const {
   return m_ExtendedOctree.GetBrickAspect(coordinates);
 }
