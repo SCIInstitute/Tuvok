@@ -987,6 +987,9 @@
     <ClCompile Include="LuaScripting\TuvokSpecific\LuaIOManagerProxy.cpp">
       <Filter>LuaScripting\TuvokSpecific</Filter>
     </ClCompile>
+    <ClCompile Include="IO\UVF\ExtendedOctree\zlib-compression.cpp">
+      <Filter>IO\UVF\ExtendedOctree</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Basics\Appendix.h">
@@ -1967,6 +1970,9 @@
     </ClInclude>
     <ClInclude Include="LuaScripting\TuvokSpecific\LuaIOManagerProxy.h">
       <Filter>LuaScripting\TuvokSpecific</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\UVF\ExtendedOctree\zlib-compression.h">
+      <Filter>IO\UVF\ExtendedOctree</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

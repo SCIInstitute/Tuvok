@@ -534,6 +534,7 @@
     <ClCompile Include="IO\UVF\ExtendedOctree\ExtendedOctree.cpp" />
     <ClCompile Include="IO\UVF\ExtendedOctree\ExtendedOctreeConverter.cpp" />
     <ClCompile Include="IO\UVF\ExtendedOctree\VolumeTools.cpp" />
+    <ClCompile Include="IO\UVF\ExtendedOctree\zlib-compression.cpp" />
     <ClCompile Include="IO\UVF\TOCBlock.cpp" />
     <ClCompile Include="IO\XML3DGeoConverter.cpp" />
     <ClCompile Include="LUAScripting\LUAClassConstructor.cpp" />
@@ -1329,6 +1330,7 @@
     <ClInclude Include="IO\UVF\ExtendedOctree\ExtendedOctree.h" />
     <ClInclude Include="IO\UVF\ExtendedOctree\ExtendedOctreeConverter.h" />
     <ClInclude Include="IO\UVF\ExtendedOctree\VolumeTools.h" />
+    <ClInclude Include="IO\UVF\ExtendedOctree\zlib-compression.h" />
     <ClInclude Include="IO\UVF\TOCBlock.h" />
     <ClInclude Include="IO\XML3DGeoConverter.h" />
     <ClInclude Include="LUAScripting\LUAClassConstructor.h" />
