@@ -627,9 +627,11 @@ void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
     FLOATVECTOR3 d = m_cDiffuse.xyz()*m_cDiffuse.w;
     FLOATVECTOR3 s = m_cSpecular.xyz()*m_cSpecular.w;
 
+#if 0
     FLOATVECTOR3 aM = m_cAmbientM.xyz()*m_cAmbientM.w;
     FLOATVECTOR3 dM = m_cDiffuseM.xyz()*m_cDiffuseM.w;
     FLOATVECTOR3 sM = m_cSpecularM.xyz()*m_cSpecularM.w;
+#endif
     FLOATVECTOR3 scale = 1.0f/vScale;
 
     FLOATVECTOR3 vModelSpaceLightDir = ( FLOATVECTOR4(m_vLightDir,0.0f) * emm ).xyz().normalized();
