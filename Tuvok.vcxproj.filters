@@ -1962,13 +1962,11 @@
     <ClInclude Include="Basics\Threads.h">
       <Filter>Basics</Filter>
     </ClInclude>
-<<<<<<< HEAD
     <ClInclude Include="Basics\Clipper.h">
       <Filter>Basics</Filter>
-=======
+    </ClInclude>
     <ClInclude Include="LuaScripting\TuvokSpecific\LuaIOManagerProxy.h">
       <Filter>LuaScripting\TuvokSpecific</Filter>
->>>>>>> Added LuaIOManagerProxy.
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
