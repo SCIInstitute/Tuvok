@@ -121,7 +121,7 @@ public:
   size_t SwatchGetGradientCount(size_t i) const;
   GradientStop SwatchGetGradient(size_t swatch, size_t i) const;
   void SwatchInsertGradient(size_t swatch, size_t i, GradientStop stop);
-  void SwatchPushBackGradient(size_t swatch, size_t i, GradientStop stop);
+  void SwatchPushBackGradient(size_t swatch, GradientStop stop);
   void SwatchEraseGradient(size_t swatch, size_t i);
   void SwatchUpdateGradient(size_t swatch, size_t i, GradientStop stop);
 

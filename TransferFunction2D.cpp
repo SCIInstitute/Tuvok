@@ -467,7 +467,7 @@ void TransferFunction2D::SwatchInsertGradient(size_t swatch, size_t i,
   (*m_pvSwatches)[swatch].pGradientStops.insert(nth, stop);
 }
 
-void TransferFunction2D::SwatchPushBackGradient(size_t swatch, size_t i, 
+void TransferFunction2D::SwatchPushBackGradient(size_t swatch,
                                                 GradientStop stop) {
   (*m_pvSwatches)[swatch].pGradientStops.push_back(stop);
 }
