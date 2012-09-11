@@ -260,8 +260,6 @@ public:
   void test_ushort() { verify_type<unsigned short>(); }
   void test_int() { verify_type<int>(); }
   void test_uint() { verify_type<unsigned int>(); }
-  void test_long() { verify_type<long>(); }
-  void test_ulong() { verify_type<unsigned long>(); }
 
   void test_8b_byte() { verify_8b_type<tbyte>(); }
   void test_8b_ubyte() { verify_8b_type<tubyte>(); }
