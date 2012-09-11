@@ -9,7 +9,8 @@ INCLUDEPATH      += ../../Basics
 QT               += opengl
 QMAKE_LIBDIR     += ../../Build ../expressions
 LIBS             += -lTuvok -ltuvokexpr
-unix:LIBS        += -lz -lrt
+unix:LIBS        += -lz
+unix:!macx:LIBS  += -lrt
 win32:LIBS       += shlwapi.lib
 unix:QMAKE_CXXFLAGS += -std=c++0x
 unix:QMAKE_CXXFLAGS += -fno-strict-aliasing
@@ -17,12 +18,12 @@ unix:QMAKE_CFLAGS += -fno-strict-aliasing
 unix:CONFIG(debug, debug|release) {
   QMAKE_CFLAGS += -D_GLIBCXX_DEBUG
   QMAKE_CXXFLAGS += -D_GLIBCXX_DEBUG
-  LIBS += -lGLU
+  !macx LIBS += -lGLU
 }
 
 macx:QMAKE_CXXFLAGS += -stdlib=libc++ -mmacosx-version-min=10.7
 macx:QMAKE_CFLAGS += -mmacosx-version-min=10.7
-macx:LIBS        += -stdlib=libc++ -mmacosx-version-min=10.7
+macx:LIBS        += -stdlib=libc++ -mmacosx-version-min=10.7 -framework CoreFoundation
 
 # If this is a 10.5 machine, build for both x86 and x86_64.  Not
 # the best idea (there's no guarantee the machine will have a
