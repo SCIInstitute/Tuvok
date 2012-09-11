@@ -2,9 +2,6 @@
 #define SCIO_TEST_UTIL_H
 #include <cstring>
 #include <fstream>
-#if defined(__GNUC__) && (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ <= 5))
-# define BROKEN_TR1_RANDOM
-#endif
 #include <random>
 #include "Controller/Controller.h"
 using namespace tuvok;
@@ -88,19 +85,13 @@ namespace {
     );
     // double: RNGs are only defined for FP types.  We'll generate double
     // and just cast to T.
-#ifndef BROKEN_TR1_RANDOM
-    std::variate_generator<std::mt19937,
-                           std::normal_distribution<double> > vg(
-      std::mt19937(time(NULL)),
-      std::normal_distribution<double>(mean, stddev)
-    );
-#endif
+    std::random_device genSeed;
+    std::mt19937 mtwister(genSeed());
+    std::normal_distribution<double> normalDist(mean, stddev);
+    std::function<double()> getRandNormal(std::bind(normalDist, mtwister));
+
     for(size_t i=0; i < sz/sizeof(T); ++i) {
-#ifndef BROKEN_TR1_RANDOM
-      T v = static_cast<T>(vg());
-#else
-      T v = static_cast<T>(42);
-#endif
+      T v = static_cast<T>(getRandNormal());
       minmax.first = std::min(minmax.first, v);
       minmax.second = std::max(minmax.second, v);
       os.write(reinterpret_cast<const char*>(&v), sizeof(T));
