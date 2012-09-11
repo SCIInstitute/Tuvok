@@ -128,19 +128,6 @@ template<> struct ctti<double> : ctti_base<double> {
   typedef double signed_type;
   typedef signed_tag sign_tag;
 };
-#if defined(DETECTED_OS_APPLE)
-template<> struct ctti<long> : ctti_base<long> {
-  typedef unsigned long size_type;
-  typedef long signed_type;
-  typedef signed_tag sign_tag;
-};
-template<> struct ctti<unsigned long> : ctti_base<unsigned long> {
-  typedef unsigned long size_type;
-  typedef long signed_type;
-  typedef unsigned_tag sign_tag;
-};
-#endif
-///@}
 };
 
 /// Type tagging.
@@ -161,9 +148,5 @@ namespace {
   unsigned_type type_category(uint64_t)       { return unsigned_type(); }
   signed_type   type_category(float)          { return signed_type(); }
   signed_type   type_category(double)         { return signed_type(); }
-#if defined(DETECTED_OS_APPLE)
-  signed_type   type_category(long)           { return signed_type(); }
-  unsigned_type type_category(unsigned long)  { return unsigned_type(); }
-#endif
 }
 #endif // TUVOK_BASICS_CTTI_H
