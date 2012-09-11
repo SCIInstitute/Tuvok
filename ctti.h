@@ -128,6 +128,7 @@ template<> struct ctti<double> : ctti_base<double> {
   typedef double signed_type;
   typedef signed_tag sign_tag;
 };
+///@}
 };
 
 /// Type tagging.
