@@ -26,6 +26,9 @@ TOCBlock::TOCBlock(const TOCBlock &other) :
 }
 
 TOCBlock::~TOCBlock(){
+  if (m_pStreamFile) 
+    m_pStreamFile->Close();
+
   if (!m_strDeleteTempFile.empty()) {
     m_ExtendedOctree.Close();
     remove(m_strDeleteTempFile.c_str());
@@ -104,7 +107,8 @@ bool TOCBlock::FlatDataToBrickedLOD(
   bool bClampToEdge,
   size_t iCacheSize,
   std::shared_ptr<MaxMinDataBlock> pMaxMinDatBlock,
-  AbstrDebugOut* debugOut
+  AbstrDebugOut* debugOut,
+  COMPORESSION_TYPE ct
 ) {
 
   LargeRAWFile_ptr inFile(new LargeRAWFile(strSourceFile));
@@ -115,7 +119,7 @@ bool TOCBlock::FlatDataToBrickedLOD(
   return FlatDataToBrickedLOD(inFile, strTempFile, eType, iComponentCount,
                               vVolumeSize, vScale, vMaxBrickSize,
                               iOverlap, bUseMedian, bClampToEdge,
-                              iCacheSize, pMaxMinDatBlock, debugOut);
+                              iCacheSize, pMaxMinDatBlock, debugOut, ct);
 }
 
 bool TOCBlock::FlatDataToBrickedLOD(
@@ -129,7 +133,8 @@ bool TOCBlock::FlatDataToBrickedLOD(
   bool bClampToEdge,
   size_t iCacheSize,
   std::shared_ptr<MaxMinDataBlock> pMaxMinDatBlock,
-  AbstrDebugOut*
+  AbstrDebugOut*,
+  COMPORESSION_TYPE ct
 ) {
   m_vMaxBrickSize = vMaxBrickSize;
   m_iOverlap = iOverlap;
@@ -146,13 +151,13 @@ bool TOCBlock::FlatDataToBrickedLOD(
   if (!pSourceData->IsOpen()) pSourceData->Open();
 
   bool bResult = c.Convert(pSourceData, 0, eType, iComponentCount, vVolumeSize,
-                           vScale, outFile, 0, &statsVec, CT_ZLIB, bUseMedian,
+                           vScale, outFile, 0, &statsVec, ct, bUseMedian,
                            bClampToEdge);
   outFile->Close();
 
   if (bResult) {
     pMaxMinDatBlock->SetDataFromFlatVector(statsVec, iComponentCount);
-    return m_ExtendedOctree.Open(strTempFile,0);
+    return m_ExtendedOctree.Open(m_strDeleteTempFile,0);
   } else {
     return false;
   }
