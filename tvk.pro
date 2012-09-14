@@ -110,7 +110,7 @@ HEADERS += \
            Basics/Vectors.h \
            Basics/nonstd.h \
            Basics/AvgMinMaxTracker.h \
-           Basics/Threads.h \           
+           Basics/Threads.h \
            Controller/Controller.h \
            Controller/MasterController.h \
            DebugOut/AbstrDebugOut.h \
@@ -271,6 +271,7 @@ HEADERS += \
            Renderer/SBVRGeoGen3D.h \
            Renderer/TFScaling.h \
            Renderer/RenderMesh.h \
+           Renderer/VisibilityState.h \
            Scripting/Scriptable.h \
            Scripting/Scripting.h \
            StdTuvokDefines.h
@@ -552,6 +553,7 @@ SOURCES += \
            Renderer/RenderMesh.cpp \
            Renderer/RenderRegion.cpp \
            Renderer/TFScaling.cpp \
+           Renderer/VisibilityState.cpp \
            Scripting/Scripting.cpp
 
 unix:SOURCES += \

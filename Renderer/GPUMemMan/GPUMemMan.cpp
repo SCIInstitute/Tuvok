@@ -773,10 +773,6 @@ void GPUMemMan::DeleteVolumePool(GLVolumePool** pool) {
 
 GLVolumePool* GPUMemMan::GetVolumePool(UVFDataset* dataSet, GLenum filter, int /* iShareGroupID */) {
 
-  GLenum glInternalformat=0;
-  GLenum glFormat=0;
-  GLenum glType=0;
-
   const uint64_t iBitWidth  = dataSet->GetBitWidth();
   const uint64_t iCompCount = dataSet->GetComponentCount();
   const UINTVECTOR3 vMaxBS = UINTVECTOR3(dataSet->GetMaxUsedBrickSizes());
@@ -813,54 +809,14 @@ GLVolumePool* GPUMemMan::GetVolumePool(UVFDataset* dataSet, GLenum filter, int /
   const UINTVECTOR3 poolSize = (maxBricksForDataset.volume() < UINT64VECTOR3(maxBricksForGPU).volume())
                                     ? UINTVECTOR3(maxBricksForDataset)
                                     : maxBricksForGPU;
-
-  switch (iCompCount) {
-    case 1 : glFormat = GL_LUMINANCE; break;
-    case 3 : glFormat = GL_RGB; break;
-    case 4 : glFormat = GL_RGBA; break;
-    default : T_ERROR("Invalid Component Count"); return NULL;
+  GLVolumePool* pPool = NULL;
+  try {
+    pPool = new GLVolumePool(poolSize, dataSet, filter);
+  } catch (tuvok::Exception const& e) {
+    pPool = NULL;
+    T_ERROR(e.what());
   }
-
-  switch (iBitWidth) {
-    case 8 :  {
-        glType = GL_UNSIGNED_BYTE;
-        switch (iCompCount) {
-          case 1 : glInternalformat = GL_LUMINANCE8; break;
-          case 3 : glInternalformat = GL_RGB8; break;
-          case 4 : glInternalformat = GL_RGBA8; break;
-          default : T_ERROR("Invalid Component Count"); return NULL;
-        }
-      } 
-      break;
-    case 16 :  {
-        glType = GL_UNSIGNED_SHORT;
-        switch (iCompCount) {
-          case 1 : glInternalformat = GL_LUMINANCE16; break;
-          case 3 : glInternalformat = GL_RGB16; break;
-          case 4 : glInternalformat = GL_RGBA16; break;
-          default : T_ERROR("Invalid Component Count"); return NULL;
-        }
-      } 
-      break;
-    case 32 :  {
-        glType = GL_FLOAT;
-        switch (iCompCount) {
-          case 1 : glInternalformat = GL_LUMINANCE32F_ARB; break;
-          case 3 : glInternalformat = GL_RGB32F; break;
-          case 4 : glInternalformat = GL_RGBA32F; break;
-          default : T_ERROR("Invalid Component Count"); return NULL;
-        }
-      } 
-      break;
-    default : T_ERROR("Invalid bit width"); return NULL;
-  }
-
-  UINTVECTOR3 vDomainSize = UINTVECTOR3(dataSet->GetDomainSize());
-
-  return new GLVolumePool(poolSize, UINTVECTOR3(vMaxBS), 
-                          dataSet->GetBrickOverlapSize(), 
-                          vDomainSize, filter, glInternalformat, 
-                          glFormat, glType);
+  return pPool;
 }
 
 GLVolume* GPUMemMan::GetVolume(Dataset* pDataset, const BrickKey& key,

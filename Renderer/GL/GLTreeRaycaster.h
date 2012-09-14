@@ -6,6 +6,7 @@
 #include "../../StdTuvokDefines.h"
 #include "GLRenderer.h"
 #include "AvgMinMaxTracker.h"
+#include "Renderer/VisibilityState.h"
 
 class ExtendedPlane;
 
@@ -71,6 +72,7 @@ namespace tuvok {
       GLSLProgram*    m_pProgramRayCast2DLighting;
       UVFDataset*     m_pToCDataset;
       bool            m_bConverged;
+      VisibilityState m_VisibilityState;
 
       // the following are for debug only
       GLFBOTex*       m_pFBODebug;
@@ -109,7 +111,7 @@ namespace tuvok {
       void UpdateToVolumePool(std::vector<UINTVECTOR4>& hash);
       void RecomputeBrickVisibility();
 
-      // catch all circumstances that change the visibilty of a brick
+      // catch all circumstances that change the visibility of a brick
       virtual void SetIsoValue(float fIsovalue);
       virtual void Changed2DTrans();
       virtual void Changed1DTrans();

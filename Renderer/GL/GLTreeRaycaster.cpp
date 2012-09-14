@@ -26,14 +26,6 @@ using namespace std::placeholders;
 using namespace std;
 using namespace tuvok;
 
-static BrickKey HashValueToBrickKey(const UINTVECTOR4& hash, size_t timestep, const UVFDataset* pToCDataset) {
-  UINT64VECTOR3 layout = pToCDataset->GetBrickLayout(hash.w, timestep);
-
-  return BrickKey(timestep, hash.w, hash.x+
-                                    hash.y*layout.x+
-                                    hash.z*layout.x*layout.y);
-}
-
 GLTreeRaycaster::GLTreeRaycaster(MasterController* pMasterController, 
                          bool bUseOnlyPowerOfTwo, 
                          bool bDownSampleTo8Bits, 
@@ -56,9 +48,11 @@ GLTreeRaycaster::GLTreeRaycaster(MasterController* pMasterController,
   m_pProgramRayCast2DLighting(NULL),
   m_pToCDataset(NULL),
   m_bConverged(true),
+  m_VisibilityState(),
   m_pFBODebug(NULL),
   m_pFBODebugNext(NULL),
-  m_FrameTimes(100)
+  m_FrameTimes(100),
+  m_iSubFrames(0)
 {
   // a member of the parent class, hence it's initialized here
   m_bSupportsMeshes = false;
@@ -88,7 +82,7 @@ bool GLTreeRaycaster::CreateVolumePool() {
   // find lowest LoD with only a single brick
   for (size_t iLoD = 0;iLoD<m_pToCDataset->GetLODLevelCount();++iLoD) {
     if (m_pToCDataset->GetBrickCount(iLoD, m_iTimestep) == 1) {
-      const BrickKey bkey = HashValueToBrickKey(UINTVECTOR4(0,0,0,uint32_t(m_pToCDataset->GetLODLevelCount()-1)), m_iTimestep, m_pToCDataset);
+      const BrickKey bkey = m_pToCDataset->TOCVectorToKey(UINTVECTOR4(0,0,0,uint32_t(m_pToCDataset->GetLODLevelCount()-1)), m_iTimestep);
 
       m_pToCDataset->GetBrick(bkey, m_vUploadMem);
       m_pVolumePool->UploadFirstBrick(m_pToCDataset->GetBrickVoxelCounts(bkey), &m_vUploadMem[0]);
@@ -508,16 +502,12 @@ void GLTreeRaycaster::SetRendermode(AbstrRenderer::ERenderMode eRenderMode) {
 }
 
 void GLTreeRaycaster::RecomputeBrickVisibility() {
-
   if (!m_pVolumePool) return;
 
-  if(this->ColorData()) {
-    // We don't have good metadata for color data currently, so it can never be
-    // skipped.
+  if (this->ColorData()) {
+    // We don't have good metadata for color data currently, so it can never be skipped.
     return;
   }
-
-  //Timer timer; timer.Start();
 
   double const fMaxValue = (m_pDataset->GetRange().first > m_pDataset->GetRange().second) ? m_p1DTrans->GetSize() : m_pDataset->GetRange().second;
   double const fRescaleFactor = fMaxValue / double(m_p1DTrans->GetSize()-1);
@@ -527,42 +517,32 @@ void GLTreeRaycaster::RecomputeBrickVisibility() {
   case RM_1DTRANS: {
     double const fMin = double(m_p1DTrans->GetNonZeroLimits().x) * fRescaleFactor;
     double const fMax = double(m_p1DTrans->GetNonZeroLimits().y) * fRescaleFactor;
-    // ... in 1D we only care about the range of data in a brick
-    for(auto brick = m_pDataset->BricksBegin(); brick != m_pDataset->BricksEnd(); ++brick) {
-      const BrickKey key = brick->first;
-      const bool bContainsData = m_pDataset->ContainsData(key, fMin, fMax);
-      m_pVolumePool->BrickIsVisible(uint32_t(std::get<1>(key)), uint32_t(std::get<2>(key)), bContainsData);
-    }
+    if (m_VisibilityState.NeedsUpdate(fMin, fMax)) {
+      m_pVolumePool->RecomputeVisibility(m_VisibilityState, m_iTimestep);
+    } else
+      return;
     break; }
   case RM_2DTRANS: {
     double const fMin = double(m_p2DTrans->GetNonZeroLimits().x) * fRescaleFactor;
     double const fMax = double(m_p2DTrans->GetNonZeroLimits().y) * fRescaleFactor;
     double const fMinGradient = double(m_p2DTrans->GetNonZeroLimits().z);
     double const fMaxGradient = double(m_p2DTrans->GetNonZeroLimits().w);
-    // ... in 2D we also need to concern ourselves w/ min/max gradients
-    for(auto brick = m_pDataset->BricksBegin(); brick != m_pDataset->BricksEnd(); ++brick) {
-      const BrickKey key = brick->first;
-      const bool bContainsData = m_pDataset->ContainsData(key, fMin, fMax, fMinGradient, fMaxGradient);
-      m_pVolumePool->BrickIsVisible(uint32_t(std::get<1>(key)), uint32_t(std::get<2>(key)), bContainsData);
-    }
+    if (m_VisibilityState.NeedsUpdate(fMin, fMax, fMinGradient, fMaxGradient)) {
+      m_pVolumePool->RecomputeVisibility(m_VisibilityState, m_iTimestep);
+    } else
+      return;
     break; }
-  case RM_ISOSURFACE:
-    // ... and in isosurface mode we only care about a single value.
-    for(auto brick = m_pDataset->BricksBegin(); brick != m_pDataset->BricksEnd(); ++brick) {
-      const BrickKey key = brick->first;
-      const bool bContainsData = m_pDataset->ContainsData(key, GetIsoValue());
-      m_pVolumePool->BrickIsVisible(uint32_t(std::get<1>(key)), uint32_t(std::get<2>(key)), bContainsData);
-    }
-    break;
+  case RM_ISOSURFACE: {
+    double const fIsoValue = GetIsoValue();
+    if (m_VisibilityState.NeedsUpdate(fIsoValue)) {
+      m_pVolumePool->RecomputeVisibility(m_VisibilityState, m_iTimestep);
+    } else
+      return;
+    break; }
   default:
     T_ERROR("Unhandled rendering mode.");
     return;
   }
-
-  m_pVolumePool->EvaluateChildEmptiness();
-  m_pVolumePool->UploadMetaData();
-
-  //OTHER("%.5f msec", timer.Elapsed());
 }
 
 void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
@@ -706,20 +686,8 @@ void GLTreeRaycaster::UpdateToVolumePool(std::vector<UINTVECTOR4>& hash) {
   MESSAGE("Max Quality %i, Min Quality=%i", iHQLevel, iLQLevel);
   // DEBUG Code End
 */
-
-  // now iterate over the missing bricks and upload them to the GPU
-  // todo: consider batching this if it turns out to make a difference
-  //       from submitting each brick seperately
-  for (auto missingBrick = hash.begin();missingBrick<hash.end(); ++missingBrick) {
-    const BrickKey bkey = HashValueToBrickKey(*missingBrick, m_iTimestep, m_pToCDataset);
-    const UINTVECTOR3 vVoxelSize = m_pToCDataset->GetBrickVoxelCounts(bkey);
-
-    m_pToCDataset->GetBrick(bkey, m_vUploadMem);
-    if (!m_pVolumePool->UploadBrick(BrickElemInfo(*missingBrick, vVoxelSize), &m_vUploadMem[0])) break;
-  }
-
-  if (!hash.empty())
-    m_pVolumePool->UploadMetaData();
+  
+  m_pVolumePool->UploadBricks(hash, m_vUploadMem);
 }
 
 bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {

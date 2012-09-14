@@ -990,6 +990,9 @@
     <ClCompile Include="IO\UVF\ExtendedOctree\zlib-compression.cpp">
       <Filter>IO\UVF\ExtendedOctree</Filter>
     </ClCompile>
+    <ClCompile Include="Renderer\VisibilityState.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Basics\Appendix.h">
@@ -1973,6 +1976,9 @@
     </ClInclude>
     <ClInclude Include="IO\UVF\ExtendedOctree\zlib-compression.h">
       <Filter>IO\UVF\ExtendedOctree</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\VisibilityState.h">
+      <Filter>Renderer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

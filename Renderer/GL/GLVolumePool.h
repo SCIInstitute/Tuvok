@@ -9,9 +9,19 @@
 #include "GLInclude.h"
 #include "GLTexture2D.h"
 #include "GLTexture3D.h"
+#include "Renderer/VisibilityState.h"
+
+//#define PROFILE_GLVOLUMEPOOL
+
+#ifdef PROFILE_GLVOLUMEPOOL
+#include "Basics/Timer.h"
+#include "Basics/AvgMinMaxTracker.h"
+#endif
 
 namespace tuvok {
   class GLSLProgram;
+  class UVFDataset;
+  class AsyncVisibilityUpdater;
 
   class PoolSlotData {
   public:
@@ -53,29 +63,31 @@ namespace tuvok {
 
   class GLVolumePool : public GLObject {
     public:
-      GLVolumePool(const UINTVECTOR3& poolSize, const UINTVECTOR3& maxBrickSize,
-                   const UINTVECTOR3& overlap, const UINTVECTOR3& volumeSize,
-                   GLenum filter, GLint internalformat, GLenum format, GLenum type, 
-                   bool bUseGLCore=true);
+      GLVolumePool(const UINTVECTOR3& poolSize, UVFDataset* dataset, GLenum filter, bool bUseGLCore=true); // throws tuvok::Exception on init error
       virtual ~GLVolumePool();
+
+      void RecomputeVisibility(const VisibilityState& visibility, size_t iTimestep);
+      void UploadBricks(const std::vector<UINTVECTOR4>& vBrickIDs, std::vector<unsigned char>& vUploadMem);
 
       bool UploadBrick(const BrickElemInfo& metaData, void* pData);
       void UploadFirstBrick(const UINTVECTOR3& m_vVoxelSize, void* pData);
-      void UploadMetaData();
-      void BrickIsVisible(uint32_t iLoD, uint32_t iIndexInLoD, bool bVisible);
-      void EvaluateChildEmptiness();
       bool IsBrickResident(const UINTVECTOR4& vBrickID) const;
       void Enable(float fLoDFactor, const FLOATVECTOR3& vExtend,
                   const FLOATVECTOR3& vAspect,
                   GLSLProgram* pShaderProgram) const;
 
       std::string GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t iDataTextureUnit);
-
       
       void SetFilterMode(GLenum filter);
 
       virtual uint64_t GetCPUSize() const;
       virtual uint64_t GetGPUSize() const;
+
+      inline uint32_t GetIntegerBrickID(const UINTVECTOR4& vBrickID) const; // x, y , z, lod (w) to iBrickID
+      inline UINTVECTOR4 GetVectorBrickID(uint32_t iBrickID) const;
+      inline UINTVECTOR3 const& GetPoolCapacity() const;
+      inline UINTVECTOR3 const& GetVolumeSize() const;
+      inline UINTVECTOR3 const& GetMaxInnerBrickSize() const;
 
     protected:
       GLTexture2D* m_PoolMetadataTexture;
@@ -99,6 +111,17 @@ namespace tuvok {
 
       UINTVECTOR2 m_metaTexSize;
       uint32_t m_iTotalBrickCount;
+      UVFDataset* m_pDataset;
+
+      friend class AsyncVisibilityUpdater;
+      AsyncVisibilityUpdater* m_pUpdater;
+      bool m_bVisibilityUpdated;
+
+#ifdef PROFILE_GLVOLUMEPOOL
+      Timer m_Timer;
+      AvgMinMaxTracker<float> m_TimesMetaTextureUpload;
+      AvgMinMaxTracker<float> m_TimesRecomputeVisibility;
+#endif
 
       std::vector<uint32_t>      m_brickMetaData; // ref by iBrickID, size of total brick count + some unused 2d texture padding
       std::vector<PoolSlotData*> m_brickToPoolMapping; // ref by iBrickID, size of total brick count + some unused 2d texture padding
@@ -108,8 +131,9 @@ namespace tuvok {
       void CreateGLResources();
       void FreeGLResources();
 
-      void UpdateMetadata();
-      uint32_t GetIntegerBrickID(const UINTVECTOR4& vBrickID) const; // x, y , z, lod (w) to iBrickID
+      void UploadMetaData();
+      void PrepareForPaging();
+
       void UploadBrick(uint32_t iBrickID, const UINTVECTOR3& vVoxelSize, void* pData, 
                        size_t iInsertPos, uint64_t iTimeOfCreation);
   };
