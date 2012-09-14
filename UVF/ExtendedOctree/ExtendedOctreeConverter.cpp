@@ -452,6 +452,20 @@ void ExtendedOctreeConverter::FlushCache(ExtendedOctree &tree) {
   }
 }
 
+// @returns the number of bytes needed to store the (uncompressed) given brick.
+uint64_t ExtendedOctreeConverter::BrickSize(const ExtendedOctree& tree,
+                                            uint64_t index) {
+  // if the brick is compressed, then its m_iLength field gives the
+  // length of the compressed brick, not the expanded brick...
+  if(tree.m_vTOC[index].m_eCompression != CT_NONE) {
+    // ... but it's pretty simple to compute how big it'll expand into:
+    return tree.ComputeBrickSize(tree.IndexToBrickCoords(index)).volume() *
+           tree.GetComponentTypeSize() *
+           tree.GetComponentCount();
+  }
+  return tree.m_vTOC[index].m_iLength;
+}
+
 void ExtendedOctreeConverter::WriteBrickToDisk(ExtendedOctree &tree, BrickCacheIter element, BrickStatVec* pBrickStatVec, COMPORESSION_TYPE eCompression) {
   WriteBrickToDisk(tree, element->m_pData, element->m_index, pBrickStatVec, eCompression);
   element->m_bDirty = false;
@@ -507,10 +521,7 @@ void ExtendedOctreeConverter::WriteBrickToDisk(ExtendedOctree &tree, uint8_t* pD
 
   // compress brick if requested and beneficial
   tree.m_pLargeRAWFile->SeekPos(tree.m_iOffset+tree.m_vTOC[index].m_iOffset);
-  uint64_t uncompressedLength =
-    tree.ComputeBrickSize(tree.IndexToBrickCoords(index)).volume() *
-    tree.GetComponentTypeSize() *
-    tree.GetComponentCount();
+  uint64_t uncompressedLength = BrickSize(tree, index);
   if (eCompression != CT_NONE) {
     // We only support ZLib compression right now.
     assert(eCompression == CT_ZLIB);
@@ -590,13 +601,7 @@ void ExtendedOctreeConverter::GetBrick(uint8_t* pData, ExtendedOctree &tree, uin
       // if it's dirty, write to disk
       if (cacheEntry->m_bDirty) WriteBrickToDisk(tree, cacheEntry, m_pBrickStatVec, m_eCompression);
     }
-    uint64_t uncompressedLength = tree.m_vTOC[index].m_iLength;
-    if(tree.m_vTOC[index].m_eCompression != CT_NONE) {
-      uncompressedLength =
-        tree.ComputeBrickSize(tree.IndexToBrickCoords(index)).volume() *
-        tree.GetComponentTypeSize() *
-        tree.GetComponentCount();
-    }
+    uint64_t uncompressedLength = BrickSize(tree, index);
 
     // put new entry into cache
     cacheEntry->m_bDirty = false;
@@ -605,13 +610,7 @@ void ExtendedOctreeConverter::GetBrick(uint8_t* pData, ExtendedOctree &tree, uin
     memcpy(cacheEntry->m_pData, pData, size_t(uncompressedLength));
   } else {
     // cache hit
-    uint64_t uncompressedLength = tree.m_vTOC[cacheEntry->m_index].m_iLength;
-    if(tree.m_vTOC[index].m_eCompression != CT_NONE) {
-      uncompressedLength =
-        tree.ComputeBrickSize(tree.IndexToBrickCoords(index)).volume() *
-        tree.GetComponentTypeSize() *
-        tree.GetComponentCount();
-    }
+    uint64_t uncompressedLength = BrickSize(tree, cacheEntry->m_index);
     memcpy(pData, cacheEntry->m_pData, size_t(uncompressedLength));
     cacheEntry->m_iAccess = ++m_iCacheAccessCounter;
   }

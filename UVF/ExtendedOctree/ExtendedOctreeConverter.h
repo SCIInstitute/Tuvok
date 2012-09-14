@@ -528,6 +528,9 @@ private:
   */
   void FlushCache(ExtendedOctree &tree);
 
+  /// Computes the number of bytes required to store the (uncompressed) brick.
+  static uint64_t BrickSize(const ExtendedOctree&, uint64_t index);
+
   /**
     Write a single brick at index i in the ToC to disk and updates
     the minmax data structure if it is set
