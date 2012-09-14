@@ -52,6 +52,7 @@ protected:
 
 
   template <class T>
+  FUNC_PURE
   DOUBLEVECTOR3 ComputeGradient(const T* pTempBrickData,
                                 double normalizationFactor, size_t iCompcount,
                                 const UINTVECTOR3& size,
@@ -95,6 +96,7 @@ protected:
           source->GetData((uint8_t*)pTempBrickData, brickCoords);
           UINTVECTOR3 bricksize = UINTVECTOR3(source->GetBrickSize(brickCoords));
 
+#pragma omp parallel for collapse(3) shared(fMaxGradMagnitude)
           for (uint32_t z = iOverlap;z<bricksize.z-iOverlap;z++) {
             for (uint32_t y = iOverlap;y<bricksize.y-iOverlap;y++) {
               for (uint32_t x = iOverlap;x<bricksize.x-iOverlap;x++) {
@@ -103,8 +105,12 @@ protected:
                   UINTVECTOR3(x,y,z)
                 );
 
-                if (vGradient.length() > fMaxGradMagnitude) {
-                  fMaxGradMagnitude = vGradient.length();
+                #pragma omp flush(fMaxGradMagnitude)
+                if(vGradient.length() > fMaxGradMagnitude)
+                #pragma omp critical
+                { if(vGradient.length() > fMaxGradMagnitude) {
+                    fMaxGradMagnitude = vGradient.length();
+                  }
                 }
               }
             }
@@ -121,7 +127,7 @@ protected:
           UINT64VECTOR4 brickCoords(bx,by,bz,iLevel);
           source->GetData((uint8_t*)pTempBrickData, brickCoords);
           UINTVECTOR3 bricksize = UINTVECTOR3(source->GetBrickSize(brickCoords));
-
+          #pragma omp parallel for firstprivate(fMaxGradMagnitude)
           for (uint32_t z = iOverlap;z<bricksize.z-iOverlap;z++) {
             for (uint32_t y = iOverlap;y<bricksize.y-iOverlap;y++) {
               for (uint32_t x = iOverlap;x<bricksize.x-iOverlap;x++) {
@@ -138,6 +144,7 @@ protected:
                 // make sure round errors don't cause index to go out of bounds
                 if (iGradientMagnitudeIndex > 255) iGradientMagnitudeIndex = 255;
                 if (iValue > iHistoBinCount-1) iValue = iHistoBinCount-1; 
+                #pragma omp atomic
                 m_vHistData[iValue][iGradientMagnitudeIndex]++;
               }
             }
