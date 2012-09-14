@@ -153,4 +153,12 @@ using std::uint8_t;
 # define TUVOK_DETAILS "Unsupported system build"
 #endif
 
+#ifdef __GNUC__
+# define FUNC_PURE  __attribute__((pure))
+# define FUNC_CONST __attribute__((const))
+#else
+# define FUNC_PURE  /* nothing */
+# define FUNC_CONST /* nothing */
+#endif
+
 #endif // STDDEFINES_H
