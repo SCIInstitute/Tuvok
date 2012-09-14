@@ -189,6 +189,8 @@ bool ExtendedOctreeConverter::Convert(LargeRAWFile_ptr pLargeRAWFileIn,
   // write bricks in the cache to disk
   FlushCache(e);
 
+  CompressAll(e);
+
   // remove part of the file used only for temp calculations
   TOCEntry lastBrickInFile = *(e.m_vTOC.end()-1);
   pLargeRAWFileOut->Truncate(iOutOffset+lastBrickInFile.m_iOffset+lastBrickInFile.m_iLength);
@@ -380,6 +382,56 @@ void ExtendedOctreeConverter::ClampToEdge(std::vector<uint8_t>& vData,
   }
 }
 
+/// Rewrites every brick, compressed.
+void ExtendedOctreeConverter::CompressAll(ExtendedOctree& tree)
+{
+  FlushCache(tree); // be sure we've got everything on disk.
+  m_vBrickCache.clear(); // be double sure we don't use the cache anymore.
+
+  if(m_eCompression == CT_NONE) {
+    // compression is disabled.  That makes our job pretty easy.
+    return;
+  }
+  const size_t iVoxelSize = tree.GetComponentTypeSize() *
+                            size_t(tree.m_iComponentCount);
+  const size_t maxbricksize = static_cast<size_t>(tree.m_iBrickSize.volume() *
+                                                  iVoxelSize);
+  std::shared_ptr<uint8_t> BrickData(new uint8_t[maxbricksize],
+                                     nonstd::DeleteArray<uint8_t>());
+  std::shared_ptr<uint8_t> compressed(new uint8_t[maxbricksize],
+                                      nonstd::DeleteArray<uint8_t>());
+
+  // foreach brick:
+  //   load it up
+  //   compress it
+  //   write compressed payload
+  //   update brick metadata based on what compression changed
+  for(size_t i=0; i < tree.m_vTOC.size(); ++i) {
+    //GetBrick(BrickData.get(), tree, i);
+    tree.GetBrickData(BrickData.get(), i);
+    BrickStat(m_pBrickStatVec, i, BrickData.get(), BrickSize(tree, i),
+              tree.m_iComponentCount, tree.m_eComponentType);
+
+    uint64_t newlen = zcompress(BrickData, BrickSize(tree, i), compressed);
+    std::shared_ptr<uint8_t> data;
+
+    if(false && newlen < BrickSize(tree, i)) {
+      tree.m_vTOC[i].m_iLength = newlen;
+      tree.m_vTOC[i].m_eCompression = CT_ZLIB;
+      data = compressed;
+    } else {
+      tree.m_vTOC[i].m_iLength = BrickSize(tree, i);
+      tree.m_vTOC[i].m_eCompression = CT_NONE;
+      data = BrickData;
+    }
+    if(i > 0) {
+      tree.m_vTOC[i].m_iOffset = tree.m_vTOC[i-1].m_iOffset +
+                                 tree.m_vTOC[i-1].m_iLength;
+    }
+    tree.m_pLargeRAWFile->SeekPos(tree.m_vTOC[i].m_iOffset);
+    tree.m_pLargeRAWFile->WriteRAW(data.get(), tree.m_vTOC[i].m_iLength);
+  }
+}
 
 /*
   Compress:
@@ -389,10 +441,11 @@ void ExtendedOctreeConverter::ClampToEdge(std::vector<uint8_t>& vData,
 */
 void ExtendedOctreeConverter::Compress(ExtendedOctree &tree, size_t iBrickSkip) {
   if (m_eCompression != CT_NONE) {
-    const size_t iVoxelSize =tree.GetComponentTypeSize() * size_t(tree.m_iComponentCount);
+    const size_t iVoxelSize = tree.GetComponentTypeSize() *
+                              size_t(tree.m_iComponentCount);
     uint8_t *pBrickData = new uint8_t[size_t(tree.m_iBrickSize.volume() * iVoxelSize)];
 
-    for (size_t i = iBrickSkip;i<tree.m_vTOC.size();++i) {
+    for (size_t i=iBrickSkip; i < tree.m_vTOC.size(); ++i) {
       GetBrick(pBrickData, tree, i);
       if (i>0)
         tree.m_vTOC[i].m_iOffset = tree.m_vTOC[i-1].m_iOffset+tree.m_vTOC[i-1].m_iLength;
@@ -447,7 +500,7 @@ void ExtendedOctreeConverter::SetupCache(ExtendedOctree &tree) {
 void ExtendedOctreeConverter::FlushCache(ExtendedOctree &tree) {
   for (BrickCacheIter i = m_vBrickCache.begin();i != m_vBrickCache.end();++i) {
     if (i->m_bDirty) {
-      WriteBrickToDisk(tree, i, m_pBrickStatVec, m_eCompression);
+      WriteBrickToDisk(tree, i);
     }
   }
 }
@@ -515,48 +568,20 @@ void ExtendedOctreeConverter::BrickStat(
     (*bs)[index*components+c] = elem[c];
 }
 
-void ExtendedOctreeConverter::WriteBrickToDisk(ExtendedOctree &tree, BrickCacheIter element, BrickStatVec* pBrickStatVec, COMPORESSION_TYPE eCompression) {
-  WriteBrickToDisk(tree, element->m_pData, element->m_index, pBrickStatVec, eCompression);
+void ExtendedOctreeConverter::WriteBrickToDisk(ExtendedOctree &tree, BrickCacheIter element)
+{
+  WriteBrickToDisk(tree, element->m_pData, element->m_index);
   element->m_bDirty = false;
 }
 
-void ExtendedOctreeConverter::WriteBrickToDisk(ExtendedOctree &tree, uint8_t* pData, size_t index, BrickStatVec* pBrickStatVec, COMPORESSION_TYPE eCompression) {
-  if (pBrickStatVec) {
-    BrickStat(pBrickStatVec, index, pData, tree.m_vTOC[index].m_iLength,
-               tree.m_iComponentCount, tree.m_eComponentType);
-  }
-
-  // compress brick if requested and beneficial
+void ExtendedOctreeConverter::WriteBrickToDisk(ExtendedOctree &tree, uint8_t* pData, size_t index)
+{
   tree.m_pLargeRAWFile->SeekPos(tree.m_iOffset+tree.m_vTOC[index].m_iOffset);
-  uint64_t uncompressedLength = BrickSize(tree, index);
-  if (eCompression != CT_NONE) {
-    // We only support ZLib compression right now.
-    assert(eCompression == CT_ZLIB);
+  const uint64_t length = BrickSize(tree, index);
 
-    std::shared_ptr<uint8_t> CompressedData(new uint8_t[uncompressedLength],
-                                            nonstd::DeleteArray<uint8_t>());
-    uint64_t compressedLength = zcompress(
-      // pData isn't 'ours', we shouldn't handle its memory.
-      std::shared_ptr<uint8_t>(pData, nonstd::null_deleter()),
-      uncompressedLength, CompressedData
-    );
-
-    // did we gain anything from the compression?
-    if (compressedLength < uncompressedLength) {
-      tree.m_vTOC[index].m_iLength = compressedLength;
-      tree.m_vTOC[index].m_eCompression = eCompression;
-      tree.m_pLargeRAWFile->WriteRAW(CompressedData.get(),
-                                     tree.m_vTOC[index].m_iLength);
-    } else {
-      tree.m_vTOC[index].m_iLength = uncompressedLength;
-      tree.m_vTOC[index].m_eCompression = CT_NONE;
-      tree.m_pLargeRAWFile->WriteRAW(pData, tree.m_vTOC[index].m_iLength);
-    }
-  } else {
-    tree.m_vTOC[index].m_iLength = uncompressedLength;
-    tree.m_vTOC[index].m_eCompression = CT_NONE;
-    tree.m_pLargeRAWFile->WriteRAW(pData, tree.m_vTOC[index].m_iLength);
-  }
+  tree.m_vTOC[index].m_iLength = length;
+  tree.m_vTOC[index].m_eCompression = CT_NONE;
+  tree.m_pLargeRAWFile->WriteRAW(pData, tree.m_vTOC[index].m_iLength);
 }
 
 /*
@@ -606,7 +631,7 @@ void ExtendedOctreeConverter::GetBrick(uint8_t* pData, ExtendedOctree &tree, uin
       cacheEntry->Allocate();
     } else {
       // if it's dirty, write to disk
-      if (cacheEntry->m_bDirty) WriteBrickToDisk(tree, cacheEntry, m_pBrickStatVec, m_eCompression);
+      if (cacheEntry->m_bDirty) WriteBrickToDisk(tree, cacheEntry);
     }
     uint64_t uncompressedLength = BrickSize(tree, index);
 
@@ -636,7 +661,7 @@ void ExtendedOctreeConverter::GetBrick(uint8_t* pData, ExtendedOctree &tree, uin
 */
 void ExtendedOctreeConverter::SetBrick(uint8_t* pData, ExtendedOctree &tree, uint64_t index, bool bForceWrite) {
   if (m_vBrickCache.empty()) {
-    WriteBrickToDisk(tree, pData, size_t(index), m_pBrickStatVec, m_eCompression);
+    WriteBrickToDisk(tree, pData, size_t(index));
     return;
   }
 
@@ -650,7 +675,7 @@ void ExtendedOctreeConverter::SetBrick(uint8_t* pData, ExtendedOctree &tree, uin
     // cache miss
 
     if (bForceWrite) {
-      WriteBrickToDisk(tree, pData, size_t(index), m_pBrickStatVec, m_eCompression);
+      WriteBrickToDisk(tree, pData, size_t(index));
       return;
     }
 
@@ -666,7 +691,7 @@ void ExtendedOctreeConverter::SetBrick(uint8_t* pData, ExtendedOctree &tree, uin
       cacheEntry->Allocate();
     } else {
       // if it's dirty, write to disk
-      if (cacheEntry->m_bDirty) WriteBrickToDisk(tree, cacheEntry, m_pBrickStatVec, m_eCompression);
+      if (cacheEntry->m_bDirty) WriteBrickToDisk(tree, cacheEntry);
     }
 
     // put new entry into cache
@@ -679,7 +704,7 @@ void ExtendedOctreeConverter::SetBrick(uint8_t* pData, ExtendedOctree &tree, uin
     cacheEntry->m_bDirty = true;
     cacheEntry->m_iAccess = ++m_iCacheAccessCounter;
     memcpy(cacheEntry->m_pData, pData, size_t(tree.m_vTOC[size_t(index)].m_iLength));
-    if (bForceWrite) WriteBrickToDisk(tree, cacheEntry, m_pBrickStatVec, m_eCompression);
+    if (bForceWrite) WriteBrickToDisk(tree, cacheEntry);
   }
 }
 
@@ -929,9 +954,6 @@ void ExtendedOctreeConverter::PermuteInputData(ExtendedOctree &tree, LargeRAWFil
       }
     }
   }
-
-  // apply compression to the first LoD
-  Compress(tree,0);
 }
 
 /*
@@ -1109,10 +1131,10 @@ void ExtendedOctreeConverter::Atalasify(const ExtendedOctree &tree,
 }
 
 bool ExtendedOctreeConverter::Atalasify(ExtendedOctree &tree,
-                                         const UINTVECTOR2& atlasSize,
-                                         LargeRAWFile_ptr pLargeRAWFile,
-                                         uint64_t iOffset,
-                                         COMPORESSION_TYPE eCompression) {
+                                        const UINTVECTOR2& atlasSize,
+                                        LargeRAWFile_ptr pLargeRAWFile,
+                                        uint64_t iOffset)
+{
   ExtendedOctree e;
 
   // setup target metadata
@@ -1140,7 +1162,7 @@ bool ExtendedOctreeConverter::Atalasify(ExtendedOctree &tree,
     const TOCEntry t = {(e.m_vTOC.end()-1)->m_iLength+(e.m_vTOC.end()-1)->m_iOffset, iUncompressedBrickSize, CT_NONE, iUncompressedBrickSize, atlasSize};
     e.m_vTOC.push_back(t);
 
-    WriteBrickToDisk(e, pData, iBrick, NULL, eCompression);
+    WriteBrickToDisk(e, pData, iBrick);
   }
 
 
@@ -1220,9 +1242,9 @@ void ExtendedOctreeConverter::DeAtalasify(const ExtendedOctree &tree,
 
 
 bool ExtendedOctreeConverter::DeAtalasify(const ExtendedOctree &tree,
-                                           LargeRAWFile_ptr pLargeRAWFile,
-                                           uint64_t iOffset,
-                                           COMPORESSION_TYPE eCompression) {
+                                          LargeRAWFile_ptr pLargeRAWFile,
+                                          uint64_t iOffset)
+{
   ExtendedOctree e;
 
   // setup target metadata
@@ -1250,7 +1272,7 @@ bool ExtendedOctreeConverter::DeAtalasify(const ExtendedOctree &tree,
     const TOCEntry t = {(e.m_vTOC.end()-1)->m_iLength+(e.m_vTOC.end()-1)->m_iOffset, iUncompressedBrickSize, CT_NONE, iUncompressedBrickSize, UINTVECTOR2(0,0)};
     e.m_vTOC.push_back(t);
 
-    WriteBrickToDisk(e, pData, iBrick, NULL, eCompression);
+    WriteBrickToDisk(e, pData, iBrick);
   }
 
 

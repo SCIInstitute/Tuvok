@@ -273,10 +273,9 @@ public:
    @return true iff the conversion was successful
    */
   static bool Atalasify(ExtendedOctree &tree,
-                         const UINTVECTOR2& atlasSize,
-                         LargeRAWFile_ptr pLargeRAWFile,
-                         uint64_t iOffset,
-                         COMPORESSION_TYPE eCompression);
+                        const UINTVECTOR2& atlasSize,
+                        LargeRAWFile_ptr pLargeRAWFile,
+                        uint64_t iOffset);
   
   /**
    Converts a brick into simple 3D representation
@@ -317,10 +316,8 @@ public:
    @return true iff the conversion was successful
    */
   static bool DeAtalasify(const ExtendedOctree &tree,
-                           LargeRAWFile_ptr pLargeRAWFile,
-                           uint64_t iOffset,
-                           COMPORESSION_TYPE eCompression);
-
+                          LargeRAWFile_ptr pLargeRAWFile,
+                          uint64_t iOffset);
 
   /**
    Exports a specific LoD Level into a continuous raw file
@@ -377,6 +374,9 @@ private:
 
   /// if not NULL then the statistics for each brick are stored in this vector
   BrickStatVec* m_pBrickStatVec;
+
+  /// Rewrites each brick using compression, if desired.
+  void CompressAll(ExtendedOctree& tree);
 
   /**
     Compresses the bricks using the method specified in m_eCompression
@@ -543,9 +543,8 @@ private:
 
     @param tree target extended octree
     @param element iterator to the element in the cache to be written to disk
-    @param eCompression desired compression method for new bricks, may be ignored by the system
   */
-  static void WriteBrickToDisk(ExtendedOctree &tree, BrickCacheIter element, BrickStatVec* pBrickStatVec, COMPORESSION_TYPE eCompression);
+  static void WriteBrickToDisk(ExtendedOctree &tree, BrickCacheIter element);
 
   /**
     Write a single brick at index i in the ToC to disk and updates
@@ -556,7 +555,7 @@ private:
     @param eCompression desired compression method for new bricks, may be ignored by the system
     @param index index of the brick to be written
   */
-  static void WriteBrickToDisk(ExtendedOctree &tree, uint8_t* pData, size_t index, BrickStatVec* pBrickStatVec, COMPORESSION_TYPE eCompression);
+  static void WriteBrickToDisk(ExtendedOctree &tree, uint8_t* pData, size_t index);
 
   /**
     This function takes ONE source brick and down-samples this one into the appropriate position
