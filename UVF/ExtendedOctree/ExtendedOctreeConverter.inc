@@ -392,8 +392,7 @@ void ExtendedOctreeConverter::ComputeHierarchy(ExtendedOctree &tree,
 template<class T> BrickStatVec
 ExtendedOctreeConverter::ComputeBrickStats(uint8_t* pData, uint64_t iLength,
                                            size_t iComponentCount) {
-  BrickStatVec minmax;
-  minmax.resize(iComponentCount);
+  BrickStatVec minmax(iComponentCount);
 
   for (size_t i = 0;i<iComponentCount;++i) {
     minmax[i] = BrickStats<double>(std::numeric_limits<double>::max(),

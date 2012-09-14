@@ -129,7 +129,8 @@ AbstrConverter::Process8Bits(LargeRAWFile& InputData,
       while (iPos < iSize)  {
         size_t iRead = InputData.ReadRAW((unsigned char*)pInData, iCurrentInCoreSize);
         if (iRead == 0) break;
-        for (size_t i = 0;i<iRead;i++) aHist[pInData[i]]++;
+        std::for_each(pInData, pInData+iRead,
+                      [&](unsigned char i) { ++aHist[i]; });
         iPos += uint64_t(iRead);
 
         if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
