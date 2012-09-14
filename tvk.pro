@@ -103,6 +103,7 @@ HEADERS += \
            Basics/MC.h \
            Basics/Mesh.h \
            Basics/Plane.h \
+           Basics/ProgressTimer.h \
            Basics/SysTools.h \
            Basics/Timer.h \
            Basics/Clipper.h \
@@ -326,6 +327,7 @@ SOURCES += \
            Basics/MathTools.cpp \
            Basics/MC.cpp \
            Basics/Plane.cpp \
+           Basics/ProgressTimer.cpp \
            Basics/SystemInfo.cpp \
            Basics/Timer.cpp \           
            Basics/Clipper.cpp \           
