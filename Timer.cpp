@@ -60,7 +60,7 @@ void Timer::Start() {
 
 }
 
-double Timer::Elapsed() {
+double Timer::Elapsed() const {
 #ifndef DETECTED_OS_WINDOWS
   struct timeval timeProbe;
   gettimeofday(&timeProbe, NULL);

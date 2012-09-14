@@ -53,7 +53,7 @@ class Timer {
 public:
   Timer();
   void Start();
-  double Elapsed();
+  double Elapsed() const;
   static double Now();
 private:
   #ifndef DETECTED_OS_WINDOWS

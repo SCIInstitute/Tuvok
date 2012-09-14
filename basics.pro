@@ -35,6 +35,7 @@ SOURCES += \
   ./Systeminfo/VidMemViaDXGI.cpp \
   ./SysTools.cpp \
   ./Timer.cpp \
+  ./ProgressTimer.cpp \
   ./Clipper.cpp
 
 HEADERS += \
@@ -59,6 +60,7 @@ HEADERS += \
   ./SystemInfo.h \
   ./SysTools.h \
   ./Timer.h \
+  ./ProgressTimer.h \
   ./Clipper.h \
   ./tr1.h \
   ./TuvokException.h \
