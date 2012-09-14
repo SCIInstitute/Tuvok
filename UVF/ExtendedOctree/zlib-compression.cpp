@@ -84,7 +84,7 @@ uint64_t zcompress(std::shared_ptr<uint8_t> in, uint64_t bytes,
   strm->zalloc = Z_NULL;
   strm->zfree = Z_NULL;
   strm->opaque = Z_NULL;
-  if(deflateInit(strm.get(), Z_DEFAULT_COMPRESSION) != Z_OK) {
+  if(deflateInit(strm.get(), Z_BEST_SPEED) != Z_OK) {
     /* zlib initialization failed, just bail with no compression. */
     out = in;
     return bytes;
