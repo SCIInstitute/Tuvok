@@ -389,30 +389,46 @@ void ExtendedOctreeConverter::ComputeHierarchy(ExtendedOctree &tree,
   delete [] pTempDataTarget;
 }
 
+/// Computes per-brick metadata information.
+/// @param pData the brick data
+/// @param iLength number of *bytes* in the brick (not elems!)
+/// @param iComponentCount components in the brick data
+/// @returns vector of metadata, one entry per component
+/// Multiple components are assumed to be tightly packed; if we have two
+/// components and the first is all 0's, the second all 1's, then the data
+/// layout should be 01010101 ... etc.
 template<class T> BrickStatVec
 ExtendedOctreeConverter::ComputeBrickStats(const uint8_t* pData,
                                            uint64_t iLength,
                                            size_t iComponentCount) {
-  BrickStatVec minmax(iComponentCount);
+  const BrickStats<double> init(std::numeric_limits<double>::max(),
+                               -std::numeric_limits<double>::max());
+  BrickStatVec minmax(iComponentCount, init);
 
-  for (size_t i = 0;i<iComponentCount;++i) {
-    minmax[i] = BrickStats<double>(std::numeric_limits<double>::max(),
-                                  -std::numeric_limits<double>::max());
+  const size_t iElemCount = size_t(iLength / sizeof(T));
+
+  // if there are fewer elements in the data than there are components,
+  // something is seriously wrong.  Short read earlier in the pipeline?
+  assert(iElemCount >= iComponentCount); // crash for devs,
+  if(iElemCount < iComponentCount) {     // bail for release builds.
+    return minmax;
   }
 
-  size_t iElemCount = size_t(iLength / sizeof(T));
+  const T* pElements = reinterpret_cast<const T*>(pData);
 
-  if (iElemCount >= iComponentCount) {
-    T* pElements = (T*)pData;
-
-    for (size_t i = 0;i<iElemCount;i+=iComponentCount) {
-      for (size_t c = 0;c<iComponentCount;++c) {
-        minmax[c].minScalar = std::min<double>(double(*pElements),
-                                               minmax[c].minScalar);
-        minmax[c].maxScalar = std::max<double>(double(*pElements),
-                                               minmax[c].maxScalar);
-        ++pElements;
-      }
+  // Here's the actual computation.  We iterate over every datum in the brick,
+  // and check to see if it gives us a better min/max than what we already
+  // have.
+  for (size_t i=0 ; i < iElemCount; i += iComponentCount) { // each datum
+    for (size_t c=0; c < iComponentCount; ++c) {            // each component
+      // yes, I want this to use std::min/max too, but copious benchmarking
+      // shows this to be faster, and this is an important part of the code.
+      // feel free to re-benchmark and update as you see fit.
+      const double cur = static_cast<double>(*(pElements + i + c));
+      minmax[c].minScalar = cur < minmax[c].minScalar ?
+                            cur : minmax[c].minScalar ;
+      minmax[c].maxScalar = cur > minmax[c].maxScalar ?
+                            cur : minmax[c].maxScalar;
     }
   }
 
