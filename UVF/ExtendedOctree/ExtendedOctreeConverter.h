@@ -531,6 +531,12 @@ private:
   /// Computes the number of bytes required to store the (uncompressed) brick.
   static uint64_t BrickSize(const ExtendedOctree&, uint64_t index);
 
+  /// computes the brick stats for the given brick
+  static void BrickStat(
+    BrickStatVec* bs, uint64_t index, const uint8_t* pData, uint64_t length,
+    size_t components, enum ExtendedOctree::COMPONENT_TYPE
+  );
+
   /**
     Write a single brick at index i in the ToC to disk and updates
     the minmax data structure if it is set
@@ -604,7 +610,9 @@ private:
     @param iLength size (IN BYTES) of the array
     @param iComponentCount number of components per voxel
   */
-  template<class T> static BrickStatVec ComputeBrickStats(uint8_t* pData, uint64_t iLength, size_t iComponentCount);
+  template<class T> static BrickStatVec ComputeBrickStats(
+    const uint8_t* pData, uint64_t iLength, size_t iComponentCount
+  );
 };
 
 /// this file contains all the implementations of the template functions

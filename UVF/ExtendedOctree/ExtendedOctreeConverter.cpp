@@ -466,6 +466,55 @@ uint64_t ExtendedOctreeConverter::BrickSize(const ExtendedOctree& tree,
   return tree.m_vTOC[index].m_iLength;
 }
 
+void ExtendedOctreeConverter::BrickStat(
+  BrickStatVec* bs, uint64_t index, const uint8_t* pData, uint64_t length,
+  size_t components, enum ExtendedOctree::COMPONENT_TYPE type
+) {
+  assert(bs);
+  if(bs->size() < (index+1)*components) {
+    bs->resize((index+1)*components);
+  }
+
+  BrickStatVec elem;
+
+  // compute hierarchy
+  switch (type) {
+    case ExtendedOctree::CT_UINT8:
+      elem = ComputeBrickStats<uint8_t>(pData, length, components);
+      break;
+    case ExtendedOctree::CT_UINT16:
+      elem = ComputeBrickStats<uint16_t>(pData, length, components);
+      break;
+    case ExtendedOctree::CT_UINT32:
+      elem = ComputeBrickStats<uint32_t>(pData, length, components);
+      break;
+    case ExtendedOctree::CT_UINT64:
+      elem = ComputeBrickStats<uint64_t>(pData, length, components);
+      break;
+    case ExtendedOctree::CT_INT8:
+      elem = ComputeBrickStats<int8_t>(pData, length, components);
+      break;
+    case ExtendedOctree::CT_INT16:
+      elem = ComputeBrickStats<int16_t>(pData, length, components);
+      break;
+    case ExtendedOctree::CT_INT32:
+      elem = ComputeBrickStats<int32_t>(pData, length, components);
+      break;
+    case ExtendedOctree::CT_INT64:
+      elem = ComputeBrickStats<int64_t>(pData, length, components);
+      break;
+    case ExtendedOctree::CT_FLOAT32:
+      elem = ComputeBrickStats<float>(pData, length, components);
+      break;
+    case ExtendedOctree::CT_FLOAT64:
+      elem = ComputeBrickStats<double>(pData, length, components);
+      break;
+  }
+
+  for (size_t c=0; c < components ;++c)
+    (*bs)[index*components+c] = elem[c];
+}
+
 void ExtendedOctreeConverter::WriteBrickToDisk(ExtendedOctree &tree, BrickCacheIter element, BrickStatVec* pBrickStatVec, COMPORESSION_TYPE eCompression) {
   WriteBrickToDisk(tree, element->m_pData, element->m_index, pBrickStatVec, eCompression);
   element->m_bDirty = false;
@@ -473,50 +522,8 @@ void ExtendedOctreeConverter::WriteBrickToDisk(ExtendedOctree &tree, BrickCacheI
 
 void ExtendedOctreeConverter::WriteBrickToDisk(ExtendedOctree &tree, uint8_t* pData, size_t index, BrickStatVec* pBrickStatVec, COMPORESSION_TYPE eCompression) {
   if (pBrickStatVec) {
-    const size_t cc = size_t(tree.m_iComponentCount);
-
-    if (pBrickStatVec->size() < (index+1)*cc) {
-      pBrickStatVec->resize((index+1)*cc);
-    }
-
-    BrickStatVec elem;
-
-    // compute hierarchy
-    switch (tree.m_eComponentType) {
-      case ExtendedOctree::CT_UINT8:
-        elem = ComputeBrickStats<uint8_t>(pData, tree.m_vTOC[index].m_iLength, cc);
-        break;
-      case ExtendedOctree::CT_UINT16:
-        elem = ComputeBrickStats<uint16_t>(pData, tree.m_vTOC[index].m_iLength, cc);
-        break;
-      case ExtendedOctree::CT_UINT32:
-        elem = ComputeBrickStats<uint32_t>(pData, tree.m_vTOC[index].m_iLength, cc);
-        break;
-      case ExtendedOctree::CT_UINT64:
-        elem = ComputeBrickStats<uint64_t>(pData, tree.m_vTOC[index].m_iLength, cc);
-        break;
-      case ExtendedOctree::CT_INT8:
-        elem = ComputeBrickStats<int8_t>(pData, tree.m_vTOC[index].m_iLength, cc);
-        break;
-      case ExtendedOctree::CT_INT16:
-        elem = ComputeBrickStats<int16_t>(pData, tree.m_vTOC[index].m_iLength, cc);
-        break;
-      case ExtendedOctree::CT_INT32:
-        elem = ComputeBrickStats<int32_t>(pData, tree.m_vTOC[index].m_iLength, cc);
-        break;
-      case ExtendedOctree::CT_INT64:
-        elem = ComputeBrickStats<int64_t>(pData, tree.m_vTOC[index].m_iLength, cc);
-        break;
-      case ExtendedOctree::CT_FLOAT32:
-        elem = ComputeBrickStats<float>(pData, tree.m_vTOC[index].m_iLength, cc);
-        break;
-      case ExtendedOctree::CT_FLOAT64:
-        elem = ComputeBrickStats<double>(pData, tree.m_vTOC[index].m_iLength, cc);
-        break;
-    }
-
-    for (size_t c = 0;c<cc;++c)
-     (*pBrickStatVec)[index*cc+c] = elem[c];
+    BrickStat(pBrickStatVec, index, pData, tree.m_vTOC[index].m_iLength,
+               tree.m_iComponentCount, tree.m_eComponentType);
   }
 
   // compress brick if requested and beneficial

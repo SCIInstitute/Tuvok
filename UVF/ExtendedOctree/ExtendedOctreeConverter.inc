@@ -390,7 +390,8 @@ void ExtendedOctreeConverter::ComputeHierarchy(ExtendedOctree &tree,
 }
 
 template<class T> BrickStatVec
-ExtendedOctreeConverter::ComputeBrickStats(uint8_t* pData, uint64_t iLength,
+ExtendedOctreeConverter::ComputeBrickStats(const uint8_t* pData,
+                                           uint64_t iLength,
                                            size_t iComponentCount) {
   BrickStatVec minmax(iComponentCount);
 
