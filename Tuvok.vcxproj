@@ -517,6 +517,7 @@
     <ClCompile Include="Basics\MC.cpp" />
     <ClCompile Include="Basics\MemMappedFile.cpp" />
     <ClCompile Include="Basics\Plane.cpp" />
+    <ClCompile Include="Basics\ProgressTimer.cpp" />
     <ClCompile Include="Basics\SystemInfo.cpp" />
     <ClCompile Include="Basics\SysTools.cpp" />
     <ClCompile Include="Basics\Threads.cpp" />
@@ -1288,6 +1289,7 @@
     <ClInclude Include="Basics\MC.h" />
     <ClInclude Include="Basics\MemMappedFile.h" />
     <ClInclude Include="Basics\Plane.h" />
+    <ClInclude Include="Basics\ProgressTimer.h" />
     <ClInclude Include="Basics\StdDefines.h" />
     <ClInclude Include="Basics\SystemInfo.h" />
     <ClInclude Include="Basics\SysTools.h" />

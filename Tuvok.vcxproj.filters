@@ -993,6 +993,9 @@
     <ClCompile Include="Renderer\VisibilityState.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="Basics\ProgressTimer.cpp">
+      <Filter>Basics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Basics\Appendix.h">
@@ -1979,6 +1982,9 @@
     </ClInclude>
     <ClInclude Include="Renderer\VisibilityState.h">
       <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\ProgressTimer.h">
+      <Filter>Basics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
