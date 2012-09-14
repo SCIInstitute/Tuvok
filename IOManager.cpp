@@ -2535,7 +2535,8 @@ bool IOManager::ReBrickDataset(const string& strSourceFilename,
   string filenameOnly = SysTools::GetFilename(strSourceFilename);
   string tmpFile = strTempDir+SysTools::ChangeExt(filenameOnly,"nrrd"); /// use some simple format as intermediate file
 
-  if (!ConvertDataset(strSourceFilename, tmpFile, strTempDir)) {
+  if (!ConvertDataset(strSourceFilename, tmpFile, strTempDir, false,
+                      m_iBuilderBrickSize, m_iBrickOverlap, false)) {
     T_ERROR("Unable to extract raw data from file %s to %s", strSourceFilename.c_str(),tmpFile.c_str());
     return false;
   }
