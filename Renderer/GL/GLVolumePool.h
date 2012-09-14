@@ -9,7 +9,6 @@
 #include "GLInclude.h"
 #include "GLTexture2D.h"
 #include "GLTexture3D.h"
-#include "Renderer/VisibilityState.h"
 
 //#define PROFILE_GLVOLUMEPOOL
 
@@ -22,6 +21,7 @@ namespace tuvok {
   class GLSLProgram;
   class UVFDataset;
   class AsyncVisibilityUpdater;
+  class VisibilityState;
 
   class PoolSlotData {
   public:

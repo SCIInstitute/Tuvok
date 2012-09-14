@@ -10,6 +10,7 @@
 #include <iomanip>
 #include "GLSLProgram.h"
 #include "IO/uvfDataset.h"
+#include "Renderer/VisibilityState.h"
 
 enum BrickIDFlags {
   BI_CHILD_EMPTY = 0,
