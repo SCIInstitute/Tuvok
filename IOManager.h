@@ -101,21 +101,21 @@ public:
   bool ConvertDataset(FileStackInfo* pStack,
                       const std::string& strTargetFilename,
                       const std::string& strTempDir,
-                      uint64_t iMaxBrickSize,
+                      const uint64_t iMaxBrickSize,
                       uint64_t iBrickOverlap,
                       bool bQuantizeTo8Bit=false) const;
   bool ConvertDataset(const std::string& strFilename,
                       const std::string& strTargetFilename,
                       const std::string& strTempDir,
                       const bool bNoUserInteraction,
-                      uint64_t iMaxBrickSize,
+                      const uint64_t iMaxBrickSize,
                       uint64_t iBrickOverlap,
                       bool bQuantizeTo8Bit=false) const;
   bool ConvertDataset(const std::list<std::string>& files,
                       const std::string& strTargetFilename,
                       const std::string& strTempDir,
                       const bool bNoUserInteraction,
-                      uint64_t iMaxBrickSize,
+                      const uint64_t iMaxBrickSize,
                       uint64_t iBrickOverlap,
                       bool bQuantizeTo8Bit=false) const;
   bool MergeDatasets(const std::vector <std::string>& strFilenames,
@@ -129,14 +129,14 @@ public:
                                     const std::string& strTargetFilename,
                                     const std::string& strTempDir,
                                     tuvok::AbstrRenderer* requester,
-                                    uint64_t iMaxBrickSize,
+                                    const uint64_t iMaxBrickSize,
                                     uint64_t iBrickOverlap,
                                     bool bQuantizeTo8Bit=false) const;
   tuvok::UVFDataset* ConvertDataset(const std::string& strFilename,
                                     const std::string& strTargetFilename,
                                     const std::string& strTempDir,
                                     tuvok::AbstrRenderer* requester,
-                                    uint64_t iMaxBrickSize,
+                                    const uint64_t iMaxBrickSize,
                                     uint64_t iBrickOverlap,
                                     bool bQuantizeTo8Bit=false) const;
 
