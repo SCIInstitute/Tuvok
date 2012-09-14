@@ -288,11 +288,11 @@ public:
     }
   }
 
-  VECTOR3<T> abs() const {return VECTOR3<T>(fabs(x),fabs(y),fabs(z));}
-  T maxVal() const {return MAX(x,MAX(y,z));}
-  T minVal() const {return MIN(x,MIN(y,z));}
-  T volume() const {return x*y*z;}
-  T length() const {return sqrt(T(x*x+y*y+z*z));}
+  VECTOR3<T> abs() const FUNC_CONST {return VECTOR3<T>(fabs(x),fabs(y),fabs(z));}
+  T maxVal() const FUNC_CONST {return MAX(x,MAX(y,z));}
+  T minVal() const FUNC_CONST {return MIN(x,MIN(y,z));}
+  T volume() const FUNC_CONST {return x*y*z;}
+  T length() const FUNC_CONST {return sqrt(T(x*x+y*y+z*z));}
   void normalize() {T len = length(); x/=len;y/=len;z/=len;}
   void normalize(T epsilon, const VECTOR3<T> replacement=VECTOR3<T>(T(0),T(0),T(1))) {
     T len = length();
@@ -306,7 +306,7 @@ public:
       z = replacement.z;
     }
   }
-  VECTOR3<T> normalized() const {
+  VECTOR3<T> normalized() const FUNC_CONST {
     T len = length(); 
     return VECTOR3<T>(x/len,y/len,z/len);
   }
@@ -320,7 +320,6 @@ public:
       return replacement;
     }
   }
-
 
   VECTOR2<T> xx() const {return VECTOR2<T>(x,x);}
   VECTOR2<T> xy() const {return VECTOR2<T>(x,y);}
