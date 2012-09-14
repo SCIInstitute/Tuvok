@@ -31,9 +31,7 @@
 
 #include <memory>
 
-// for the LargeRawfile class
 #include "Basics/LargeRAWFile.h"
-
 // for the small fixed size vectors
 #include "Basics/Vectors.h"
 

@@ -70,8 +70,8 @@ bool ExtendedOctreeConverter::Convert(const std::string& filename,
   object, passes the user's parameters on to that object and computes
   the header data. It creates LoD zero by permuting/bricking the input
   data, then it computes the hierarchy. As this hierarchy computation
-  involves averaging we choose appropriate template at this point.
-  Next, the function writes the header to file and flushes the
+  involves averaging we choose an appropriate template at this point.
+  Next, the function writes the header to disk and flushes the
   write cache. Finally, the file is truncated to the appropriate length
   as it may have grown bigger than necessary as compression is applied
   only after an entire level is completed.
@@ -1130,7 +1130,7 @@ bool ExtendedOctreeConverter::Atalasify(ExtendedOctree &tree,
   unsigned char* pData = new unsigned char[CacheElementDataSize];
 
 
-  // go throught all bricks and convert them to deatlantified format
+  // go through all bricks and convert them to deatlantified format
   for (size_t iBrick = 0;iBrick<tree.m_vTOC.size();iBrick++) {
     // convert
     Atalasify(tree, iBrick, atlasSize, pData);
@@ -1240,7 +1240,7 @@ bool ExtendedOctreeConverter::DeAtalasify(const ExtendedOctree &tree,
   unsigned char* pData = new unsigned char[CacheElementDataSize];
 
 
-  // go throught all bricks and convert them to deatlantified format
+  // go through all bricks and convert them to deatlantified format
   for (size_t iBrick = 0;iBrick<tree.m_vTOC.size();iBrick++) {
     // convert
     DeAtalasify(tree, iBrick, pData);
