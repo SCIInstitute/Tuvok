@@ -667,15 +667,19 @@ void GLVolumePool::UploadMetaData() {
   MESSAGE("Pool Utilization %u/%u %g%%", used, m_PoolSlotData.size(), 100.0f*used/float(m_PoolSlotData.size()));
   // DEBUG code end
 */
+/*
 #ifdef PROFILE_GLVOLUMEPOOL
   double const t = m_Timer.Elapsed();
 #endif
+*/
 
   m_PoolMetadataTexture->SetData(&m_brickMetaData[0]);
 
+/*
 #ifdef PROFILE_GLVOLUMEPOOL
   m_TimesMetaTextureUpload.Push(static_cast<float>(m_Timer.Elapsed() - t));
 #endif
+*/
 }
 
 void GLVolumePool::PrepareForPaging() {
@@ -1032,13 +1036,14 @@ namespace {
   }
 
   template<AbstrRenderer::ERenderMode eRenderMode>
-  void PotentiallyUploadBricksToBrickPool(VisibilityState const& visibility, UVFDataset const* pDataset, size_t iTimestep, GLVolumePool& pool,
-                                          std::vector<uint32_t>& vBrickMetaData, std::vector<UINTVECTOR4> const& vBrickIDs, std::vector<unsigned char>& vUploadMem)
+  std::vector<UINTVECTOR4>::const_iterator PotentiallyUploadBricksToBrickPool(VisibilityState const& visibility, UVFDataset const* pDataset, size_t iTimestep, GLVolumePool& pool,
+                                                                              std::vector<uint32_t>& vBrickMetaData, std::vector<UINTVECTOR4> const& vBrickIDs, std::vector<unsigned char>& vUploadMem)
   {
+    std::vector<UINTVECTOR4>::const_iterator missingBrick = vBrickIDs.cbegin();
     // now iterate over the missing bricks and upload them to the GPU
     // todo: consider batching this if it turns out to make a difference
     //       from submitting each brick separately
-    for (auto missingBrick = vBrickIDs.cbegin(); missingBrick < vBrickIDs.cend(); missingBrick++) {
+    for (missingBrick = vBrickIDs.cbegin(); missingBrick < vBrickIDs.cend(); missingBrick++) {
       UINTVECTOR4 const& vBrickID = *missingBrick;
       BrickKey const key = pDataset->TOCVectorToKey(vBrickID, iTimestep);
       UINTVECTOR3 const vVoxelSize = pDataset->GetBrickVoxelCounts(key);
@@ -1058,6 +1063,7 @@ namespace {
         }
       }
     }
+    return missingBrick;
   }
 
 } // anonymous namespace
@@ -1112,24 +1118,25 @@ void GLVolumePool::UploadBricks(const std::vector<UINTVECTOR4>& vBrickIDs, std::
   const size_t iTimestep = m_pUpdater->GetTimestep();
 
   PrepareForPaging();
+  std::vector<UINTVECTOR4>::const_iterator missingBrick = vBrickIDs.cbegin();
 
   if (bBusy || !m_bVisibilityUpdated) {
     switch (visibility.GetRenderMode()) {
     case AbstrRenderer::RM_1DTRANS:
-      PotentiallyUploadBricksToBrickPool<AbstrRenderer::RM_1DTRANS>(visibility, m_pDataset, iTimestep, *this, m_brickMetaData, vBrickIDs, vUploadMem);
+      missingBrick = PotentiallyUploadBricksToBrickPool<AbstrRenderer::RM_1DTRANS>(visibility, m_pDataset, iTimestep, *this, m_brickMetaData, vBrickIDs, vUploadMem);
       break;
     case AbstrRenderer::RM_2DTRANS:
-      PotentiallyUploadBricksToBrickPool<AbstrRenderer::RM_2DTRANS>(visibility, m_pDataset, iTimestep, *this, m_brickMetaData, vBrickIDs, vUploadMem);
+      missingBrick = PotentiallyUploadBricksToBrickPool<AbstrRenderer::RM_2DTRANS>(visibility, m_pDataset, iTimestep, *this, m_brickMetaData, vBrickIDs, vUploadMem);
       break;
     case AbstrRenderer::RM_ISOSURFACE:
-      PotentiallyUploadBricksToBrickPool<AbstrRenderer::RM_ISOSURFACE>(visibility, m_pDataset, iTimestep, *this, m_brickMetaData, vBrickIDs, vUploadMem);
+      missingBrick = PotentiallyUploadBricksToBrickPool<AbstrRenderer::RM_ISOSURFACE>(visibility, m_pDataset, iTimestep, *this, m_brickMetaData, vBrickIDs, vUploadMem);
       break;
     default:
       T_ERROR("Unhandled rendering mode.");
       break;
     }
   } else {
-    for (auto missingBrick = vBrickIDs.cbegin(); missingBrick < vBrickIDs.cend(); missingBrick++) {
+    for (missingBrick = vBrickIDs.cbegin(); missingBrick < vBrickIDs.cend(); missingBrick++) {
       UINTVECTOR4 const& vBrickID = *missingBrick;
       BrickKey const key = m_pDataset->TOCVectorToKey(vBrickID, iTimestep);
       UINTVECTOR3 const vVoxelSize = m_pDataset->GetBrickVoxelCounts(key);
@@ -1140,8 +1147,31 @@ void GLVolumePool::UploadBricks(const std::vector<UINTVECTOR4>& vBrickIDs, std::
     }
   }
   
-  if (!vBrickIDs.empty())
+  if (!vBrickIDs.empty()) {
+#if 0
     UploadMetaData();
+#else
+#ifdef PROFILE_GLVOLUMEPOOL
+    double const t = m_Timer.Elapsed();
+#endif
+    // TODO: get the last processed window from async updater...!?
+    // TODO: batch lines or rectangles...!?
+    UINTVECTOR2 const vMetadataTextureSize = m_PoolMetadataTexture->GetSize();
+    UINTVECTOR2 const vSize(1, 1);
+    for (auto touchedBrick = vBrickIDs.cbegin(); touchedBrick < missingBrick; touchedBrick++) {
+      UINTVECTOR4 const& vBrickID = *touchedBrick;
+      uint32_t const iBrickID = GetIntegerBrickID(vBrickID);
+
+      UINTVECTOR2 const vOffset(iBrickID % vMetadataTextureSize.x,
+                                iBrickID / vMetadataTextureSize.x);
+
+      m_PoolMetadataTexture->SetData(vOffset, vSize, &m_brickMetaData[iBrickID]);
+    }
+#ifdef PROFILE_GLVOLUMEPOOL
+    m_TimesMetaTextureUpload.Push(static_cast<float>(m_Timer.Elapsed() - t));
+#endif
+#endif
+  }
 
   // resume async updater because we are done uploading bricks and changing the meta data
   if (bBusy)
@@ -1149,6 +1179,7 @@ void GLVolumePool::UploadBricks(const std::vector<UINTVECTOR4>& vBrickIDs, std::
   else {
     if (!m_bVisibilityUpdated) {
       m_bVisibilityUpdated = true; // must be set one frame delayed otherwise we might upload empty bricks
+      UploadMetaData(); // we want to upload the whole meta texture when async updater is done
 #ifdef PROFILE_GLVOLUMEPOOL
       AsyncVisibilityUpdater::Stats const& stats = m_pUpdater->GetStats();
       OTHER("async visibility update completed for %d bricks in %.2f ms including %d interruptions that cost %.3f ms (%.2f bricks/ms)"
