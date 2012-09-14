@@ -190,6 +190,7 @@ public:
 
   NDBrickKey IndexToVectorKey(const BrickKey &k) const;
   UINT64VECTOR4 KeyToTOCVector(const BrickKey &k) const;
+  BrickKey TOCVectorToKey(const UINTVECTOR4& hash, size_t timestep) const;
 
   bool IsTOCBlock() const {return m_bToCBlock;}
 

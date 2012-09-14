@@ -941,6 +941,14 @@ UINT64VECTOR4 UVFDataset::KeyToTOCVector(const BrickKey &k) const {
 
 }
 
+BrickKey UVFDataset::TOCVectorToKey(const UINTVECTOR4& hash, size_t timestep) const {
+  UINT64VECTOR3 layout = GetBrickLayout(hash.w, timestep);
+
+  return BrickKey(timestep, hash.w, hash.x+
+                                    hash.y*layout.x+
+                                    hash.z*layout.x*layout.y);
+}
+
 NDBrickKey UVFDataset::IndexToVectorKey(const BrickKey &k) const {
   NDBrickKey ndk;
   ndk.timestep = std::get<0>(k);
