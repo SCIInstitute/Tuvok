@@ -55,7 +55,8 @@ protected:
   DOUBLEVECTOR3 ComputeGradient(const T* pTempBrickData,
                                 double normalizationFactor, size_t iCompcount,
                                 const UINTVECTOR3& size,
-                                const UINTVECTOR3& coords) {
+                                const UINTVECTOR3& coords)
+  {
     // TODO: think about what todo with multi component data
     //       right now we only pick the first component
     size_t iCenter = size_t(coords.x+size.x*coords.y+size.x*size.y*coords.z);
@@ -97,10 +98,14 @@ protected:
           for (uint32_t z = iOverlap;z<bricksize.z-iOverlap;z++) {
             for (uint32_t y = iOverlap;y<bricksize.y-iOverlap;y++) {
               for (uint32_t x = iOverlap;x<bricksize.x-iOverlap;x++) {
+                DOUBLEVECTOR3 vGradient = ComputeGradient(
+                  pTempBrickData, normalizationFactor, iCompcount, bricksize,
+                  UINTVECTOR3(x,y,z)
+                );
 
-                DOUBLEVECTOR3 vGradient = ComputeGradient(pTempBrickData, normalizationFactor,
-                                                          iCompcount, bricksize, UINTVECTOR3(x,y,z));
-                if (vGradient.length() > fMaxGradMagnitude) fMaxGradMagnitude = vGradient.length();
+                if (vGradient.length() > fMaxGradMagnitude) {
+                  fMaxGradMagnitude = vGradient.length();
+                }
               }
             }
           }
@@ -120,9 +125,11 @@ protected:
           for (uint32_t z = iOverlap;z<bricksize.z-iOverlap;z++) {
             for (uint32_t y = iOverlap;y<bricksize.y-iOverlap;y++) {
               for (uint32_t x = iOverlap;x<bricksize.x-iOverlap;x++) {
+                const DOUBLEVECTOR3 vGradient = ComputeGradient(
+                  pTempBrickData, normalizationFactor, iCompcount, bricksize,
+                  UINTVECTOR3(x,y,z)
+                );
 
-                DOUBLEVECTOR3 vGradient = ComputeGradient(pTempBrickData, normalizationFactor,
-                                                          iCompcount, bricksize, UINTVECTOR3(x,y,z));
                 size_t iCenter = size_t(x+bricksize.x*y+bricksize.x*bricksize.y*z);
                 size_t iGradientMagnitudeIndex = std::min<size_t>(255,size_t(vGradient.length()/fMaxGradMagnitude*255.0f));
                 size_t iValue = (fMaxNonZeroValue <= double(iHistoBinCount-1)) 
