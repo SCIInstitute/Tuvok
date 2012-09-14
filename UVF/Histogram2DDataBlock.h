@@ -124,16 +124,14 @@ protected:
                 DOUBLEVECTOR3 vGradient = ComputeGradient(pTempBrickData, normalizationFactor,
                                                           iCompcount, bricksize, UINTVECTOR3(x,y,z));
                 size_t iCenter = size_t(x+bricksize.x*y+bricksize.x*bricksize.y*z);
-
-                size_t iGardientMagnitudeIndex = std::min<size_t>(255,size_t(vGradient.length()/fMaxGradMagnitude*255.0f));
+                size_t iGradientMagnitudeIndex = std::min<size_t>(255,size_t(vGradient.length()/fMaxGradMagnitude*255.0f));
                 size_t iValue = (fMaxNonZeroValue <= double(iHistoBinCount-1)) 
                                    ? size_t(pTempBrickData[iCenter]) 
                                    : size_t(double(pTempBrickData[iCenter]) * double(iHistoBinCount-1)/fMaxNonZeroValue);
-
                 // make sure round errors don't cause index to go out of bounds
-                if (iGardientMagnitudeIndex > 255) iGardientMagnitudeIndex = 255;
+                if (iGradientMagnitudeIndex > 255) iGradientMagnitudeIndex = 255;
                 if (iValue > iHistoBinCount-1) iValue = iHistoBinCount-1; 
-                m_vHistData[iValue][iGardientMagnitudeIndex]++;
+                m_vHistData[iValue][iGradientMagnitudeIndex]++;
               }
             }
           }
