@@ -570,13 +570,6 @@ void ExtendedOctreeConverter::GetBrick(uint8_t* pData, ExtendedOctree &tree, uin
 
   BrickCacheIter cacheEntry = std::find_if(m_vBrickCache.begin(), m_vBrickCache.end(), std::bind2nd(HasIndex(), index));
 
-  uint64_t uncompressedLength = tree.m_vTOC[cacheEntry->m_index].m_iLength;
-  if(tree.m_vTOC[index].m_eCompression != CT_NONE) {
-    uncompressedLength =
-      tree.ComputeBrickSize(tree.IndexToBrickCoords(index)).volume() *
-      tree.GetComponentTypeSize() *
-      tree.GetComponentCount();
-  }
   if (cacheEntry == m_vBrickCache.end()) {
     // cache miss
 
@@ -597,6 +590,13 @@ void ExtendedOctreeConverter::GetBrick(uint8_t* pData, ExtendedOctree &tree, uin
       // if it's dirty, write to disk
       if (cacheEntry->m_bDirty) WriteBrickToDisk(tree, cacheEntry, m_pBrickStatVec, m_eCompression);
     }
+    uint64_t uncompressedLength = tree.m_vTOC[index].m_iLength;
+    if(tree.m_vTOC[index].m_eCompression != CT_NONE) {
+      uncompressedLength =
+        tree.ComputeBrickSize(tree.IndexToBrickCoords(index)).volume() *
+        tree.GetComponentTypeSize() *
+        tree.GetComponentCount();
+    }
 
     // put new entry into cache
     cacheEntry->m_bDirty = false;
@@ -605,6 +605,13 @@ void ExtendedOctreeConverter::GetBrick(uint8_t* pData, ExtendedOctree &tree, uin
     memcpy(cacheEntry->m_pData, pData, size_t(uncompressedLength));
   } else {
     // cache hit
+    uint64_t uncompressedLength = tree.m_vTOC[cacheEntry->m_index].m_iLength;
+    if(tree.m_vTOC[index].m_eCompression != CT_NONE) {
+      uncompressedLength =
+        tree.ComputeBrickSize(tree.IndexToBrickCoords(index)).volume() *
+        tree.GetComponentTypeSize() *
+        tree.GetComponentCount();
+    }
     memcpy(pData, cacheEntry->m_pData, size_t(uncompressedLength));
     cacheEntry->m_iAccess = ++m_iCacheAccessCounter;
   }
