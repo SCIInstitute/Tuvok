@@ -548,7 +548,6 @@ void ExtendedOctreeConverter::BrickStat(
 
   BrickStatVec elem;
 
-  // compute hierarchy
   switch (type) {
     case ExtendedOctree::CT_UINT8:
       elem = ComputeBrickStats<uint8_t>(pData, length, components);
