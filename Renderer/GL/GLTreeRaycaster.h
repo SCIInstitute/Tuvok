@@ -137,6 +137,8 @@ namespace tuvok {
       virtual void UpdateLightParamsInShaders() {};
       
       bool LoadCheckShader(GLSLProgram** shader, ShaderDescriptor& sd, std::string name);
+
+      void SetupRaycastShader(GLSLProgram* shaderProgram, RenderRegion3D& rr, EStereoID eStereoID);
   };
 } // tuvok namespace.
 

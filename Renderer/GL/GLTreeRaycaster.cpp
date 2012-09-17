@@ -545,40 +545,14 @@ void GLTreeRaycaster::RecomputeBrickVisibility() {
   }
 }
 
-void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
-  m_TargetBinder.Bind(m_pFBO3DImageNext[size_t(eStereoID)],
-                      m_pFBOStartColorNext[size_t(eStereoID)],
-                      m_pFBORayStartNext[size_t(eStereoID)],
-                      m_pFBODebugNext);
 
-  m_pFBORayStart[size_t(eStereoID)]->Read(0);
-  m_pFBOStartColor[size_t(eStereoID)]->Read(1);
-
+void GLTreeRaycaster::SetupRaycastShader(GLSLProgram* shaderProgram, RenderRegion3D& rr, EStereoID eStereoID) {
   UINTVECTOR3 vDomainSize = UINTVECTOR3(m_pToCDataset->GetDomainSize());
   FLOATVECTOR3 vScale = FLOATVECTOR3(m_pToCDataset->GetScale());
   FLOATVECTOR3 vExtend = FLOATVECTOR3(vDomainSize) * vScale;
   vExtend /= vExtend.maxVal();
   vScale /= vScale.minVal();
 
-  GLSLProgram* shaderProgram = NULL;
-  
-  switch (m_eRenderMode) {
-    default: // TODO
-    case RM_1DTRANS : 
-       m_p1DTransTex->Bind(2);
-      if (m_bUseLighting) 
-        shaderProgram = m_pProgramRayCast1DLighting;
-      else
-        shaderProgram = m_pProgramRayCast1D;
-      break;
-    case RM_2DTRANS : 
-      m_p2DTransTex->Bind(2);
-      if (m_bUseLighting) 
-        shaderProgram = m_pProgramRayCast2DLighting;
-      else
-        shaderProgram = m_pProgramRayCast2D;
-      break;
-  }
   FLOATMATRIX4 emm = ComputeEyeToModelMatrix(rr, eStereoID);
 
   m_pVolumePool->Enable(m_FrustumCullingLOD.GetLoDFactor(), 
@@ -586,7 +560,7 @@ void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
   m_pglHashTable->Enable(); // bound to 5
   m_pFBODebug->Read(6);
 
-  // set shader parameters (shader is already enabled by m_pVolumePool->Enable)
+  // set shader parameters
   shaderProgram->Enable();
   shaderProgram->Set("sampleRateModifier", m_fSampleRateModifier);
   shaderProgram->Set("mEyeToModel", emm, 4, false); 
@@ -624,11 +598,47 @@ void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
     shaderProgram->Set("vModelSpaceEyePos",vModelSpaceEyePos.x,vModelSpaceEyePos.y,vModelSpaceEyePos.z);
     shaderProgram->Set("vDomainScale",scale.x,scale.y,scale.z);
   }
+}
+
+void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
+  GLSLProgram* shaderProgram = NULL;
+  switch (m_eRenderMode) {
+    default: 
+      if (m_bDoClearView) {
+        // TODO: RM_CLEARVIEW
+      } else {
+        // TODO: RM_ISOSURFACE
+      }
+      break;
+    case RM_1DTRANS : 
+       m_p1DTransTex->Bind(2);
+      if (m_bUseLighting) 
+        shaderProgram = m_pProgramRayCast1DLighting;
+      else
+        shaderProgram = m_pProgramRayCast1D;
+      break;
+    case RM_2DTRANS : 
+      m_p2DTransTex->Bind(2);
+      if (m_bUseLighting) 
+        shaderProgram = m_pProgramRayCast2DLighting;
+      else
+        shaderProgram = m_pProgramRayCast2D;
+      break;
+  }
+
+  SetupRaycastShader(shaderProgram, rr, eStereoID);
+
+  m_TargetBinder.Bind(m_pFBO3DImageNext[size_t(eStereoID)],
+                      m_pFBOStartColorNext[size_t(eStereoID)],
+                      m_pFBORayStartNext[size_t(eStereoID)],
+                      m_pFBODebugNext);
+  m_pFBORayStart[size_t(eStereoID)]->Read(0);
+  m_pFBOStartColor[size_t(eStereoID)]->Read(1);
 
   // clear the buffers 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  // render the back faces
+  // render the back faces (in this pass we do all the work)
   m_pContext->GetStateManager()->SetEnableCullFace(true);
   m_pContext->GetStateManager()->SetCullState(CULL_FRONT);
   m_pBBoxVBO->Bind();
@@ -743,19 +753,7 @@ bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
 
     iPagedBricks += hash.size();
   }
-
-   m_bConverged = iPagedBricks == 0;
-
-  if (m_eRenderMode == RM_ISOSURFACE &&
-      m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) {
-     
-      for (size_t i = 0;i<iStereoBufferCount;i++) {
-        m_TargetBinder.Bind(m_pFBO3DImageNext[i]);
-        ComposeSurfaceImage(rr, EStereoID(i));
-      } 
-
-      m_TargetBinder.Unbind();
-  }
+  m_bConverged = iPagedBricks == 0;
 
   // always display intermediate results
   return true;
