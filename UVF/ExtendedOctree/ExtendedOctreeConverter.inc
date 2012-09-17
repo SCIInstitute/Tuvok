@@ -381,9 +381,6 @@ void ExtendedOctreeConverter::ComputeHierarchy(ExtendedOctree &tree,
     }
     // fill overlaps in this LoD
     FillOverlap(tree, LoD, bClampToEdge);
-
-    // apply compression to this LoD
-    Compress(tree, size_t(tree.m_vTOC.size()-bricksInThisLoD.volume()));
   }
   delete [] pTempDataSource;
   delete [] pTempDataTarget;
