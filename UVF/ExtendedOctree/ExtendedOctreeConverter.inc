@@ -363,11 +363,18 @@ void ExtendedOctreeConverter::ComputeHierarchy(ExtendedOctree &tree,
          tree.m_iComponentCount)) == tree.m_iBrickSize.volume() *
          tree.m_iComponentCount &&
          "conversion to size_t changes data value; brick too large.");
+  // total number of bricks we'll iterate over.  start at 1, not 0, because
+  // we're not going to "compute" the lowest level.
+  uint64_t n_bricks = 0;
+  for(size_t i=1; i < tree.GetLODCount(); ++i) {
+    n_bricks += tree.GetBrickCount(i).volume();
+  }
 
   T* pTempDataSource = new T[size_t(tree.m_iBrickSize.volume() *
                                     tree.m_iComponentCount)];
   T* pTempDataTarget = new T[size_t(tree.m_iBrickSize.volume() *
                                     tree.m_iComponentCount)];
+  uint64_t bricks_processed = 0;
   for (size_t LoD = 1;LoD<tree.m_vLODTable.size();LoD++) {
     UINT64VECTOR3 bricksInThisLoD = tree.GetBrickCount(LoD);
     for (uint64_t z = 0;z<bricksInThisLoD.z;z++) {
@@ -376,7 +383,11 @@ void ExtendedOctreeConverter::ComputeHierarchy(ExtendedOctree &tree,
           DownsampleBrick<T, bComputeMedian>(tree, bClampToEdge,
                                              UINT64VECTOR4(x,y,z, LoD),
                                              pTempDataSource, pTempDataTarget);
+          ++bricks_processed;
         }
+        m_fProgress = MathTools::lerp(float(bricks_processed) / n_bricks,
+                                      0.0f,1.0f, 0.4f,0.8f);
+        PROGRESS;
       }
     }
     // fill overlaps in this LoD

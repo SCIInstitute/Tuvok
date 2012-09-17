@@ -133,11 +133,15 @@ bool TOCBlock::FlatDataToBrickedLOD(
   bool bClampToEdge,
   size_t iCacheSize,
   std::shared_ptr<MaxMinDataBlock> pMaxMinDatBlock,
-  AbstrDebugOut*,
+  AbstrDebugOut* debugOut,
   COMPORESSION_TYPE ct
 ) {
   m_vMaxBrickSize = vMaxBrickSize;
   m_iOverlap = iOverlap;
+
+  if(debugOut == NULL) {
+    return false;
+  }
 
   LargeRAWFile_ptr outFile(new LargeRAWFile(strTempFile));
   if (!outFile->Create()) {
@@ -145,7 +149,8 @@ bool TOCBlock::FlatDataToBrickedLOD(
   }
   m_pStreamFile = outFile;
   m_strDeleteTempFile = strTempFile;
-  ExtendedOctreeConverter c(m_vMaxBrickSize, m_iOverlap, iCacheSize);
+  ExtendedOctreeConverter c(m_vMaxBrickSize, m_iOverlap, iCacheSize,
+                            *debugOut);
   BrickStatVec statsVec;
 
   if (!pSourceData->IsOpen()) pSourceData->Open();

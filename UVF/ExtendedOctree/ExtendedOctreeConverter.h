@@ -31,6 +31,7 @@
 #include <functional>
 #include "ExtendedOctree.h"
 #include "VolumeTools.h"
+#include "Basics/MathTools.h"
 
 /*! \brief A single brick cache entry
  *
@@ -127,6 +128,7 @@ public:
   T maxScalar;
 };
 
+class AbstrDebugOut;
 
 /// Vector to store statistics of each brick
 typedef std::vector< BrickStats< double > > BrickStatVec;
@@ -143,15 +145,18 @@ public:
     @param vBrickSize the maximum size of a brick (including overlap)
     @param iOverlap the voxel overlap (must be smaller than half the brick size in all dimensions)
     @param iMemLimit the amount of memory in bytes the converter is allowed to use for caching
+    @param progress debug channel to use for progress information
   */
   ExtendedOctreeConverter(const UINT64VECTOR3& vBrickSize,
-                          uint32_t iOverlap, uint64_t iMemLimit) :
+                          uint32_t iOverlap, uint64_t iMemLimit,
+                          AbstrDebugOut& progress) :
     m_fProgress(0.0f),
     m_vBrickSize(vBrickSize),
     m_iOverlap(iOverlap),
     m_iMemLimit(iMemLimit),
     m_iCacheAccessCounter(0),
-    m_pBrickStatVec(NULL)
+    m_pBrickStatVec(NULL),
+    m_Progress(progress)
     {}
 
   /**
@@ -374,6 +379,9 @@ private:
 
   /// if not NULL then the statistics for each brick are stored in this vector
   BrickStatVec* m_pBrickStatVec;
+
+  /// where to write progress information
+  AbstrDebugOut& m_Progress;
 
   /// Rewrites each brick using compression, if desired.
   void CompressAll(ExtendedOctree& tree);
@@ -613,9 +621,5 @@ private:
     const uint8_t* pData, uint64_t iLength, size_t iComponentCount
   );
 };
-
-/// this file contains all the implementations of the template functions
-/// used in the ExtendedOctreeConverter
-#include "ExtendedOctreeConverter.inc"
 
 #endif // EXTENDEDOCTREECONVERTER_H

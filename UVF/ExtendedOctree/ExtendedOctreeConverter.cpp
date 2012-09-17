@@ -25,9 +25,20 @@
 // for find_if
 #include <algorithm>
 #include <memory>
+#include "Basics/MathTools.h"
 #include "Basics/nonstd.h"
+#include "DebugOut/AbstrDebugOut.h"
 #include "ExtendedOctreeConverter.h"
 #include "zlib-compression.h"
+
+// simple/generic progress update message
+#define PROGRESS \
+  do { \
+    m_Progress.Message(_func_, "Converting to octree ... %5.2f%%", \
+                       m_fProgress * 100.0f); \
+  } while(0)
+
+#include "ExtendedOctreeConverter.inc"
 
 /*
   Convert (string):
@@ -89,7 +100,8 @@ bool ExtendedOctreeConverter::Convert(LargeRAWFile_ptr pLargeRAWFileIn,
                                       bool bComputeMedian,
                                       bool bClampToEdge) {
   m_pBrickStatVec = stats;
-  m_fProgress = 0; // TODO: do something smart with the progress
+  m_fProgress = 0.0f;
+  PROGRESS;
 
   ExtendedOctree e;
 
@@ -103,6 +115,7 @@ bool ExtendedOctreeConverter::Convert(LargeRAWFile_ptr pLargeRAWFileIn,
   e.m_iOffset = iOutOffset;
   e.m_pLargeRAWFile = pLargeRAWFileOut;
   e.ComputeMetadata();
+  m_fProgress = 0.01f;
 
   m_eCompression = compression;
 
@@ -110,6 +123,7 @@ bool ExtendedOctreeConverter::Convert(LargeRAWFile_ptr pLargeRAWFileIn,
 
   // brick (permute) the input data
   PermuteInputData(e, pLargeRAWFileIn, iInOffset, bClampToEdge);
+  m_fProgress = 0.4f;
 
   // compute hierarchy
 
@@ -185,6 +199,7 @@ bool ExtendedOctreeConverter::Convert(LargeRAWFile_ptr pLargeRAWFileIn,
   }
   // add header to file
   e.WriteHeader(pLargeRAWFileOut, iOutOffset);
+  PROGRESS;
 
   // write bricks in the cache to disk
   FlushCache(e);
@@ -196,6 +211,7 @@ bool ExtendedOctreeConverter::Convert(LargeRAWFile_ptr pLargeRAWFileIn,
   pLargeRAWFileOut->Truncate(iOutOffset+lastBrickInFile.m_iOffset+lastBrickInFile.m_iLength);
 
   m_fProgress = 1.0f;
+  PROGRESS;
 
   return true;
 }
@@ -407,7 +423,6 @@ void ExtendedOctreeConverter::CompressAll(ExtendedOctree& tree)
   //   write compressed payload
   //   update brick metadata based on what compression changed
   for(size_t i=0; i < tree.m_vTOC.size(); ++i) {
-    //GetBrick(BrickData.get(), tree, i);
     tree.GetBrickData(BrickData.get(), i);
     BrickStat(m_pBrickStatVec, i, BrickData.get(), BrickSize(tree, i),
               tree.m_iComponentCount, tree.m_eComponentType);
@@ -430,6 +445,9 @@ void ExtendedOctreeConverter::CompressAll(ExtendedOctree& tree)
     }
     tree.m_pLargeRAWFile->SeekPos(tree.m_vTOC[i].m_iOffset);
     tree.m_pLargeRAWFile->WriteRAW(data.get(), tree.m_vTOC[i].m_iLength);
+    const float progress = float(i) / tree.m_vTOC.size();
+    m_fProgress = MathTools::lerp(progress, 0.0f,1.0f, 0.8f,1.0f);
+    PROGRESS;
   }
 }
 
@@ -937,6 +955,7 @@ void ExtendedOctreeConverter::PermuteInputData(ExtendedOctree &tree, LargeRAWFil
                                                bool bClampToEdge) {
   std::vector<uint8_t> vData;
   UINT64VECTOR3 baseBricks = tree.GetBrickCount(0);
+  const float progress_start = m_fProgress;
 
   uint64_t iCurrentOutOffset = tree.ComputeHeaderSize();
   for (uint64_t z = 0;z<baseBricks.z;z++) {
@@ -951,7 +970,12 @@ void ExtendedOctreeConverter::PermuteInputData(ExtendedOctree &tree, LargeRAWFil
         SetBrick(&(vData[0]), tree, coords);
 
         iCurrentOutOffset += iUncompressedBrickSize;
+        const float xf = float(x);
+        const float p = xf + y*baseBricks.x + z*baseBricks.x*baseBricks.y;
+        m_fProgress = MathTools::lerp(p / float(baseBricks.volume()),
+                                      0.0f,1.0f, progress_start,0.4f);
       }
+      PROGRESS;
     }
   }
 }
