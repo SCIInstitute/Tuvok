@@ -353,22 +353,22 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
      << "}" << std::endl
      << "" << std::endl   
      << "vec3 BrickExit(vec3 pointInBrick, vec3 dir, in vec3 corners[2]) {" << std::endl
-	   << "  vec3 div = 1.0 / dir;" << std::endl
-	   << "  ivec3 side = ivec3(step(0.0,div));" << std::endl
-	   << "  vec3 tIntersect;" << std::endl
-	   << "  tIntersect.x = (corners[side.x].x - pointInBrick.x) * div.x;" << std::endl
-	   << "  tIntersect.y = (corners[side.y].y - pointInBrick.y) * div.y;" << std::endl
-	   << "  tIntersect.z = (corners[side.z].z - pointInBrick.z) * div.z;" << std::endl
-	   << "  return pointInBrick + min(min(tIntersect.x, tIntersect.y), tIntersect.z) * dir;" << std::endl
+     << "  vec3 div = 1.0 / dir;" << std::endl
+     << "  ivec3 side = ivec3(step(0.0,div));" << std::endl
+     << "  vec3 tIntersect;" << std::endl
+     << "  tIntersect.x = (corners[side.x].x - pointInBrick.x) * div.x;" << std::endl
+     << "  tIntersect.y = (corners[side.y].y - pointInBrick.y) * div.y;" << std::endl
+     << "  tIntersect.z = (corners[side.z].z - pointInBrick.z) * div.z;" << std::endl
+     << "  return pointInBrick + min(min(tIntersect.x, tIntersect.y), tIntersect.z) * dir;" << std::endl
      << "}" << std::endl
      << " " << std::endl
      << "uvec3 InfoToCoords(in uint brickInfo) {" << std::endl
      << "  uint index = brickInfo-BI_FLAG_COUNT;" << std::endl
      << "  uvec3 vBrickCoords;" << std::endl
-	   << "  vBrickCoords.x = index % poolCapacity.x;" << std::endl
-	   << "  vBrickCoords.y = (index / poolCapacity.x) % poolCapacity.y;" << std::endl
-	   << "  vBrickCoords.z = index / (poolCapacity.x*poolCapacity.y);" << std::endl
-	   << "  return vBrickCoords;" << std::endl
+     << "  vBrickCoords.x = index % poolCapacity.x;" << std::endl
+     << "  vBrickCoords.y = (index / poolCapacity.x) % poolCapacity.y;" << std::endl
+     << "  vBrickCoords.z = index / (poolCapacity.x*poolCapacity.y);" << std::endl
+     << "  return vBrickCoords;" << std::endl
      << "}" << std::endl
      << " " << std::endl
      << "void BrickPoolCoords(in uint brickInfo,  out vec3 corners[2]) {" << std::endl
