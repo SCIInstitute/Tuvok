@@ -731,13 +731,15 @@ bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
     // evaluate hastable
     std::vector<UINTVECTOR4> hash = m_pglHashTable->GetData();
 
+    if (!m_pVolumePool->IsVisibilityUpdated() || !hash.empty())
+      UpdateToVolumePool(hash);
+
     // upload missing bricks
     if (!hash.empty()) {
       //    MESSAGE("Last rendering pass was missing %i brick(s), paging in now...", int(hash.size()));
-      UpdateToVolumePool(hash);
-  #if 0
+  #if 1
       float fMsecPassed = float(m_Timer.Elapsed());
-      OTHER("The current subframe took %g ms to render (%g sFPS)", fMsecPassed, 1000./fMsecPassed);
+      OTHER("The current subframe took %.2f ms to render (%.2f FPS)", fMsecPassed, 1000./fMsecPassed);
   #endif
       m_iSubFrames++;
     } else {

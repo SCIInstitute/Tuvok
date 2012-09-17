@@ -32,6 +32,14 @@ namespace tuvok {
       m_vPositionInPool(vPositionInPool)
     {}
 
+    bool WasEverUsed() const {
+      return m_iBrickID != -1;
+    }
+
+    bool ContainsVisibleBrick() const {
+      return m_iTimeOfCreation > 1;
+    }
+
     void FlagEmpty() {
       m_iOrigTimeOfCreation = m_iTimeOfCreation;
       m_iTimeOfCreation = 1;
@@ -66,11 +74,14 @@ namespace tuvok {
       GLVolumePool(const UINTVECTOR3& poolSize, UVFDataset* dataset, GLenum filter, bool bUseGLCore=true); // throws tuvok::Exception on init error
       virtual ~GLVolumePool();
 
+      bool IsVisibilityUpdated() const { return m_bVisibilityUpdated; } // signals if meta texture is up-to-date including child emptiness for the whole hierarchy
       void RecomputeVisibility(const VisibilityState& visibility, size_t iTimestep);
       void UploadBricks(const std::vector<UINTVECTOR4>& vBrickIDs, std::vector<unsigned char>& vUploadMem);
 
-      bool UploadBrick(const BrickElemInfo& metaData, void* pData);
+      bool UploadBrick(const BrickElemInfo& metaData, void* pData); // TODO: we could use the 1D-index here too
       void UploadFirstBrick(const UINTVECTOR3& m_vVoxelSize, void* pData);
+      void UploadMetadataTexture();
+      void UploadMetadataTexel(uint32_t iBrickID);
       bool IsBrickResident(const UINTVECTOR4& vBrickID) const;
       void Enable(float fLoDFactor, const FLOATVECTOR3& vExtend,
                   const FLOATVECTOR3& vAspect,
@@ -123,15 +134,13 @@ namespace tuvok {
       AvgMinMaxTracker<float> m_TimesRecomputeVisibility;
 #endif
 
-      std::vector<uint32_t>      m_brickMetaData; // ref by iBrickID, size of total brick count + some unused 2d texture padding
-      std::vector<PoolSlotData*> m_brickToPoolMapping; // ref by iBrickID, size of total brick count + some unused 2d texture padding
-      std::vector<PoolSlotData*> m_PoolSlotData; // size of available pool slots
-      std::vector<uint32_t>      m_vLoDOffsetTable; // size of LoDs, stores index sums, level 0 is finest
+      std::vector<uint32_t>     m_vBrickMetadata;  // ref by iBrickID, size of total brick count + some unused 2d texture padding
+      std::vector<PoolSlotData> m_vPoolSlotData;   // size of available pool slots
+      std::vector<uint32_t>     m_vLoDOffsetTable; // size of LoDs, stores index sums, level 0 is finest
 
       void CreateGLResources();
       void FreeGLResources();
 
-      void UploadMetaData();
       void PrepareForPaging();
 
       void UploadBrick(uint32_t iBrickID, const UINTVECTOR3& vVoxelSize, void* pData, 
