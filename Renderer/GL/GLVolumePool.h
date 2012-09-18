@@ -10,9 +10,10 @@
 #include "GLTexture2D.h"
 #include "GLTexture3D.h"
 
-//#define PROFILE_GLVOLUMEPOOL
+//#define GLVOLUMEPOOL_PROFILE // define to measure some timings
+//#define GLVOLUMEPOOL_SIMULATE_BUSY_ASYNC_UPDATER // define to prevent the async worker from doing anything useful
 
-#ifdef PROFILE_GLVOLUMEPOOL
+#ifdef GLVOLUMEPOOL_PROFILE
 #include "Basics/Timer.h"
 #include "Basics/AvgMinMaxTracker.h"
 #endif
@@ -100,6 +101,11 @@ namespace tuvok {
       inline UINTVECTOR3 const& GetVolumeSize() const;
       inline UINTVECTOR3 const& GetMaxInnerBrickSize() const;
 
+      struct MinMax {
+        double min;
+        double max;
+      };
+
     protected:
       GLTexture2D* m_PoolMetadataTexture;
       GLTexture3D* m_PoolDataTexture;
@@ -128,7 +134,7 @@ namespace tuvok {
       AsyncVisibilityUpdater* m_pUpdater;
       bool m_bVisibilityUpdated;
 
-#ifdef PROFILE_GLVOLUMEPOOL
+#ifdef GLVOLUMEPOOL_PROFILE
       Timer m_Timer;
       AvgMinMaxTracker<float> m_TimesMetaTextureUpload;
       AvgMinMaxTracker<float> m_TimesRecomputeVisibility;
@@ -137,6 +143,11 @@ namespace tuvok {
       std::vector<uint32_t>     m_vBrickMetadata;  // ref by iBrickID, size of total brick count + some unused 2d texture padding
       std::vector<PoolSlotData> m_vPoolSlotData;   // size of available pool slots
       std::vector<uint32_t>     m_vLoDOffsetTable; // size of LoDs, stores index sums, level 0 is finest
+
+      size_t m_iMinMaxScalarTimestep;        // current timestep of scalar acceleration structure below
+      size_t m_iMinMaxGradientTimestep;      // current timestep of gradient acceleration structure below
+      std::vector<MinMax> m_vMinMaxScalar;   // accelerates access to minmax scalar information, gets constructed in c'tor
+      std::vector<MinMax> m_vMinMaxGradient; // accelerates access to minmax gradient information, gets constructed on first access to safe some mem
 
       void CreateGLResources();
       void FreeGLResources();
