@@ -126,6 +126,9 @@ public:
   virtual bool ContainsData(const BrickKey &k, double fMin,double fMax) const;
   virtual bool ContainsData(const BrickKey &k, double fMin,double fMax, double fMinGradient,double fMaxGradient) const;
 
+  // Used by GLVolumePool to speed up visibility computations
+  InternalMaxMinElement MaxMinForKey(const BrickKey &k) const;
+
   // LOD Data
   /// @todo fixme -- this should take a brick key and just ignore the spatial
   /// indices.
@@ -252,8 +255,6 @@ private:
   std::pair<double,double>     m_CachedRange;
 
   uint64_t                     m_iMaxAcceptableBricksize;
-
-  InternalMaxMinElement MaxMinForKey(const BrickKey &k) const;
 
   FLOATVECTOR3 GetVolCoord(uint64_t pos, const UINT64VECTOR3& domSize) {
     UINT64VECTOR3 domCoords;
