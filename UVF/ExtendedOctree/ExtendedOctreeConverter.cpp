@@ -197,14 +197,14 @@ bool ExtendedOctreeConverter::Convert(LargeRAWFile_ptr pLargeRAWFileIn,
         break;
     }
   }
-  // add header to file
-  e.WriteHeader(pLargeRAWFileOut, iOutOffset);
-  PROGRESS;
-
   // write bricks in the cache to disk
   FlushCache(e);
 
   CompressAll(e);
+
+  // add header to file
+  e.WriteHeader(pLargeRAWFileOut, iOutOffset);
+  PROGRESS;
 
   // remove part of the file used only for temp calculations
   TOCEntry lastBrickInFile = *(e.m_vTOC.end()-1);
@@ -430,7 +430,7 @@ void ExtendedOctreeConverter::CompressAll(ExtendedOctree& tree)
     uint64_t newlen = zcompress(BrickData, BrickSize(tree, i), compressed);
     std::shared_ptr<uint8_t> data;
 
-    if(false && newlen < BrickSize(tree, i)) {
+    if(newlen < BrickSize(tree, i)) {
       tree.m_vTOC[i].m_iLength = newlen;
       tree.m_vTOC[i].m_eCompression = CT_ZLIB;
       data = compressed;
