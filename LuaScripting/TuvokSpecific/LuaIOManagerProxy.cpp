@@ -92,6 +92,8 @@ void LuaIOManagerProxy::bind()
     mSS->addParamInfo(id, 0, "MultRet", "Returns a tuple consisting of a "
                       "(1) boolean value representing whether or not the "
                       "function failed, and (2) the RangeInfo structure.");
+    id = mReg.registerFunction(this, &LuaIOManagerProxy::evaluateExpression,
+                               nm + "evaluateExpression", "", false);
 
 
     /// Functions that are not overloaded and can be registered directly.
@@ -123,8 +125,6 @@ void LuaIOManagerProxy::bind()
                                nm + "getImageExportDialogString", "", false);
     id = mReg.registerFunction(mIO, &IOManager::MergeDatasets,
                                nm + "mergeDatasets", "", false);
-    id = mReg.registerFunction(mIO, &IOManager::EvaluateExpression,
-                               nm + "evaluateExpression", "", false);
     id = mReg.registerFunction(mIO, &IOManager::GetFormatList,
                                nm + "getFormatList", "", false);
     id = mReg.registerFunction(mIO, &IOManager::GetGeoFormatList,
@@ -255,6 +255,14 @@ std::tuple<bool, RangeInfo> LuaIOManagerProxy::AnalyzeDataset(
   RangeInfo info;
   bool res = mIO->AnalyzeDataset(strFilename, info, strTempDir);
   return make_tuple(res, info);
+}
+
+void LuaIOManagerProxy::evaluateExpression(
+    const std::string& expr,
+    const std::vector<std::string>& volumes,
+    const std::string& out_fn) const
+{
+  mIO->EvaluateExpression(expr, volumes, out_fn);
 }
 
 

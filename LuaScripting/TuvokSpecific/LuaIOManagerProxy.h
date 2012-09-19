@@ -99,7 +99,18 @@ private:
       bool bQuantizeTo8Bit);
   std::tuple<bool, RangeInfo> AnalyzeDataset(
       const std::string& strFilename, const std::string& strTempDir);
-  /// @}
+  /// @}  
+  
+  /// The following evaluateExpression proxy was made because of the 
+  /// "throw (tuvok::Exception)" exception specification on 
+  /// IOManager::EvaluateExpression. 
+  /// When MSVC 2010 attempts to bind IOManager::evaluateExpression, the 
+  /// compiler uses a LuaCFunExec template specialization that specifies a 
+  /// return type (even though this function is of void return type!).
+  /// Does not happen on clang.
+  void evaluateExpression(const std::string& expr,
+                          const std::vector<std::string>& volumes,
+                          const std::string& out_fn) const;
 };
 
 template<>
