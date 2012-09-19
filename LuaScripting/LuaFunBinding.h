@@ -49,6 +49,7 @@
 #include <iomanip>
 #include <sstream>
 #include <list>
+#include <tuple>
 
 #include "LuaClassInstance.h"
 #include "LuaStackRAII.h"
@@ -952,6 +953,156 @@ public:
     return os.str();
   }
   static std::string getTypeStr() { return "GenericList"; }
+  static Type getDefault() {return Type();}
+};
+
+
+/// Structure allowing recursive creation of tuples and extraction of their
+/// values. Watch out for the indices; std::get and std::tuple_element are 0 
+/// based while Lua indices (passed into lua_pushinteger) are 1 based.
+template<class Tuple, std::size_t N>
+struct LuaTuvokTupleTable {
+  static void push(lua_State* L, int pos, const Tuple& t) 
+  {
+    LuaTuvokTupleTable<Tuple, N-1>::push(L, pos, t);
+
+    LuaStackRAII _a(L, 0, 0);
+
+    lua_pushinteger(L, N);
+    LuaStrictStack<typename std::tuple_element<N-1, Tuple>::type>::
+        push(L, std::get<N-1>(t));
+    lua_settable(L, pos);
+  }
+
+  static void pull(lua_State* L, int pos, Tuple& t)
+  {
+    LuaTuvokTupleTable<Tuple, N-1>::pull(L, pos, t);
+
+    LuaStackRAII _a(L, 0, 0);
+
+    lua_pushinteger(L, N);
+    lua_gettable(L, pos);
+    if (lua_isnil(L, -1))
+    {
+      // Something went really wrong. The number of values in the tuple
+      // does not agree with the number of values in Lua.
+      lua_pop(L, 1);
+      throw LuaError("Number of values in a Lua table represnting a tuple "
+                     "disagrees with the number of values actually present "
+                     "in the tuple!");
+    }
+    std::get<N-1>(t) = 
+        LuaStrictStack<typename std::tuple_element<N-1, Tuple>::type>::
+          get(L, lua_gettop(L));
+    lua_pop(L, 1);
+  }
+
+  static void print(const Tuple& t, std::ostringstream os)
+  {
+    LuaTuvokTupleTable<Tuple, N-1>::print(t, os);
+    os << ", " << std::get<N-1>(t);
+  }
+};
+
+/// Base case specialization.
+template<class Tuple> 
+struct LuaTuvokTupleTable<Tuple, 1> {
+  static void push(lua_State* L, int pos, const Tuple& t)
+  {
+    LuaStackRAII _a(L, 0, 0);
+
+    lua_pushinteger(L, 1);
+    LuaStrictStack<typename std::tuple_element<0, Tuple>::type>::
+        push(L, std::get<0>(t));
+    lua_settable(L, pos);
+  }
+
+  static void pull(lua_State* L, int pos, Tuple& t)
+  {
+    LuaStackRAII _a(L, 0, 0);
+
+    lua_pushinteger(L, 1);
+    lua_gettable(L, pos);
+    if (lua_isnil(L, -1))
+    {
+      // Something went really wrong. The number of values in the tuple
+      // does not agree with the number of values in Lua.
+      lua_pop(L, 1);
+      throw LuaError("Number of values in a Lua table represnting a tuple "
+                     "disagrees with the number of values actually present "
+                     "in the tuple!");
+    }
+    std::get<0>(t) = // Returns a reference
+        LuaStrictStack<typename std::tuple_element<0, Tuple>::type>::
+          get(L, lua_gettop(L));
+    lua_pop(L, 1);
+  }
+
+  static void print(const Tuple& t, std::ostringstream os)
+  {
+    os << std::get<0>(t);
+  }
+};
+
+template<class... TupleArgs>
+void luaPushTupleValuesToTable(lua_State* L, int tblPos, 
+                               const std::tuple<TupleArgs...>& t)
+{
+  LuaTuvokTupleTable<std::tuple<TupleArgs...>, sizeof...(TupleArgs)>::push(L, tblPos, t);
+}
+
+template<class... TupleArgs>
+std::tuple<TupleArgs...> luaPullTupleValuesFromTable(lua_State* L, int tblPos)
+{
+  std::tuple<TupleArgs...> ret;
+  LuaTuvokTupleTable<std::tuple<TupleArgs...>, sizeof...(TupleArgs)>::pull(L, tblPos, ret);
+  return ret;
+}
+
+template<class... TupleArgs>
+void luaPrintTuple(const std::tuple<TupleArgs...>& t, std::ostringstream os)
+{
+  LuaTuvokTupleTable<std::tuple<TupleArgs...>, sizeof...(TupleArgs)>::print(t, os);
+}
+
+// Implementation of tuple-Lua-pass-through using variadic templates.
+template <typename... Values>
+class LuaStrictStack<std::tuple<Values...> >
+{
+public:
+
+  typedef std::tuple<Values...> Type;
+
+  static Type get(lua_State* L, int pos)
+  {
+    // Ensure that there is a table on the top of the stack.
+    LuaStackRAII _a(L, 0, 0);
+
+    luaL_checktype(L, pos, LUA_TTABLE);
+
+    return luaPullTupleValuesFromTable<Values...>(L, pos);
+  }
+
+  static void push(lua_State* L, Type in)
+  {
+    LuaStackRAII _a(L, 0, 1);
+
+    // Place all of our vector values in a new table.
+    lua_newtable(L);
+    int tblPos = lua_gettop(L);
+
+    luaPushTupleValuesToTable(L, tblPos, in);
+  }
+
+  static std::string getValStr(Type in)
+  {
+    std::ostringstream os;
+    os << "{";
+    luaPrintTuple(in, os);
+    os << "}";
+    return os.str();
+  }
+  static std::string getTypeStr() { return "Tuple"; }
   static Type getDefault() {return Type();}
 };
 

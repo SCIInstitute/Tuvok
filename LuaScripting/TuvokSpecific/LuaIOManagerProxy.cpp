@@ -120,6 +120,10 @@ void LuaIOManagerProxy::bind()
                                nm + "mergeDatasets", "", false);
     id = mReg.registerFunction(mIO, &IOManager::EvaluateExpression,
                                nm + "evaluateExpression", "", false);
+    id = mReg.registerFunction(mIO, &IOManager::GetFormatList,
+                               nm + "getFormatList", "", false);
+    id = mReg.registerFunction(mIO, &IOManager::GetGeoFormatList,
+                               nm + "getGeoFormatList", "", false);
   }
 
 }
