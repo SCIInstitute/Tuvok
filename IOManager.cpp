@@ -2646,7 +2646,8 @@ void IOManager::AddMesh(const UVF* sourceDataset,
   uvfFile.Close();
 }
 
-bool IOManager::SetMaxBrickSize(const uint64_t iMaxBrickSize, const uint64_t iBuilderBrickSize) {
+bool IOManager::SetMaxBrickSize(uint64_t iMaxBrickSize, 
+                                uint64_t iBuilderBrickSize) {
   if (iMaxBrickSize > m_iBrickOverlap && iBuilderBrickSize > m_iBrickOverlap) {
     m_iMaxBrickSize = iMaxBrickSize;
     m_iBuilderBrickSize = iBuilderBrickSize;

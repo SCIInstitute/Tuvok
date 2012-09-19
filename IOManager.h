@@ -272,7 +272,7 @@ public:
   uint64_t GetBrickOverlap() const {return m_iBrickOverlap;}
   uint64_t GetIncoresize() const {return m_iIncoresize;}
 
-  bool SetMaxBrickSize(const uint64_t iMaxBrickSize, const uint64_t iBuilderBrickSize);
+  bool SetMaxBrickSize(uint64_t iMaxBrickSize, uint64_t iBuilderBrickSize);
   bool SetBrickOverlap(const uint64_t iBrickOverlap);
 
   void SetUseMedianFilter(bool bUseMedianFilter) {
