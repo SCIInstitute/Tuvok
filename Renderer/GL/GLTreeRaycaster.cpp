@@ -68,7 +68,8 @@ bool GLTreeRaycaster::CreateVolumePool() {
   m_pVolumePool = Controller::Instance().MemMan()->GetVolumePool(m_pToCDataset, ComputeGLFilter(),  m_pContext->GetShareGroupID());
 
   if (!m_pVolumePool) return false;
-  // upload a brick that covers the entire domain to make sure have something to render
+  // upload a brick that covers the entire domain to make sure have
+  // something to render
 
   if (m_vUploadMem.empty()) {
   // if loading a brick for the first time, prepare upload mem
@@ -80,15 +81,15 @@ bool GLTreeRaycaster::CreateVolumePool() {
   }
 
   // find lowest LoD with only a single brick
-  for (size_t iLoD = 0;iLoD<m_pToCDataset->GetLODLevelCount();++iLoD) {
-    if (m_pToCDataset->GetBrickCount(iLoD, m_iTimestep) == 1) {
-      const BrickKey bkey = m_pToCDataset->TOCVectorToKey(UINTVECTOR4(0,0,0,uint32_t(m_pToCDataset->GetLODLevelCount()-1)), m_iTimestep);
+  const BrickKey bkey = m_pToCDataset->TOCVectorToKey(
+    UINTVECTOR4(0,0,0,
+        uint32_t(m_pToCDataset->GetLargestSingleBrickLod(m_iTimestep))),
+    m_iTimestep
+  );
 
-      m_pToCDataset->GetBrick(bkey, m_vUploadMem);
-      m_pVolumePool->UploadFirstBrick(m_pToCDataset->GetBrickVoxelCounts(bkey), &m_vUploadMem[0]);
-      break;
-    }
-  }
+  m_pToCDataset->GetBrick(bkey, m_vUploadMem);
+  m_pVolumePool->UploadFirstBrick(m_pToCDataset->GetBrickVoxelCounts(bkey),
+                                  &m_vUploadMem[0]);
 
   RecomputeBrickVisibility();
 
@@ -645,6 +646,8 @@ void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
   m_pBBoxVBO->Draw(GL_TRIANGLES);
   m_pBBoxVBO->UnBind();
 
+  m_pVolumePool->Disable();
+
   // unbind input textures
   m_pFBORayStart[size_t(eStereoID)]->FinishRead();
   m_pFBOStartColor[size_t(eStereoID)]->FinishRead();
@@ -736,14 +739,12 @@ bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
 
     // upload missing bricks
     if (!hash.empty()) {
-      //    MESSAGE("Last rendering pass was missing %i brick(s), paging in now...", int(hash.size()));
   #if 1
       float fMsecPassed = float(m_Timer.Elapsed());
-      OTHER("The current subframe took %.2f ms to render (%.2f FPS)", fMsecPassed, 1000./fMsecPassed);
+      OTHER("So far the current frame took %.2f ms", fMsecPassed);
   #endif
       m_iSubFrames++;
     } else {
-  //    MESSAGE("All bricks rendered, frame complete.");
       float fMsecPassed = float(m_Timer.Elapsed());
       m_FrameTimes.Push(fMsecPassed);
       OTHER("The total frame (with %d subframes) took %.2f ms to render (%.2f FPS)\t[avg: %.2f, min: %.2f, max: %.2f, samples: %d]", m_iSubFrames, fMsecPassed, 1000./fMsecPassed, m_FrameTimes.GetAvg(), m_FrameTimes.GetMin(), m_FrameTimes.GetMax(), m_FrameTimes.GetHistroryLength());

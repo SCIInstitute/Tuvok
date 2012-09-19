@@ -13,9 +13,9 @@
 #include "Renderer/VisibilityState.h"
 
 enum BrickIDFlags {
-  BI_CHILD_EMPTY = 0,
+  BI_MISSING = 0,
+  BI_CHILD_EMPTY,
   BI_EMPTY,
-  BI_MISSING,
   BI_FLAG_COUNT
 };
 
@@ -69,12 +69,6 @@ namespace tuvok {
 
 } // namespace tuvok
 
-static uint32_t GetLoDCount(const UINTVECTOR3& volumeSize) {
-  uint32_t maxP2 = MathTools::NextPow2( volumeSize.maxVal() );
-  // add 1 here as we also have the 1x1x1 level (which is 2^0)
-  return MathTools::Log2(maxP2)+1; 
-}
-
 static UINTVECTOR3 GetLoDSize(const UINTVECTOR3& volumeSize, uint32_t iLoD) {
   UINTVECTOR3 vLoDSize(uint32_t(ceil(double(volumeSize.x)/MathTools::Pow2(iLoD))), 
                        uint32_t(ceil(double(volumeSize.y)/MathTools::Pow2(iLoD))),
@@ -112,25 +106,27 @@ static UINTVECTOR3 GetBrickLayout(const UINTVECTOR3& volumeSize,
   return GetLoDSize(baseBrickCount, iLoD);
 }
 
-GLVolumePool::GLVolumePool(const UINTVECTOR3& poolSize, UVFDataset* dataset, GLenum filter, bool bUseGLCore)
-  : m_PoolMetadataTexture(NULL),
-    m_PoolDataTexture(NULL),
+GLVolumePool::GLVolumePool(const UINTVECTOR3& poolSize, UVFDataset* pDataset, GLenum filter, bool bUseGLCore)
+  : m_pPoolMetadataTexture(NULL),
+    m_pPoolDataTexture(NULL),
     m_vPoolCapacity(0,0,0),
     m_poolSize(poolSize),
-    m_maxInnerBrickSize(UINTVECTOR3(dataset->GetMaxUsedBrickSizes())-UINTVECTOR3(dataset->GetBrickOverlapSize())*2),
-    m_maxTotalBrickSize(dataset->GetMaxUsedBrickSizes()),
-    m_volumeSize(dataset->GetDomainSize()),
+    m_maxInnerBrickSize(UINTVECTOR3(pDataset->GetMaxUsedBrickSizes())-UINTVECTOR3(pDataset->GetBrickOverlapSize())*2),
+    m_maxTotalBrickSize(pDataset->GetMaxUsedBrickSizes()),
+    m_volumeSize(pDataset->GetDomainSize()),
+    m_iLoDCount(uint32_t(pDataset->GetLargestSingleBrickLod(0)+1)),
     m_filter(filter),
     m_iTimeOfCreation(2),
     m_iMetaTextureUnit(0),
     m_iDataTextureUnit(1),
     m_bUseGLCore(bUseGLCore),
     m_iInsertPos(0),
-    m_pDataset(dataset),
+    m_pDataset(pDataset),
     m_pUpdater(NULL),
     m_bVisibilityUpdated(false)
 #ifdef GLVOLUMEPOOL_PROFILE
     , m_Timer()
+    , m_TimesRecomputeVisibilityForBrickPool(100)
     , m_TimesMetaTextureUpload(100)
     , m_TimesRecomputeVisibility(100)
 #endif
@@ -197,8 +193,7 @@ GLVolumePool::GLVolumePool(const UINTVECTOR3& poolSize, UVFDataset* dataset, GLe
   // for each LoD the accumulated number of all bricks in
   // the lower levels, this is used to serialize a brick index
   uint32_t iOffset = 0;
-  uint32_t iLoDCount = GetLoDCount(m_volumeSize);
-  m_vLoDOffsetTable.resize(iLoDCount);
+  m_vLoDOffsetTable.resize(m_iLoDCount);
   for (uint32_t i = 0;i<m_vLoDOffsetTable.size();++i) {
     m_vLoDOffsetTable[i] = iOffset;
     iOffset += GetBrickLayout(m_volumeSize, m_maxInnerBrickSize, i).volume();
@@ -216,9 +211,15 @@ GLVolumePool::GLVolumePool(const UINTVECTOR3& poolSize, UVFDataset* dataset, GLe
     m_vMinMaxScalar[i].max = imme.maxScalar;
   }
 
+#ifndef GLVOLUMEPOOL_SIMULATE_BUSY_ASYNC_UPDATER // if we want to simulate a busy async updater we need to make sure to instantiate it
   uint32_t const iAsyncUpdaterThreshold = 7500 * 5; // we can process 7500 bricks/ms (1500 running debug build)
   if (m_iTotalBrickCount > iAsyncUpdaterThreshold)
+#endif
     m_pUpdater = new AsyncVisibilityUpdater(*this);
+}
+
+uint32_t GLVolumePool::GetLoDCount() const {
+  return m_iLoDCount;
 }
 
 uint32_t GLVolumePool::GetIntegerBrickID(const UINTVECTOR4& vBrickID) const {
@@ -252,7 +253,7 @@ inline UINTVECTOR3 const& GLVolumePool::GetMaxInnerBrickSize() const {
 
 std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t iDataTextureUnit) {
   // must have created GL resources before asking for shader
-  if (!m_PoolMetadataTexture  || !m_PoolDataTexture) return "";
+  if (!m_pPoolMetadataTexture  || !m_pPoolDataTexture) return "";
 
   m_iMetaTextureUnit = iMetaTextureUnit;
   m_iDataTextureUnit = iDataTextureUnit;
@@ -264,14 +265,13 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
   else
     ss << "#version 420 compatibility" << std::endl;
 
-  uint32_t iLodCount = GetLoDCount(m_volumeSize);
-  FLOATVECTOR3 poolAspect(m_PoolDataTexture->GetSize());
+  FLOATVECTOR3 poolAspect(m_pPoolDataTexture->GetSize());
   poolAspect /= poolAspect.minVal();
 
   ss << std::setprecision(36); // get the maximum precision for floats (larger precisions would just append zeros)
   ss << "" << std::endl
      << "layout(binding = " << m_iMetaTextureUnit << ") uniform usampler2D metaData;" << std::endl
-     << "#define iMetaTextureWidth " << m_PoolMetadataTexture->GetSize().x << std::endl
+     << "#define iMetaTextureWidth " << m_pPoolMetadataTexture->Width() << std::endl
      << "" << std::endl
      << "#define BI_CHILD_EMPTY " << BI_CHILD_EMPTY << std::endl
      << "#define BI_EMPTY "       << BI_EMPTY << std::endl
@@ -279,9 +279,9 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
      << "#define BI_FLAG_COUNT "  << BI_FLAG_COUNT << std::endl
      << "" << std::endl
      << "layout(binding = " << m_iDataTextureUnit << ") uniform sampler3D volumePool;" << std::endl
-     << "#define iPoolSize ivec3(" << m_PoolDataTexture->GetSize().x << ", " 
-                                   << m_PoolDataTexture->GetSize().y << ", " 
-                                   << m_PoolDataTexture->GetSize().z <<")" << std::endl
+     << "#define iPoolSize ivec3(" << m_pPoolDataTexture->GetSize().x << ", " 
+                                   << m_pPoolDataTexture->GetSize().y << ", " 
+                                   << m_pPoolDataTexture->GetSize().z <<")" << std::endl
      << "#define volumeSize vec3(" << m_volumeSize.x << ", " 
                                          << m_volumeSize.y << ", " 
                                          << m_volumeSize.z <<")" << std::endl
@@ -300,36 +300,36 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
                                             << m_maxInnerBrickSize.y << ", " 
                                             << m_maxInnerBrickSize.z <<")" << std::endl
      << "// brick overlap voxels (in pool texcoords)" << std::endl
-     << "#define overlap vec3(" << (m_maxTotalBrickSize.x-m_maxInnerBrickSize.x)/(2.0f*m_PoolDataTexture->GetSize().x) << ", " 
-                                << (m_maxTotalBrickSize.y-m_maxInnerBrickSize.y)/(2.0f*m_PoolDataTexture->GetSize().y) << ", " 
-                                << (m_maxTotalBrickSize.z-m_maxInnerBrickSize.z)/(2.0f*m_PoolDataTexture->GetSize().z) <<")" << std::endl
+     << "#define overlap vec3(" << (m_maxTotalBrickSize.x-m_maxInnerBrickSize.x)/(2.0f*m_pPoolDataTexture->GetSize().x) << ", " 
+                                << (m_maxTotalBrickSize.y-m_maxInnerBrickSize.y)/(2.0f*m_pPoolDataTexture->GetSize().y) << ", " 
+                                << (m_maxTotalBrickSize.z-m_maxInnerBrickSize.z)/(2.0f*m_pPoolDataTexture->GetSize().z) <<")" << std::endl
      << "uniform float fLoDFactor;" << std::endl
      << "uniform float fLevelZeroWorldSpaceError;" << std::endl
      << "uniform vec3 volumeAspect;" << std::endl
-     << "#define iMaxLOD " << iLodCount-1 << std::endl
-     << "uniform uint vLODOffset[" << iLodCount << "] = uint[](";
-  for (uint32_t i = 0;i<iLodCount;++i) {
+     << "#define iMaxLOD " << m_iLoDCount-1 << std::endl
+     << "uniform uint vLODOffset[" << m_iLoDCount << "] = uint[](";
+  for (uint32_t i = 0;i<m_iLoDCount;++i) {
     ss << "uint(" << m_vLoDOffsetTable[i] << ")";
-    if (i<iLodCount-1) {
+    if (i<m_iLoDCount-1) {
       ss << ", ";
     }
   }
   ss << ");" << std::endl
-     << "uniform vec3 vLODLayout[" << iLodCount << "] = vec3[](" << std::endl;
+     << "uniform vec3 vLODLayout[" << m_iLoDCount << "] = vec3[](" << std::endl;
   for (uint32_t i = 0;i<m_vLoDOffsetTable.size();++i) {
     FLOATVECTOR3 vLoDSize = GetFloatBrickLayout(m_volumeSize, m_maxInnerBrickSize, i);
     ss << "   vec3(" << vLoDSize.x << ", " << vLoDSize.y << ", " << vLoDSize.z << ")";
-    if (i<iLodCount-1) {
+    if (i<m_iLoDCount-1) {
       ss << ",";
     }
     ss << "// Level " << i << std::endl;
   }
   ss << ");" << std::endl
-     << "uniform uvec2 iLODLayoutSize[" << iLodCount << "] = uvec2[](" << std::endl;
+     << "uniform uvec2 iLODLayoutSize[" << m_iLoDCount << "] = uvec2[](" << std::endl;
   for (uint32_t i = 0;i<m_vLoDOffsetTable.size();++i) {
     FLOATVECTOR3 vLoDSize = GetFloatBrickLayout(m_volumeSize, m_maxInnerBrickSize, i);    
     ss << "   uvec2(" << unsigned(ceil(vLoDSize.x)) << ", " << unsigned(ceil(vLoDSize.x)) * unsigned(ceil(vLoDSize.y)) << ")";
-    if (i<iLodCount-1) {
+    if (i<m_iLoDCount-1) {
       ss << ",";
     }
     ss << "// Level " << i << std::endl;
@@ -419,6 +419,7 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
      << "      if (brickInfo == BI_MISSING && iStartLOD+2 == iLOD) ReportMissingBrick(brickCoords);" << std::endl
      << "    } while (brickInfo == BI_MISSING);" << std::endl
      << "  }" << std::endl
+     << "  // next line check for BI_EMPTY or BI_CHILD_EMPTY (BI_MISSING is exculded by code above!)" << std::endl
      << "  bEmpty = (brickInfo <= BI_EMPTY);" << std::endl
      << "  if (bEmpty) {" << std::endl
      << "    // when we find an empty brick check if the lower resolutions are also empty" << std::endl
@@ -535,7 +536,7 @@ void GLVolumePool::UploadBrick(uint32_t iBrickID, const UINTVECTOR3& vVoxelSize,
   UploadMetadataTexel(slot.m_iBrickID);
 
   // upload brick to 3D texture
-  m_PoolDataTexture->SetData(slot.PositionInPool() * m_maxTotalBrickSize, vVoxelSize, pData);
+  m_pPoolDataTexture->SetData(slot.PositionInPool() * m_maxTotalBrickSize, vVoxelSize, pData);
 }
 
 void GLVolumePool::UploadFirstBrick(const UINTVECTOR3& m_vVoxelSize, void* pData) {
@@ -568,8 +569,8 @@ bool GLVolumePool::IsBrickResident(const UINTVECTOR4& vBrickID) const {
 void GLVolumePool::Enable(float fLoDFactor, const FLOATVECTOR3& vExtend,
                           const FLOATVECTOR3& /*vAspect */,
                           GLSLProgram* pShaderProgram) const {
-  m_PoolMetadataTexture->Bind(m_iMetaTextureUnit);
-  m_PoolDataTexture->Bind(m_iDataTextureUnit);
+  m_pPoolMetadataTexture->Read(m_iMetaTextureUnit);
+  m_pPoolDataTexture->Bind(m_iDataTextureUnit);
 
   pShaderProgram->Enable();
   pShaderProgram->Set("fLoDFactor",fLoDFactor);
@@ -580,6 +581,10 @@ void GLVolumePool::Enable(float fLoDFactor, const FLOATVECTOR3& vExtend,
   pShaderProgram->Set("fLevelZeroWorldSpaceError",fLevelZeroWorldSpaceError);
 }
 
+void GLVolumePool::Disable() const {
+  m_pPoolMetadataTexture->FinishRead();
+}
+
 GLVolumePool::~GLVolumePool() {
   if (m_pUpdater)
     delete m_pUpdater;
@@ -588,18 +593,18 @@ GLVolumePool::~GLVolumePool() {
 }
 
 void GLVolumePool::CreateGLResources() {
-  m_PoolDataTexture = new GLTexture3D(m_poolSize.x, m_poolSize.y, m_poolSize.z,
+  m_pPoolDataTexture = new GLTexture3D(m_poolSize.x, m_poolSize.y, m_poolSize.z,
                                       m_internalformat, m_format, m_type, 0, GL_LINEAR, GL_LINEAR);
-  m_vPoolCapacity = UINTVECTOR3(m_PoolDataTexture->GetSize().x/m_maxTotalBrickSize.x,
-                                m_PoolDataTexture->GetSize().y/m_maxTotalBrickSize.y,
-                                m_PoolDataTexture->GetSize().z/m_maxTotalBrickSize.z);
+  m_vPoolCapacity = UINTVECTOR3(m_pPoolDataTexture->GetSize().x/m_maxTotalBrickSize.x,
+                                m_pPoolDataTexture->GetSize().y/m_maxTotalBrickSize.y,
+                                m_pPoolDataTexture->GetSize().z/m_maxTotalBrickSize.z);
 
   MESSAGE("Creating brick pool of size [%u,%u,%u] to hold a "
         "max of [%u,%u,%u] bricks of size [%u,%u,%u] ("
         "adressable size [%u,%u,%u]) and smaler.",
-         m_PoolDataTexture->GetSize().x,
-         m_PoolDataTexture->GetSize().y,
-         m_PoolDataTexture->GetSize().z,
+         m_pPoolDataTexture->GetSize().x,
+         m_pPoolDataTexture->GetSize().y,
+         m_pPoolDataTexture->GetSize().z,
          m_vPoolCapacity.x,
          m_vPoolCapacity.y,
          m_vPoolCapacity.z,
@@ -644,9 +649,9 @@ void GLVolumePool::CreateGLResources() {
      << "texture are wasted due to the 2D extension process.";
   MESSAGE(ss.str().c_str());
 
-  m_PoolMetadataTexture = new GLTexture2D(
-    vTexSize.x, vTexSize.y, GL_R32UI,
-    GL_RED_INTEGER, GL_UNSIGNED_INT, &m_vBrickMetadata[0], m_filter, m_filter
+  m_pPoolMetadataTexture = new GLFBOTex(
+    NULL, m_filter, m_filter, GL_CLAMP_TO_EDGE, vTexSize.x, vTexSize.y,
+    GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT
   );
 }
 
@@ -681,7 +686,7 @@ void GLVolumePool::UploadMetadataTexture() {
   double const t = m_Timer.Elapsed();
 #endif
 
-  m_PoolMetadataTexture->SetData(&m_vBrickMetadata[0]);
+  m_pPoolMetadataTexture->SetData(&m_vBrickMetadata[0]);
 
 #ifdef GLVOLUMEPOOL_PROFILE
   m_TimesMetaTextureUpload.Push(static_cast<float>(m_Timer.Elapsed() - t));
@@ -690,10 +695,10 @@ void GLVolumePool::UploadMetadataTexture() {
 
 void GLVolumePool::UploadMetadataTexel(uint32_t iBrickID) {
 
-  uint32_t const iMetaTextureWidth = m_PoolMetadataTexture->GetSize().x;
+  uint32_t const iMetaTextureWidth = m_pPoolMetadataTexture->Width();
   UINTVECTOR2 const vSize(1, 1); // size of single texel
   UINTVECTOR2 const vOffset(iBrickID % iMetaTextureWidth, iBrickID / iMetaTextureWidth);
-  m_PoolMetadataTexture->SetData(vOffset, vSize, &m_vBrickMetadata[iBrickID]);
+  m_pPoolMetadataTexture->SetData(vOffset, vSize, &m_vBrickMetadata[iBrickID]);
 }
 
 void GLVolumePool::PrepareForPaging() {
@@ -772,7 +777,7 @@ namespace {
 #else
     uint32_t const iContinue = 75; // we'll just get 1500 bricks/ms running a debug build
 #endif
-    uint32_t const iLodCount = GetLoDCount(pool.GetVolumeSize());
+    uint32_t const iLoDCount = pool.GetLoDCount();
     UINTVECTOR3 iChildLayout = GetBrickLayout(pool.GetVolumeSize(), pool.GetMaxInnerBrickSize(), 0);
 
     // evaluate child visibility for finest level
@@ -786,7 +791,7 @@ namespace {
 
           UINTVECTOR4 const vBrickID(x, y, z, 0);
           uint32_t const brickIndex = pool.GetIntegerBrickID(vBrickID);
-          if (vBrickMetadata[brickIndex] <= BI_MISSING) // only check bricks that are not cached in the pool
+          if (vBrickMetadata[brickIndex] < BI_FLAG_COUNT) // only check bricks that are not cached in the pool
           {
             bool const bContainsData = ContainsData<eRenderMode>(visibility, brickIndex, vMinMaxScalar, vMinMaxGradient);
             if (!bContainsData)
@@ -797,7 +802,7 @@ namespace {
     } // for z
 
     // walk up hierarchy (from finest to coarsest level) and propagate child empty visibility
-    for (uint32_t iLoD = 1; iLoD < iLodCount; iLoD++)
+    for (uint32_t iLoD = 1; iLoD < iLoDCount; iLoD++)
     {
       UINTVECTOR3 const iLayout = GetBrickLayout(pool.GetVolumeSize(), pool.GetMaxInnerBrickSize(), iLoD);
 
@@ -813,21 +818,21 @@ namespace {
 
             UINTVECTOR4 const vBrickID(x, y, z, iLoD);
             uint32_t const brickIndex = pool.GetIntegerBrickID(vBrickID);
-            if (vBrickMetadata[brickIndex] <= BI_MISSING) // only check bricks that are not cached in the pool
+            if (vBrickMetadata[brickIndex] < BI_FLAG_COUNT) // only check bricks that are not cached in the pool
             {
               bool const bContainsData = ContainsData<eRenderMode>(visibility, brickIndex, vMinMaxScalar, vMinMaxGradient);
               if (!bContainsData) {
                 vBrickMetadata[brickIndex] = BI_CHILD_EMPTY; // flag parent brick to be child empty for now so that we can save a couple of tests below
 
                 UINTVECTOR4 const childPosition(x*2, y*2, z*2, iLoD-1);
-                if ((vBrickMetadata[pool.GetIntegerBrickID(childPosition)] > BI_CHILD_EMPTY) ||
-                    (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(0, 0, 1, 0))] > BI_CHILD_EMPTY) ||
-                    (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(0, 1, 0, 0))] > BI_CHILD_EMPTY) ||
-                    (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(0, 1, 1, 0))] > BI_CHILD_EMPTY) ||
-                    (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(1, 0, 0, 0))] > BI_CHILD_EMPTY) ||
-                    (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(1, 0, 1, 0))] > BI_CHILD_EMPTY) ||
-                    (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(1, 1, 0, 0))] > BI_CHILD_EMPTY) ||
-                    (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(1, 1, 1, 0))] > BI_CHILD_EMPTY))
+                if ((vBrickMetadata[pool.GetIntegerBrickID(childPosition)] != BI_CHILD_EMPTY) ||
+                    (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(0, 0, 1, 0))] != BI_CHILD_EMPTY) ||
+                    (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(0, 1, 0, 0))] != BI_CHILD_EMPTY) ||
+                    (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(0, 1, 1, 0))] != BI_CHILD_EMPTY) ||
+                    (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(1, 0, 0, 0))] != BI_CHILD_EMPTY) ||
+                    (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(1, 0, 1, 0))] != BI_CHILD_EMPTY) ||
+                    (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(1, 1, 0, 0))] != BI_CHILD_EMPTY) ||
+                    (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(1, 1, 1, 0))] != BI_CHILD_EMPTY))
                 {
                   vBrickMetadata[brickIndex] = BI_EMPTY; // downgrade parent brick if we found a non child empty child
                 }
@@ -851,17 +856,17 @@ namespace {
             uint32_t const x = iLayout.x - 1;
             UINTVECTOR4 const vBrickID(x, y, z, iLoD);
             uint32_t const brickIndex = pool.GetIntegerBrickID(vBrickID);
-            if (vBrickMetadata[brickIndex] <= BI_MISSING) // only check bricks that are not cached in the pool
+            if (vBrickMetadata[brickIndex] < BI_FLAG_COUNT) // only check bricks that are not cached in the pool
             {
               bool const bContainsData = ContainsData<eRenderMode>(visibility, brickIndex, vMinMaxScalar, vMinMaxGradient);
               if (!bContainsData) {
                 vBrickMetadata[brickIndex] = BI_CHILD_EMPTY; // flag parent brick to be child empty for now so that we can save a couple of tests below
 
                 UINTVECTOR4 const childPosition(x*2, y*2, z*2, iLoD-1);
-                if ((vBrickMetadata[pool.GetIntegerBrickID(childPosition)] > BI_CHILD_EMPTY) ||
-                    (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(0, 0, 1, 0))] > BI_CHILD_EMPTY) ||
-                    (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(0, 1, 0, 0))] > BI_CHILD_EMPTY) ||
-                    (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(0, 1, 1, 0))] > BI_CHILD_EMPTY))
+                if ((vBrickMetadata[pool.GetIntegerBrickID(childPosition)] != BI_CHILD_EMPTY) ||
+                    (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(0, 0, 1, 0))] != BI_CHILD_EMPTY) ||
+                    (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(0, 1, 0, 0))] != BI_CHILD_EMPTY) ||
+                    (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(0, 1, 1, 0))] != BI_CHILD_EMPTY))
                 {
                   vBrickMetadata[brickIndex] = BI_EMPTY; // downgrade parent brick if we found a non child empty child
                 }
@@ -883,17 +888,17 @@ namespace {
             uint32_t const y = iLayout.y - 1;
             UINTVECTOR4 const vBrickID(x, y, z, iLoD);
             uint32_t const brickIndex = pool.GetIntegerBrickID(vBrickID);
-            if (vBrickMetadata[brickIndex] <= BI_MISSING) // only check bricks that are not cached in the pool
+            if (vBrickMetadata[brickIndex] < BI_FLAG_COUNT) // only check bricks that are not cached in the pool
             {
               bool const bContainsData = ContainsData<eRenderMode>(visibility, brickIndex, vMinMaxScalar, vMinMaxGradient);
               if (!bContainsData) {
                 vBrickMetadata[brickIndex] = BI_CHILD_EMPTY; // flag parent brick to be child empty for now so that we can save a couple of tests below
 
                 UINTVECTOR4 const childPosition(x*2, y*2, z*2, iLoD-1);
-                if ((vBrickMetadata[pool.GetIntegerBrickID(childPosition)] > BI_CHILD_EMPTY) ||
-                    (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(0, 0, 1, 0))] > BI_CHILD_EMPTY) ||
-                    (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(1, 0, 0, 0))] > BI_CHILD_EMPTY) ||
-                    (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(1, 0, 1, 0))] > BI_CHILD_EMPTY))
+                if ((vBrickMetadata[pool.GetIntegerBrickID(childPosition)] != BI_CHILD_EMPTY) ||
+                    (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(0, 0, 1, 0))] != BI_CHILD_EMPTY) ||
+                    (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(1, 0, 0, 0))] != BI_CHILD_EMPTY) ||
+                    (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(1, 0, 1, 0))] != BI_CHILD_EMPTY))
                 {
                   vBrickMetadata[brickIndex] = BI_EMPTY; // downgrade parent brick if we found a non-empty child
                 }
@@ -915,17 +920,17 @@ namespace {
             uint32_t const z = iLayout.z - 1;
             UINTVECTOR4 const vBrickID(x, y, z, iLoD);
             uint32_t const brickIndex = pool.GetIntegerBrickID(vBrickID);
-            if (vBrickMetadata[brickIndex] <= BI_MISSING) // only check bricks that are not cached in the pool
+            if (vBrickMetadata[brickIndex] < BI_FLAG_COUNT) // only check bricks that are not cached in the pool
             {
               bool const bContainsData = ContainsData<eRenderMode>(visibility, brickIndex, vMinMaxScalar, vMinMaxGradient);
               if (!bContainsData) {
                 vBrickMetadata[brickIndex] = BI_CHILD_EMPTY; // flag parent brick to be child empty for now so that we can save a couple of tests below
 
                 UINTVECTOR4 const childPosition(x*2, y*2, z*2, iLoD-1);
-                if ((vBrickMetadata[pool.GetIntegerBrickID(childPosition)] > BI_CHILD_EMPTY) ||
-                    (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(0, 1, 0, 0))] > BI_CHILD_EMPTY) ||
-                    (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(1, 0, 0, 0))] > BI_CHILD_EMPTY) ||
-                    (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(1, 1, 0, 0))] > BI_CHILD_EMPTY))
+                if ((vBrickMetadata[pool.GetIntegerBrickID(childPosition)] != BI_CHILD_EMPTY) ||
+                    (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(0, 1, 0, 0))] != BI_CHILD_EMPTY) ||
+                    (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(1, 0, 0, 0))] != BI_CHILD_EMPTY) ||
+                    (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(1, 1, 0, 0))] != BI_CHILD_EMPTY))
                 {
                   vBrickMetadata[brickIndex] = BI_EMPTY; // downgrade parent brick if we found a non-empty child
                 }
@@ -947,15 +952,15 @@ namespace {
           uint32_t const x = iLayout.x - 1;
           UINTVECTOR4 const vBrickID(x, y, z, iLoD);
           uint32_t const brickIndex = pool.GetIntegerBrickID(vBrickID);
-          if (vBrickMetadata[brickIndex] <= BI_MISSING) // only check bricks that are not cached in the pool
+          if (vBrickMetadata[brickIndex] < BI_FLAG_COUNT) // only check bricks that are not cached in the pool
           {
             bool const bContainsData = ContainsData<eRenderMode>(visibility, brickIndex, vMinMaxScalar, vMinMaxGradient);
             if (!bContainsData) {
               vBrickMetadata[brickIndex] = BI_CHILD_EMPTY; // flag parent brick to be child empty for now so that we can save a couple of tests below
             
               UINTVECTOR4 const childPosition(x*2, y*2, z*2, iLoD-1);
-              if ((vBrickMetadata[pool.GetIntegerBrickID(childPosition)] > BI_CHILD_EMPTY) ||
-                  (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(0, 0, 1, 0))] > BI_CHILD_EMPTY))
+              if ((vBrickMetadata[pool.GetIntegerBrickID(childPosition)] != BI_CHILD_EMPTY) ||
+                  (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(0, 0, 1, 0))] != BI_CHILD_EMPTY))
               {
                 vBrickMetadata[brickIndex] = BI_EMPTY; // downgrade parent brick if we found a non-empty child
               }
@@ -976,15 +981,15 @@ namespace {
           uint32_t const x = iLayout.x - 1;
           UINTVECTOR4 const vBrickID(x, y, z, iLoD);
           uint32_t const brickIndex = pool.GetIntegerBrickID(vBrickID);
-          if (vBrickMetadata[brickIndex] <= BI_MISSING) // only check bricks that are not cached in the pool
+          if (vBrickMetadata[brickIndex] < BI_FLAG_COUNT) // only check bricks that are not cached in the pool
           {
             bool const bContainsData = ContainsData<eRenderMode>(visibility, brickIndex, vMinMaxScalar, vMinMaxGradient);
             if (!bContainsData) {
               vBrickMetadata[brickIndex] = BI_CHILD_EMPTY; // flag parent brick to be child empty for now so that we can save a couple of tests below
 
               UINTVECTOR4 const childPosition(x*2, y*2, z*2, iLoD-1);
-              if ((vBrickMetadata[pool.GetIntegerBrickID(childPosition)] > BI_CHILD_EMPTY) ||
-                  (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(0, 1, 0, 0))] > BI_CHILD_EMPTY))
+              if ((vBrickMetadata[pool.GetIntegerBrickID(childPosition)] != BI_CHILD_EMPTY) ||
+                  (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(0, 1, 0, 0))] != BI_CHILD_EMPTY))
               {
                 vBrickMetadata[brickIndex] = BI_EMPTY; // downgrade parent brick if we found a non-empty child
               }
@@ -1005,15 +1010,15 @@ namespace {
           uint32_t const y = iLayout.y - 1;
           UINTVECTOR4 const vBrickID(x, y, z, iLoD);
           uint32_t const brickIndex = pool.GetIntegerBrickID(vBrickID);
-          if (vBrickMetadata[brickIndex] <= BI_MISSING) // only check bricks that are not cached in the pool
+          if (vBrickMetadata[brickIndex] < BI_FLAG_COUNT) // only check bricks that are not cached in the pool
           {
             bool const bContainsData = ContainsData<eRenderMode>(visibility, brickIndex, vMinMaxScalar, vMinMaxGradient);
             if (!bContainsData) {
               vBrickMetadata[brickIndex] = BI_CHILD_EMPTY; // flag parent brick to be child empty for now so that we can save a couple of tests below
 
               UINTVECTOR4 const childPosition(x*2, y*2, z*2, iLoD-1);
-              if ((vBrickMetadata[pool.GetIntegerBrickID(childPosition)] > BI_CHILD_EMPTY) ||
-                  (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(1, 0, 0, 0))] > BI_CHILD_EMPTY))
+              if ((vBrickMetadata[pool.GetIntegerBrickID(childPosition)] != BI_CHILD_EMPTY) ||
+                  (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(1, 0, 0, 0))] != BI_CHILD_EMPTY))
               {
                 vBrickMetadata[brickIndex] = BI_EMPTY; // downgrade parent brick if we found a non-empty child
               }
@@ -1034,14 +1039,14 @@ namespace {
         uint32_t const x = iLayout.x - 1;
         UINTVECTOR4 const vBrickID(x, y, z, iLoD);
         uint32_t const brickIndex = pool.GetIntegerBrickID(vBrickID);
-        if (vBrickMetadata[brickIndex] <= BI_MISSING) // only check bricks that are not cached in the pool
+        if (vBrickMetadata[brickIndex] < BI_FLAG_COUNT) // only check bricks that are not cached in the pool
         {
           bool const bContainsData = ContainsData<eRenderMode>(visibility, brickIndex, vMinMaxScalar, vMinMaxGradient);
           if (!bContainsData) {
             vBrickMetadata[brickIndex] = BI_CHILD_EMPTY; // flag parent brick to be child empty for now so that we can save a couple of tests below
 
             UINTVECTOR4 const childPosition(x*2, y*2, z*2, iLoD-1);
-            if (vBrickMetadata[pool.GetIntegerBrickID(childPosition)] > BI_CHILD_EMPTY)
+            if (vBrickMetadata[pool.GetIntegerBrickID(childPosition)] != BI_CHILD_EMPTY)
             {
               vBrickMetadata[brickIndex] = BI_EMPTY; // downgrade parent brick if we found a non-empty child
             }
@@ -1081,7 +1086,7 @@ namespace {
           vBrickMetadata[brickIndex] = BI_EMPTY;
           pool.UploadMetadataTexel(brickIndex);
         }
-      } else if (vBrickMetadata[brickIndex] < BI_MISSING) {
+      } else if (vBrickMetadata[brickIndex] < BI_FLAG_COUNT) {
         // if the updater touched the brick in the meanwhile, we need to upload the meta texel
         pool.UploadMetadataTexel(brickIndex);
       } else {
@@ -1133,6 +1138,17 @@ void GLVolumePool::RecomputeVisibility(VisibilityState const& visibility, size_t
   // reset meta data for all bricks (BI_MISSING means that we haven't test the data for visibility until the async updater finishes)
   std::fill(m_vBrickMetadata.begin(), m_vBrickMetadata.end(), BI_MISSING);
 
+  // TODO: if metadata texture grows too large (14 ms CPU update time for approx 2000x2000 texture) consider to
+  //       update texel regions efficiently that will be toched by RecomputeVisibilityForBrickPool()
+  //       updating every single texel turned out to be not efficient in this case
+  m_pPoolMetadataTexture->Write();
+  GL(glClearColor(0, 0, 0, 0)); // clears metadata texture to BI_MISSING that equals zero
+  GL(glClear(GL_COLOR_BUFFER_BIT));
+  m_pPoolMetadataTexture->FinishWrite();
+
+#ifdef GLVOLUMEPOOL_PROFILE
+  double const t = m_Timer.Elapsed();
+#endif
   // recompute visibility for cached bricks immediately
   switch (visibility.GetRenderMode()) {
   case AbstrRenderer::RM_1DTRANS:
@@ -1148,6 +1164,9 @@ void GLVolumePool::RecomputeVisibility(VisibilityState const& visibility, size_t
     T_ERROR("Unhandled rendering mode.");
     return;
   }
+#ifdef GLVOLUMEPOOL_PROFILE
+  m_TimesRecomputeVisibilityForBrickPool.Push(m_Timer.Elapsed() - t);
+#endif
 
   if (!m_pUpdater) {
     // recompute visibility for the entire hierarchy immediately
@@ -1168,7 +1187,7 @@ void GLVolumePool::RecomputeVisibility(VisibilityState const& visibility, size_t
     m_bVisibilityUpdated = true;
   }
 
-  // upload new meta data to GPU
+  // upload new metadata to GPU
   UploadMetadataTexture();
 
   // restart async updater because visibility changed
@@ -1179,8 +1198,10 @@ void GLVolumePool::RecomputeVisibility(VisibilityState const& visibility, size_t
   }
 #ifdef GLVOLUMEPOOL_PROFILE
   m_TimesRecomputeVisibility.Push(static_cast<float>(m_Timer.Elapsed()));
+  OTHER("recompute visibility for brick pool [avg: %.2f, min: %.2f, max: %.2f, samples: %d]"
+    , m_TimesRecomputeVisibilityForBrickPool.GetAvg(), m_TimesRecomputeVisibilityForBrickPool.GetMin(), m_TimesRecomputeVisibilityForBrickPool.GetMax(), m_TimesRecomputeVisibilityForBrickPool.GetHistroryLength());
   OTHER("meta texture (%.4f MB) upload cost [avg: %.2f, min: %.2f, max: %.2f, samples: %d]"
-    , m_PoolMetadataTexture->GetCPUSize() / 1024.0f / 1024.0f, m_TimesMetaTextureUpload.GetAvg(), m_TimesMetaTextureUpload.GetMin(), m_TimesMetaTextureUpload.GetMax(), m_TimesMetaTextureUpload.GetHistroryLength());
+    , m_pPoolMetadataTexture->GetCPUSize() / 1024.0f / 1024.0f, m_TimesMetaTextureUpload.GetAvg(), m_TimesMetaTextureUpload.GetMin(), m_TimesMetaTextureUpload.GetMax(), m_TimesMetaTextureUpload.GetHistroryLength());
   OTHER("recompute visibility cost [avg: %.2f, min: %.2f, max: %.2f, samples: %d]"
     , m_TimesRecomputeVisibility.GetAvg(), m_TimesRecomputeVisibility.GetMin(), m_TimesRecomputeVisibility.GetMax(), m_TimesRecomputeVisibility.GetHistroryLength());
 #endif
@@ -1365,27 +1386,27 @@ void AsyncVisibilityUpdater::ThreadMain(void*)
 }
 
 void GLVolumePool::FreeGLResources() {
-  if (m_PoolMetadataTexture) {
-    m_PoolMetadataTexture->Delete();
-    delete m_PoolMetadataTexture;
+  if (m_pPoolMetadataTexture) {
+    //m_pPoolMetadataTexture->Delete();
+    delete m_pPoolMetadataTexture;
   }
-  if (m_PoolDataTexture) {
-    m_PoolDataTexture->Delete();
-    delete m_PoolDataTexture;
+  if (m_pPoolDataTexture) {
+    m_pPoolDataTexture->Delete();
+    delete m_pPoolDataTexture;
   }
 }
 
 uint64_t GLVolumePool::GetCPUSize() const {
-  return m_PoolMetadataTexture->GetCPUSize() + m_PoolDataTexture->GetCPUSize();
+  return m_pPoolMetadataTexture->GetCPUSize() + m_pPoolDataTexture->GetCPUSize();
 }
 
 uint64_t GLVolumePool::GetGPUSize() const {
-  return m_PoolMetadataTexture->GetGPUSize() + m_PoolDataTexture->GetGPUSize();
+  return m_pPoolMetadataTexture->GetGPUSize() + m_pPoolDataTexture->GetGPUSize();
 }
 
 void GLVolumePool::SetFilterMode(GLenum filter) {
   m_filter = filter;
-  m_PoolDataTexture->SetFilter(filter, filter);
+  m_pPoolDataTexture->SetFilter(filter, filter);
 }
 
 /*

@@ -9,6 +9,7 @@
 #include "GLInclude.h"
 #include "GLTexture2D.h"
 #include "GLTexture3D.h"
+#include "GLFBOTex.h"
 
 //#define GLVOLUMEPOOL_PROFILE // define to measure some timings
 //#define GLVOLUMEPOOL_SIMULATE_BUSY_ASYNC_UPDATER // define to prevent the async worker from doing anything useful
@@ -72,7 +73,7 @@ namespace tuvok {
 
   class GLVolumePool : public GLObject {
     public:
-      GLVolumePool(const UINTVECTOR3& poolSize, UVFDataset* dataset, GLenum filter, bool bUseGLCore=true); // throws tuvok::Exception on init error
+      GLVolumePool(const UINTVECTOR3& poolSize, UVFDataset* pDataset, GLenum filter, bool bUseGLCore=true); // throws tuvok::Exception on init error
       virtual ~GLVolumePool();
 
       bool IsVisibilityUpdated() const { return m_bVisibilityUpdated; } // signals if meta texture is up-to-date including child emptiness for the whole hierarchy
@@ -87,6 +88,7 @@ namespace tuvok {
       void Enable(float fLoDFactor, const FLOATVECTOR3& vExtend,
                   const FLOATVECTOR3& vAspect,
                   GLSLProgram* pShaderProgram) const;
+      void Disable() const;
 
       std::string GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t iDataTextureUnit);
       
@@ -95,11 +97,12 @@ namespace tuvok {
       virtual uint64_t GetCPUSize() const;
       virtual uint64_t GetGPUSize() const;
 
-      inline uint32_t GetIntegerBrickID(const UINTVECTOR4& vBrickID) const; // x, y , z, lod (w) to iBrickID
-      inline UINTVECTOR4 GetVectorBrickID(uint32_t iBrickID) const;
-      inline UINTVECTOR3 const& GetPoolCapacity() const;
-      inline UINTVECTOR3 const& GetVolumeSize() const;
-      inline UINTVECTOR3 const& GetMaxInnerBrickSize() const;
+      uint32_t GetLoDCount() const;
+      uint32_t GetIntegerBrickID(const UINTVECTOR4& vBrickID) const; // x, y , z, lod (w) to iBrickID
+      UINTVECTOR4 GetVectorBrickID(uint32_t iBrickID) const;
+      UINTVECTOR3 const& GetPoolCapacity() const;
+      UINTVECTOR3 const& GetVolumeSize() const;
+      UINTVECTOR3 const& GetMaxInnerBrickSize() const;
 
       struct MinMax {
         double min;
@@ -107,13 +110,14 @@ namespace tuvok {
       };
 
     protected:
-      GLTexture2D* m_PoolMetadataTexture;
-      GLTexture3D* m_PoolDataTexture;
+      GLFBOTex*    m_pPoolMetadataTexture;
+      GLTexture3D* m_pPoolDataTexture;
       UINTVECTOR3 m_vPoolCapacity;
       UINTVECTOR3 m_poolSize;
       UINTVECTOR3 m_maxInnerBrickSize;
       UINTVECTOR3 m_maxTotalBrickSize;
       UINTVECTOR3 m_volumeSize;
+      uint32_t m_iLoDCount;
       GLenum m_filter;
       GLint m_internalformat;
       GLenum m_format;
@@ -136,6 +140,7 @@ namespace tuvok {
 
 #ifdef GLVOLUMEPOOL_PROFILE
       Timer m_Timer;
+      AvgMinMaxTracker<float> m_TimesRecomputeVisibilityForBrickPool;
       AvgMinMaxTracker<float> m_TimesMetaTextureUpload;
       AvgMinMaxTracker<float> m_TimesRecomputeVisibility;
 #endif
