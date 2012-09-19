@@ -81,6 +81,10 @@ private:
 
   bool ExportMesh(std::shared_ptr<Mesh> mesh,
                   const std::string& strTargetFilename) const;
+  bool ReBrickDataset(const std::string& strSourceFilename,
+                      const std::string& strTargetFilename,
+                      const std::string& strTempDir,
+                      bool bQuantizeTo8Bit) const;
   /// @}
 };
 

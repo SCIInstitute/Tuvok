@@ -72,18 +72,17 @@ void LuaIOManagerProxy::bind()
     std::string id;
     const std::string nm = "tuvok.io."; // namespace
 
-    id = mReg.registerFunction(this,
-                               &LuaIOManagerProxy::ExportDataset,
+    id = mReg.registerFunction(this, &LuaIOManagerProxy::ExportDataset,
                                nm + "exportDataset", "", false);
-    id = mReg.registerFunction(this,
-                               &LuaIOManagerProxy::ExtractIsosurface,
+    id = mReg.registerFunction(this, &LuaIOManagerProxy::ExtractIsosurface,
                                nm + "extractIsosurface", "", false);
-    id = mReg.registerFunction(this,
-                               &LuaIOManagerProxy::ExtractImageStack,
+    id = mReg.registerFunction(this, &LuaIOManagerProxy::ExtractImageStack,
                                nm + "extractImageStack", "", false);
-    id = mReg.registerFunction(this,
-                               &LuaIOManagerProxy::ExportMesh,
+    id = mReg.registerFunction(this, &LuaIOManagerProxy::ExportMesh,
                                nm + "exportMesh", "", false);
+    id = mReg.registerFunction(this, &LuaIOManagerProxy::ReBrickDataset,
+                               nm + "rebrickDataset", "", false);
+
 
     /// Functions that are not overloaded and can be registered directly.
     id = mReg.registerFunction(mIO, &IOManager::GetMaxBrickSize,
@@ -92,6 +91,30 @@ void LuaIOManagerProxy::bind()
                                nm + "setMaxBrickSize", "", true);
     id = mReg.registerFunction(mIO, &IOManager::GetBuilderBrickSize,
                                nm + "getBuilderBrickSize", "", false);
+    id = mReg.registerFunction(mIO, &IOManager::GetLoadDialogString,
+                               nm + "getLoadDialogString", "", false);
+    id = mReg.registerFunction(mIO, &IOManager::GetGeoExportDialogString,
+                               nm + "getGeoExportDialogString", "", false);
+    id = mReg.registerFunction(mIO, &IOManager::HasConverterForExt,
+                               nm + "hasConverterForExt", "", false);
+    id = mReg.registerFunction(mIO, &IOManager::HasGeoConverterForExt,
+                               nm + "hasGeoConverterForExt", "", false);
+    id = mReg.registerFunction(mIO, &IOManager::LoadMesh,
+                               nm + "loadMesh", "", false);
+    id = mReg.registerFunction(mIO, &IOManager::GetLoadGeoDialogString,
+                               nm + "getLoadGeoDialogString", "", false);
+    id = mReg.registerFunction(mIO, &IOManager::NeedsConversion,
+                               nm + "needsConversion", "", false);
+    id = mReg.registerFunction(mIO, &IOManager::Verify,
+                               nm + "verify", "", false);
+    id = mReg.registerFunction(mIO, &IOManager::GetExportDialogString,
+                               nm + "getExportDialogString", "", false);
+    id = mReg.registerFunction(mIO, &IOManager::GetImageExportDialogString,
+                               nm + "getImageExportDialogString", "", false);
+    id = mReg.registerFunction(mIO, &IOManager::MergeDatasets,
+                               nm + "mergeDatasets", "", false);
+    id = mReg.registerFunction(mIO, &IOManager::EvaluateExpression,
+                               nm + "evaluateExpression", "", false);
   }
 
 }
@@ -173,6 +196,14 @@ bool LuaIOManagerProxy::ExportMesh(shared_ptr<Mesh> mesh,
                                    const std::string& strTargetFilename) const
 {
   return mIO->ExportMesh(mesh, strTargetFilename);
+}
+
+bool LuaIOManagerProxy::ReBrickDataset(const std::string& strSourceFilename,
+                                       const std::string& strTargetFilename,
+                                       const std::string& strTempDir,
+                                       bool bQuantizeTo8Bit) const {
+  return mIO->ReBrickDataset(strSourceFilename, strTargetFilename, strTempDir,
+                             bQuantizeTo8Bit);
 }
 
 } /* namespace tuvok */
