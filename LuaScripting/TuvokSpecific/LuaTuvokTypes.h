@@ -56,32 +56,6 @@ namespace tuvok
 // TODO: Add metatable to vector types in order to get basic vector operations
 //       to function inside of Lua (add, subtract, and multiply metamethods).
 
-template <>
-class LuaStrictStack<unsigned long long>
-{
-public:
-
-  typedef unsigned long long Type;
-
-  static unsigned long long get(lua_State* L, int pos)
-  {
-    return static_cast<unsigned long long>(luaL_checknumber(L, pos));
-  }
-
-  static void push(lua_State* L, unsigned long long in)
-  {
-    lua_pushnumber(L, static_cast<lua_Number>(in));
-  }
-
-  static std::string getValStr(unsigned long long in)
-  {
-    std::ostringstream os;
-    os << in;
-    return os.str();
-  }
-  static std::string getTypeStr() { return "unsigned long long"; }
-  static unsigned long long getDefault(){ return 0; }
-};
 
 // All numeric types are converted to doubles inside Lua. Therefore there is
 // no need to specialize on the type of vector.

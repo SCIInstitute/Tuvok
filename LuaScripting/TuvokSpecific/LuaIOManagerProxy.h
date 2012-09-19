@@ -37,6 +37,8 @@
 #include "../LuaClassRegistration.h"
 #include "../LuaMemberReg.h"
 
+class FileStackInfo;
+
 namespace tuvok
 {
 
@@ -95,7 +97,67 @@ private:
       const std::string& strTargetFilename,
       const std::string& strTempDir,
       bool bQuantizeTo8Bit);
+  std::tuple<bool, RangeInfo> AnalyzeDataset(
+      const std::string& strFilename, const std::string& strTempDir);
   /// @}
+};
+
+template<>
+class LuaStrictStack<RangeInfo>
+{
+public:
+
+  typedef RangeInfo Type;
+
+  // This proxy allows us to easily serialize to/from Lua.
+  // (we don't need to write any lua code, tuple handles it for us).
+  typedef std::tuple<UINT64VECTOR3, FLOATVECTOR3, uint64_t, int, 
+                     std::pair<double, double>, std::pair<int64_t, int64_t>,
+                     std::pair<uint64_t, uint64_t> > TupleStructProxy;
+
+  static RangeInfo get(lua_State* L, int pos)
+  {
+    TupleStructProxy tupleProxy = LuaStrictStack<TupleStructProxy>::get(L, pos);
+
+    RangeInfo ret;
+    ret.m_vDomainSize     = std::get<0>(tupleProxy);
+    ret.m_vAspect         = std::get<1>(tupleProxy);
+    ret.m_iComponentSize  = std::get<2>(tupleProxy);
+    ret.m_iValueType      = std::get<3>(tupleProxy);
+    ret.m_fRange          = std::get<4>(tupleProxy);
+    ret.m_iRange          = std::get<5>(tupleProxy);
+    ret.m_uiRange         = std::get<6>(tupleProxy);
+
+    return ret;
+  }
+
+  static TupleStructProxy makeTupleFromStruct(RangeInfo in)
+  {
+    TupleStructProxy tupleProxy = make_tuple(in.m_vDomainSize, 
+                                             in.m_vAspect,
+                                             in.m_iComponentSize,
+                                             in.m_iValueType,
+                                             in.m_fRange,
+                                             in.m_iRange,
+                                             in.m_uiRange);
+    return tupleProxy;
+  }
+
+  static void push(lua_State* L, RangeInfo in)
+  {
+    TupleStructProxy tupleProxy = makeTupleFromStruct(in);
+    LuaStrictStack<TupleStructProxy>::push(L, tupleProxy);
+  }
+
+  static std::string getValStr(RangeInfo in)
+  {
+    
+    TupleStructProxy tupleProxy = makeTupleFromStruct(in);
+    return LuaStrictStack<TupleStructProxy>::getValStr(tupleProxy);
+  }
+
+  static std::string getTypeStr() { return "RangeInfo"; }
+  static RangeInfo   getDefault() { return RangeInfo(); }
 };
 
 } /* namespace tuvok */

@@ -218,6 +218,60 @@ public:
   static unsigned long  getDefault()  { return 0; }
 };
 
+template <>
+class LuaStrictStack<unsigned long long>
+{
+public:
+
+  typedef unsigned long long Type;
+
+  static unsigned long long get(lua_State* L, int pos)
+  {
+    return static_cast<unsigned long long>(luaL_checknumber(L, pos));
+  }
+
+  static void push(lua_State* L, unsigned long long in)
+  {
+    lua_pushnumber(L, static_cast<lua_Number>(in));
+  }
+
+  static std::string getValStr(unsigned long long in)
+  {
+    std::ostringstream os;
+    os << in;
+    return os.str();
+  }
+  static std::string getTypeStr() { return "unsigned long long"; }
+  static unsigned long long getDefault(){ return 0; }
+};
+
+template <>
+class LuaStrictStack<long long>
+{
+public:
+
+  typedef long long Type;
+
+  static long long get(lua_State* L, int pos)
+  {
+    return static_cast<long long>(luaL_checknumber(L, pos));
+  }
+
+  static void push(lua_State* L, long long in)
+  {
+    lua_pushnumber(L, static_cast<lua_Number>(in));
+  }
+
+  static std::string getValStr(long long in)
+  {
+    std::ostringstream os;
+    os << in;
+    return os.str();
+  }
+  static std::string getTypeStr() { return "long long"; }
+  static long long getDefault(){ return 0; }
+};
+
 template<>
 class LuaStrictStack<unsigned int>
 {
@@ -997,10 +1051,11 @@ struct LuaTuvokTupleTable {
     lua_pop(L, 1);
   }
 
-  static void print(const Tuple& t, std::ostringstream os)
+  static void print(const Tuple& t, std::ostringstream& os)
   {
     LuaTuvokTupleTable<Tuple, N-1>::print(t, os);
-    os << ", " << std::get<N-1>(t);
+    os << ", " << LuaStrictStack<typename std::tuple_element<N-1, Tuple>::type >
+        ::getValStr(std::get<N-1>(t));
   }
 };
 
@@ -1038,9 +1093,10 @@ struct LuaTuvokTupleTable<Tuple, 1> {
     lua_pop(L, 1);
   }
 
-  static void print(const Tuple& t, std::ostringstream os)
+  static void print(const Tuple& t, std::ostringstream& os)
   {
-    os << std::get<0>(t);
+    os << LuaStrictStack<typename std::tuple_element<0, Tuple>::type >::
+        getValStr(std::get<0>(t));
   }
 };
 
@@ -1060,7 +1116,7 @@ std::tuple<TupleArgs...> luaPullTupleValuesFromTable(lua_State* L, int tblPos)
 }
 
 template<class... TupleArgs>
-void luaPrintTuple(const std::tuple<TupleArgs...>& t, std::ostringstream os)
+void luaPrintTuple(const std::tuple<TupleArgs...>& t, std::ostringstream& os)
 {
   LuaTuvokTupleTable<std::tuple<TupleArgs...>, sizeof...(TupleArgs)>::print(t, os);
 }

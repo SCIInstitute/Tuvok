@@ -87,6 +87,11 @@ void LuaIOManagerProxy::bind()
     id = mReg.registerFunction(this, 
                                &LuaIOManagerProxy::ConvertDatasetWithStack,
                                nm + "convertDatasetWithStack", "", false);
+    id = mReg.registerFunction(this, &LuaIOManagerProxy::AnalyzeDataset,
+                               nm + "analyzeDataset", "", false);
+    mSS->addParamInfo(id, 0, "MultRet", "Returns a tuple consisting of a "
+                      "(1) boolean value representing whether or not the "
+                      "function failed, and (2) the RangeInfo structure.");
 
 
     /// Functions that are not overloaded and can be registered directly.
@@ -124,6 +129,14 @@ void LuaIOManagerProxy::bind()
                                nm + "getFormatList", "", false);
     id = mReg.registerFunction(mIO, &IOManager::GetGeoFormatList,
                                nm + "getGeoFormatList", "", false);
+    id = mReg.registerFunction(mIO, &IOManager::SetUseMedianFilter,
+                               nm + "setUseMedianFilter", "", false);
+    id = mReg.registerFunction(mIO, &IOManager::SetClampToEdge,
+                               nm + "setClampToEdge", "", false);
+    id = mReg.registerFunction(mIO, &IOManager::ScanDirectory,
+                               nm + "scanDirectory", "", false);
+    id = mReg.registerFunction(mIO, &IOManager::RegisterFinalConverter,
+                               nm + "registerFinalConverter", "", false);
   }
 
 }
@@ -234,6 +247,14 @@ bool LuaIOManagerProxy::ConvertDatasetWithStack(
   /// @todo Convert 'ConvertDataset' to use shared_ptr instead of raw ptr.
   return mIO->ConvertDataset(stack.get(), strTargetFilename, strTempDir,
                              bQuantizeTo8Bit);
+}
+
+std::tuple<bool, RangeInfo> LuaIOManagerProxy::AnalyzeDataset(
+    const string& strFilename, const string& strTempDir)
+{
+  RangeInfo info;
+  bool res = mIO->AnalyzeDataset(strFilename, info, strTempDir);
+  return make_tuple(res, info);
 }
 
 
