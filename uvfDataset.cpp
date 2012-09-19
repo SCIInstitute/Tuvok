@@ -571,6 +571,15 @@ BrickTable::size_type UVFDataset::GetBrickCount(size_t lod, size_t iTs) const
   }
 }
 
+size_t UVFDataset::GetLargestSingleBrickLod(size_t ts) const {
+  for (size_t iLoD = 0;iLoD<GetLODLevelCount();++iLoD) {
+    if (GetBrickCount(iLoD, ts) == 1) return iLoD;
+  }
+  throw tuvok::Exception("invalid brick structure found, no "
+                         "single brick level exists.");
+  return 0; // avoid compiler warning
+}
+
 UINT64VECTOR3 UVFDataset::GetBrickLayout(const size_t lod, const size_t iTs) const {
   if (m_bToCBlock) {
     const TOCTimestep* ts = static_cast<TOCTimestep*>(m_timesteps[iTs]);

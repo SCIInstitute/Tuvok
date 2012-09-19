@@ -134,6 +134,7 @@ public:
   /// indices.
   ///@{
   virtual BrickTable::size_type GetBrickCount(size_t lod, size_t ts) const;
+  virtual size_t GetLargestSingleBrickLod(size_t ts) const;
   virtual UINT64VECTOR3 GetDomainSize(const size_t lod=0, const size_t ts=0) const;
   ///@}
   virtual uint64_t GetNumberOfTimesteps() const;
