@@ -137,7 +137,6 @@ namespace {
 }
 
 IOManager::IOManager() :
-  m_pFinalConverter(NULL),
   m_dsFactory(new io::DSFactory()),
   m_iMaxBrickSize(DEFAULT_BRICKSIZE),
   m_iBuilderBrickSize(DEFAULT_BUILDER_BRICKSIZE),
@@ -178,8 +177,7 @@ void IOManager::RegisterExternalConverter(AbstrConverter* pConverter) {
   m_vpConverters.push_back(pConverter);
 }
 
-void IOManager::RegisterFinalConverter(AbstrConverter* pConverter) {
-  if ( m_pFinalConverter ) delete m_pFinalConverter;
+void IOManager::RegisterFinalConverter(shared_ptr<AbstrConverter> pConverter) {
   m_pFinalConverter = pConverter;
 }
 
@@ -197,7 +195,7 @@ IOManager::~IOManager()
   m_vpConverters.clear();
   m_vpGeoConverters.clear();
 
-  delete m_pFinalConverter;
+  m_pFinalConverter.reset();
 }
 
 vector<std::shared_ptr<FileStackInfo> >
@@ -835,7 +833,7 @@ bool IOManager::MergeDatasets(const vector <string>& strFilenames,
         }
       }
 
-      if (!bRAWCreated && m_pFinalConverter) {
+      if (!bRAWCreated && (m_pFinalConverter != 0)) {
         bRAWCreated = m_pFinalConverter->ConvertToRAW(
           strFilenames[iInputData], strTempDir, bNoUserInteraction,
           IntermediateFile.iHeaderSkip, iComponentSize, iComponentCount,
@@ -1103,7 +1101,7 @@ bool IOManager::ConvertDataset(const list<string>& files,
 
     MESSAGE("No suitable automatic converter found!");
 
-    if (m_pFinalConverter) {
+    if (m_pFinalConverter != 0) {
       MESSAGE("Attempting fallback converter.");
       return m_pFinalConverter->ConvertToUVF(files, strTargetFilename,
                                              strTempDir, bNoUserInteraction,
@@ -1190,7 +1188,7 @@ bool IOManager::ConvertDataset(const list<string>& files,
       }
     }
 
-    if (!bRAWCreated && m_pFinalConverter) {
+    if (!bRAWCreated && (m_pFinalConverter != 0)) {
       MESSAGE("No converter can read the data.  Trying fallback converter.");
       bRAWCreated = m_pFinalConverter->ConvertToRAW(strFilename, strTempDir,
                                                     bNoUserInteraction,
@@ -1962,7 +1960,7 @@ bool IOManager::AnalyzeDataset(const string& strFilename, RangeInfo& info,
       if (bAnalyzed) break;
     }
 
-    if (!bAnalyzed && m_pFinalConverter) {
+    if (!bAnalyzed && (m_pFinalConverter != 0)) {
       bAnalyzed = m_pFinalConverter->Analyze(strFilename, strTempDir, false, info);
     }
 
@@ -2543,7 +2541,8 @@ bool IOManager::ReBrickDataset(const string& strSourceFilename,
 
   MESSAGE("Rebricking (Phase 2/2)...");
 
-  if (!Controller::Instance().IOMan()->ConvertDataset(tmpFile, strTargetFilename, strTempDir, true, iMaxBrickSize, iBrickOverlap,bQuantizeTo8Bit)) {
+  if (!ConvertDataset(tmpFile, strTargetFilename, strTempDir, true, 
+                      iMaxBrickSize, iBrickOverlap,bQuantizeTo8Bit)) {
     T_ERROR("Unable to convert raw data from file %s into new UVF file %s", tmpFile.c_str(),strTargetFilename.c_str());
     if(remove(tmpFile.c_str()) == -1) WARNING("Unable to delete temp file %s", tmpFile.c_str());
     return false;

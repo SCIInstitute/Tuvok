@@ -239,7 +239,7 @@ public:
 
 
   void RegisterExternalConverter(AbstrConverter* pConverter);
-  void RegisterFinalConverter(AbstrConverter* pConverter);
+  void RegisterFinalConverter(std::shared_ptr<AbstrConverter> pConverter);
 
   std::string GetLoadDialogString() const;
   std::string GetExportDialogString() const;
@@ -304,7 +304,7 @@ public:
 private:
   std::vector<tuvok::AbstrGeoConverter*> m_vpGeoConverters;
   std::vector<AbstrConverter*>    m_vpConverters;
-  AbstrConverter*                 m_pFinalConverter;
+  std::shared_ptr<AbstrConverter> m_pFinalConverter;
   std::auto_ptr<tuvok::io::DSFactory> m_dsFactory;
 
   uint64_t m_iMaxBrickSize;

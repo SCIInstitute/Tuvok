@@ -48,6 +48,8 @@
 #include "UVF/UVFTables.h"
 #include "UVF/Histogram1DDataBlock.h"
 
+/// If you modify this class, be sure to update the corresponding 
+/// LuaStrictStack definition in LuaIOManagerProxy.
 class RangeInfo {
 public:
   UINT64VECTOR3                 m_vDomainSize;
