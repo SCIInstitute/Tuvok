@@ -28,13 +28,12 @@ namespace tuvok {
     AsyncVisibilityUpdater(GLVolumePool& m_Parent);
     ~AsyncVisibilityUpdater();
 
-    void Restart(const VisibilityState& visibility, size_t iTimeStep);
+    void Restart(const VisibilityState& visibility);
     bool Pause(); // returns true if thread is busy, false means thread is idle
     virtual void Resume();
 
     // call pause before using any getter and probably resume or restart afterwards
     const VisibilityState& GetVisibility() const { return m_Visibility; }
-    size_t GetTimestep() const { return m_iTimestep; }
 #ifdef GLVOLUMEPOOL_PROFILE
     struct Stats {
       double fTimeTotal;
@@ -50,7 +49,6 @@ namespace tuvok {
 
     GLVolumePool& m_Pool;
     VisibilityState m_Visibility;
-    size_t m_iTimestep;
 
     enum State {
       RestartRequested,
@@ -218,7 +216,9 @@ GLVolumePool::GLVolumePool(const UINTVECTOR3& poolSize, UVFDataset* dataset, GLe
     m_vMinMaxScalar[i].max = imme.maxScalar;
   }
 
-  m_pUpdater = new AsyncVisibilityUpdater(*this);
+  uint32_t const iAsyncUpdaterThreshold = 7500 * 5; // we can process 7500 bricks/ms (1500 running debug build)
+  if (m_iTotalBrickCount > iAsyncUpdaterThreshold)
+    m_pUpdater = new AsyncVisibilityUpdater(*this);
 }
 
 uint32_t GLVolumePool::GetIntegerBrickID(const UINTVECTOR4& vBrickID) const {
@@ -581,7 +581,8 @@ void GLVolumePool::Enable(float fLoDFactor, const FLOATVECTOR3& vExtend,
 }
 
 GLVolumePool::~GLVolumePool() {
-  delete m_pUpdater;
+  if (m_pUpdater)
+    delete m_pUpdater;
 
   FreeGLResources();
 }
@@ -676,13 +677,13 @@ void GLVolumePool::UploadMetadataTexture() {
   MESSAGE("Pool Utilization %u/%u %g%%", used, m_PoolSlotData.size(), 100.0f*used/float(m_PoolSlotData.size()));
   // DEBUG code end
 */
-#ifdef PROFILE_GLVOLUMEPOOL
+#ifdef GLVOLUMEPOOL_PROFILE
   double const t = m_Timer.Elapsed();
 #endif
 
   m_PoolMetadataTexture->SetData(&m_vBrickMetadata[0]);
 
-#ifdef PROFILE_GLVOLUMEPOOL
+#ifdef GLVOLUMEPOOL_PROFILE
   m_TimesMetaTextureUpload.Push(static_cast<float>(m_Timer.Elapsed() - t));
 #endif
 }
@@ -759,14 +760,18 @@ namespace {
     } // for all slots in brick pool
   }
 
-  template<bool bEvaluatePredicate, AbstrRenderer::ERenderMode eRenderMode>
+  template<bool bInterruptable, AbstrRenderer::ERenderMode eRenderMode>
   void RecomputeVisibilityForOctree(VisibilityState const& visibility, GLVolumePool const& pool,
                                     std::vector<uint32_t>& vBrickMetadata,
                                     std::vector<GLVolumePool::MinMax> const& vMinMaxScalar,
                                     std::vector<GLVolumePool::MinMax> const& vMinMaxGradient,
                                     tuvok::ThreadClass::PredicateFunction pContinue = tuvok::ThreadClass::PredicateFunction())
   {
-    uint32_t const iContinue = 100;
+#ifndef _DEBUG
+    uint32_t const iContinue = 375; // we approximately process 7500 bricks/ms, checking for interruption every 375 bricks allows us to pause in 0.05 ms (worst case)
+#else
+    uint32_t const iContinue = 75; // we'll just get 1500 bricks/ms running a debug build
+#endif
     uint32_t const iLodCount = GetLoDCount(pool.GetVolumeSize());
     UINTVECTOR3 iChildLayout = GetBrickLayout(pool.GetVolumeSize(), pool.GetMaxInnerBrickSize(), 0);
 
@@ -775,7 +780,7 @@ namespace {
       for (uint32_t y = 0; y < iChildLayout.y; y++) {
         for (uint32_t x = 0; x < iChildLayout.x; x++) {
 
-          if (bEvaluatePredicate && !(x % iContinue)/* && pContinue*/)
+          if (bInterruptable && !(x % iContinue)/* && pContinue*/)
             if (!pContinue())
               return;
 
@@ -802,7 +807,7 @@ namespace {
         for (uint32_t y = 0; y < iEvenLayout.y; y++) {
           for (uint32_t x = 0; x < iEvenLayout.x; x++) {
 
-            if (bEvaluatePredicate && !(x % iContinue)/* && pContinue*/)
+            if (bInterruptable && !(x % iContinue)/* && pContinue*/)
               if (!pContinue())
                 return;
 
@@ -839,7 +844,7 @@ namespace {
         for (uint32_t z = 0; z < iEvenLayout.z; z++) {
           for (uint32_t y = 0; y < iEvenLayout.y; y++) {
 
-            if (bEvaluatePredicate && !(y % iContinue)/* && pContinue*/)
+            if (bInterruptable && !(y % iContinue)/* && pContinue*/)
               if (!pContinue())
                 return;
 
@@ -871,7 +876,7 @@ namespace {
         for (uint32_t z = 0; z < iEvenLayout.z; z++) {
           for (uint32_t x = 0; x < iEvenLayout.x; x++) {
 
-            if (bEvaluatePredicate && !(x % iContinue)/* && pContinue*/)
+            if (bInterruptable && !(x % iContinue)/* && pContinue*/)
               if (!pContinue())
                 return;
 
@@ -903,7 +908,7 @@ namespace {
         for (uint32_t y = 0; y < iEvenLayout.y; y++) {
           for (uint32_t x = 0; x < iEvenLayout.x; x++) {
 
-            if (bEvaluatePredicate && !(x % iContinue)/* && pContinue*/)
+            if (bInterruptable && !(x % iContinue)/* && pContinue*/)
               if (!pContinue())
                 return;
 
@@ -934,7 +939,7 @@ namespace {
       if (iChildLayout.x % 2 && iChildLayout.y % 2) {
         for (uint32_t z = 0; z < iEvenLayout.z; z++) {
 
-          if (bEvaluatePredicate && !(z % iContinue)/* && pContinue*/)
+          if (bInterruptable && !(z % iContinue)/* && pContinue*/)
             if (!pContinue())
               return;
 
@@ -963,7 +968,7 @@ namespace {
       if (iChildLayout.x % 2 && iChildLayout.z % 2) {
         for (uint32_t y = 0; y < iEvenLayout.y; y++) {
 
-          if (bEvaluatePredicate && !(y % iContinue)/* && pContinue*/)
+          if (bInterruptable && !(y % iContinue)/* && pContinue*/)
             if (!pContinue())
               return;
 
@@ -992,7 +997,7 @@ namespace {
       if (iChildLayout.y % 2 && iChildLayout.z % 2) {
         for (uint32_t x = 0; x < iEvenLayout.x; x++) {
 
-          if (bEvaluatePredicate && !(x % iContinue)/* && pContinue*/)
+          if (bInterruptable && !(x % iContinue)/* && pContinue*/)
             if (!pContinue())
               return;
 
@@ -1020,7 +1025,7 @@ namespace {
       // single brick at the x/y/z corner
       if (iChildLayout.x % 2 && iChildLayout.y % 2 && iChildLayout.z % 2) {
 
-        if (bEvaluatePredicate /* && pContinue*/)
+        if (bInterruptable /* && pContinue*/)
           if (!pContinue())
             return;
 
@@ -1094,7 +1099,8 @@ void GLVolumePool::RecomputeVisibility(VisibilityState const& visibility, size_t
 #endif
 
   // pause async updater because we will touch the meta data
-  m_pUpdater->Pause();
+  if (m_pUpdater)
+    m_pUpdater->Pause();
   
   // fill minmax scalar acceleration data structure if timestep changed
   if (m_iMinMaxScalarTimestep != iTimestep) {
@@ -1143,41 +1149,63 @@ void GLVolumePool::RecomputeVisibility(VisibilityState const& visibility, size_t
     return;
   }
 
+  if (!m_pUpdater) {
+    // recompute visibility for the entire hierarchy immediately
+    switch (visibility.GetRenderMode()) {
+    case AbstrRenderer::RM_1DTRANS:
+      RecomputeVisibilityForOctree<false, AbstrRenderer::RM_1DTRANS>(visibility, *this, m_vBrickMetadata, m_vMinMaxScalar, m_vMinMaxGradient);
+      break;
+    case AbstrRenderer::RM_2DTRANS:
+      RecomputeVisibilityForOctree<false, AbstrRenderer::RM_2DTRANS>(visibility, *this, m_vBrickMetadata, m_vMinMaxScalar, m_vMinMaxGradient);
+      break;
+    case AbstrRenderer::RM_ISOSURFACE:
+      RecomputeVisibilityForOctree<false, AbstrRenderer::RM_ISOSURFACE>(visibility, *this, m_vBrickMetadata, m_vMinMaxScalar, m_vMinMaxGradient);
+      break;
+    default:
+      T_ERROR("Unhandled rendering mode.");
+      return;
+    }
+    m_bVisibilityUpdated = true;
+  }
+
   // upload new meta data to GPU
   UploadMetadataTexture();
 
   // restart async updater because visibility changed
-  m_pUpdater->Restart(visibility, iTimestep);
-  m_bVisibilityUpdated = false;
-  OTHER("computed visibility for %d bricks in volume pool and started async visibility update for the entire hierarchy", m_vPoolSlotData.size());
-
+  if (m_pUpdater) {
+    m_pUpdater->Restart(visibility);
+    m_bVisibilityUpdated = false;
+    OTHER("computed visibility for %d bricks in volume pool and started async visibility update for the entire hierarchy", m_vPoolSlotData.size());
+  }
 #ifdef GLVOLUMEPOOL_PROFILE
   m_TimesRecomputeVisibility.Push(static_cast<float>(m_Timer.Elapsed()));
+  OTHER("meta texture (%.4f MB) upload cost [avg: %.2f, min: %.2f, max: %.2f, samples: %d]"
+    , m_PoolMetadataTexture->GetCPUSize() / 1024.0f / 1024.0f, m_TimesMetaTextureUpload.GetAvg(), m_TimesMetaTextureUpload.GetMin(), m_TimesMetaTextureUpload.GetMax(), m_TimesMetaTextureUpload.GetHistroryLength());
+  OTHER("recompute visibility cost [avg: %.2f, min: %.2f, max: %.2f, samples: %d]"
+    , m_TimesRecomputeVisibility.GetAvg(), m_TimesRecomputeVisibility.GetMin(), m_TimesRecomputeVisibility.GetMax(), m_TimesRecomputeVisibility.GetHistroryLength());
 #endif
 }
 
 void GLVolumePool::UploadBricks(const std::vector<UINTVECTOR4>& vBrickIDs, std::vector<unsigned char>& vUploadMem)
 {
   // pause async updater because we will touch the meta data
-  bool const bBusy = m_pUpdater->Pause();
+  bool const bBusy = m_pUpdater && m_pUpdater->Pause();
 
   if (!vBrickIDs.empty())
   {
     PrepareForPaging();
 
-    VisibilityState const& visibility = m_pUpdater->GetVisibility();
-    size_t iTimestep = m_pUpdater->GetTimestep();
-
     if (!m_bVisibilityUpdated) {
+      VisibilityState const& visibility = m_pUpdater->GetVisibility();
       switch (visibility.GetRenderMode()) {
       case AbstrRenderer::RM_1DTRANS:
-        PotentiallyUploadBricksToBrickPool<AbstrRenderer::RM_1DTRANS>(visibility, m_pDataset, iTimestep, *this, m_vBrickMetadata, vBrickIDs, m_vMinMaxScalar, m_vMinMaxGradient, vUploadMem);
+        PotentiallyUploadBricksToBrickPool<AbstrRenderer::RM_1DTRANS>(visibility, m_pDataset, m_iMinMaxScalarTimestep, *this, m_vBrickMetadata, vBrickIDs, m_vMinMaxScalar, m_vMinMaxGradient, vUploadMem);
         break;
       case AbstrRenderer::RM_2DTRANS:
-        PotentiallyUploadBricksToBrickPool<AbstrRenderer::RM_2DTRANS>(visibility, m_pDataset, iTimestep, *this, m_vBrickMetadata, vBrickIDs, m_vMinMaxScalar, m_vMinMaxGradient, vUploadMem);
+        PotentiallyUploadBricksToBrickPool<AbstrRenderer::RM_2DTRANS>(visibility, m_pDataset, m_iMinMaxScalarTimestep, *this, m_vBrickMetadata, vBrickIDs, m_vMinMaxScalar, m_vMinMaxGradient, vUploadMem);
         break;
       case AbstrRenderer::RM_ISOSURFACE:
-        PotentiallyUploadBricksToBrickPool<AbstrRenderer::RM_ISOSURFACE>(visibility, m_pDataset, iTimestep, *this, m_vBrickMetadata, vBrickIDs, m_vMinMaxScalar, m_vMinMaxGradient, vUploadMem);
+        PotentiallyUploadBricksToBrickPool<AbstrRenderer::RM_ISOSURFACE>(visibility, m_pDataset, m_iMinMaxScalarTimestep, *this, m_vBrickMetadata, vBrickIDs, m_vMinMaxScalar, m_vMinMaxGradient, vUploadMem);
         break;
       default:
         T_ERROR("Unhandled rendering mode.");
@@ -1187,7 +1215,7 @@ void GLVolumePool::UploadBricks(const std::vector<UINTVECTOR4>& vBrickIDs, std::
       // visibility is updated guaranteeing that requested bricks do contain data
       for (auto missingBrick = vBrickIDs.cbegin(); missingBrick < vBrickIDs.cend(); missingBrick++) {
         UINTVECTOR4 const& vBrickID = *missingBrick;
-        BrickKey const key = m_pDataset->TOCVectorToKey(vBrickID, iTimestep);
+        BrickKey const key = m_pDataset->TOCVectorToKey(vBrickID, m_iMinMaxScalarTimestep);
         UINTVECTOR3 const vVoxelSize = m_pDataset->GetBrickVoxelCounts(key);
 
         m_pDataset->GetBrick(key, vUploadMem);
@@ -1202,17 +1230,13 @@ void GLVolumePool::UploadBricks(const std::vector<UINTVECTOR4>& vBrickIDs, std::
   } else {
     if (!m_bVisibilityUpdated)
     {
-      m_bVisibilityUpdated = true; // must be set one frame delayed otherwise we might upload empty bricks
       UploadMetadataTexture(); // we want to upload the whole meta texture when async updater is done
+      m_bVisibilityUpdated = true; // must be set one frame delayed otherwise we might upload empty bricks
 
 #ifdef GLVOLUMEPOOL_PROFILE
       AsyncVisibilityUpdater::Stats const& stats = m_pUpdater->GetStats();
-      OTHER("async visibility update completed for %d bricks in %.2f ms including %d interruptions that cost %.3f ms (%.2f bricks/ms)"
-        , m_iTotalBrickCount, stats.fTimeTotal, stats.iInterruptions, stats.fTimeInterruptions, m_iTotalBrickCount/stats.fTimeTotal);
-      OTHER("meta texture (%.4f MB) upload cost [avg: %.2f, min: %.2f, max: %.2f, samples: %d]"
-        , m_PoolMetadataTexture->GetCPUSize() / 1024.0f / 1024.0f, m_TimesMetaTextureUpload.GetAvg(), m_TimesMetaTextureUpload.GetMin(), m_TimesMetaTextureUpload.GetMax(), m_TimesMetaTextureUpload.GetHistroryLength());
-      OTHER("recompute visibility cost [avg: %.2f, min: %.2f, max: %.2f, samples: %d]"
-        , m_TimesRecomputeVisibility.GetAvg(), m_TimesRecomputeVisibility.GetMin(), m_TimesRecomputeVisibility.GetMax(), m_TimesRecomputeVisibility.GetHistroryLength());
+      OTHER("async visibility update completed for %d bricks in %.2f ms excluding %d interruptions that cost %.3f ms (%.2f bricks/ms)"
+        , m_iTotalBrickCount, stats.fTimeTotal - stats.fTimeInterruptions, stats.iInterruptions, stats.fTimeInterruptions, m_iTotalBrickCount/(stats.fTimeTotal - stats.fTimeInterruptions));
 #else
       OTHER("async visibility update completed for %d bricks", m_iTotalBrickCount);
 #endif
@@ -1223,7 +1247,6 @@ void GLVolumePool::UploadBricks(const std::vector<UINTVECTOR4>& vBrickIDs, std::
 AsyncVisibilityUpdater::AsyncVisibilityUpdater(GLVolumePool& parent)
   : m_Pool(parent)
   , m_Visibility()
-  , m_iTimestep(0)
   , m_eState(Idle)
 {
   StartThread();
@@ -1236,12 +1259,11 @@ AsyncVisibilityUpdater::~AsyncVisibilityUpdater()
   JoinThread();
 }
 
-void AsyncVisibilityUpdater::Restart(VisibilityState const& visibility, size_t iTimeStep)
+void AsyncVisibilityUpdater::Restart(VisibilityState const& visibility)
 {
   SCOPEDLOCK(m_StateGuard);
   Pause();
   m_Visibility = visibility;
-  m_iTimestep = iTimeStep;
 #ifndef GLVOLUMEPOOL_SIMULATE_BUSY_ASYNC_UPDATER
   m_eState = RestartRequested;
   Resume(); // restart worker
@@ -1284,10 +1306,13 @@ bool AsyncVisibilityUpdater::Continue()
     m_Worker.Wait(m_StateGuard); // wait until parent wakes worker to continue
 
 #ifdef GLVOLUMEPOOL_PROFILE
-    m_Stats.fTimeInterruptions = m_Timer.Elapsed() - t;
-    m_Stats.iInterruptions++;
+    m_Stats.iInterruptions++; // real interruption
 #endif
   }
+#ifdef GLVOLUMEPOOL_PROFILE
+  m_Stats.fTimeInterruptions += m_Timer.Elapsed() - t; // time interruptions and interruption checks
+#endif
+
   if (m_eState == RestartRequested) {
     return false;
   }
