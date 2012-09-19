@@ -85,6 +85,16 @@ private:
                       const std::string& strTargetFilename,
                       const std::string& strTempDir,
                       bool bQuantizeTo8Bit) const;
+  bool ConvertDataset(const std::list<std::string>& files,
+                      const std::string& strTargetFilename,
+                      const std::string& strTempDir,
+                      bool bNoUserInteraction,
+                      bool bQuantizeTo8Bit);
+  bool ConvertDatasetWithStack(
+      std::shared_ptr<FileStackInfo> stack,
+      const std::string& strTargetFilename,
+      const std::string& strTempDir,
+      bool bQuantizeTo8Bit);
   /// @}
 };
 

@@ -82,6 +82,11 @@ void LuaIOManagerProxy::bind()
                                nm + "exportMesh", "", false);
     id = mReg.registerFunction(this, &LuaIOManagerProxy::ReBrickDataset,
                                nm + "rebrickDataset", "", false);
+    id = mReg.registerFunction(this, &LuaIOManagerProxy::ConvertDataset,
+                               nm + "convertDataset", "", false);
+    id = mReg.registerFunction(this, 
+                               &LuaIOManagerProxy::ConvertDatasetWithStack,
+                               nm + "convertDatasetWithStack", "", false);
 
 
     /// Functions that are not overloaded and can be registered directly.
@@ -174,8 +179,8 @@ bool LuaIOManagerProxy::ExtractImageStack(
 
 bool LuaIOManagerProxy::ExportDataset(LuaClassInstance ds,
                                       uint64_t iLODlevel,
-                                      const std::string& strTargetFilename,
-                                      const std::string& strTempDir) const
+                                      const string& strTargetFilename,
+                                      const string& strTempDir) const
 {
   if (mSS->cexecRet<LuaDatasetProxy::DatasetType>(
           ds.fqName() + ".getDSType") != LuaDatasetProxy::UVF) {
@@ -193,17 +198,39 @@ bool LuaIOManagerProxy::ExportDataset(LuaClassInstance ds,
 }
 
 bool LuaIOManagerProxy::ExportMesh(shared_ptr<Mesh> mesh,
-                                   const std::string& strTargetFilename) const
+                                   const string& strTargetFilename) const
 {
   return mIO->ExportMesh(mesh, strTargetFilename);
 }
 
-bool LuaIOManagerProxy::ReBrickDataset(const std::string& strSourceFilename,
-                                       const std::string& strTargetFilename,
-                                       const std::string& strTempDir,
+bool LuaIOManagerProxy::ReBrickDataset(const string& strSourceFilename,
+                                       const string& strTargetFilename,
+                                       const string& strTempDir,
                                        bool bQuantizeTo8Bit) const {
   return mIO->ReBrickDataset(strSourceFilename, strTargetFilename, strTempDir,
                              bQuantizeTo8Bit);
 }
+
+bool LuaIOManagerProxy::ConvertDataset(const list<std::string>& files,
+                                       const string& strTargetFilename,
+                                       const string& strTempDir,
+                                       bool bNoUserInteraction,
+                                       bool bQuantizeTo8Bit)
+{
+  return mIO->ConvertDataset(files, strTargetFilename, strTempDir,
+                             bNoUserInteraction, bQuantizeTo8Bit);
+}
+
+bool LuaIOManagerProxy::ConvertDatasetWithStack(
+    shared_ptr<FileStackInfo> stack,
+    const string& strTargetFilename,
+    const string& strTempDir,
+    bool bQuantizeTo8Bit)
+{
+  /// @todo Convert 'ConvertDataset' to use shared_ptr instead of raw ptr.
+  return mIO->ConvertDataset(stack.get(), strTargetFilename, strTempDir,
+                             bQuantizeTo8Bit);
+}
+
 
 } /* namespace tuvok */
