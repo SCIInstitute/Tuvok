@@ -1010,7 +1010,248 @@ public:
   static Type getDefault() {return Type();}
 };
 
+#ifdef DETECTED_OS_WINDOWS
+/// Visual Studio 2010 and Visual Studio 2012 don't support variadic templates
+/// so we need to specialize every tuple we use.
 
+template <typename T1, typename T2>
+class LuaStrictStack<std::tuple<T1, T2> >
+{
+public:
+
+  typedef std::tuple<T1, T2> Type;
+
+  static Type get(lua_State* L, int pos)
+  {
+    // Ensure that there is a table on the top of the stack.
+    LuaStackRAII _a(L, 0, 0);
+
+    Type ret;
+
+    luaL_checktype(L, pos, LUA_TTABLE);
+
+    lua_pushinteger(L, 2);
+    lua_gettable(L, pos);
+    LuaStrictStack<T2>::get(L, pos);
+
+    lua_pushinteger(L, 1);
+    lua_gettable(L, pos);
+    LuaStrictStack<T1>::get(L, pos);
+
+    ret = std::make_tuple(LuaStrictStack<T1>::get(L, -1),
+                          LuaStrictStack<T2>::get(L, -2));
+
+    lua_pop(L, 2);
+
+    return ret;
+  }
+
+  static void push(lua_State* L, Type in)
+  {
+    LuaStackRAII _a(L, 0, 1);
+
+    // Place all of our vector values in a new table.
+    lua_newtable(L);
+    int tblPos = lua_gettop(L);
+
+    lua_pushinteger(L, 1);
+    LuaStrictStack<T1>::push(L, std::get<0>(in));
+    lua_settable(L, tblPos);
+
+    lua_pushinteger(L, 2);
+    LuaStrictStack<T2>::push(L, std::get<1>(in));
+    lua_settable(L, tblPos);
+  }
+
+  static std::string getValStr(Type)
+  {
+    return std::string("Not implemented for tuples on windows.");
+  }
+  static std::string getTypeStr() { return "2-tuple"; }
+  static Type getDefault() {return Type();}
+};
+
+/// Handles tConverterFormat (in IOManager)
+template <typename T1, typename T2, typename T3, typename T4>
+class LuaStrictStack<std::tuple<T1, T2, T3, T4> >
+{
+public:
+
+  typedef std::tuple<T1, T2, T3, T4> Type;
+
+  static Type get(lua_State* L, int pos)
+  {
+    // Ensure that there is a table on the top of the stack.
+    LuaStackRAII _a(L, 0, 0);
+
+    Type ret;
+
+    luaL_checktype(L, pos, LUA_TTABLE);
+
+    lua_pushinteger(L, 4);
+    lua_gettable(L, pos);
+    LuaStrictStack<T4>::get(L, pos);
+
+    lua_pushinteger(L, 3);
+    lua_gettable(L, pos);
+    LuaStrictStack<T3>::get(L, pos);
+
+    lua_pushinteger(L, 2);
+    lua_gettable(L, pos);
+    LuaStrictStack<T2>::get(L, pos);
+
+    lua_pushinteger(L, 1);
+    lua_gettable(L, pos);
+    LuaStrictStack<T1>::get(L, pos);
+
+    ret = std::make_tuple(LuaStrictStack<T1>::get(L, -1),
+                          LuaStrictStack<T2>::get(L, -2),
+                          LuaStrictStack<T3>::get(L, -3),
+                          LuaStrictStack<T4>::get(L, -4));
+
+    lua_pop(L, 4);
+
+    return ret;
+  }
+
+  static void push(lua_State* L, Type in)
+  {
+    LuaStackRAII _a(L, 0, 1);
+
+    // Place all of our vector values in a new table.
+    lua_newtable(L);
+    int tblPos = lua_gettop(L);
+
+    lua_pushinteger(L, 1);
+    LuaStrictStack<T1>::push(L, std::get<0>(in));
+    lua_settable(L, tblPos);
+
+    lua_pushinteger(L, 2);
+    LuaStrictStack<T2>::push(L, std::get<1>(in));
+    lua_settable(L, tblPos);
+
+    lua_pushinteger(L, 3);
+    LuaStrictStack<T3>::push(L, std::get<2>(in));
+    lua_settable(L, tblPos);
+
+    lua_pushinteger(L, 4);
+    LuaStrictStack<T4>::push(L, std::get<3>(in));
+    lua_settable(L, tblPos);
+  }
+
+  static std::string getValStr(Type)
+  {
+    return std::string("Not implemented for tuples on windows.");
+  }
+  static std::string getTypeStr() { return "4-tuple"; }
+  static Type getDefault() {return Type();}
+};
+
+template <typename T1, typename T2, typename T3, typename T4, typename T5, 
+          typename T6, typename T7>
+class LuaStrictStack<std::tuple<T1, T2, T3, T4, T5, T6, T7> >
+{
+public:
+
+  typedef std::tuple<T1, T2, T3, T4, T5, T6, T7> Type;
+
+  static Type get(lua_State* L, int pos)
+  {
+    // Ensure that there is a table on the top of the stack.
+    LuaStackRAII _a(L, 0, 0);
+
+    Type ret;
+
+    luaL_checktype(L, pos, LUA_TTABLE);
+
+    lua_pushinteger(L, 7);
+    lua_gettable(L, pos);
+    LuaStrictStack<T7>::get(L, pos);
+
+    lua_pushinteger(L, 6);
+    lua_gettable(L, pos);
+    LuaStrictStack<T6>::get(L, pos);
+
+    lua_pushinteger(L, 5);
+    lua_gettable(L, pos);
+    LuaStrictStack<T5>::get(L, pos);
+
+    lua_pushinteger(L, 4);
+    lua_gettable(L, pos);
+    LuaStrictStack<T4>::get(L, pos);
+
+    lua_pushinteger(L, 3);
+    lua_gettable(L, pos);
+    LuaStrictStack<T3>::get(L, pos);
+
+    lua_pushinteger(L, 2);
+    lua_gettable(L, pos);
+    LuaStrictStack<T2>::get(L, pos);
+
+    lua_pushinteger(L, 1);
+    lua_gettable(L, pos);
+    LuaStrictStack<T1>::get(L, pos);
+
+    ret = std::make_tuple(LuaStrictStack<T1>::get(L, -1),
+                          LuaStrictStack<T2>::get(L, -2),
+                          LuaStrictStack<T3>::get(L, -3),
+                          LuaStrictStack<T4>::get(L, -4),
+                          LuaStrictStack<T5>::get(L, -5),
+                          LuaStrictStack<T6>::get(L, -6),
+                          LuaStrictStack<T7>::get(L, -7));
+
+    lua_pop(L, 4);
+
+    return ret;
+  }
+
+  static void push(lua_State* L, Type in)
+  {
+    LuaStackRAII _a(L, 0, 1);
+
+    // Place all of our vector values in a new table.
+    lua_newtable(L);
+    int tblPos = lua_gettop(L);
+
+    lua_pushinteger(L, 1);
+    LuaStrictStack<T1>::push(L, std::get<0>(in));
+    lua_settable(L, tblPos);
+
+    lua_pushinteger(L, 2);
+    LuaStrictStack<T2>::push(L, std::get<1>(in));
+    lua_settable(L, tblPos);
+
+    lua_pushinteger(L, 3);
+    LuaStrictStack<T3>::push(L, std::get<2>(in));
+    lua_settable(L, tblPos);
+
+    lua_pushinteger(L, 4);
+    LuaStrictStack<T4>::push(L, std::get<3>(in));
+    lua_settable(L, tblPos);
+
+    lua_pushinteger(L, 5);
+    LuaStrictStack<T5>::push(L, std::get<4>(in));
+    lua_settable(L, tblPos);
+
+    lua_pushinteger(L, 6);
+    LuaStrictStack<T6>::push(L, std::get<5>(in));
+    lua_settable(L, tblPos);
+
+    lua_pushinteger(L, 7);
+    LuaStrictStack<T7>::push(L, std::get<6>(in));
+    lua_settable(L, tblPos);
+  }
+
+  static std::string getValStr(Type)
+  {
+    return std::string("Not implemented for tuples on windows.");
+  }
+  static std::string getTypeStr() { return "7-tuple"; }
+  static Type getDefault() {return Type();}
+};
+
+
+#else
 /// Structure allowing recursive creation of tuples and extraction of their
 /// values. Watch out for the indices; std::get and std::tuple_element are 0 
 /// based while Lua indices (passed into lua_pushinteger) are 1 based.
@@ -1162,9 +1403,7 @@ public:
   static Type getDefault() {return Type();}
 };
 
-// TODO:  If boost detected, add boost shared_ptr.
-
-// TODO:	Add support for std::map, to be implemented as a Lua table.
+#endif
 
 // For binding enumeration types, we provide the following template
 // specialization definition.
