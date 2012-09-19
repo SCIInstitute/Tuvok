@@ -87,6 +87,10 @@ public:
   GLuint Width() const {return m_iSizeX;}
   GLuint Height() const {return m_iSizeY;}
 
+  void SetData(const void *pixels, int iBuffer=0, bool bRestoreBinding=true);
+  void SetData(const UINTVECTOR2& offset, const UINTVECTOR2& size,
+               const void *pixels, int iBuffer=0, bool bRestoreBinding=true);
+
 private:
   MasterController*   m_pMasterController;
   GLuint              m_iSizeX;

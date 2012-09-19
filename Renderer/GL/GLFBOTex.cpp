@@ -163,8 +163,9 @@ GLFBOTex::~GLFBOTex(void) {
   m_hDepthBuffer=0;
   --m_iCount;
   if (m_iCount==0) {
-    m_pMasterController->DebugOut()->Message(_func_, "FBO released via "
-                                                     "destructor call.");
+    if (m_pMasterController)
+      m_pMasterController->DebugOut()->Message(_func_, "FBO released via "
+                                                       "destructor call.");
     GL(glDeleteFramebuffersEXT(1,&m_hFBO));
     m_hFBO=0;
   }
@@ -403,4 +404,34 @@ uint64_t GLFBOTex::EstimateGPUSize(GLsizei width, GLsizei height,
                               bool bHaveDepth, int iNumBuffers) {
   return EstimateCPUSize(width, height, iSizePerElement, bHaveDepth,
                           iNumBuffers);
+}
+
+void GLFBOTex::SetData(const UINTVECTOR2& offset, const UINTVECTOR2& size, const void *pixels, int iBuffer, bool bRestoreBinding) {
+  GL(glPixelStorei(GL_PACK_ALIGNMENT ,1));
+  GL(glPixelStorei(GL_UNPACK_ALIGNMENT ,1));
+
+  GLint prevTex=0;
+  if (bRestoreBinding) GL(glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTex));
+
+  GL(glBindTexture(GL_TEXTURE_2D, m_hTexture[iBuffer]));
+  GL(glTexSubImage2D(GL_TEXTURE_2D, 0, 
+    offset.x, offset.y,
+    size.x, size.y,
+    m_format, m_type, (GLvoid*)pixels));
+
+  if (bRestoreBinding && GLuint(prevTex) != m_hTexture[iBuffer]) GL(glBindTexture(GL_TEXTURE_2D, prevTex));
+}
+
+void GLFBOTex::SetData(const void *pixels, int iBuffer, bool bRestoreBinding) {
+  GL(glPixelStorei(GL_PACK_ALIGNMENT ,1));
+  GL(glPixelStorei(GL_UNPACK_ALIGNMENT ,1));
+
+  GLint prevTex=0;
+  if (bRestoreBinding) GL(glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTex));
+
+  GL(glBindTexture(GL_TEXTURE_2D, m_hTexture[iBuffer]));
+  GL(glTexImage2D(GL_TEXTURE_2D, 0, m_intformat, m_iSizeX, m_iSizeY,
+    0, m_format, m_type, (GLvoid*)pixels));
+
+  if (bRestoreBinding && GLuint(prevTex) != m_hTexture[iBuffer]) GL(glBindTexture(GL_TEXTURE_2D, prevTex));
 }
