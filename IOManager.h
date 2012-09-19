@@ -142,8 +142,8 @@ public:
 
   /// evaluates the given expression. v[n] in the expression refers to
   /// the volume given by volumes[n].
-  void EvaluateExpression(const char* expr,
-                          const std::vector<std::string> volumes,
+  void EvaluateExpression(const std::string& expr,
+                          const std::vector<std::string>& volumes,
                           const std::string& out_fn) const
                           throw(tuvok::Exception);
 
@@ -251,6 +251,11 @@ public:
   std::vector< std::pair <std::string, std::string > >
     GetExportFormatList() const;
   std::vector< tConverterFormat > GetFormatList() const;
+  bool HasConverterForExt(std::string ext,
+                          bool bMustSupportExport,
+                          bool bMustSupportImport) const {
+    return (GetConverterForExt(ext,bMustSupportExport,bMustSupportImport)!=NULL);
+  }
   AbstrConverter* GetConverterForExt(std::string ext,
                                      bool bMustSupportExport,
                                      bool bMustSupportImport) const;
@@ -262,6 +267,12 @@ public:
   std::vector< std::pair <std::string, std::string > >
     GetGeoExportFormatList() const;
   std::vector< tConverterFormat > GetGeoFormatList() const;
+  bool HasGeoConverterForExt(std::string ext,
+                             bool bMustSupportExport,
+                             bool bMustSupportImport) const {
+    return GetGeoConverterForExt(ext, bMustSupportExport, bMustSupportImport)
+        != NULL;
+  }
   tuvok::AbstrGeoConverter* GetGeoConverterForExt(std::string ext,
                                                   bool bMustSupportExport,
                                                   bool bMustSupportImport) const;

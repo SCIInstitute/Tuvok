@@ -2379,12 +2379,12 @@ struct cleanup_parser {
 };
 
 void
-IOManager::EvaluateExpression(const char* expr,
-                              const std::vector<std::string> volumes,
+IOManager::EvaluateExpression(const std::string& expr,
+                              const std::vector<std::string>& volumes,
                               const std::string& out_fn) const
                               throw(tuvok::Exception)
 {
-  parser_set_string(expr);
+  parser_set_string(expr.c_str());
   int parse_err = yyparse();
   std::auto_ptr<cleanup_parser> p(new cleanup_parser());
   assert(!volumes.empty());
