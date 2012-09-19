@@ -84,6 +84,14 @@ void LuaIOManagerProxy::bind()
     id = mReg.registerFunction(this,
                                &LuaIOManagerProxy::ExportMesh,
                                nm + "exportMesh", "", false);
+
+    /// Functions that are not overloaded and can be registered directly.
+    id = mReg.registerFunction(mIO, &IOManager::GetMaxBrickSize,
+                               nm + "getMaxBrickSize", "", false);
+    id = mReg.registerFunction(mIO, &IOManager::SetMaxBrickSize,
+                               nm + "setMaxBrickSize", "", true);
+    id = mReg.registerFunction(mIO, &IOManager::GetBuilderBrickSize,
+                               nm + "getBuilderBrickSize", "", false);
   }
 
 }
