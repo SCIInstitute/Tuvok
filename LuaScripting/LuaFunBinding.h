@@ -193,6 +193,32 @@ public:
 };
 
 template<>
+class LuaStrictStack<long>
+{
+public:
+  typedef long Type;
+
+  static long get(lua_State* L, int pos)
+  {
+    return static_cast<long>(luaL_checknumber(L, pos));
+  }
+
+  static void push(lua_State* L, long in)
+  {
+    lua_pushnumber(L, static_cast<lua_Number>(in));
+  }
+
+  static std::string getValStr(long in)
+  {
+    std::ostringstream os;
+    os << in;
+    return os.str();
+  }
+  static std::string    getTypeStr()  { return "long"; }
+  static long           getDefault()  { return 0; }
+};
+
+template<>
 class LuaStrictStack<unsigned long>
 {
 public:
@@ -1032,11 +1058,9 @@ public:
 
     lua_pushinteger(L, 2);
     lua_gettable(L, pos);
-    LuaStrictStack<T2>::get(L, pos);
 
     lua_pushinteger(L, 1);
     lua_gettable(L, pos);
-    LuaStrictStack<T1>::get(L, pos);
 
     ret = std::make_tuple(LuaStrictStack<T1>::get(L, -1),
                           LuaStrictStack<T2>::get(L, -2));
@@ -1090,19 +1114,15 @@ public:
 
     lua_pushinteger(L, 4);
     lua_gettable(L, pos);
-    LuaStrictStack<T4>::get(L, pos);
 
     lua_pushinteger(L, 3);
     lua_gettable(L, pos);
-    LuaStrictStack<T3>::get(L, pos);
 
     lua_pushinteger(L, 2);
     lua_gettable(L, pos);
-    LuaStrictStack<T2>::get(L, pos);
 
     lua_pushinteger(L, 1);
     lua_gettable(L, pos);
-    LuaStrictStack<T1>::get(L, pos);
 
     ret = std::make_tuple(LuaStrictStack<T1>::get(L, -1),
                           LuaStrictStack<T2>::get(L, -2),
@@ -1166,31 +1186,24 @@ public:
 
     lua_pushinteger(L, 7);
     lua_gettable(L, pos);
-    LuaStrictStack<T7>::get(L, pos);
 
     lua_pushinteger(L, 6);
     lua_gettable(L, pos);
-    LuaStrictStack<T6>::get(L, pos);
 
     lua_pushinteger(L, 5);
     lua_gettable(L, pos);
-    LuaStrictStack<T5>::get(L, pos);
 
     lua_pushinteger(L, 4);
     lua_gettable(L, pos);
-    LuaStrictStack<T4>::get(L, pos);
 
     lua_pushinteger(L, 3);
     lua_gettable(L, pos);
-    LuaStrictStack<T3>::get(L, pos);
 
     lua_pushinteger(L, 2);
     lua_gettable(L, pos);
-    LuaStrictStack<T2>::get(L, pos);
 
     lua_pushinteger(L, 1);
     lua_gettable(L, pos);
-    LuaStrictStack<T1>::get(L, pos);
 
     ret = std::make_tuple(LuaStrictStack<T1>::get(L, -1),
                           LuaStrictStack<T2>::get(L, -2),
