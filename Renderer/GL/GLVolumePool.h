@@ -9,7 +9,6 @@
 #include "GLInclude.h"
 #include "GLTexture2D.h"
 #include "GLTexture3D.h"
-#include "GLFBOTex.h"
 
 //#define GLVOLUMEPOOL_PROFILE // define to measure some timings
 //#define GLVOLUMEPOOL_SIMULATE_BUSY_ASYNC_UPDATER // define to prevent the async worker from doing anything useful
@@ -110,7 +109,7 @@ namespace tuvok {
       };
 
     protected:
-      GLFBOTex*    m_pPoolMetadataTexture;
+      GLTexture2D* m_pPoolMetadataTexture;
       GLTexture3D* m_pPoolDataTexture;
       UINTVECTOR3 m_vPoolCapacity;
       UINTVECTOR3 m_poolSize;

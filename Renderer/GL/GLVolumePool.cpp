@@ -271,7 +271,7 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
   ss << std::setprecision(36); // get the maximum precision for floats (larger precisions would just append zeros)
   ss << "" << std::endl
      << "layout(binding = " << m_iMetaTextureUnit << ") uniform usampler2D metaData;" << std::endl
-     << "#define iMetaTextureWidth " << m_pPoolMetadataTexture->Width() << std::endl
+     << "#define iMetaTextureWidth " << m_pPoolMetadataTexture->GetSize().x << std::endl
      << "" << std::endl
      << "#define BI_CHILD_EMPTY " << BI_CHILD_EMPTY << std::endl
      << "#define BI_EMPTY "       << BI_EMPTY << std::endl
@@ -569,7 +569,7 @@ bool GLVolumePool::IsBrickResident(const UINTVECTOR4& vBrickID) const {
 void GLVolumePool::Enable(float fLoDFactor, const FLOATVECTOR3& vExtend,
                           const FLOATVECTOR3& /*vAspect */,
                           GLSLProgram* pShaderProgram) const {
-  m_pPoolMetadataTexture->Read(m_iMetaTextureUnit);
+  m_pPoolMetadataTexture->Bind(m_iMetaTextureUnit);
   m_pPoolDataTexture->Bind(m_iDataTextureUnit);
 
   pShaderProgram->Enable();
@@ -582,7 +582,7 @@ void GLVolumePool::Enable(float fLoDFactor, const FLOATVECTOR3& vExtend,
 }
 
 void GLVolumePool::Disable() const {
-  m_pPoolMetadataTexture->FinishRead();
+  /*m_pPoolMetadataTexture->FinishRead();*/
 }
 
 GLVolumePool::~GLVolumePool() {
@@ -649,9 +649,9 @@ void GLVolumePool::CreateGLResources() {
      << "texture are wasted due to the 2D extension process.";
   MESSAGE(ss.str().c_str());
 
-  m_pPoolMetadataTexture = new GLFBOTex(
-    NULL, m_filter, m_filter, GL_CLAMP_TO_EDGE, vTexSize.x, vTexSize.y,
-    GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT
+  m_pPoolMetadataTexture = new GLTexture2D(
+    vTexSize.x, vTexSize.y, GL_R32UI,
+    GL_RED_INTEGER, GL_UNSIGNED_INT, &m_vBrickMetadata[0], m_filter, m_filter
   );
 }
 
@@ -695,7 +695,7 @@ void GLVolumePool::UploadMetadataTexture() {
 
 void GLVolumePool::UploadMetadataTexel(uint32_t iBrickID) {
 
-  uint32_t const iMetaTextureWidth = m_pPoolMetadataTexture->Width();
+  uint32_t const iMetaTextureWidth = m_pPoolMetadataTexture->GetSize().x;
   UINTVECTOR2 const vSize(1, 1); // size of single texel
   UINTVECTOR2 const vOffset(iBrickID % iMetaTextureWidth, iBrickID / iMetaTextureWidth);
   m_pPoolMetadataTexture->SetData(vOffset, vSize, &m_vBrickMetadata[iBrickID]);
@@ -1141,10 +1141,12 @@ void GLVolumePool::RecomputeVisibility(VisibilityState const& visibility, size_t
   // TODO: if metadata texture grows too large (14 ms CPU update time for approx 2000x2000 texture) consider to
   //       update texel regions efficiently that will be toched by RecomputeVisibilityForBrickPool()
   //       updating every single texel turned out to be not efficient in this case
+/*
   m_pPoolMetadataTexture->Write();
   GL(glClearColor(0, 0, 0, 0)); // clears metadata texture to BI_MISSING that equals zero
   GL(glClear(GL_COLOR_BUFFER_BIT));
   m_pPoolMetadataTexture->FinishWrite();
+*/
 
 #ifdef GLVOLUMEPOOL_PROFILE
   double const t = m_Timer.Elapsed();
@@ -1387,7 +1389,7 @@ void AsyncVisibilityUpdater::ThreadMain(void*)
 
 void GLVolumePool::FreeGLResources() {
   if (m_pPoolMetadataTexture) {
-    //m_pPoolMetadataTexture->Delete();
+    m_pPoolMetadataTexture->Delete();
     delete m_pPoolMetadataTexture;
   }
   if (m_pPoolDataTexture) {
