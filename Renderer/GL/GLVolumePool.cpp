@@ -251,7 +251,8 @@ inline UINTVECTOR3 const& GLVolumePool::GetMaxInnerBrickSize() const {
   return m_maxInnerBrickSize;
 }
 
-std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t iDataTextureUnit) {
+std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit,
+                                            uint32_t iDataTextureUnit) {
   // must have created GL resources before asking for shader
   if (!m_pPoolMetadataTexture  || !m_pPoolDataTexture) return "";
 
@@ -261,52 +262,59 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
   std::stringstream ss;
 
   if (m_bUseGLCore)
-    ss << "#version 420 core" << std::endl;  
+    ss << "#version 420 core\n";  
   else
-    ss << "#version 420 compatibility" << std::endl;
+    ss << "#version 420 compatibility\n";
 
   FLOATVECTOR3 poolAspect(m_pPoolDataTexture->GetSize());
   poolAspect /= poolAspect.minVal();
 
-  ss << std::setprecision(36); // get the maximum precision for floats (larger precisions would just append zeros)
-  ss << "" << std::endl
-     << "layout(binding = " << m_iMetaTextureUnit << ") uniform usampler2D metaData;" << std::endl
-     << "#define iMetaTextureWidth " << m_pPoolMetadataTexture->GetSize().x << std::endl
-     << "" << std::endl
-     << "#define BI_CHILD_EMPTY " << BI_CHILD_EMPTY << std::endl
-     << "#define BI_EMPTY "       << BI_EMPTY << std::endl
-     << "#define BI_MISSING "     << BI_MISSING << std::endl
-     << "#define BI_FLAG_COUNT "  << BI_FLAG_COUNT << std::endl
-     << "" << std::endl
-     << "layout(binding = " << m_iDataTextureUnit << ") uniform sampler3D volumePool;" << std::endl
+ // get the maximum precision for floats (larger precisions would just append
+ // zeroes)
+  ss << std::setprecision(36);
+  ss << "\n"
+     << "layout(binding = " << m_iMetaTextureUnit << ") uniform usampler2D metaData;\n"
+     << "#define iMetaTextureWidth " << m_pPoolMetadataTexture->GetSize().x << "\n"
+     << "\n"
+     << "#define BI_CHILD_EMPTY " << BI_CHILD_EMPTY << "\n"
+     << "#define BI_EMPTY "       << BI_EMPTY << "\n"
+     << "#define BI_MISSING "     << BI_MISSING << "\n"
+     << "#define BI_FLAG_COUNT "  << BI_FLAG_COUNT << "\n"
+     << "\n"
+     << "layout(binding = " << m_iDataTextureUnit
+     <<       ") uniform sampler3D volumePool;\n"
      << "#define iPoolSize ivec3(" << m_pPoolDataTexture->GetSize().x << ", " 
                                    << m_pPoolDataTexture->GetSize().y << ", " 
-                                   << m_pPoolDataTexture->GetSize().z <<")" << std::endl
+                                   << m_pPoolDataTexture->GetSize().z <<")\n"
      << "#define volumeSize vec3(" << m_volumeSize.x << ", " 
-                                         << m_volumeSize.y << ", " 
-                                         << m_volumeSize.z <<")" << std::endl
+                                   << m_volumeSize.y << ", " 
+                                   << m_volumeSize.z <<")\n"
      << "#define poolAspect vec3(" << poolAspect.x << ", " 
-                                         << poolAspect.y << ", " 
-                                         << poolAspect.z <<")" << std::endl
-     << "#define poolCapacity ivec3(" << m_vPoolCapacity.x << ", " << 
-                                               m_vPoolCapacity.y << ", " <<
-                                               m_vPoolCapacity.z <<")" << std::endl
-     << "// the total size of a brick in the pool, including the boundary" << std::endl
+                                   << poolAspect.y << ", " 
+                                   << poolAspect.z <<")\n"
+     << "#define poolCapacity ivec3(" << m_vPoolCapacity.x << ", "
+                                      << m_vPoolCapacity.y << ", "
+                                      << m_vPoolCapacity.z <<")\n"
+     << "// the total size of a brick in the pool, including the boundary\n"
      << "#define maxTotalBrickSize ivec3(" << m_maxTotalBrickSize.x << ", " 
-                                                 << m_maxTotalBrickSize.y << ", " 
-                                                 << m_maxTotalBrickSize.z <<")" << std::endl
-     << "// just the addressable (inner) size of a brick" << std::endl
+                                           << m_maxTotalBrickSize.y << ", " 
+                                           << m_maxTotalBrickSize.z <<")\n"
+     << "// just the addressable (inner) size of a brick\n"
      << "#define maxInnerBrickSize  ivec3(" << m_maxInnerBrickSize.x << ", " 
                                             << m_maxInnerBrickSize.y << ", " 
-                                            << m_maxInnerBrickSize.z <<")" << std::endl
-     << "// brick overlap voxels (in pool texcoords)" << std::endl
-     << "#define overlap vec3(" << (m_maxTotalBrickSize.x-m_maxInnerBrickSize.x)/(2.0f*m_pPoolDataTexture->GetSize().x) << ", " 
-                                << (m_maxTotalBrickSize.y-m_maxInnerBrickSize.y)/(2.0f*m_pPoolDataTexture->GetSize().y) << ", " 
-                                << (m_maxTotalBrickSize.z-m_maxInnerBrickSize.z)/(2.0f*m_pPoolDataTexture->GetSize().z) <<")" << std::endl
-     << "uniform float fLoDFactor;" << std::endl
-     << "uniform float fLevelZeroWorldSpaceError;" << std::endl
-     << "uniform vec3 volumeAspect;" << std::endl
-     << "#define iMaxLOD " << m_iLoDCount-1 << std::endl
+                                            << m_maxInnerBrickSize.z <<")\n"
+     << "// brick overlap voxels (in pool texcoords)\n"
+     << "#define overlap vec3("
+     << (m_maxTotalBrickSize.x - m_maxInnerBrickSize.x) /
+        (2.0f*m_pPoolDataTexture->GetSize().x) << ", " 
+     << (m_maxTotalBrickSize.y - m_maxInnerBrickSize.y) /
+        (2.0f*m_pPoolDataTexture->GetSize().y) << ", " 
+     << (m_maxTotalBrickSize.z - m_maxInnerBrickSize.z) /
+        (2.0f*m_pPoolDataTexture->GetSize().z) <<")\n"
+     << "uniform float fLoDFactor;\n"
+     << "uniform float fLevelZeroWorldSpaceError;\n"
+     << "uniform vec3 volumeAspect;\n"
+     << "#define iMaxLOD " << m_iLoDCount-1 << "\n"
      << "uniform uint vLODOffset[" << m_iLoDCount << "] = uint[](";
   for (uint32_t i = 0;i<m_iLoDCount;++i) {
     ss << "uint(" << m_vLoDOffsetTable[i] << ")";
@@ -314,170 +322,186 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t 
       ss << ", ";
     }
   }
-  ss << ");" << std::endl
-     << "uniform vec3 vLODLayout[" << m_iLoDCount << "] = vec3[](" << std::endl;
+  ss << ");\n"
+     << "uniform vec3 vLODLayout[" << m_iLoDCount << "] = vec3[](\n";
   for (uint32_t i = 0;i<m_vLoDOffsetTable.size();++i) {
-    FLOATVECTOR3 vLoDSize = GetFloatBrickLayout(m_volumeSize, m_maxInnerBrickSize, i);
-    ss << "   vec3(" << vLoDSize.x << ", " << vLoDSize.y << ", " << vLoDSize.z << ")";
+    FLOATVECTOR3 vLoDSize = GetFloatBrickLayout(m_volumeSize,
+                                                m_maxInnerBrickSize, i);
+    ss << "  vec3(" << vLoDSize.x << ", " << vLoDSize.y << ", "
+       << vLoDSize.z << ")";
     if (i<m_iLoDCount-1) {
       ss << ",";
     }
-    ss << "// Level " << i << std::endl;
+    ss << "// Level " << i << "\n";
   }
-  ss << ");" << std::endl
-     << "uniform uvec2 iLODLayoutSize[" << m_iLoDCount << "] = uvec2[](" << std::endl;
+  ss << ");\n"
+     << "uniform uvec2 iLODLayoutSize[" << m_iLoDCount << "] = uvec2[](\n";
   for (uint32_t i = 0;i<m_vLoDOffsetTable.size();++i) {
-    FLOATVECTOR3 vLoDSize = GetFloatBrickLayout(m_volumeSize, m_maxInnerBrickSize, i);    
-    ss << "   uvec2(" << unsigned(ceil(vLoDSize.x)) << ", " << unsigned(ceil(vLoDSize.x)) * unsigned(ceil(vLoDSize.y)) << ")";
+    FLOATVECTOR3 vLoDSize = GetFloatBrickLayout(m_volumeSize,
+                                                m_maxInnerBrickSize, i);    
+    ss << "   uvec2(" << unsigned(ceil(vLoDSize.x)) << ", "
+       << unsigned(ceil(vLoDSize.x)) * unsigned(ceil(vLoDSize.y)) << ")";
     if (i<m_iLoDCount-1) {
       ss << ",";
     }
-    ss << "// Level " << i << std::endl;
+    ss << "// Level " << i << "\n";
   }
 
-  ss << ");" << std::endl
-     << "" << std::endl
-     << "uint Hash(uvec4 brick);" << std::endl
-     << "" << std::endl
-     << "uint ReportMissingBrick(uvec4 brick) {" << std::endl
-     << "  return Hash(brick);" << std::endl
-     << "}" << std::endl
-     << "" << std::endl
-     << "ivec2 GetBrickIndex(uvec4 brickCoords) {" << std::endl
-     << "  uint iLODOffset  = vLODOffset[brickCoords.w];"<< std::endl
-     << "  uint iBrickIndex = iLODOffset + brickCoords.x + brickCoords.y * iLODLayoutSize[brickCoords.w].x + brickCoords.z * iLODLayoutSize[brickCoords.w].y;" << std::endl
-     << "  return ivec2(iBrickIndex%iMetaTextureWidth, iBrickIndex/iMetaTextureWidth);"<< std::endl
-     << "}" << std::endl
-     << "" << std::endl
-     << "uint GetBrickInfo(uvec4 brickCoords) {" << std::endl
-     << "  return texelFetch(metaData, GetBrickIndex(brickCoords), 0).r;" << std::endl
-     << "}" << std::endl
-     << "" << std::endl
-     << "uvec4 ComputeBrickCoords(vec3 normEntryCoords, uint iLOD) {" << std::endl
-     << "  return uvec4(normEntryCoords*vLODLayout[iLOD], iLOD);" << std::endl
-     << "}" << std::endl
-     << "" << std::endl
-     << "void GetBrickCorners(uvec4 brickCoords, out vec3 corners[2], out vec3 fullBrickSize) {" << std::endl
-     << "  corners[0]    = vec3(brickCoords.xyz)   / vLODLayout[brickCoords.w];" << std::endl
-     << "  fullBrickSize = vec3(brickCoords.xyz+1) / vLODLayout[brickCoords.w];" << std::endl
-     << "  corners[1]    = min(vec3(1.0), fullBrickSize);" << std::endl
-     << "}" << std::endl
-     << "" << std::endl   
-     << "vec3 BrickExit(vec3 pointInBrick, vec3 dir, in vec3 corners[2]) {" << std::endl
-     << "  vec3 div = 1.0 / dir;" << std::endl
-     << "  ivec3 side = ivec3(step(0.0,div));" << std::endl
-     << "  vec3 tIntersect;" << std::endl
-     << "  tIntersect.x = (corners[side.x].x - pointInBrick.x) * div.x;" << std::endl
-     << "  tIntersect.y = (corners[side.y].y - pointInBrick.y) * div.y;" << std::endl
-     << "  tIntersect.z = (corners[side.z].z - pointInBrick.z) * div.z;" << std::endl
-     << "  return pointInBrick + min(min(tIntersect.x, tIntersect.y), tIntersect.z) * dir;" << std::endl
-     << "}" << std::endl
-     << " " << std::endl
-     << "uvec3 InfoToCoords(in uint brickInfo) {" << std::endl
-     << "  uint index = brickInfo-BI_FLAG_COUNT;" << std::endl
-     << "  uvec3 vBrickCoords;" << std::endl
-     << "  vBrickCoords.x = index % poolCapacity.x;" << std::endl
-     << "  vBrickCoords.y = (index / poolCapacity.x) % poolCapacity.y;" << std::endl
-     << "  vBrickCoords.z = index / (poolCapacity.x*poolCapacity.y);" << std::endl
-     << "  return vBrickCoords;" << std::endl
-     << "}" << std::endl
-     << " " << std::endl
-     << "void BrickPoolCoords(in uint brickInfo,  out vec3 corners[2]) {" << std::endl
-     << "  uvec3 poolVoxelPos = InfoToCoords(brickInfo) * maxTotalBrickSize;" << std::endl
-     << "  corners[0] = (vec3(poolVoxelPos)                   / vec3(iPoolSize))+ overlap;" << std::endl
-     << "  corners[1] = (vec3(poolVoxelPos+maxTotalBrickSize) / vec3(iPoolSize))- overlap;" << std::endl
-     << "}" << std::endl
-     << " " << std::endl
-     << "void NormCoordsToPoolCoords(in vec3 normEntryCoords, in vec3 normExitCoords, in vec3 corners[2]," << std::endl
-     << "                            in uint brickInfo, out vec3 poolEntryCoords, out vec3 poolExitCoords," << std::endl
-     << "                            out vec3 normToPoolScale, out vec3 normToPoolTrans) {" << std::endl
-     << "  vec3 poolCorners[2];" << std::endl
-     << "  BrickPoolCoords(brickInfo, poolCorners);" << std::endl
-     << "  normToPoolScale = (poolCorners[1]-poolCorners[0])/(corners[1]-corners[0]);" << std::endl
-     << "  normToPoolTrans = poolCorners[0]-corners[0]*normToPoolScale;" << std::endl
-     << "  poolEntryCoords  = (normEntryCoords * normToPoolScale + normToPoolTrans);" << std::endl
-     << "  poolExitCoords   = (normExitCoords  * normToPoolScale + normToPoolTrans);" << std::endl
-     << "}" << std::endl
-     << "" << std::endl
-     << "bool GetBrick(in vec3 normEntryCoords, inout uint iLOD, in vec3 direction," << std::endl
-     << "              out vec3 poolEntryCoords, out vec3 poolExitCoords," << std::endl
-     << "              out vec3 normExitCoords, out bool bEmpty," << std::endl
-     << "              out vec3 normToPoolScale, out vec3 normToPoolTrans, out uvec4 brickCoords) {" << std::endl
-     << "  normEntryCoords = clamp(normEntryCoords, 0.0, 1.0);" << std::endl
-     << "  bool bFoundRequestedResolution = true;" << std::endl
-     << "  brickCoords = ComputeBrickCoords(normEntryCoords, iLOD);" << std::endl
-     << "  uint  brickInfo   = GetBrickInfo(brickCoords);" << std::endl
-     << "  if (brickInfo == BI_MISSING) {" << std::endl
-     << "    uint iStartLOD = iLOD;" << std::endl
-     << "    ReportMissingBrick(brickCoords);" << std::endl
-     << "    // when the requested resolution is not present look for lower res" << std::endl
-     << "    bFoundRequestedResolution = false;" << std::endl
-     << "    do {" << std::endl
-     << "      iLOD++;" << std::endl
-     << "      brickCoords = ComputeBrickCoords(normEntryCoords, iLOD);" << std::endl
-     << "      brickInfo   = GetBrickInfo(brickCoords);" << std::endl
-     << "      if (brickInfo == BI_MISSING && iStartLOD+2 == iLOD) ReportMissingBrick(brickCoords);" << std::endl
-     << "    } while (brickInfo == BI_MISSING);" << std::endl
-     << "  }" << std::endl
-     << "  // next line check for BI_EMPTY or BI_CHILD_EMPTY (BI_MISSING is exculded by code above!)" << std::endl
-     << "  bEmpty = (brickInfo <= BI_EMPTY);" << std::endl
-     << "  if (bEmpty) {" << std::endl
-     << "    // when we find an empty brick check if the lower resolutions are also empty" << std::endl
-     << "    for (uint ilowResLOD = iLOD+1; ilowResLOD<iMaxLOD;++ilowResLOD) {" << std::endl
-     << "      uvec4 lowResBrickCoords = ComputeBrickCoords(normEntryCoords, ilowResLOD);" << std::endl
-     << "      uint lowResBrickInfo = GetBrickInfo(lowResBrickCoords);" << std::endl
-     << "      if (lowResBrickInfo == BI_CHILD_EMPTY) {" << std::endl
-     << "        brickCoords = lowResBrickCoords;" << std::endl
-     << "        brickInfo = lowResBrickInfo;" << std::endl
-     << "        iLOD = ilowResLOD;" << std::endl
-     << "      } else {" << std::endl
-     << "        break;" << std::endl
-     << "      }" << std::endl
-     << "    }" << std::endl
-     << "  }" << std::endl
-     << "  vec3 corners[2];" << std::endl
-     << "  vec3 fullBrickCorner;" << std::endl
-     << "  GetBrickCorners(brickCoords, corners, fullBrickCorner);" << std::endl
-     << "  normExitCoords = BrickExit(normEntryCoords, direction, corners);" << std::endl
-     << "  if (bEmpty) " << std::endl
-     << "    return bFoundRequestedResolution;" << std::endl
-     << "  corners[1] = fullBrickCorner;" << std::endl
-     << "  NormCoordsToPoolCoords(normEntryCoords, normExitCoords, corners," << std::endl
-     << "                         brickInfo, poolEntryCoords, poolExitCoords," << std::endl
-     << "                         normToPoolScale, normToPoolTrans);" << std::endl
-     << "  return bFoundRequestedResolution;" << std::endl
-     << "}" << std::endl
-     << "" << std::endl
-     << "vec3 GetSampleDelta() {" << std::endl
-     << "  return 1.0/vec3(iPoolSize);" << std::endl
-     << "}" << std::endl
-     << "" << std::endl
-     << "vec3 TransformToPoolSpace(in vec3 direction, in float sampleRateModifier) {" << std::endl
-     << "  // normalize the direction" << std::endl
-     << "  direction *= volumeSize;" << std::endl
-     << "  direction = normalize(direction);" << std::endl
-     << "  // scale to volume pool's norm coordinates" << std::endl
-     << "  direction /= vec3(iPoolSize);" << std::endl
-     << "  // do (roughly) two samples per voxel and apply user defined sample density" << std::endl
-     << "  return direction / (2.0*sampleRateModifier);" << std::endl
-     << "}" << std::endl
-     << " " << std::endl
-     << "float samplePool(vec3 coords) {" << std::endl
-     << " return texture(volumePool, coords).r;" << std::endl
-     << "}" << std::endl
-     << " " << std::endl
-     << "vec3 samplePool3(vec3 coords) {" << std::endl
-     << " return texture(volumePool, coords).rgb;" << std::endl
-     << "}" << std::endl
-     << " " << std::endl
-     << "vec4 samplePool4(vec3 coords) {" << std::endl
-     << " return texture(volumePool, coords);" << std::endl
-     << "}" << std::endl
-     << " " << std::endl
-     << "uint ComputeLOD(float dist) {" << std::endl
-     << "  // opengl -> negative z-axis hence the minus" << std::endl
-     << "  return min(iMaxLOD, uint(log2(fLoDFactor*(-dist)/fLevelZeroWorldSpaceError)));" << std::endl
-     << "}" << std::endl;
+  ss << ");\n"
+     << "\n"
+     << "uint Hash(uvec4 brick);\n"
+     << "\n"
+     << "uint ReportMissingBrick(uvec4 brick) {\n"
+     << "  return Hash(brick);\n"
+     << "}\n"
+     << "\n"
+     << "ivec2 GetBrickIndex(uvec4 brickCoords) {\n"
+     << "  uint iLODOffset  = vLODOffset[brickCoords.w];\n"
+     << "  uint iBrickIndex = iLODOffset + brickCoords.x + "
+        "brickCoords.y * iLODLayoutSize[brickCoords.w].x + "
+        "brickCoords.z * iLODLayoutSize[brickCoords.w].y;\n"
+        "  return ivec2(iBrickIndex % iMetaTextureWidth,"
+                       "iBrickIndex / iMetaTextureWidth);\n"
+     << "}\n"
+     << "\n"
+     << "uint GetBrickInfo(uvec4 brickCoords) {\n"
+     << "  return texelFetch(metaData, GetBrickIndex(brickCoords), 0).r;\n"
+     << "}\n"
+     << "\n"
+     << "uvec4 ComputeBrickCoords(vec3 normEntryCoords, uint iLOD) {\n"
+     << "  return uvec4(normEntryCoords*vLODLayout[iLOD], iLOD);\n"
+     << "}\n"
+     << "\n"
+     << "void GetBrickCorners(uvec4 brickCoords, out vec3 corners[2], "
+                             "out vec3 fullBrickSize) {\n"
+     << "  corners[0]    = vec3(brickCoords.xyz)   / vLODLayout[brickCoords.w];\n"
+     << "  fullBrickSize = vec3(brickCoords.xyz+1) / vLODLayout[brickCoords.w];\n"
+     << "  corners[1]    = min(vec3(1.0), fullBrickSize);\n"
+     << "}\n"
+     << "\n"   
+     << "vec3 BrickExit(vec3 pointInBrick, vec3 dir, in vec3 corners[2]) {\n"
+     << "  vec3 div = 1.0 / dir;\n"
+     << "  ivec3 side = ivec3(step(0.0,div));\n"
+     << "  vec3 tIntersect;\n"
+     << "  tIntersect.x = (corners[side.x].x - pointInBrick.x) * div.x;\n"
+     << "  tIntersect.y = (corners[side.y].y - pointInBrick.y) * div.y;\n"
+     << "  tIntersect.z = (corners[side.z].z - pointInBrick.z) * div.z;\n"
+     << "  return pointInBrick +\n"
+        "         min(min(tIntersect.x, tIntersect.y), tIntersect.z) * dir;\n"
+     << "}\n"
+     << " \n"
+     << "uvec3 InfoToCoords(in uint brickInfo) {\n"
+     << "  uint index = brickInfo-BI_FLAG_COUNT;\n"
+     << "  uvec3 vBrickCoords;\n"
+     << "  vBrickCoords.x = index % poolCapacity.x;\n"
+     << "  vBrickCoords.y = (index / poolCapacity.x) % poolCapacity.y;\n"
+     << "  vBrickCoords.z = index / (poolCapacity.x*poolCapacity.y);\n"
+     << "  return vBrickCoords;\n"
+     << "}\n"
+     << " \n"
+     << "void BrickPoolCoords(in uint brickInfo,  out vec3 corners[2]) {\n"
+     << "  uvec3 poolVoxelPos = InfoToCoords(brickInfo) * maxTotalBrickSize;\n"
+     << "  corners[0] = (vec3(poolVoxelPos)                   / vec3(iPoolSize))+ overlap;\n"
+     << "  corners[1] = (vec3(poolVoxelPos+maxTotalBrickSize) / vec3(iPoolSize))- overlap;\n"
+     << "}\n"
+     << " \n"
+     << "void NormCoordsToPoolCoords(in vec3 normEntryCoords,\n"
+                                    "in vec3 normExitCoords\n,"
+                                    "in vec3 corners[2],\n"
+                                    "in uint brickInfo,\n"
+                                    "out vec3 poolEntryCoords,\n"
+                                    "out vec3 poolExitCoords,\n"
+                                    "out vec3 normToPoolScale,\n"
+                                    "out vec3 normToPoolTrans) {\n"
+     << "  vec3 poolCorners[2];\n"
+     << "  BrickPoolCoords(brickInfo, poolCorners);\n"
+     << "  normToPoolScale = (poolCorners[1]-poolCorners[0])/(corners[1]-corners[0]);\n"
+     << "  normToPoolTrans = poolCorners[0]-corners[0]*normToPoolScale;\n"
+     << "  poolEntryCoords  = (normEntryCoords * normToPoolScale + normToPoolTrans);\n"
+     << "  poolExitCoords   = (normExitCoords  * normToPoolScale + normToPoolTrans);\n"
+     << "}\n"
+     << "\n"
+     << "bool GetBrick(in vec3 normEntryCoords, inout uint iLOD, in vec3 direction,\n"
+     << "              out vec3 poolEntryCoords, out vec3 poolExitCoords,\n"
+     << "              out vec3 normExitCoords, out bool bEmpty,\n"
+     << "              out vec3 normToPoolScale, out vec3 normToPoolTrans, out uvec4 brickCoords) {\n"
+     << "  normEntryCoords = clamp(normEntryCoords, 0.0, 1.0);\n"
+     << "  bool bFoundRequestedResolution = true;\n"
+     << "  brickCoords = ComputeBrickCoords(normEntryCoords, iLOD);\n"
+     << "  uint  brickInfo   = GetBrickInfo(brickCoords);\n"
+     << "  if (brickInfo == BI_MISSING) {\n"
+     << "    uint iStartLOD = iLOD;\n"
+     << "    ReportMissingBrick(brickCoords);\n"
+     << "    // when the requested resolution is not present look for lower res\n"
+     << "    bFoundRequestedResolution = false;\n"
+     << "    do {\n"
+     << "      iLOD++;\n"
+     << "      brickCoords = ComputeBrickCoords(normEntryCoords, iLOD);\n"
+     << "      brickInfo   = GetBrickInfo(brickCoords);\n"
+     << "      if (brickInfo == BI_MISSING && iStartLOD+2 == iLOD) ReportMissingBrick(brickCoords);\n"
+     << "    } while (brickInfo == BI_MISSING);\n"
+     << "  }\n"
+     << "  // next line check for BI_EMPTY or BI_CHILD_EMPTY (BI_MISSING is\n"
+        "  // excluded by code above!)\n"
+     << "  bEmpty = (brickInfo <= BI_EMPTY);\n"
+     << "  if (bEmpty) {\n"
+     << "    // when we find an empty brick check if the lower resolutions are also empty\n"
+     << "    for (uint ilowResLOD = iLOD+1; ilowResLOD<iMaxLOD;++ilowResLOD) {\n"
+     << "      uvec4 lowResBrickCoords = ComputeBrickCoords(normEntryCoords, ilowResLOD);\n"
+     << "      uint lowResBrickInfo = GetBrickInfo(lowResBrickCoords);\n"
+     << "      if (lowResBrickInfo == BI_CHILD_EMPTY) {\n"
+     << "        brickCoords = lowResBrickCoords;\n"
+     << "        brickInfo = lowResBrickInfo;\n"
+     << "        iLOD = ilowResLOD;\n"
+     << "      } else {\n"
+     << "        break;\n"
+     << "      }\n"
+     << "    }\n"
+     << "  }\n"
+     << "  vec3 corners[2];\n"
+     << "  vec3 fullBrickCorner;\n"
+     << "  GetBrickCorners(brickCoords, corners, fullBrickCorner);\n"
+     << "  normExitCoords = BrickExit(normEntryCoords, direction, corners);\n"
+     << "  if (bEmpty) \n"
+     << "    return bFoundRequestedResolution;\n"
+     << "  corners[1] = fullBrickCorner;\n"
+     << "  NormCoordsToPoolCoords(normEntryCoords, normExitCoords, corners,\n"
+     << "                         brickInfo, poolEntryCoords, poolExitCoords,\n"
+     << "                         normToPoolScale, normToPoolTrans);\n"
+     << "  return bFoundRequestedResolution;\n"
+     << "}\n"
+     << "\n"
+     << "vec3 GetSampleDelta() {\n"
+     << "  return 1.0/vec3(iPoolSize);\n"
+     << "}\n"
+     << "\n"
+     << "vec3 TransformToPoolSpace(in vec3 direction, "
+                                  "in float sampleRateModifier) {\n"
+     << "  // normalize the direction\n"
+     << "  direction *= volumeSize;\n"
+     << "  direction = normalize(direction);\n"
+     << "  // scale to volume pool's norm coordinates\n"
+     << "  direction /= vec3(iPoolSize);\n"
+     << "  // do (roughly) two samples per voxel and apply user defined sample density\n"
+     << "  return direction / (2.0*sampleRateModifier);\n"
+     << "}\n"
+     << " \n"
+     << "float samplePool(vec3 coords) {\n"
+     << " return texture(volumePool, coords).r;\n"
+     << "}\n"
+     << " \n"
+     << "vec3 samplePool3(vec3 coords) {\n"
+     << " return texture(volumePool, coords).rgb;\n"
+     << "}\n"
+     << " \n"
+     << "vec4 samplePool4(vec3 coords) {\n"
+     << " return texture(volumePool, coords);\n"
+     << "}\n"
+     << " \n"
+     << "uint ComputeLOD(float dist) {\n"
+     << "  // opengl -> negative z-axis hence the minus\n"
+     << "  return min(iMaxLOD, uint(log2(fLoDFactor*(-dist)/fLevelZeroWorldSpaceError)));\n"
+     << "}\n";
 
 /*
   // DEBUG code
@@ -600,20 +624,20 @@ void GLVolumePool::CreateGLResources() {
                                 m_pPoolDataTexture->GetSize().z/m_maxTotalBrickSize.z);
 
   MESSAGE("Creating brick pool of size [%u,%u,%u] to hold a "
-        "max of [%u,%u,%u] bricks of size [%u,%u,%u] ("
-        "adressable size [%u,%u,%u]) and smaler.",
-         m_pPoolDataTexture->GetSize().x,
-         m_pPoolDataTexture->GetSize().y,
-         m_pPoolDataTexture->GetSize().z,
-         m_vPoolCapacity.x,
-         m_vPoolCapacity.y,
-         m_vPoolCapacity.z,
-         m_maxTotalBrickSize.x,
-         m_maxTotalBrickSize.y,
-         m_maxTotalBrickSize.z,
-         m_maxInnerBrickSize.x,
-         m_maxInnerBrickSize.y,
-         m_maxInnerBrickSize.z);
+          "max of [%u,%u,%u] bricks of size [%u,%u,%u] ("
+          "addressable size [%u,%u,%u]) and smaller.",
+           m_pPoolDataTexture->GetSize().x,
+           m_pPoolDataTexture->GetSize().y,
+           m_pPoolDataTexture->GetSize().z,
+           m_vPoolCapacity.x,
+           m_vPoolCapacity.y,
+           m_vPoolCapacity.z,
+           m_maxTotalBrickSize.x,
+           m_maxTotalBrickSize.y,
+           m_maxTotalBrickSize.z,
+           m_maxInnerBrickSize.x,
+           m_maxInnerBrickSize.y,
+           m_maxInnerBrickSize.z);
 
   int gpumax; 
   GL(glGetIntegerv(GL_MAX_TEXTURE_SIZE, &gpumax));

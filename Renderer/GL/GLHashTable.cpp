@@ -79,33 +79,38 @@ std::string GLHashTable::GetShaderFragment(uint32_t iMountPoint) {
   std::stringstream ss;
 
   if (m_bUseGLCore)
-    ss << "#version 420 core" << std::endl;  
+    ss << "#version 420 core\n";  
   else
-    ss << "#version 420 compatibility" << std::endl;
+    ss << "#version 420 compatibility\n";
 
-  ss << "" << std::endl
-     << "layout(binding = " << iMountPoint << ", size1x32) coherent uniform uimage1D hashTable;" << std::endl
-     << "" << std::endl
-     << "uint Serialize(uvec4 bd) {" << std::endl
-     << "  return 1 + bd.x + bd.y * " << m_maxBrickCount.x << " + bd.z * " << m_maxBrickCount.x * m_maxBrickCount.y << " + bd.w * " << m_maxBrickCount.volume() << ";" << std::endl
-     << "}" << std::endl
-     << "" << std::endl
-     << "int HashValue(uint serializedValue) {" << std::endl
-     << "  return int(serializedValue % " << m_iTableSize << ");" << std::endl
-     << "}" << std::endl
-     << "" << std::endl
-     << "uint Hash(uvec4 bd) {" << std::endl
-     << "  uint rehashCount = 0;" << std::endl
-     << "  uint serializedValue = Serialize(bd);" << std::endl
-     << "" << std::endl
-     << "  do {" << std::endl
-     << "    int hash = HashValue(serializedValue+rehashCount);" << std::endl
-     << "    uint valueInImage = imageAtomicCompSwap(hashTable, hash, uint(0), serializedValue);" << std::endl
-     << "    if (valueInImage == 0 || valueInImage == serializedValue) return rehashCount;" << std::endl
-     << "  } while (++rehashCount < " << m_iRehashCount << ") ;" << std::endl
-     << "" << std::endl
-     << "  return uint(" << m_iRehashCount << ");" << std::endl
-     << "}" << std::endl;
+  ss << "\n"
+     << "layout(binding = " << iMountPoint << ", size1x32) coherent uniform "
+        "uimage1D hashTable;\n"
+     << "" << "\n"
+     << "uint Serialize(uvec4 bd) {\n"
+     << "  return 1 + bd.x + bd.y * " << m_maxBrickCount.x << " + bd.z * "
+     << m_maxBrickCount.x * m_maxBrickCount.y << " + bd.w * "
+     << m_maxBrickCount.volume() << ";\n"
+     << "}\n"
+     << "\n"
+     << "int HashValue(uint serializedValue) {\n"
+     << "  return int(serializedValue % " << m_iTableSize << ");\n"
+     << "}\n"
+     << "\n"
+     << "uint Hash(uvec4 bd) {\n"
+     << "  uint rehashCount = 0;\n"
+     << "  uint serializedValue = Serialize(bd);\n"
+     << "\n"
+     << "  do {\n"
+     << "    int hash = HashValue(serializedValue+rehashCount);\n"
+     << "    uint valueInImage = imageAtomicCompSwap(hashTable, hash, uint(0), "
+                                                    "serializedValue);\n"
+     << "    if (valueInImage == 0 || valueInImage == serializedValue) "
+               "return rehashCount;\n"
+     << "  } while (++rehashCount < " << m_iRehashCount << ");\n"
+     << "\n"
+     << "  return uint(" << m_iRehashCount << ");\n"
+     << "}\n";
   return ss.str();
 }
 
