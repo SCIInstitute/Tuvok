@@ -96,8 +96,13 @@ protected:
           source->GetData((uint8_t*)pTempBrickData, brickCoords);
           UINTVECTOR3 bricksize = UINTVECTOR3(source->GetBrickSize(brickCoords));
 
-#pragma omp parallel for collapse(3) shared(fMaxGradMagnitude)
+#ifdef _MSC_VER
+# pragma omp parallel for shared(fMaxGradMagnitude)
+          for (int32_t z = iOverlap;uint32_t(z)<bricksize.z-iOverlap;z++) {
+#else
+# pragma omp parallel for collapse(3) shared(fMaxGradMagnitude)
           for (uint32_t z = iOverlap;z<bricksize.z-iOverlap;z++) {
+#endif
             for (uint32_t y = iOverlap;y<bricksize.y-iOverlap;y++) {
               for (uint32_t x = iOverlap;x<bricksize.x-iOverlap;x++) {
                 DOUBLEVECTOR3 vGradient = ComputeGradient(
@@ -128,7 +133,11 @@ protected:
           source->GetData((uint8_t*)pTempBrickData, brickCoords);
           UINTVECTOR3 bricksize = UINTVECTOR3(source->GetBrickSize(brickCoords));
           #pragma omp parallel for firstprivate(fMaxGradMagnitude)
+#ifdef _MSC_VER
+          for (int32_t z = iOverlap;uint32_t(z)<bricksize.z-iOverlap;z++) {
+#else
           for (uint32_t z = iOverlap;z<bricksize.z-iOverlap;z++) {
+#endif
             for (uint32_t y = iOverlap;y<bricksize.y-iOverlap;y++) {
               for (uint32_t x = iOverlap;x<bricksize.x-iOverlap;x++) {
                 const DOUBLEVECTOR3 vGradient = ComputeGradient(
