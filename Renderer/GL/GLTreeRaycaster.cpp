@@ -48,11 +48,19 @@ GLTreeRaycaster::GLTreeRaycaster(MasterController* pMasterController,
   m_pProgramRayCast2DLighting(NULL),
   m_pToCDataset(NULL),
   m_bConverged(true),
-  m_VisibilityState(),
-  m_pFBODebug(NULL),
-  m_pFBODebugNext(NULL),
-  m_FrameTimes(100),
-  m_iSubFrames(0)
+  m_VisibilityState()
+#ifdef GLTREERAYCASTER_DEBUGVIEW
+  , m_pFBODebug(NULL)
+  , m_pFBODebugNext(NULL)
+#endif
+#ifdef GLTREERAYCASTER_PROFILE
+  , m_FrameTimes(100)
+  , m_iSubframes(0)
+  , m_iPagedBricks(0)
+#endif
+#ifdef GLTREERAYCASTER_WORKINGSET
+  , m_pWorkingSetTable(NULL)
+#endif
 {
   // a member of the parent class, hence it's initialized here
   m_bSupportsMeshes = false;
@@ -118,6 +126,9 @@ bool GLTreeRaycaster::LoadDataset(const string& strFilename) {
 }
 GLTreeRaycaster::~GLTreeRaycaster() {
   delete m_pglHashTable; m_pglHashTable = NULL;
+#ifdef GLTREERAYCASTER_WORKINGSET
+  delete m_pWorkingSetTable; m_pWorkingSetTable = NULL;
+#endif
   Controller::Instance().MemMan()->DeleteVolumePool(&m_pVolumePool);
 }
 
@@ -147,8 +158,10 @@ void GLTreeRaycaster::Cleanup() {
   std::for_each(m_pFBOStartColor.begin(),     m_pFBOStartColor.end(),     deleteFBO);
   std::for_each(m_pFBOStartColorNext.begin(), m_pFBOStartColorNext.end(), deleteFBO);
 
+#ifdef GLTREERAYCASTER_DEBUGVIEW
   deleteFBO(m_pFBODebug);
   deleteFBO(m_pFBODebugNext);
+#endif
 
   delete m_pBBoxVBO;
   m_pBBoxVBO = NULL;
@@ -160,6 +173,14 @@ void GLTreeRaycaster::Cleanup() {
     delete m_pglHashTable;
     m_pglHashTable = NULL;
   }
+
+#ifdef GLTREERAYCASTER_WORKINGSET
+  if (m_pWorkingSetTable) {
+    m_pWorkingSetTable->FreeGL();
+    delete m_pWorkingSetTable;
+    m_pWorkingSetTable = NULL;
+  }
+#endif
 }
 
 void recreateFBO(GLFBOTex*& fbo, std::shared_ptr<Context> pContext,
@@ -200,8 +221,10 @@ void GLTreeRaycaster::CreateOffscreenBuffers() {
     for_each(m_pFBOStartColorNext.begin(), m_pFBOStartColorNext.end(), 
       bind(recreateFBO, _1, m_pContext ,m_vWinSize, intformat, GL_RGBA, type));
 
+#ifdef GLTREERAYCASTER_DEBUGVIEW
     recreateFBO(m_pFBODebug, m_pContext ,m_vWinSize, intformat, GL_RGBA, type);
     recreateFBO(m_pFBODebugNext, m_pContext ,m_vWinSize, intformat, GL_RGBA, type);
+#endif
   }
 }
 
@@ -211,8 +234,15 @@ bool GLTreeRaycaster::Initialize(std::shared_ptr<Context> ctx) {
     return false;
   }
 
-  m_pglHashTable = new GLHashTable(UINTVECTOR3( m_pToCDataset->GetBrickLayout(0, 0)) );
+  UINTVECTOR3 const finestBrickLayout(m_pToCDataset->GetBrickLayout(0, 0));
+  
+  m_pglHashTable = new GLHashTable(finestBrickLayout);
   m_pglHashTable->InitGL();
+
+#ifdef GLTREERAYCASTER_WORKINGSET
+  m_pWorkingSetTable = new GLHashTable(finestBrickLayout, finestBrickLayout.volume() * uint32_t(m_pToCDataset->GetLargestSingleBrickLod(0)), 2, true, "workingSet");
+  m_pWorkingSetTable->InitGL();
+#endif
 
   CreateVBO();
 
@@ -249,7 +279,12 @@ bool GLTreeRaycaster::LoadCheckShader(GLSLProgram** shader, ShaderDescriptor& sd
 
 bool GLTreeRaycaster::LoadTraversalShaders() {
 
-  const std::string poolFragment = m_pVolumePool->GetShaderFragment(3,4);
+#ifdef GLTREERAYCASTER_WORKINGSET
+  const std::string infoFragment = m_pWorkingSetTable->GetShaderFragment(7);
+  const std::string poolFragment = m_pVolumePool->GetShaderFragment(3, 4, m_pWorkingSetTable->GetPrefixName());
+#else
+  const std::string poolFragment = m_pVolumePool->GetShaderFragment(3, 4);
+#endif
   const std::string hashFragment = m_pglHashTable->GetShaderFragment(5);
 
   std::vector<std::string> vs, fs;
@@ -260,6 +295,9 @@ bool GLTreeRaycaster::LoadTraversalShaders() {
   ShaderDescriptor sd(vs, fs);
   sd.AddFragmentShaderString(poolFragment);
   sd.AddFragmentShaderString(hashFragment);
+#ifdef GLTREERAYCASTER_WORKINGSET
+  sd.AddFragmentShaderString(infoFragment);
+#endif
   if (!LoadCheckShader(&m_pProgramRayCast1D, sd, "1D TF")) return false;
 
   vs.clear(); fs.clear();
@@ -272,6 +310,9 @@ bool GLTreeRaycaster::LoadTraversalShaders() {
   sd = ShaderDescriptor(vs, fs);
   sd.AddFragmentShaderString(poolFragment);
   sd.AddFragmentShaderString(hashFragment);
+#ifdef GLTREERAYCASTER_WORKINGSET
+  sd.AddFragmentShaderString(infoFragment);
+#endif
   if (!LoadCheckShader(&m_pProgramRayCast1DLighting, sd, "1D TF lighting")) return false;
 
   vs.clear(); fs.clear();
@@ -283,6 +324,9 @@ bool GLTreeRaycaster::LoadTraversalShaders() {
   sd = ShaderDescriptor(vs, fs);
   sd.AddFragmentShaderString(poolFragment);
   sd.AddFragmentShaderString(hashFragment);
+#ifdef GLTREERAYCASTER_WORKINGSET
+  sd.AddFragmentShaderString(infoFragment);
+#endif
   if (!LoadCheckShader(&m_pProgramRayCast2D, sd, "2D TF")) return false;
 
   vs.clear(); fs.clear();
@@ -295,6 +339,9 @@ bool GLTreeRaycaster::LoadTraversalShaders() {
   sd = ShaderDescriptor(vs, fs);
   sd.AddFragmentShaderString(poolFragment);
   sd.AddFragmentShaderString(hashFragment);
+#ifdef GLTREERAYCASTER_WORKINGSET
+  sd.AddFragmentShaderString(infoFragment);
+#endif
   if (!LoadCheckShader(&m_pProgramRayCast2DLighting, sd, "2D TF lighting")) return false;
 
   return true;
@@ -443,7 +490,11 @@ bool GLTreeRaycaster::Continue3DDraw() {
 
 void GLTreeRaycaster::FillRayEntryBuffer(RenderRegion3D& rr, EStereoID eStereoID) {
 
-  m_TargetBinder.Bind(m_pFBODebug, m_pFBODebugNext, m_pFBOStartColor[size_t(eStereoID)], m_pFBORayStart[size_t(eStereoID)]);
+  m_TargetBinder.Bind(
+#ifdef GLTREERAYCASTER_DEBUGVIEW
+    m_pFBODebug, m_pFBODebugNext,
+#endif
+    m_pFBOStartColor[size_t(eStereoID)], m_pFBORayStart[size_t(eStereoID)]);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   m_TargetBinder.Bind(m_pFBORayStart[size_t(eStereoID)]);
@@ -559,7 +610,12 @@ void GLTreeRaycaster::SetupRaycastShader(GLSLProgram* shaderProgram, RenderRegio
   m_pVolumePool->Enable(m_FrustumCullingLOD.GetLoDFactor(), 
                         vExtend, vScale, shaderProgram); // bound to 3 and 4
   m_pglHashTable->Enable(); // bound to 5
+#ifdef GLTREERAYCASTER_DEBUGVIEW
   m_pFBODebug->Read(6);
+#endif
+#ifdef GLTREERAYCASTER_WORKINGSET
+  m_pWorkingSetTable->Enable(); // bound to 7
+#endif
 
   // set shader parameters
   shaderProgram->Enable();
@@ -631,8 +687,11 @@ void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
 
   m_TargetBinder.Bind(m_pFBO3DImageNext[size_t(eStereoID)],
                       m_pFBOStartColorNext[size_t(eStereoID)],
-                      m_pFBORayStartNext[size_t(eStereoID)],
-                      m_pFBODebugNext);
+                      m_pFBORayStartNext[size_t(eStereoID)]
+#ifdef GLTREERAYCASTER_DEBUGVIEW
+                      , m_pFBODebugNext
+#endif
+                      );
   m_pFBORayStart[size_t(eStereoID)]->Read(0);
   m_pFBOStartColor[size_t(eStereoID)]->Read(1);
 
@@ -651,7 +710,9 @@ void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
   // unbind input textures
   m_pFBORayStart[size_t(eStereoID)]->FinishRead();
   m_pFBOStartColor[size_t(eStereoID)]->FinishRead();
+#ifdef GLTREERAYCASTER_DEBUGVIEW
   m_pFBODebug->FinishRead();
+#endif
 
   // done rendering for now
   m_TargetBinder.Unbind();
@@ -659,7 +720,9 @@ void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
   // swap current and next resume color
   std::swap(m_pFBOStartColorNext[size_t(eStereoID)], m_pFBOStartColor[size_t(eStereoID)]);
   std::swap(m_pFBORayStartNext[size_t(eStereoID)], m_pFBORayStart[size_t(eStereoID)]);
+#ifdef GLTREERAYCASTER_DEBUGVIEW
   std::swap(m_pFBODebugNext, m_pFBODebug);
+#endif
 }
 
 bool GLTreeRaycaster::CheckForRedraw() {
@@ -680,14 +743,14 @@ bool GLTreeRaycaster::CheckForRedraw() {
   return false;
 }
 
-void GLTreeRaycaster::UpdateToVolumePool(const UINTVECTOR4& brick) {
+uint32_t GLTreeRaycaster::UpdateToVolumePool(const UINTVECTOR4& brick) {
   std::vector<UINTVECTOR4> bricks;
   bricks.push_back(brick);
-  UpdateToVolumePool(bricks);
+  return UpdateToVolumePool(bricks);
 }
 
 // TODO: this entire function should be part of the GPU mem-manager
-void GLTreeRaycaster::UpdateToVolumePool(std::vector<UINTVECTOR4>& hash) {
+uint32_t GLTreeRaycaster::UpdateToVolumePool(std::vector<UINTVECTOR4>& hash) {
 /*
   // DEBUG Code
   uint32_t iHQLevel = std::numeric_limits<uint32_t>::max();
@@ -700,7 +763,7 @@ void GLTreeRaycaster::UpdateToVolumePool(std::vector<UINTVECTOR4>& hash) {
   // DEBUG Code End
 */
   
-  m_pVolumePool->UploadBricks(hash, m_vUploadMem);
+  return m_pVolumePool->UploadBricks(hash, m_vUploadMem);
 }
 
 bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
@@ -711,6 +774,15 @@ bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
   // prepare a new view
   if (rr.isBlank) {
     for (size_t i = 0;i<iStereoBufferCount;i++) {
+#ifdef GLTREERAYCASTER_PROFILE
+      //OTHER("Preparing new view");
+      m_iSubframes = 0;
+      m_iPagedBricks = 0;
+#endif
+#ifdef GLTREERAYCASTER_WORKINGSET
+      // clear the info hash table at the beginning of every pass
+      m_pWorkingSetTable->ClearData();
+#endif
       // compute new ray start
       m_Timer.Start();
       FillRayEntryBuffer(rr,EStereoID(i));
@@ -718,45 +790,68 @@ bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
     }
   }
 
-  size_t iPagedBricks = 0;
+  size_t iPagedBricksForSubframe = 0;
   for (size_t i = 0;i<iStereoBufferCount;i++) {
     // reset state
     GPUState localState = m_BaseState;
     localState.enableBlend = false;
     m_pContext->GetStateManager()->Apply(localState);
 
-    // clear hastable
+    // clear hashtable
     m_pglHashTable->ClearData();
 
     // do raycasting
     Raycast(rr, EStereoID(i));
 
-    // evaluate hastable
+    // evaluate hashtable
     std::vector<UINTVECTOR4> hash = m_pglHashTable->GetData();
 
-    if (!m_pVolumePool->IsVisibilityUpdated() || !hash.empty())
-      UpdateToVolumePool(hash);
-
     // upload missing bricks
-    if (!hash.empty()) {
-  #if 1
-      float fMsecPassed = float(m_Timer.Elapsed());
-      OTHER("So far the current frame took %.2f ms", fMsecPassed);
-  #endif
-      m_iSubFrames++;
-    } else {
-      float fMsecPassed = float(m_Timer.Elapsed());
-      m_FrameTimes.Push(fMsecPassed);
-      OTHER("The total frame (with %d subframes) took %.2f ms to render (%.2f FPS)\t[avg: %.2f, min: %.2f, max: %.2f, samples: %d]", m_iSubFrames, fMsecPassed, 1000./fMsecPassed, m_FrameTimes.GetAvg(), m_FrameTimes.GetMin(), m_FrameTimes.GetMax(), m_FrameTimes.GetHistroryLength());
-      m_iSubFrames = 0;
+    if (!m_pVolumePool->IsVisibilityUpdated() || !hash.empty())
+#ifdef GLTREERAYCASTER_PROFILE
+      m_iPagedBricks += UpdateToVolumePool(hash);
+#else
+      UpdateToVolumePool(hash);
+#endif
 
+    // conditional measurements
+    if (!hash.empty()) {
+#ifdef GLTREERAYCASTER_PROFILE
+      float const t = float(m_Timer.Elapsed());
+      OTHER("(subframe %d) So far the current frame took %.2f ms and %d bricks"
+            " were paged in", m_iSubframes, t, m_iPagedBricks);
+      m_iSubframes++;
+#endif
+    } else {
+#if defined(GLTREERAYCASTER_PROFILE) || defined(GLTREERAYCASTER_WORKINGSET)
+      std::stringstream ss;
+      ss << std::fixed << std::setprecision(2);
+#ifdef GLTREERAYCASTER_PROFILE
+      float const t = float(m_Timer.Elapsed());
+      m_FrameTimes.Push(t);
+      ss << "Total frame (with " << m_iSubframes << " subframes) took " << t
+         << " ms to render (" << 1000.f/t << " FPS)   "
+         << " Average of the last " << m_FrameTimes.GetHistroryLength()
+         << " frame times: " << m_FrameTimes.GetAvgMinMax() << "   "
+         << " Total paged bricks: " << m_iPagedBricks << " ("
+         << m_vUploadMem.size() * m_iPagedBricks / 1024.f / 1024.f << " MB)   ";
+#endif
+#ifdef GLTREERAYCASTER_WORKINGSET
+      std::vector<UINTVECTOR4> vUsedBricks = m_pWorkingSetTable->GetData();
+      ss << "Working set bricks for optimal frame: " << vUsedBricks.size() << " ("
+         << m_vUploadMem.size() * vUsedBricks.size() / 1024.f / 1024.f << " MB)";
+#endif
+      OTHER("%s", ss.str().c_str());
+#endif
+#ifdef GLTREERAYCASTER_DEBUGVIEW
       if (m_bDebugView)
         std::swap(m_pFBODebug, m_pFBO3DImageNext[i]);
+#endif
     }
 
-    iPagedBricks += hash.size();
+    iPagedBricksForSubframe += hash.size();
   }
-  m_bConverged = iPagedBricks == 0;
+  m_bConverged = iPagedBricksForSubframe == 0;
 
   // always display intermediate results
   return true;

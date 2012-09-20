@@ -11,7 +11,7 @@
 #include "GLTexture3D.h"
 
 //#define GLVOLUMEPOOL_PROFILE // define to measure some timings
-//#define GLVOLUMEPOOL_SIMULATE_BUSY_ASYNC_UPDATER // define to prevent the async worker from doing anything useful
+//#define GLVOLUMEPOOL_BUSY    // define to prevent the async worker from doing anything useful
 
 #ifdef GLVOLUMEPOOL_PROFILE
 #include "Basics/Timer.h"
@@ -75,9 +75,14 @@ namespace tuvok {
       GLVolumePool(const UINTVECTOR3& poolSize, UVFDataset* pDataset, GLenum filter, bool bUseGLCore=true); // throws tuvok::Exception on init error
       virtual ~GLVolumePool();
 
-      bool IsVisibilityUpdated() const { return m_bVisibilityUpdated; } // signals if meta texture is up-to-date including child emptiness for the whole hierarchy
+      // signals if meta texture is up-to-date including child emptiness for
+      // the whole hierarchy
+      bool IsVisibilityUpdated() const { return m_bVisibilityUpdated; }
       void RecomputeVisibility(const VisibilityState& visibility, size_t iTimestep);
-      void UploadBricks(const std::vector<UINTVECTOR4>& vBrickIDs, std::vector<unsigned char>& vUploadMem);
+      // returns number of bricks paged in that must not be equal to given
+      // number of brick IDs especially if async updater is busy we'll get
+      // requests for empty bricks too that won't be paged in
+      uint32_t UploadBricks(const std::vector<UINTVECTOR4>& vBrickIDs, std::vector<unsigned char>& vUploadMem);
 
       bool UploadBrick(const BrickElemInfo& metaData, void* pData); // TODO: we could use the 1D-index here too
       void UploadFirstBrick(const UINTVECTOR3& m_vVoxelSize, void* pData);
@@ -89,7 +94,7 @@ namespace tuvok {
                   GLSLProgram* pShaderProgram) const;
       void Disable() const;
 
-      std::string GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t iDataTextureUnit);
+      std::string GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t iDataTextureUnit, std::string const& strInfoHashTablePrefixName = "");
       
       void SetFilterMode(GLenum filter);
 

@@ -5,8 +5,15 @@
 
 #include "../../StdTuvokDefines.h"
 #include "GLRenderer.h"
-#include "AvgMinMaxTracker.h"
 #include "Renderer/VisibilityState.h"
+
+//#define GLTREERAYCASTER_DEBUGVIEW  // define to enable debug view when pressing 'D'-key
+//#define GLTREERAYCASTER_PROFILE    // define to measure frame times
+//#define GLTREERAYCASTER_WORKINGSET // define to measure per frame working set
+
+#ifdef GLTREERAYCASTER_PROFILE
+#include "AvgMinMaxTracker.h"
+#endif
 
 class ExtendedPlane;
 
@@ -74,11 +81,18 @@ namespace tuvok {
       bool            m_bConverged;
       VisibilityState m_VisibilityState;
 
-      // the following are for debug only
+#ifdef GLTREERAYCASTER_DEBUGVIEW
       GLFBOTex*       m_pFBODebug;
       GLFBOTex*       m_pFBODebugNext;
+#endif
+#ifdef GLTREERAYCASTER_PROFILE
       AvgMinMaxTracker<float> m_FrameTimes;
-      uint32_t        m_iSubFrames;
+      uint32_t        m_iSubframes;
+      size_t          m_iPagedBricks;
+#endif
+#ifdef GLTREERAYCASTER_WORKINGSET
+      GLHashTable*    m_pWorkingSetTable;
+#endif
 
       /** Loads GLSL vertex and fragment shaders. */
       virtual bool LoadShaders();
@@ -107,8 +121,8 @@ namespace tuvok {
       bool LoadDataset(const std::string& strFilename);
 
       bool CreateVolumePool();
-      void UpdateToVolumePool(const UINTVECTOR4& brick);
-      void UpdateToVolumePool(std::vector<UINTVECTOR4>& hash);
+      uint32_t UpdateToVolumePool(const UINTVECTOR4& brick);
+      uint32_t UpdateToVolumePool(std::vector<UINTVECTOR4>& hash);
       void RecomputeBrickVisibility();
 
       // catch all circumstances that change the visibility of a brick

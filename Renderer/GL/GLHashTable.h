@@ -7,6 +7,7 @@
 #include "GLObject.h"
 #include "Basics/Vectors.h"
 #include <memory>
+#include <string>
 
 namespace tuvok {
 
@@ -14,7 +15,7 @@ class GLTexture1D;
 
 class GLHashTable : public GLObject {
   public:
-    GLHashTable(const UINTVECTOR3& maxBrickCount, uint32_t iTableSize=511, uint32_t iRehashCount=10, bool bUseGLCore=true); 
+    GLHashTable(const UINTVECTOR3& maxBrickCount, uint32_t iTableSize=511, uint32_t iRehashCount=10, bool bUseGLCore=true, std::string const& strPrefixName = "");
     virtual ~GLHashTable();
 
     void InitGL();
@@ -23,12 +24,13 @@ class GLHashTable : public GLObject {
     std::string GetShaderFragment(uint32_t iMountPoint=0);
     void Enable();
     std::vector<UINTVECTOR4> GetData();
+    std::string const& GetPrefixName() const { return m_strPrefixName; }
     void ClearData();
 
     virtual uint64_t GetCPUSize() const;
     virtual uint64_t GetGPUSize() const;
   private:
-
+    std::string m_strPrefixName;
     UINTVECTOR3 m_maxBrickCount;
     uint32_t m_iTableSize;
     uint32_t m_iRehashCount;

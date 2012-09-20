@@ -13,7 +13,8 @@
 
 using namespace tuvok;
 
-GLHashTable::GLHashTable(const UINTVECTOR3& maxBrickCount, uint32_t iTableSize, uint32_t iRehashCount, bool bUseGLCore) :
+GLHashTable::GLHashTable(const UINTVECTOR3& maxBrickCount, uint32_t iTableSize, uint32_t iRehashCount, bool bUseGLCore, std::string const& strPrefixName) :
+  m_strPrefixName(strPrefixName),
   m_maxBrickCount(maxBrickCount),
   m_iTableSize(iTableSize),
   m_iRehashCount(iRehashCount),
@@ -85,25 +86,25 @@ std::string GLHashTable::GetShaderFragment(uint32_t iMountPoint) {
 
   ss << "\n"
      << "layout(binding = " << iMountPoint << ", size1x32) coherent uniform "
-        "uimage1D hashTable;\n"
-     << "" << "\n"
-     << "uint Serialize(uvec4 bd) {\n"
+        "uimage1D " << m_strPrefixName << "hashTable;\n"
+     << "\n"
+     << "uint " << m_strPrefixName << "Serialize(uvec4 bd) {\n"
      << "  return 1 + bd.x + bd.y * " << m_maxBrickCount.x << " + bd.z * "
      << m_maxBrickCount.x * m_maxBrickCount.y << " + bd.w * "
      << m_maxBrickCount.volume() << ";\n"
      << "}\n"
      << "\n"
-     << "int HashValue(uint serializedValue) {\n"
+     << "int " << m_strPrefixName << "HashValue(uint serializedValue) {\n"
      << "  return int(serializedValue % " << m_iTableSize << ");\n"
      << "}\n"
      << "\n"
-     << "uint Hash(uvec4 bd) {\n"
+     << "uint " << m_strPrefixName << "Hash(uvec4 bd) {\n"
      << "  uint rehashCount = 0;\n"
-     << "  uint serializedValue = Serialize(bd);\n"
+     << "  uint serializedValue =  " << m_strPrefixName << "Serialize(bd);\n"
      << "\n"
      << "  do {\n"
-     << "    int hash = HashValue(serializedValue+rehashCount);\n"
-     << "    uint valueInImage = imageAtomicCompSwap(hashTable, hash, uint(0), "
+     << "    int hash = " << m_strPrefixName << "HashValue(serializedValue+rehashCount);\n"
+     << "    uint valueInImage = imageAtomicCompSwap(" << m_strPrefixName << "hashTable, hash, uint(0), "
                                                     "serializedValue);\n"
      << "    if (valueInImage == 0 || valueInImage == serializedValue) "
                "return rehashCount;\n"
