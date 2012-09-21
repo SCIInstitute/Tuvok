@@ -1,5 +1,6 @@
 #include <cstring>
 #include <sstream>
+#include <stdexcept>
 #include "VolumeTools.h"
 
 UINTVECTOR2 VolumeTools::Fit1DIndexTo2DArray(uint64_t iMax1DIndex,
