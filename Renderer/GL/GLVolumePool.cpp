@@ -1,13 +1,17 @@
+#include <algorithm>
+#include <iomanip>
+#include <limits>
+#include <stdexcept>
 #include <sstream>
+#ifdef WRITE_SHADERS
+# include <fstream>
+# include <iterator>
+#endif
 
 #include "GLVolumePool.h"
 #include "Basics/MathTools.h"
 #include "Basics/TuvokException.h"
 #include "Basics/Threads.h"
-#include <stdexcept>
-#include <algorithm>
-#include <limits>
-#include <iomanip>
 #include "GLSLProgram.h"
 #include "IO/uvfDataset.h"
 #include "Renderer/VisibilityState.h"
@@ -261,6 +265,20 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit,
   m_iDataTextureUnit = iDataTextureUnit;
 
   std::stringstream ss;
+
+#ifdef WRITE_SHADERS
+  const char* shname = "volpool.glsl";
+  std::ifstream shader(shname);
+  if(shader) {
+    MESSAGE("Reusing volpool.glsl shader on disk.");
+    std::string sh(
+      (std::istream_iterator<char>(shader)),
+      (std::istream_iterator<char>())
+    );
+    shader.close();
+    return sh;
+  }
+#endif
 
   if (m_bUseGLCore)
     ss << "#version 420 core\n";  
@@ -520,16 +538,16 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit,
      << "  return min(iMaxLOD, uint(log2(fLoDFactor*(-dist)/fLevelZeroWorldSpaceError)));\n"
      << "}\n";
 
-/*
-  // DEBUG code
-  std::stringstream debug(ss.str());
-  std::string line;
-  unsigned int iLine = 1;
-  while(std::getline(debug, line)) {
-    MESSAGE("%i %s", iLine++, line.c_str());
+#ifdef WRITE_SHADERS
+  std::ofstream vpool(shname, std::ios::trunc);
+  if(vpool) {
+    MESSAGE("Writing new volpool shader.");
+    const std::string& s = ss.str();
+    std::copy(s.begin(), s.end(), std::ostream_iterator<char>(vpool, ""));
   }
-  // DEBUG code end
-*/
+  vpool.close();
+#endif
+
 
   return ss.str();
 }

@@ -1,15 +1,17 @@
 #include "StdTuvokDefines.h"
-#include "GLHashTable.h"
-
+#ifdef WRITE_SHADERS
+# include <fstream>
+# include <iterator>
+#endif
+#include <sstream>
 #include <GL/glew.h>
+#include "GLHashTable.h"
 #include "GLInclude.h"
 #include "GLSLProgram.h"
 #include "GLFBOTex.h"
 #include "GLTexture1D.h"
 #include "../ShaderDescriptor.h"
 #include "Basics/nonstd.h"
-
-#include <sstream>
 
 using namespace tuvok;
 
@@ -79,6 +81,20 @@ std::string GLHashTable::GetShaderFragment(uint32_t iMountPoint) {
   m_iMountPoint = iMountPoint;
   std::stringstream ss;
 
+#ifdef WRITE_SHADERS
+  const char* shname = "hashtable.glsl";
+  std::ifstream shader(shname);
+  if(shader) {
+    MESSAGE("Reusing hashtable.glsl shader on disk.");
+    std::string sh(
+      (std::istream_iterator<char>(shader)),
+      (std::istream_iterator<char>())
+    );
+    shader.close();
+    return sh;
+  }
+#endif
+
   if (m_bUseGLCore)
     ss << "#version 420 core\n";  
   else
@@ -112,6 +128,17 @@ std::string GLHashTable::GetShaderFragment(uint32_t iMountPoint) {
      << "\n"
      << "  return uint(" << m_iRehashCount << ");\n"
      << "}\n";
+
+#ifdef WRITE_SHADERS
+  std::ofstream hashtab(shname, std::ios::trunc);
+  if(hashtab) {
+    MESSAGE("Writing new hashtable shader.");
+    const std::string& s = ss.str();
+    std::copy(s.begin(), s.end(), std::ostream_iterator<char>(hashtab, ""));
+  }
+  hashtab.close();
+#endif // WRITE_SHADERS
+
   return ss.str();
 }
 
