@@ -1,5 +1,28 @@
 #include <cstring>
+#include <sstream>
 #include "VolumeTools.h"
+
+UINTVECTOR2 VolumeTools::Fit1DIndexTo2DArray(uint64_t iMax1DIndex,
+                                             uint32_t iMax2DArraySize) {
+  // check if 1D index exceeds given 2D array
+  if (iMax1DIndex > uint64_t(iMax2DArraySize) * uint64_t(iMax2DArraySize)) {
+    std::stringstream ss;
+    ss << "element count of " << iMax1DIndex << " exceeds the addressable indices "
+       << "of a " << iMax2DArraySize << "x" << iMax2DArraySize << " array";
+    throw std::runtime_error(ss.str().c_str());
+  }
+
+  // 1D index fits into a row
+  if (iMax1DIndex <= uint64_t(iMax2DArraySize))
+    return UINTVECTOR2(iMax1DIndex, 1);
+
+  // fit 1D index into the smallest possible square
+  UINTVECTOR2 v2DArraySize;
+  v2DArraySize.x = uint32_t(std::ceil(std::sqrt(double(iMax1DIndex))));
+  v2DArraySize.y = uint32_t(std::ceil(double(iMax1DIndex)/double(v2DArraySize.x)));
+
+  return v2DArraySize;
+}
 
 /*
  RemoveBoundary:

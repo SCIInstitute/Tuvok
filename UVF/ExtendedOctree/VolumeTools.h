@@ -13,11 +13,23 @@
 namespace VolumeTools {
 
   /**
+    Compute the necessary 2D array size to fit a linear index minimizing wasted indices
+    @param iMax1DIndex number of elements we want to fit into a 2d array
+    @param iMax2DArraySize maximal dimension of a square 2d array
+    @return optimal 2d array size to host at least the given amount of numbers
+    @throws std::runtime_error if 1d index does not fit given array
+    */
+  UINTVECTOR2 Fit1DIndexTo2DArray(uint64_t iMax1DIndex,
+                                  uint32_t iMax2DArraySize);
+
+  /**
     Converts a brick into atlantified representation
-    @param metaData the brick meta-data for the input brick
+    @param iSizeInBytes total size of the current brick
+    @param vMaxBrickSize maximum size of a brick
+    @param vCurrBrickSize actual size of current brick
     @param atlasSize the size of the 2D texture atlas
-    @param pData pointer to mem to hold non-atlantified data
-    @param pData pointer to mem to hold atlantified data
+    @param pDataSource pointer to mem to hold non-atlantified data
+    @param pDataTarget pointer to mem to hold atlantified data
     */
   void Atalasify(size_t iSizeInBytes,
                          const UINT64VECTOR3& vMaxBrickSize,
@@ -28,9 +40,12 @@ namespace VolumeTools {
 
   /**
     Converts a brick into simple 3D representation
-    @param metaData the brick meta-data for the input brick
-    @param pData pointer to mem to hold atlantified data
-    @param pData pointer to mem to hold non-atlantified data
+    @param iSizeInBytes total size of the current brick
+    @param vCurrentAtlasSize the size of the 2D texture atlas
+    @param vMaxBrickSize maximum size of a brick
+    @param vCurrBrickSize actual size of current brick
+    @param pDataSource pointer to mem to hold atlantified data
+    @param pDataTarget pointer to mem to hold non-atlantified data
     */
   void DeAtalasify(size_t iSizeInBytes,
                            const UINTVECTOR2& vCurrentAtlasSize,
@@ -286,6 +301,8 @@ namespace VolumeTools {
       }
     }
   }
+
+
 };
 
 #endif // VOLUMETOOLS_H
