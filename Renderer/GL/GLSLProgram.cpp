@@ -402,8 +402,7 @@ void GLSLProgram::Load(const ShaderDescriptor& sd)
   }
 
   // create a shader for each vertex shader, and attach it to the main program.
-  typedef ShaderDescriptor::SIterator si;
-  for(si vsh = sd.begin_vertex(); vsh != sd.end_vertex(); ++vsh) {
+  for(auto vsh = sd.begin_vertex(); vsh != sd.end_vertex(); ++vsh) {
     if(!attachshader(this->m_hProgram, (*vsh).first, (*vsh).second,
                      GL_VERTEX_SHADER)) {
       T_ERROR("Attaching vertex shader '%s' failed.", (*vsh).second.c_str());
@@ -416,7 +415,7 @@ void GLSLProgram::Load(const ShaderDescriptor& sd)
 
   // create a shader for each fragment shader, and attach it to the main
   // program.
-  for(si fsh = sd.begin_fragment(); fsh != sd.end_fragment(); ++fsh) {
+  for(auto fsh = sd.begin_fragment(); fsh != sd.end_fragment(); ++fsh) {
     if(!attachshader(this->m_hProgram, (*fsh).first, (*fsh).second,
                      GL_FRAGMENT_SHADER)) {
       T_ERROR("Attaching fragment shader '%s' failed.", (*fsh).second.c_str());
