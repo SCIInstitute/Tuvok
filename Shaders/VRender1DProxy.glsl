@@ -35,9 +35,6 @@
   setting.
 */
 
-uniform sampler3D texVolume;  ///< the data volume
-uniform sampler1D texTrans; ///< the 1D Transfer function
-
 uniform int ScaleMethod;
 uniform float TFuncBias;      ///< bias for 1D TFqn lookup
 uniform float fTransScale;    ///< scale for 1D Transfer function lookup

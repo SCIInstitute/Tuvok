@@ -33,7 +33,6 @@
  *          University of Utah
  */
 
-uniform sampler1D texTrans; ///< the 1D Transfer function
 uniform float fTransScale;    ///< scale for 1D Transfer function lookup
 uniform float fStepScale;     ///< opacity correction quotient
 vec4 VRender1D(const vec3 tex_pos);

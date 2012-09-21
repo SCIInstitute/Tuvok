@@ -36,7 +36,6 @@
 */
 
 
-uniform sampler1D texTrans;    ///< the 1D Transfer function
 uniform sampler2D texRayExit; ///< the backface (or ray exit point) texture in texcoords
 uniform sampler2D texRayExitPos; ///< the backface (or ray exit point) texture in eyecoords
 uniform float fTransScale;       ///< scale for 1D Transfer function lookup

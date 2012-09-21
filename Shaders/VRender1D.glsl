@@ -32,7 +32,6 @@
   \brief   Function for performing "standard" volume rendering.
 */
 
-uniform sampler3D texVolume; ///< the data volume
 uniform sampler1D texTrans;  ///< the 1D Transfer function
 
 vec4 sampleVolume(vec3);
