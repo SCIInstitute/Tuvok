@@ -4,6 +4,7 @@
 # include <iterator>
 #endif
 #include <sstream>
+#include <stdexcept>
 #include <GL/glew.h>
 #include "GLHashTable.h"
 #include "GLInclude.h"
