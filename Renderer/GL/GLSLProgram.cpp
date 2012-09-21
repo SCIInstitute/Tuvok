@@ -426,13 +426,13 @@ void GLSLProgram::Load(const ShaderDescriptor& sd)
     }
   }
 
-  for (auto binding = sd.fragmentDataBindings.begin(); 
-       binding < sd.fragmentDataBindings.end();
-       binding++) {
-    if (glBindFragDataLocation)
+  if(glBindFragDataLocation) {
+    for (auto binding = sd.fragmentDataBindings.begin();
+         binding < sd.fragmentDataBindings.end(); binding++) {
       GL(glBindFragDataLocation(this->m_hProgram, binding->first, binding->second.c_str()));
-    else
-      T_ERROR("glBindFragDataLocation not supported on this GL version");
+    }
+  } else {
+    T_ERROR("glBindFragDataLocation not supported on this GL version");
   }
 
 
