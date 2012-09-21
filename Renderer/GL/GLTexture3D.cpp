@@ -65,9 +65,9 @@ GLTexture3D::GLTexture3D(uint32_t iSizeX, uint32_t iSizeY, uint32_t iSizeZ,
   GL(glPixelStorei(GL_PACK_ALIGNMENT, 1));
   GL(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
 
-  GL(glTexImage3D(GL_TEXTURE_3D, 0, m_internalformat,
-                  m_iSizeX, m_iSizeY, m_iSizeZ,
-                  0, m_format, m_type, (GLvoid*)pixels));
+  glTexImage3D(GL_TEXTURE_3D, 0, m_internalformat,
+               m_iSizeX, m_iSizeY, m_iSizeZ,
+               0, m_format, m_type, (GLvoid*)pixels);
   GLenum err = glGetError();
   if(err == GL_OUT_OF_MEMORY) {
     this->Delete();
