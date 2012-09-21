@@ -80,6 +80,9 @@ class GLTexture : public GLObject {
     /** \return The OpenGL identifier for this texture. */
     GLuint GetGLID() const {return m_iGLID;}
 
+    /// expensive read back of texture data
+    virtual void GetData(std::shared_ptr<void> data) = 0;
+
   protected:
     GLuint  m_iGLID;
     GLint  m_iMagFilter;

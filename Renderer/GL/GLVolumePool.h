@@ -94,7 +94,7 @@ namespace tuvok {
                   GLSLProgram* pShaderProgram) const;
       void Disable() const;
 
-      std::string GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t iDataTextureUnit, std::string const& strInfoHashTablePrefixName = "");
+      std::string GetShaderFragment(uint32_t iMetaTextureUnit, uint32_t iDataTextureUnit, std::string const& strWorkingSetTablePrefixName = "");
       
       void SetFilterMode(GLenum filter);
 

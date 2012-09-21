@@ -11,14 +11,14 @@
 
 namespace tuvok {
 
-class GLTexture1D;
+class GLTexture;
 
 class GLHashTable : public GLObject {
   public:
     GLHashTable(const UINTVECTOR3& maxBrickCount, uint32_t iTableSize=511, uint32_t iRehashCount=10, bool bUseGLCore=true, std::string const& strPrefixName = "");
     virtual ~GLHashTable();
 
-    void InitGL();
+    void InitGL(); // might throw
     void FreeGL();
 
     std::string GetShaderFragment(uint32_t iMountPoint=0);
@@ -34,12 +34,14 @@ class GLHashTable : public GLObject {
     UINTVECTOR3 m_maxBrickCount;
     uint32_t m_iTableSize;
     uint32_t m_iRehashCount;
-    GLTexture1D* m_pHashTableTex;
-    std::shared_ptr<uint32_t> m_rawData;
+    GLTexture* m_pHashTableTex;
+    UINTVECTOR2 m_texSize;
+    std::shared_ptr<uint32_t> m_pRawData;
     bool m_bUseGLCore;
     uint32_t m_iMountPoint;
 
     UINTVECTOR4 Int2Vector(uint32_t index) const;
+    bool Is2DTexture() const;
 };
 
 }

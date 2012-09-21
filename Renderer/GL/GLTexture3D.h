@@ -73,6 +73,8 @@ class GLTexture3D : public GLTexture {
     void SetData(const UINTVECTOR3& offset, const UINTVECTOR3& size,
                  const void *pixels, bool bRestoreBinding=true);
 
+    virtual void GetData(std::shared_ptr<void> data);
+
     virtual uint64_t GetCPUSize() const {
       return uint64_t(m_iSizeX*m_iSizeY*m_iSizeZ*SizePerElement());
     }

@@ -10,8 +10,10 @@
 #include "GLSLProgram.h"
 #include "GLFBOTex.h"
 #include "GLTexture1D.h"
+#include "GLTexture2D.h"
 #include "../ShaderDescriptor.h"
 #include "Basics/nonstd.h"
+#include "IO/UVF/ExtendedOctree/VolumeTools.h"
 
 using namespace tuvok;
 
@@ -24,10 +26,7 @@ GLHashTable::GLHashTable(const UINTVECTOR3& maxBrickCount, uint32_t iTableSize, 
   m_bUseGLCore(bUseGLCore),
   m_iMountPoint(0)
 {
-  m_rawData = std::shared_ptr<uint32_t>(
-    new uint32_t[m_iTableSize], 
-    nonstd::DeleteArray<uint32_t>()
-  );
+
 }
 
 GLHashTable::~GLHashTable() {
@@ -35,7 +34,30 @@ GLHashTable::~GLHashTable() {
 }
 
 void GLHashTable::InitGL() {
-  m_pHashTableTex = new GLTexture1D(m_iTableSize, GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT, NULL);
+
+  int gpumax; 
+  GL(glGetIntegerv(GL_MAX_TEXTURE_SIZE, &gpumax));
+
+  try {
+    m_texSize = VolumeTools::Fit1DIndexTo2DArray(m_iTableSize, gpumax);
+  } catch (std::runtime_error const& e) {
+    // this is very unlikely but not impossible
+    T_ERROR(e.what());
+    throw;
+  }
+
+  // try to use 1D texture if possible because it appears to be slightly faster than a 2D texture
+  if (Is2DTexture()) {
+    m_pHashTableTex = new GLTexture2D(m_texSize.x, m_texSize.y, GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT, NULL);
+  } else {
+    assert(m_texSize.x == m_iTableSize);
+    m_pHashTableTex = new GLTexture1D(m_texSize.x, GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT, NULL);
+  }
+
+  m_pRawData = std::shared_ptr<uint32_t>(
+    new uint32_t[m_texSize.area()], 
+    nonstd::DeleteArray<uint32_t>()
+    );
 }
 
 UINTVECTOR4 GLHashTable::Int2Vector(uint32_t index) const {
@@ -53,6 +75,11 @@ UINTVECTOR4 GLHashTable::Int2Vector(uint32_t index) const {
 }
 
 
+bool GLHashTable::Is2DTexture() const {
+  return m_texSize.y > 1;
+}
+
+
 void GLHashTable::Enable() { 
   GL(glBindImageTexture(m_iMountPoint, m_pHashTableTex->GetGLID(), 0, false, 0, GL_READ_WRITE, GL_R32UI));
 }
@@ -61,20 +88,20 @@ void GLHashTable::Enable() {
 std::vector<UINTVECTOR4> GLHashTable::GetData() {
 
   // TODO:  need to figure out if this is needed
-// GL(glMemoryBarrier(GL_ALL_BARRIER_BITS));
+//  GL(glMemoryBarrier(GL_ALL_BARRIER_BITS));
 
-  m_pHashTableTex->GetData(m_rawData);
+  m_pHashTableTex->GetData(m_pRawData);
   std::vector<UINTVECTOR4> requests;
   for (size_t i = 0;i<m_iTableSize;++i) {
-    uint32_t elem = m_rawData.get()[i];
+    uint32_t elem = m_pRawData.get()[i];
     if (elem != 0) requests.push_back(Int2Vector(elem-1));
   }
   return requests;
 }
 
 void GLHashTable::ClearData() {
-  std::fill(m_rawData.get(), m_rawData.get()+m_iTableSize, 0);
-  m_pHashTableTex->SetData(m_rawData.get());
+  std::fill(m_pRawData.get(), m_pRawData.get()+m_iTableSize, 0);
+  m_pHashTableTex->SetData(m_pRawData.get());
 }
 
 std::string GLHashTable::GetShaderFragment(uint32_t iMountPoint) {
@@ -102,28 +129,47 @@ std::string GLHashTable::GetShaderFragment(uint32_t iMountPoint) {
 
   ss << "\n"
      << "layout(binding = " << iMountPoint << ", size1x32) coherent uniform "
-        "uimage1D " << m_strPrefixName << "hashTable;\n"
+     << (Is2DTexture() ? "uimage2D " : "uimage1D ") << m_strPrefixName << "hashTable;\n"
      << "\n"
      << "uint " << m_strPrefixName << "Serialize(uvec4 bd) {\n"
      << "  return 1 + bd.x + bd.y * " << m_maxBrickCount.x << " + bd.z * "
-     << m_maxBrickCount.x * m_maxBrickCount.y << " + bd.w * "
-     << m_maxBrickCount.volume() << ";\n"
+     <<           m_maxBrickCount.x * m_maxBrickCount.y << " + bd.w * "
+     <<           m_maxBrickCount.volume() << ";\n"
      << "}\n"
      << "\n"
-     << "int " << m_strPrefixName << "HashValue(uint serializedValue) {\n"
+     << "uint " << m_strPrefixName << "HashValue(uint serializedValue) {\n"
      << "  return int(serializedValue % " << m_iTableSize << ");\n"
      << "}\n"
-     << "\n"
-     << "uint " << m_strPrefixName << "Hash(uvec4 bd) {\n"
+     << "\n";
+
+  if (Is2DTexture()) {
+    // we are using a 2D texture
+    ss << "uint " << m_strPrefixName << "AccessHashTable(uint hashValue, uint serializedValue) {\n"
+       << "  ivec2 hashPosition = ivec2(hashValue % " << m_texSize.x << ", "
+                                       "hashValue / " << m_texSize.x << ");\n"
+       << "  return imageAtomicCompSwap(" << m_strPrefixName << "hashTable,"
+                                        "hashPosition, uint(0), serializedValue);\n"
+       << "}\n"
+       << "\n";
+  } else {
+    // we are using a 1D texture
+    ss << "uint " << m_strPrefixName << "AccessHashTable(uint hashValue, uint serializedValue) {\n"
+       << "  int hashPosition = int(hashValue);\n"
+       << "  return imageAtomicCompSwap(" << m_strPrefixName << "hashTable,"
+                                        "hashPosition, uint(0), serializedValue);\n"
+       << "}\n"
+       << "\n";
+  }
+
+  ss << "uint " << m_strPrefixName << "Hash(uvec4 bd) {\n"
      << "  uint rehashCount = 0;\n"
      << "  uint serializedValue =  " << m_strPrefixName << "Serialize(bd);\n"
      << "\n"
      << "  do {\n"
-     << "    int hash = " << m_strPrefixName << "HashValue(serializedValue+rehashCount);\n"
-     << "    uint valueInImage = imageAtomicCompSwap(" << m_strPrefixName << "hashTable, hash, uint(0), "
-                                                    "serializedValue);\n"
-     << "    if (valueInImage == 0 || valueInImage == serializedValue) "
-               "return rehashCount;\n"
+     << "    uint hash = " << m_strPrefixName << "HashValue(serializedValue+rehashCount);\n"
+     << "    uint valueInImage = " << m_strPrefixName << "AccessHashTable(hash, serializedValue);\n"
+     << "    if (valueInImage == 0 || valueInImage == serializedValue)\n"
+     << "      return rehashCount;\n"
      << "  } while (++rehashCount < " << m_iRehashCount << ");\n"
      << "\n"
      << "  return uint(" << m_iRehashCount << ");\n"

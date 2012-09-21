@@ -71,7 +71,7 @@ class GLTexture2D : public GLTexture {
     void SetData(const UINTVECTOR2& offset, const UINTVECTOR2& size,
                  const void *pixels, bool bRestoreBinding=true);
 
-    std::shared_ptr<const void> GetData();
+    virtual void GetData(std::shared_ptr<void> data);
 
     virtual uint64_t GetCPUSize() const {
       return uint64_t(m_iSizeX*m_iSizeY*SizePerElement());

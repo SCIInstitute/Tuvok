@@ -67,6 +67,8 @@ class GLTexture1D : public GLTexture {
     void SetData(uint32_t offset, uint32_t size, const void *pixels,
                  bool bRestoreBinding=true);
 
+    virtual void GetData(std::shared_ptr<void> data);
+
     virtual uint64_t GetCPUSize() const {
       return uint64_t(m_iSize*SizePerElement());
     }
@@ -75,9 +77,6 @@ class GLTexture1D : public GLTexture {
     }
 
     uint32_t GetSize() const {return uint32_t(m_iSize);}
-
-    std::shared_ptr<const void> GetData();
-    void GetData(std::shared_ptr<void> data);
 
   protected:
     GLuint m_iSize;

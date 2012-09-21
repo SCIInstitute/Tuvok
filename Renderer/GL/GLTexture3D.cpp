@@ -119,3 +119,12 @@ void GLTexture3D::SetData(const void *pixels, bool bRestoreBinding) {
 
   if (bRestoreBinding && GLuint(prevTex) != m_iGLID) GL(glBindTexture(GL_TEXTURE_3D, prevTex));
 }
+
+void GLTexture3D::GetData(std::shared_ptr<void> data)
+{
+  GL(glPixelStorei(GL_PACK_ALIGNMENT ,1));
+  GL(glPixelStorei(GL_UNPACK_ALIGNMENT ,1));
+  GL(glBindTexture(GL_TEXTURE_3D, m_iGLID));
+
+  GL(glGetTexImage(GL_TEXTURE_3D, 0, m_format, m_type, data.get()));
+}

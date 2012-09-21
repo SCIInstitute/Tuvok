@@ -257,7 +257,7 @@ inline UINTVECTOR3 const& GLVolumePool::GetMaxInnerBrickSize() const {
 
 std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit,
                                             uint32_t iDataTextureUnit,
-                                            std::string const& strInfoHashTablePrefixName) {
+                                            std::string const& strWorkingSetTablePrefixName) {
   // must have created GL resources before asking for shader
   if (!m_pPoolMetadataTexture  || !m_pPoolDataTexture) return "";
 
@@ -375,11 +375,11 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit,
      << "}\n"
      << "\n";
 
-  if (!strInfoHashTablePrefixName.empty()) {
-    ss << "uint " << strInfoHashTablePrefixName << "Hash(uvec4 brick);\n"
+  if (!strWorkingSetTablePrefixName.empty()) {
+    ss << "uint " << strWorkingSetTablePrefixName << "Hash(uvec4 brick);\n"
        << "\n"
        << "uint ReportUsedBrick(uvec4 brick) {\n"
-       << "  return " << strInfoHashTablePrefixName << "Hash(brick);\n"
+       << "  return " << strWorkingSetTablePrefixName << "Hash(brick);\n"
        << "}\n"
        << "\n";
   }
@@ -498,7 +498,7 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit,
      << "                         brickInfo, poolEntryCoords, poolExitCoords,\n"
      << "                         normToPoolScale, normToPoolTrans);\n";
 
-  if (!strInfoHashTablePrefixName.empty()) {
+  if (!strWorkingSetTablePrefixName.empty()) {
     ss << "  if (bFoundRequestedResolution) \n"
        << "    ReportUsedBrick(brickCoords);\n";
   }
@@ -681,22 +681,14 @@ void GLVolumePool::CreateGLResources() {
   // last level + that last level itself contains one brick
   m_iTotalBrickCount = *(m_vLoDOffsetTable.end()-1)+1;
 
-  // this is very unlikely but not impossible
-  if (m_iTotalBrickCount > uint32_t(gpumax*gpumax)) {
-    std::stringstream ss;    
-    
-    ss << "Unable to create brick metadata texture, as it needs to hold "
-       << m_iTotalBrickCount << "entries but the max 2D texture size on this "
-       << "machine is only " << gpumax << " x " << gpumax << "allowing for "
-       << " a maximum of " << gpumax*gpumax << " indices.";
-
-    T_ERROR(ss.str().c_str());
-    throw std::runtime_error(ss.str().c_str()); 
-  }
-  
   UINTVECTOR2 vTexSize;
-  vTexSize.x = uint32_t(ceil(sqrt(double(m_iTotalBrickCount))));
-  vTexSize.y = uint32_t(ceil(double(m_iTotalBrickCount)/double(vTexSize.x)));
+  try {
+    vTexSize = VolumeTools::Fit1DIndexTo2DArray(m_iTotalBrickCount, gpumax);
+  } catch (std::runtime_error const& e) {
+    // this is very unlikely but not impossible
+    T_ERROR(e.what());
+    throw;
+  }
   m_vBrickMetadata.resize(vTexSize.area());
 
   std::fill(m_vBrickMetadata.begin(), m_vBrickMetadata.end(), BI_MISSING);
