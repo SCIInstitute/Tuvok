@@ -61,6 +61,9 @@ namespace tuvok {
 
       virtual void SetInterpolant(Interpolant eInterpolant);
 
+      virtual uint32_t GetFrameProgress() const { return m_bConverged ? 100 : 1; }
+      virtual uint32_t GetSubFrameProgress() const { return 100; }
+
     protected:
       GLHashTable*    m_pglHashTable;
       GLVolumePool*   m_pVolumePool;

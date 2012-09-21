@@ -563,11 +563,11 @@ class AbstrRenderer: public Scriptable {
     uint32_t GetWorkingBrick() const
         { return static_cast<uint32_t>(m_iBricksRenderedInThisSubFrame); }
 
-    uint32_t GetFrameProgress() const {
+    virtual uint32_t GetFrameProgress() const {
         return uint32_t(100.0f * float(GetWorkingSubFrame()) /
                       float(GetCurrentSubFrameCount()));
     }
-    uint32_t GetSubFrameProgress() const {
+    virtual uint32_t GetSubFrameProgress() const {
         return (m_vCurrentBrickList.empty()) ? 100 :
                 uint32_t(100.0f * m_iBricksRenderedInThisSubFrame /
                 float(m_vCurrentBrickList.size()));
