@@ -257,7 +257,8 @@ inline UINTVECTOR3 const& GLVolumePool::GetMaxInnerBrickSize() const {
 
 std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit,
                                             uint32_t iDataTextureUnit,
-                                            std::string const& strWorkingSetTablePrefixName) {
+                                            const std::string& WsetPrefixName)
+{
   // must have created GL resources before asking for shader
   if (!m_pPoolMetadataTexture  || !m_pPoolDataTexture) return "";
 
@@ -376,11 +377,11 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit,
      << "}\n"
      << "\n";
 
-  if (!strWorkingSetTablePrefixName.empty()) {
-    ss << "uint " << strWorkingSetTablePrefixName << "Hash(uvec4 brick);\n"
+  if (!WsetPrefixName.empty()) {
+    ss << "uint " << WsetPrefixName << "Hash(uvec4 brick);\n"
        << "\n"
        << "uint ReportUsedBrick(uvec4 brick) {\n"
-       << "  return " << strWorkingSetTablePrefixName << "Hash(brick);\n"
+       << "  return " << WsetPrefixName << "Hash(brick);\n"
        << "}\n"
        << "\n";
   }
@@ -499,7 +500,7 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit,
      << "                         brickInfo, poolEntryCoords, poolExitCoords,\n"
      << "                         normToPoolScale, normToPoolTrans);\n";
 
-  if (!strWorkingSetTablePrefixName.empty()) {
+  if (!WsetPrefixName.empty()) {
     ss << "  if (bFoundRequestedResolution) \n"
        << "    ReportUsedBrick(brickCoords);\n";
   }
