@@ -7,12 +7,23 @@
 #include "GLRenderer.h"
 #include "Renderer/VisibilityState.h"
 
-//#define GLTREERAYCASTER_DEBUGVIEW  // define to enable debug view when pressing 'D'-key
+//#define GLTREERAYCASTER_DEBUGVIEW  // define to toggle debug view with 'D'-key
 //#define GLTREERAYCASTER_PROFILE    // define to measure frame times
+//#define GLTREERAYCASTER_AVG_FPS    10 // define to measure pure averaged frame 
+                                      // times without paging, requires enough 
+                                      // GPU memory to host the working set
 //#define GLTREERAYCASTER_WORKINGSET // define to measure per frame working set
+//#define GLTREERAYCASTER_WRITE_LOG  // define to write render measurements to file
 
 #ifdef GLTREERAYCASTER_PROFILE
 #include "AvgMinMaxTracker.h"
+#else
+#ifdef GLTREERAYCASTER_AVG_FPS
+#undef GLTREERAYCASTER_AVG_FPS
+#endif
+#endif
+#ifdef GLTREERAYCASTER_WRITE_LOG
+#include <fstream>
 #endif
 
 class ExtendedPlane;
@@ -92,9 +103,15 @@ namespace tuvok {
       AvgMinMaxTracker<float> m_FrameTimes;
       uint32_t        m_iSubframes;
       size_t          m_iPagedBricks;
+#ifdef GLTREERAYCASTER_AVG_FPS
+      bool            m_bAveraging;
+#endif
 #endif
 #ifdef GLTREERAYCASTER_WORKINGSET
       GLHashTable*    m_pWorkingSetTable;
+#endif
+#ifdef GLTREERAYCASTER_WRITE_LOG
+      std::ofstream   m_LogFile;
 #endif
 
       /** Loads GLSL vertex and fragment shaders. */

@@ -12,6 +12,7 @@ layout(binding=1) uniform sampler2D rayStartColor;
 
 #ifdef DEBUG
 layout(binding=6) uniform sampler2D debugColor;
+// 7 is hastable for working set tracking (inside hash table)
 #endif
 
 // get pixel coordinates
@@ -175,8 +176,9 @@ void main()
             debugFBO.r += 0.01;
             debugFBO.w = 1;
           }
-        }
 #endif
+        }
+
         currentPos = (currentPoolCoords-normToPoolTrans)/normToPoolScale;
       } else {
         currentPos = normBrickExitCoords+voxelSize*direction/rayLength;

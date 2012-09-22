@@ -13,6 +13,10 @@
 #include "Basics/SystemInfo.h"
 #include "Basics/Clipper.h"
 
+#ifdef GLTREERAYCASTER_WRITE_LOG
+#include "Basics/SysTools.h"
+#endif
+
 #include "IO/uvfDataset.h"
 #include "IO/TransferFunction1D.h"
 #include "IO/TransferFunction2D.h"
@@ -57,6 +61,9 @@ GLTreeRaycaster::GLTreeRaycaster(MasterController* pMasterController,
   , m_FrameTimes(100)
   , m_iSubframes(0)
   , m_iPagedBricks(0)
+#ifdef GLTREERAYCASTER_AVG_FPS
+  , m_bAveraging(false)
+#endif
 #endif
 #ifdef GLTREERAYCASTER_WORKINGSET
   , m_pWorkingSetTable(NULL)
@@ -121,6 +128,31 @@ bool GLTreeRaycaster::LoadDataset(const string& strFilename) {
   }
 
   m_pToCDataset = pUVFDataset;
+
+#ifdef GLTREERAYCASTER_WRITE_LOG
+  std::string const strLogFilename = SysTools::FindNextSequenceName(SysTools::RemoveExt(m_pToCDataset->Filename()) + "_log.txt");
+  m_LogFile.open(strLogFilename);
+#ifdef GLTREERAYCASTER_PROFILE
+#ifdef GLTREERAYCASTER_AVG_FPS
+  m_LogFile << "avg frame time (ms); "
+            << "avg FPS; "
+            << "avg sample count; "
+            << "min frame time (ms); "
+            << "max frame time (ms); ";
+#else
+  m_LogFile << "frame time (ms); "
+            << "FPS; "
+            << "subframe count; "
+            << "paged in brick count; "
+            << "paged in memory (MB); ";
+#endif
+#endif
+#ifdef GLTREERAYCASTER_WORKINGSET
+  m_LogFile << "working set brick count; "
+            << "working set memory (MB); ";
+#endif
+  m_LogFile << std::endl;
+#endif // GLTREERAYCASTER_WRITE_LOG
 
   return true;
 }
@@ -772,7 +804,13 @@ bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
   size_t iStereoBufferCount = (m_bDoStereoRendering) ? 2 : 1;
 
   // prepare a new view
+#ifdef GLTREERAYCASTER_AVG_FPS
+  if (rr.isBlank || m_bAveraging) {
+    if (rr.isBlank)
+      m_bAveraging = false;
+#else
   if (rr.isBlank) {
+#endif
     for (size_t i = 0;i<iStereoBufferCount;i++) {
 #ifdef GLTREERAYCASTER_PROFILE
       //OTHER("Preparing new view");
@@ -827,21 +865,43 @@ bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
       std::stringstream ss;
       ss << std::fixed << std::setprecision(2);
 #ifdef GLTREERAYCASTER_PROFILE
-      float const t = float(m_Timer.Elapsed());
-      m_FrameTimes.Push(t);
-      ss << "Total frame (with " << m_iSubframes << " subframes) took " << t
-         << " ms to render (" << 1000.f/t << " FPS)   "
+      float const fFrameTime = float(m_Timer.Elapsed());
+#ifdef GLTREERAYCASTER_AVG_FPS
+      if (m_iPagedBricks || !m_bAveraging || !m_pVolumePool->IsVisibilityUpdated()) {
+        m_bConverged = false;
+        m_bAveraging = true;
+        m_FrameTimes = AvgMinMaxTracker<float>(m_FrameTimes.GetMaxHistoryLength()); // clear
+        return true; // quick exit to start averaging
+      }
+#endif
+      m_FrameTimes.Push(fFrameTime);
+      ss << "Total frame (with " << m_iSubframes << " subframes) took " << fFrameTime
+         << " ms to render (" << 1000.f / fFrameTime << " FPS)   "
          << " Average of the last " << m_FrameTimes.GetHistroryLength()
          << " frame times: " << m_FrameTimes.GetAvgMinMax() << "   "
          << " Total paged bricks: " << m_iPagedBricks << " ("
          << m_vUploadMem.size() * m_iPagedBricks / 1024.f / 1024.f << " MB)   ";
+#if defined(GLTREERAYCASTER_WRITE_LOG) && !defined(GLTREERAYCASTER_AVG_FPS)
+      m_LogFile << fFrameTime << "; " // frame time
+                << 1000.f/fFrameTime << "; " // FPS
+                << m_iSubframes << "; " // subframe count
+                << m_iPagedBricks << "; " // paged in brick count
+                << m_vUploadMem.size() * m_iPagedBricks / 1024.f / 1024.f << "; "; // paged in memory
 #endif
+#endif // GLTREERAYCASTER_PROFILE
 #ifdef GLTREERAYCASTER_WORKINGSET
       std::vector<UINTVECTOR4> vUsedBricks = m_pWorkingSetTable->GetData();
       ss << "Working set bricks for optimal frame: " << vUsedBricks.size() << " ("
          << m_vUploadMem.size() * vUsedBricks.size() / 1024.f / 1024.f << " MB)";
+#if defined(GLTREERAYCASTER_WRITE_LOG) && !defined(GLTREERAYCASTER_AVG_FPS)
+      m_LogFile << vUsedBricks.size() << "; " // working set brick count
+                << m_vUploadMem.size() * vUsedBricks.size() / 1024.f / 1024.f << "; "; // working set memory
 #endif
+#endif // GLTREERAYCASTER_WORKINGSET
       OTHER("%s", ss.str().c_str());
+#endif // defined(GLTREERAYCASTER_PROFILE) || defined(GLTREERAYCASTER_WORKINGSET)
+#if defined(GLTREERAYCASTER_WRITE_LOG) && !defined(GLTREERAYCASTER_AVG_FPS)
+      m_LogFile << std::endl;
 #endif
 #ifdef GLTREERAYCASTER_DEBUGVIEW
       if (m_bDebugView)
@@ -851,7 +911,31 @@ bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
 
     iPagedBricksForSubframe += hash.size();
   }
+#ifndef GLTREERAYCASTER_AVG_FPS
   m_bConverged = iPagedBricksForSubframe == 0;
+#else
+  // we want absolute frame times without paging that's why we re-render a couple of times after we converged
+  if (m_FrameTimes.GetHistroryLength() >= GLTREERAYCASTER_AVG_FPS) {
+#ifdef GLTREERAYCASTER_WRITE_LOG
+#ifdef GLTREERAYCASTER_PROFILE
+    m_LogFile << m_FrameTimes.GetAvg() << "; " // avg frame time
+              << 1000.f/m_FrameTimes.GetAvg() << "; " // avg FPS
+              << m_FrameTimes.GetHistroryLength() << "; " // avg sample count
+              << m_FrameTimes.GetMin() << "; " // min frame time
+              << m_FrameTimes.GetMax() << "; "; // max frame time
+#endif
+#ifdef GLTREERAYCASTER_WORKINGSET
+    std::vector<UINTVECTOR4> vUsedBricks = m_pWorkingSetTable->GetData();
+    m_LogFile << vUsedBricks.size() << "; " // working set brick count
+              << m_vUploadMem.size() * vUsedBricks.size() / 1024.f / 1024.f << "; "; // working set memory
+#endif
+    m_LogFile << std::endl;
+#endif
+    m_bConverged = true;
+  } else {
+    m_bConverged = false;
+  }
+#endif
 
   // always display intermediate results
   return true;
