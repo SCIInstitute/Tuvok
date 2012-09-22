@@ -105,9 +105,9 @@ void GLTexture3D::SetData(const void *pixels, bool bRestoreBinding) {
   if (bRestoreBinding) GL(glGetIntegerv(GL_TEXTURE_BINDING_3D, &prevTex));
 
   GL(glBindTexture(GL_TEXTURE_3D, m_iGLID));
-  GL(glTexImage3D(GL_TEXTURE_3D, 0, m_internalformat,
-                  m_iSizeX, m_iSizeY, m_iSizeZ,
-                  0, m_format, m_type, (GLvoid*)pixels));
+  glTexImage3D(GL_TEXTURE_3D, 0, m_internalformat,
+               m_iSizeX, m_iSizeY, m_iSizeZ,
+               0, m_format, m_type, (GLvoid*)pixels);
   GLenum err = glGetError();
   if(err == GL_OUT_OF_MEMORY) {
     this->Delete();
