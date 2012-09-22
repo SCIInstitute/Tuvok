@@ -870,8 +870,8 @@ bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
     if (!hash.empty()) {
 #ifdef GLTREERAYCASTER_PROFILE
       float const t = float(m_Timer.Elapsed());
-      OTHER("(subframe %d) So far the current frame took %.2f ms and %d bricks"
-            " were paged in", m_iSubframes, t, m_iPagedBricks);
+      OTHER("subframe %d took %.2f ms and %d bricks were paged in",
+            m_iSubframes, t, m_iPagedBricks);
       m_iSubframes++;
 #endif
     } else {
@@ -928,7 +928,8 @@ bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
 #ifndef GLTREERAYCASTER_AVG_FPS
   m_bConverged = iPagedBricksForSubframe == 0;
 #else
-  // we want absolute frame times without paging that's why we re-render a couple of times after we converged
+  // we want absolute frame times without paging that's why we
+  // re-render a couple of times after we converged
   if (m_FrameTimes.GetHistroryLength() >= GLTREERAYCASTER_AVG_FPS) {
 #ifdef GLTREERAYCASTER_WRITE_LOG
 #ifdef GLTREERAYCASTER_PROFILE

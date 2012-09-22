@@ -291,7 +291,7 @@ class AbstrRenderer: public Scriptable {
     {}
 
   public:
-    // The following functions are public ONLY because their are dependencies
+    // The following functions are public ONLY because there are dependencies
     // upon them within Tuvok. Their dependencies are listed.
 
     // Dependency: RenderRegion.cpp
@@ -299,7 +299,6 @@ class AbstrRenderer: public Scriptable {
 
     // Dependency: RenderRegion.cpp
     const ExtendedPlane& GetClipPlane() const;
-
 
   protected:
     // Functions in this section were made protected due to the transition to 
