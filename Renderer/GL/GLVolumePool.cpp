@@ -178,7 +178,7 @@ GLVolumePool::GLVolumePool(const UINTVECTOR3& poolSize, UVFDataset* pDataset, GL
         }
       } 
       break;
-    default : throw Exception("Invalid Component Count", _func_, __LINE__);
+    default : throw Exception("Invalid bit width", _func_, __LINE__);
   }
 
   // fill the pool slot information
