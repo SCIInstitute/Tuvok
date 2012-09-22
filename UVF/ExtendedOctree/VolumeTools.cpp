@@ -15,7 +15,7 @@ UINTVECTOR2 VolumeTools::Fit1DIndexTo2DArray(uint64_t iMax1DIndex,
 
   // 1D index fits into a row
   if (iMax1DIndex <= uint64_t(iMax2DArraySize))
-    return UINTVECTOR2(iMax1DIndex, 1);
+    return UINTVECTOR2(uint32_t(iMax1DIndex), 1);
 
   // fit 1D index into the smallest possible square
   UINTVECTOR2 v2DArraySize;
