@@ -257,6 +257,7 @@ inline UINTVECTOR3 const& GLVolumePool::GetMaxInnerBrickSize() const {
 
 std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit,
                                             uint32_t iDataTextureUnit,
+                                            MissingBrickStrategy strategy,
                                             const std::string& WsetPrefixName)
 {
   // must have created GL resources before asking for shader
@@ -469,8 +470,24 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit,
      << "      iLOD++;\n"
      << "      brickCoords = ComputeBrickCoords(normEntryCoords, iLOD);\n"
      << "      brickInfo   = GetBrickInfo(brickCoords);\n"
-     << "      if (brickInfo == BI_MISSING && iStartLOD+2 == iLOD) ReportMissingBrick(brickCoords);\n"
-     << "    } while (brickInfo == BI_MISSING);\n"
+     << "      ";
+  switch(strategy) {
+    case OnlyNeeded: /* nothing. */ break;
+    case RequestAll:
+      ss << "if(brickInfo == BI_MISSING) ReportMissingBrick(brickCoords);\n";
+      break;
+    case SkipOneLevel:
+      ss << "if(brickInfo == BI_MISSING && iStartLOD+1 == iLOD) {\n      "
+         << "  ReportMissingBrick(brickCoords);\n      "
+         << "}\n";
+      break;
+    case SkipTwoLevels:
+      ss << "if(brickInfo == BI_MISSING && iStartLOD+2 == iLOD) {\n      "
+         << "  ReportMissingBrick(brickCoords);\n      "
+         << "}\n";
+      break;
+  }
+  ss << "    } while (brickInfo == BI_MISSING);\n"
      << "  }\n"
      << "  // next line check for BI_EMPTY or BI_CHILD_EMPTY (BI_MISSING is\n"
         "  // excluded by code above!)\n"
