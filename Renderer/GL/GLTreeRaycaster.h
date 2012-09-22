@@ -75,6 +75,15 @@ namespace tuvok {
       virtual uint32_t GetFrameProgress() const { return m_bConverged ? 100 : 1; }
       virtual uint32_t GetSubFrameProgress() const { return 100; }
 
+      /// "PH" == "paper hacks".  sorry.  delete these after pacvis.
+      ///@{
+      virtual void PH_ClearWorkingSet();
+      virtual void PH_SetPagedBricks(size_t bricks);
+      virtual size_t PH_FramePagedBricks() const;
+      virtual size_t PH_SubframePagedBricks() const;
+      virtual void PH_RecalculateVisibility();
+      ///@}
+
     protected:
       GLHashTable*    m_pglHashTable;
       GLVolumePool*   m_pVolumePool;
@@ -99,17 +108,15 @@ namespace tuvok {
       GLFBOTex*       m_pFBODebug;
       GLFBOTex*       m_pFBODebugNext;
 #endif
-#ifdef GLTREERAYCASTER_PROFILE
-      AvgMinMaxTracker<float> m_FrameTimes;
       uint32_t        m_iSubframes;
       size_t          m_iPagedBricks;
+#ifdef GLTREERAYCASTER_PROFILE
+      AvgMinMaxTracker<float> m_FrameTimes;
 #ifdef GLTREERAYCASTER_AVG_FPS
       bool            m_bAveraging;
 #endif
 #endif
-#ifdef GLTREERAYCASTER_WORKINGSET
       GLHashTable*    m_pWorkingSetTable;
-#endif
 #ifdef GLTREERAYCASTER_WRITE_LOG
       std::ofstream   m_LogFile;
 #endif

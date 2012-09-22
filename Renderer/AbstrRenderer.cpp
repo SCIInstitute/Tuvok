@@ -1755,6 +1755,13 @@ void AbstrRenderer::ClearRendererMeshes() {
   m_Meshes.clear();
 }
 
+/// Hacks!  These just do nothing.
+void AbstrRenderer::PH_ClearWorkingSet() { }
+void AbstrRenderer::PH_SetPagedBricks(size_t) { }
+size_t AbstrRenderer::PH_FramePagedBricks() const { return 0; }
+size_t AbstrRenderer::PH_SubframePagedBricks() const { return 0; }
+void AbstrRenderer::PH_RecalculateVisibility() {}
+
 void AbstrRenderer::RegisterLuaFunctions(
     LuaClassRegistration<AbstrRenderer>& reg,
     AbstrRenderer* me,
@@ -2166,6 +2173,18 @@ void AbstrRenderer::RegisterLuaFunctions(
                     "fixedFunctionality", "", false);
   id = reg.function(&AbstrRenderer::SyncStateManager,
                     "SyncStateManager", "", false);
+
+  id = reg.function(&AbstrRenderer::PH_ClearWorkingSet,
+                    "clearWorkingSet", "clear the set", false);
+  // set the number of paged bricks; useful to reset it to 0 when timing stuff.
+  id = reg.function(&AbstrRenderer::PH_SetPagedBricks,
+                    "setPagedBricks", "useful for resetting", false);
+  id = reg.function(&AbstrRenderer::PH_FramePagedBricks,
+                    "framePagedBricks", "paged bricks so far this frame", false);
+  id = reg.function(&AbstrRenderer::PH_SubframePagedBricks,
+                    "subframePagedBricks", "# this SUBframe", false);
+  id = reg.function(&AbstrRenderer::PH_RecalculateVisibility,
+                    "recalcVisibility", "synchronous!", false);
 
   /// Register renderer specific functions.
   me->RegisterDerivedClassLuaFunctions(reg, ss);

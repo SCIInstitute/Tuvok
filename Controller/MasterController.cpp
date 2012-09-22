@@ -87,6 +87,8 @@ MasterController::MasterController() :
 
   // TEMPORARY -- Disable the provenance system.
   LuaScript()->cexec("provenance.enable", false);
+
+  PHState.BStrategy = PH_HackyState::BS_SkipTwoLevels;
 }
 
 
@@ -291,6 +293,10 @@ void MasterController::AddLuaRendererType(const std::string& rendererLoc,
   LuaScript()->exec(os.str());
 }
 
+void MasterController::SetBrickStrategy(size_t strat) {
+  assert(strat <= PH_HackyState::BS_SkipTwoLevels); // hack
+  this->PHState.BStrategy = static_cast<PH_HackyState::BrickStrategy>(strat);
+}
 void MasterController::RegisterLuaCommands() {
   std::shared_ptr<LuaScripting> ss = LuaScript();
 
@@ -365,6 +371,11 @@ void MasterController::RegisterLuaCommands() {
       "should be left to the renderer.",
       LuaClassRegCallback<LuaTransferFun2DProxy>::Type(
           LuaTransferFun2DProxy::defineLuaInterface));
+
+  std::string id = m_pMemReg->registerFunction(this,
+    &MasterController::SetBrickStrategy, "tuvok.state.brickStrategy", "",
+    false
+  );
 }
 
 bool MasterController::Execute(const std::string&,

@@ -290,6 +290,15 @@ class AbstrRenderer: public Scriptable {
         LuaScripting*) 
     {}
 
+    /// "PH" == "paper hacks".  sorry.  delete these after pacvis.
+    ///@{
+    virtual void PH_ClearWorkingSet();
+    virtual void PH_SetPagedBricks(size_t bricks);
+    virtual size_t PH_FramePagedBricks() const;
+    virtual size_t PH_SubframePagedBricks() const;
+    virtual void PH_RecalculateVisibility();
+    ///@}
+
   public:
     // The following functions are public ONLY because there are dependencies
     // upon them within Tuvok. Their dependencies are listed.

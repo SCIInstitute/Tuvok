@@ -69,6 +69,13 @@ class RenderRegion;
 
 typedef std::deque<AbstrRenderer*> AbstrRendererList;
 
+struct PH_HackyState {
+  enum BrickStrategy {
+    BS_OnlyNeeded=0, BS_RequestAll, BS_SkipOneLevel, BS_SkipTwoLevels
+  };
+  BrickStrategy BStrategy;
+};
+
 /** \class MasterController
  * Centralized controller for Tuvok.
  *
@@ -184,6 +191,9 @@ public:
   void ReleaseVolumeRenderer(LuaClassInstance pVolumeRenderer);
   /// @}
 
+  /// disgusting centralized storage for state we need to record for the paper
+  void SetBrickStrategy(size_t strat);
+  PH_HackyState PHState;
 
 private:
 

@@ -57,17 +57,15 @@ GLTreeRaycaster::GLTreeRaycaster(MasterController* pMasterController,
   , m_pFBODebug(NULL)
   , m_pFBODebugNext(NULL)
 #endif
+  , m_iPagedBricks(0)
 #ifdef GLTREERAYCASTER_PROFILE
   , m_FrameTimes(100)
   , m_iSubframes(0)
-  , m_iPagedBricks(0)
 #ifdef GLTREERAYCASTER_AVG_FPS
   , m_bAveraging(false)
 #endif
 #endif
-#ifdef GLTREERAYCASTER_WORKINGSET
   , m_pWorkingSetTable(NULL)
-#endif
 {
   // a member of the parent class, hence it's initialized here
   m_bSupportsMeshes = false;
@@ -158,9 +156,7 @@ bool GLTreeRaycaster::LoadDataset(const string& strFilename) {
 }
 GLTreeRaycaster::~GLTreeRaycaster() {
   delete m_pglHashTable; m_pglHashTable = NULL;
-#ifdef GLTREERAYCASTER_WORKINGSET
   delete m_pWorkingSetTable; m_pWorkingSetTable = NULL;
-#endif
   Controller::Instance().MemMan()->DeleteVolumePool(&m_pVolumePool);
 }
 
@@ -309,6 +305,19 @@ bool GLTreeRaycaster::LoadCheckShader(GLSLProgram** shader, ShaderDescriptor& sd
   return true;
 }
 
+static GLVolumePool::MissingBrickStrategy MCStrategyToVPoolStrategy(
+  PH_HackyState::BrickStrategy bs
+) {
+  switch(bs) {
+    case PH_HackyState::BS_OnlyNeeded: return GLVolumePool::OnlyNeeded;
+    case PH_HackyState::BS_RequestAll: return GLVolumePool::RequestAll;
+    case PH_HackyState::BS_SkipOneLevel: return GLVolumePool::SkipOneLevel;
+    case PH_HackyState::BS_SkipTwoLevels: return GLVolumePool::SkipTwoLevels;
+  }
+  return GLVolumePool::MissingBrickStrategy(0);
+}
+
+
 bool GLTreeRaycaster::LoadTraversalShaders() {
 
 #ifdef GLTREERAYCASTER_WORKINGSET
@@ -316,7 +325,8 @@ bool GLTreeRaycaster::LoadTraversalShaders() {
   const std::string poolFragment = m_pVolumePool->GetShaderFragment(3, 4, m_pWorkingSetTable->GetPrefixName());
 #else
   const std::string poolFragment = m_pVolumePool->GetShaderFragment(
-    3, 4, GLVolumePool::SkipTwoLevels
+    3, 4,
+    MCStrategyToVPoolStrategy(Controller::ConstInstance().PHState.BStrategy)
   );
 #endif
   const std::string hashFragment = m_pglHashTable->GetShaderFragment(5);
@@ -860,11 +870,7 @@ bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
 
     // upload missing bricks
     if (!m_pVolumePool->IsVisibilityUpdated() || !hash.empty())
-#ifdef GLTREERAYCASTER_PROFILE
       m_iPagedBricks += UpdateToVolumePool(hash);
-#else
-      UpdateToVolumePool(hash);
-#endif
 
     // conditional measurements
     if (!hash.empty()) {
@@ -959,6 +965,21 @@ bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
 void GLTreeRaycaster::SetInterpolant(Interpolant eInterpolant) {  
   GLRenderer::SetInterpolant(eInterpolant);
   m_pVolumePool->SetFilterMode(ComputeGLFilter());
+}
+
+void GLTreeRaycaster::PH_ClearWorkingSet() { m_pWorkingSetTable->ClearData(); }
+void GLTreeRaycaster::PH_SetPagedBricks(size_t bricks) {
+  m_iPagedBricks = bricks;
+}
+size_t GLTreeRaycaster::PH_FramePagedBricks() const {
+  return static_cast<size_t>(m_iPagedBricks);
+}
+size_t GLTreeRaycaster::PH_SubframePagedBricks() const {
+  return 0; /// @todo fixme this info isn't stored now.
+}
+void GLTreeRaycaster::PH_RecalculateVisibility() {
+  /// @todo synchronously recompute visibility
+  /// @todo ask alex how to do this
 }
 
 void GLTreeRaycaster::SetClipPlane(RenderRegion *renderRegion,
