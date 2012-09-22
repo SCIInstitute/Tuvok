@@ -114,6 +114,7 @@ std::string GLHashTable::GetShaderFragment(uint32_t iMountPoint) {
   std::ifstream shader(shname);
   if(shader) {
     MESSAGE("Reusing hashtable.glsl shader on disk.");
+    shader >> std::noskipws;
     std::string sh(
       (std::istream_iterator<char>(shader)),
       (std::istream_iterator<char>())

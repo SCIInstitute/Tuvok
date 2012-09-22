@@ -271,6 +271,7 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit,
   std::ifstream shader(shname);
   if(shader) {
     MESSAGE("Reusing volpool.glsl shader on disk.");
+    shader >> std::noskipws;
     std::string sh(
       (std::istream_iterator<char>(shader)),
       (std::istream_iterator<char>())
