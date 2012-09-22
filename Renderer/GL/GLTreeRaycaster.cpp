@@ -325,6 +325,9 @@ bool GLTreeRaycaster::LoadTraversalShaders() {
   fs.push_back(FindFileInDirs("GLTreeRaycaster-Method-1D.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
   ShaderDescriptor sd(vs, fs);
+#ifdef GLTREERAYCASTER_DEBUGVIEW
+  sd.AddDefine("#define DEBUG");
+#endif
   sd.AddFragmentShaderString(poolFragment);
   sd.AddFragmentShaderString(hashFragment);
 #ifdef GLTREERAYCASTER_WORKINGSET
@@ -340,6 +343,9 @@ bool GLTreeRaycaster::LoadTraversalShaders() {
   fs.push_back(FindFileInDirs("lighting.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
   sd = ShaderDescriptor(vs, fs);
+#ifdef GLTREERAYCASTER_DEBUGVIEW
+  sd.AddDefine("#define DEBUG");
+#endif
   sd.AddFragmentShaderString(poolFragment);
   sd.AddFragmentShaderString(hashFragment);
 #ifdef GLTREERAYCASTER_WORKINGSET
@@ -354,6 +360,9 @@ bool GLTreeRaycaster::LoadTraversalShaders() {
   fs.push_back(FindFileInDirs("GLTreeRaycaster-GradientTools.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
   sd = ShaderDescriptor(vs, fs);
+#ifdef GLTREERAYCASTER_DEBUGVIEW
+  sd.AddDefine("#define DEBUG");
+#endif
   sd.AddFragmentShaderString(poolFragment);
   sd.AddFragmentShaderString(hashFragment);
 #ifdef GLTREERAYCASTER_WORKINGSET
@@ -369,6 +378,9 @@ bool GLTreeRaycaster::LoadTraversalShaders() {
   fs.push_back(FindFileInDirs("lighting.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
   sd = ShaderDescriptor(vs, fs);
+#ifdef GLTREERAYCASTER_DEBUGVIEW
+  sd.AddDefine("#define DEBUG");
+#endif
   sd.AddFragmentShaderString(poolFragment);
   sd.AddFragmentShaderString(hashFragment);
 #ifdef GLTREERAYCASTER_WORKINGSET

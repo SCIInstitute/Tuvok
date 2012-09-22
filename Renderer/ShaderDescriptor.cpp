@@ -18,6 +18,7 @@ enum shader_type { SHADER_VERTEX_DISK, SHADER_VERTEX_STRING,
                    SHADER_FRAGMENT_DISK, SHADER_FRAGMENT_STRING };
 
 struct ShaderDescriptor::sinfo {
+  std::vector<std::string> defines;
   std::vector<std::pair<std::string, enum shader_type> > vertex;
   std::vector<std::pair<std::string, enum shader_type> > fragment;
   bool operator==(const ShaderDescriptor::sinfo& sdi) const;
@@ -27,7 +28,8 @@ const {
   return vertex.size() == sdi.vertex.size() &&
          fragment.size() == sdi.fragment.size() &&
          std::equal(vertex.begin(), vertex.end(), sdi.vertex.begin()) &&
-         std::equal(fragment.begin(), fragment.end(), sdi.fragment.begin());
+         std::equal(fragment.begin(), fragment.end(), sdi.fragment.begin()) &&
+         std::equal(defines.begin(), defines.end(), sdi.defines.begin());
 }
 
 ShaderDescriptor::ShaderDescriptor() : si(new struct sinfo()) { }
@@ -208,6 +210,10 @@ ShaderDescriptor ShaderDescriptor::Create(
   return rv;
 }
 
+void ShaderDescriptor::AddDefine(const std::string& define) {
+  this->si->defines.push_back(define);
+}
+
 /// Adds a vertex shader in a string (i.e. not from a filename)
 void ShaderDescriptor::AddVertexShaderString(const std::string shader) {
   this->si->vertex.push_back(std::make_pair(shader, SHADER_VERTEX_STRING));
@@ -289,15 +295,27 @@ ShaderDescriptor::SIterator::operator!=(const ShaderDescriptor::SIterator& sit)
 const {
   return !(*this == sit);
 }
+
+static std::string
+vectorStringToString(std::vector<std::string> const& vs) {
+  std::string defines;
+  for (auto define = vs.cbegin(); define != vs.cend(); define++) {
+    defines.append(*define + "\n");
+  }
+  return defines;
+}
+
 std::pair<std::string, std::string>
 ShaderDescriptor::SIterator::operator*() const {
   std::pair<std::string, std::string> rv(
-    std::make_pair(this->si->location->first, "(in-memory)")
+    std::make_pair(vectorStringToString(this->si->sd->si->defines) +
+                   this->si->location->first, "(in-memory)")
   );
   if(this->si->location->second == SHADER_VERTEX_DISK ||
      this->si->location->second == SHADER_FRAGMENT_DISK) {
     // load it from disk and replace those parameters.
-    rv.first = readfile(this->si->location->first);
+    rv.first = vectorStringToString(this->si->sd->si->defines) +
+               readfile(this->si->location->first);
     rv.second = this->si->location->first;
   }
   return rv;

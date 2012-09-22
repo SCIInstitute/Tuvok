@@ -1,7 +1,5 @@
 #version 420 core
 
-#define DEBUG
-
 // get ray start points & color
 layout(binding=0) uniform sampler2D rayStartPoint;
 layout(binding=1) uniform sampler2D rayStartColor;

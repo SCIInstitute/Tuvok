@@ -38,6 +38,9 @@ class ShaderDescriptor {
       ...
     );
 
+    /// Adds a global string to the shader that is used for every compilation unit
+    void AddDefine(const std::string& define);
+
     /// Adds a vertex shader in a string (i.e. not from a filename)
     void AddVertexShaderString(const std::string shader);
     /// Adds a fragment shader in a string (i.e. not from a filename)
