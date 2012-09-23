@@ -74,6 +74,7 @@ struct PH_HackyState {
     BS_OnlyNeeded=0, BS_RequestAll, BS_SkipOneLevel, BS_SkipTwoLevels
   };
   BrickStrategy BStrategy;
+  uint32_t RehashCount;
 };
 
 /** \class MasterController
@@ -192,8 +193,11 @@ public:
   /// @}
 
   /// disgusting centralized storage for state we need to record for the paper
+  ///@{
   void SetBrickStrategy(size_t strat);
+  void SetRehashCount(uint32_t count);
   PH_HackyState PHState;
+  ///@}
 
 private:
 

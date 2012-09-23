@@ -264,11 +264,17 @@ bool GLTreeRaycaster::Initialize(std::shared_ptr<Context> ctx) {
 
   UINTVECTOR3 const finestBrickLayout(m_pToCDataset->GetBrickLayout(0, 0));
   
-  m_pglHashTable = new GLHashTable(finestBrickLayout);
+  m_pglHashTable = new GLHashTable(finestBrickLayout, 511,
+    Controller::ConstInstance().PHState.RehashCount
+  );
   m_pglHashTable->InitGL();
 
 #ifdef GLTREERAYCASTER_WORKINGSET
-  m_pWorkingSetTable = new GLHashTable(finestBrickLayout, finestBrickLayout.volume() * uint32_t(m_pToCDataset->GetLargestSingleBrickLod(0)), 2, true, "workingSet");
+  m_pWorkingSetTable = new GLHashTable(
+    finestBrickLayout, finestBrickLayout.volume() *
+                       uint32_t(m_pToCDataset->GetLargestSingleBrickLod(0)),
+    Controller::ConstInstance().PHState.RehashCount, true, "workingSet"
+  );
   m_pWorkingSetTable->InitGL();
 #endif
 

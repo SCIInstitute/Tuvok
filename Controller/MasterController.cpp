@@ -297,6 +297,9 @@ void MasterController::SetBrickStrategy(size_t strat) {
   assert(strat <= PH_HackyState::BS_SkipTwoLevels); // hack
   this->PHState.BStrategy = static_cast<PH_HackyState::BrickStrategy>(strat);
 }
+void MasterController::SetRehashCount(uint32_t n) {
+  this->PHState.RehashCount = n;
+}
 void MasterController::RegisterLuaCommands() {
   std::shared_ptr<LuaScripting> ss = LuaScript();
 
@@ -374,6 +377,10 @@ void MasterController::RegisterLuaCommands() {
 
   std::string id = m_pMemReg->registerFunction(this,
     &MasterController::SetBrickStrategy, "tuvok.state.brickStrategy", "",
+    false
+  );
+  id = m_pMemReg->registerFunction(this,
+    &MasterController::SetRehashCount, "tuvok.state.rehashCount", "",
     false
   );
 }
