@@ -23,7 +23,7 @@ void MaxMinDataBlock::SetComponentCount(size_t iComponentCount) {
 
 void MaxMinDataBlock::ResetGlobal() {
   for (size_t i = 0;i<m_iComponentCount;++i)
-    m_GlobalMaxMin[i] = InternalMaxMinElement( std::numeric_limits<double>::max(), 
+    m_GlobalMaxMin[i] = InternalMaxMinComponent( std::numeric_limits<double>::max(), 
     -std::numeric_limits<double>::max(), 
     std::numeric_limits<double>::max(), 
     -std::numeric_limits<double>::max());
@@ -124,7 +124,7 @@ uint64_t MaxMinDataBlock::GetOffsetToNextBlock() const {
 
 uint64_t MaxMinDataBlock::ComputeDataSize() const {
   // We're writing 4 values per iteration in CopyToFile.  We used to use
-  // sizeof(InternalMaxMinElement) to compute the size of the data, but that's
+  // sizeof(InternalMaxMinComponent) to compute the size of the data, but that's
   // a bad idea because the compiler is free to pack the class however it
   // wants.  We'll write out 4 64bit values regardless of the packing of that
   // class.
@@ -132,14 +132,14 @@ uint64_t MaxMinDataBlock::ComputeDataSize() const {
   // add a write for it in CopyToFile, but you also need to come here and
   // increment the size by 8.  Hopefully this assert will clue you in if you
   // forget to do that.
-  assert(sizeof(InternalMaxMinElement) == 32 &&
+  assert(sizeof(InternalMaxMinComponent) == 32 &&
          "assuming there are 4 values per element/component!");
   return sizeof(uint64_t) +                                       // length of the vector
          sizeof(uint64_t) +                                       // component count
          32 * m_vfMaxMinData.size() * m_iComponentCount;        // vector of data
 }
 
-const InternalMaxMinElement& MaxMinDataBlock::GetValue(size_t iIndex, size_t iComponent) const {
+const InternalMaxMinComponent& MaxMinDataBlock::GetValue(size_t iIndex, size_t iComponent) const {
   if(iIndex >= m_vfMaxMinData.size() ||
      iComponent >= m_vfMaxMinData[iIndex].size()) {
     throw std::length_error("MaxMinDataBlock: Invalid maxmin index.");
@@ -148,8 +148,8 @@ const InternalMaxMinElement& MaxMinDataBlock::GetValue(size_t iIndex, size_t iCo
 }
 
 void MaxMinDataBlock::StartNewValue() {
-  vector<InternalMaxMinElement> elems;
-  InternalMaxMinElement elem(std::numeric_limits<double>::max(), 
+  vector<InternalMaxMinComponent> elems;
+  InternalMaxMinComponent elem(std::numeric_limits<double>::max(), 
                             -std::numeric_limits<double>::max(), 
                              std::numeric_limits<double>::max(), 
                             -std::numeric_limits<double>::max());  
@@ -160,12 +160,12 @@ void MaxMinDataBlock::StartNewValue() {
 void MaxMinDataBlock::MergeData(const std::vector<DOUBLEVECTOR4>& fMaxMinData)
 {
   for (size_t i = 0;i<m_iComponentCount;i++) {
-    MergeData(InternalMaxMinElement(fMaxMinData[i].x, fMaxMinData[i].y,
+    MergeData(InternalMaxMinComponent(fMaxMinData[i].x, fMaxMinData[i].y,
                                     fMaxMinData[i].z, fMaxMinData[i].w), i);
   }
 }
 
-void MaxMinDataBlock::MergeData(const InternalMaxMinElement& data, const size_t iComponent) {
+void MaxMinDataBlock::MergeData(const InternalMaxMinComponent& data, const size_t iComponent) {
   m_GlobalMaxMin[iComponent].Merge(data);
   m_vfMaxMinData[m_vfMaxMinData.size()-1][iComponent].Merge(data);
 }
@@ -181,7 +181,7 @@ void MaxMinDataBlock::SetDataFromFlatVector(BrickStatVec& source, uint64_t iComp
     m_vfMaxMinData[i].resize(stcc);
 
     for (size_t j = 0;j<stcc;++j) {
-      InternalMaxMinElement data(source[i*stcc+j].minScalar, 
+      InternalMaxMinComponent data(source[i*stcc+j].minScalar, 
                                  source[i*stcc+j].maxScalar, 
                                  -std::numeric_limits<double>::max(), 
                                   std::numeric_limits<double>::max());

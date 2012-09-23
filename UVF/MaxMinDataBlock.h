@@ -37,8 +37,9 @@ public:
   S maxGradient;
 };
 
-typedef MaxMinElemen<double, double> InternalMaxMinElement;
-typedef std::vector<std::vector<InternalMaxMinElement> > MaxMinVec;
+typedef MaxMinElemen<double, double> InternalMaxMinComponent;
+typedef std::vector< InternalMaxMinComponent > InternalMaxMinVoxel;
+typedef std::vector< InternalMaxMinVoxel > MaxMinVec;
 
 class MaxMinDataBlock : public DataBlock
 {
@@ -51,12 +52,12 @@ public:
   virtual MaxMinDataBlock& operator=(const MaxMinDataBlock& other);
   virtual uint64_t ComputeDataSize() const;
 
-  const InternalMaxMinElement& GetValue(size_t iIndex, size_t iComponent=0) const;
+  const InternalMaxMinComponent& GetValue(size_t iIndex, size_t iComponent=0) const;
   void StartNewValue();
   void MergeData(const std::vector<DOUBLEVECTOR4>& fMaxMinData);
   void SetDataFromFlatVector(BrickStatVec& source, uint64_t iComponentCount);
 
-  const InternalMaxMinElement& GetGlobalValue(size_t iComponent=0) const {
+  const InternalMaxMinComponent& GetGlobalValue(size_t iComponent=0) const {
     return m_GlobalMaxMin[iComponent];
   }
 
@@ -64,8 +65,8 @@ public:
     return m_iComponentCount;
   }
 
-protected:	
-  std::vector<InternalMaxMinElement> m_GlobalMaxMin;
+protected:
+  std::vector<InternalMaxMinComponent> m_GlobalMaxMin;
   MaxMinVec   m_vfMaxMinData;
   size_t  m_iComponentCount;
 
@@ -76,7 +77,7 @@ protected:
   virtual uint64_t GetOffsetToNextBlock() const;
 
   virtual DataBlock* Clone() const;
-  void MergeData(const InternalMaxMinElement& data, const size_t iComponent);
+  void MergeData(const InternalMaxMinComponent& data, const size_t iComponent);
   void ResetGlobal();
   void SetComponentCount(size_t iComponentCount);
 };
