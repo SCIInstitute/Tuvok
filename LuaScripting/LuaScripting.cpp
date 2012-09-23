@@ -38,19 +38,19 @@
           the bottom of LuaMemberReg.cpp and LuaScripting.cpp.
  */
 
+#include <sstream>
+#include <cstring>
+
 #ifndef LUASCRIPTING_NO_TUVOK
 
 #include "Controller/Controller.h"
 
 #else
 
-#include <iostream>
 #include <vector>
 #include <assert.h>
 
 #endif
-
-#include <cstring>
 
 #include "LuaScripting.h"
 #include "LuaProvenance.h"
@@ -2049,8 +2049,11 @@ void LuaScripting::setUndoRedoStackExempt(const string& funcName)
   LuaStackRAII _a = LuaStackRAII(mL, 0, 0);
 
   lua_State* L = mL;
-  if (getFunctionTable(funcName) == false)
-    throw LuaNonExistantFunction("Could not find function");
+  if (getFunctionTable(funcName) == false) {
+    std::ostringstream nf;
+    nf << "Could not find '" << funcName << "'\n";
+    throw LuaNonExistantFunction(nf.str(), _func_, __LINE__);
+  }
 
   lua_pushboolean(L, 1);
   lua_setfield(L, -2, TBL_MD_STACK_EXEMPT);
@@ -2074,8 +2077,11 @@ void LuaScripting::setProvenanceExempt(const std::string& fqName)
   setUndoRedoStackExempt(fqName);
 
   lua_State* L = mL;
-  if (getFunctionTable(fqName) == false)
-    throw LuaNonExistantFunction("Could not find function");
+  if (getFunctionTable(fqName) == false) {
+    std::ostringstream nf;
+    nf << "Could not find '" << fqName << "' function.";
+    throw LuaNonExistantFunction(nf.str(), _func_, __LINE__);
+  }
 
   lua_pushboolean(L, 1);
   lua_setfield(L, -2, TBL_MD_PROV_EXEMPT);
@@ -2130,8 +2136,11 @@ void LuaScripting::copyDefaultsTableToLastExec(int funTableIndex)
 //-----------------------------------------------------------------------------
 void LuaScripting::prepForExecution(const std::string& fqName)
 {
-  if (getFunctionTable(fqName) == false)
-    throw LuaNonExistantFunction("Could not find function");
+  if (getFunctionTable(fqName) == false) {
+    std::ostringstream nf;
+    nf << "Could not find '" << fqName << "' function.";
+    throw LuaNonExistantFunction(nf.str(), _func_, __LINE__);
+  }
 
   if (lua_getmetatable(mL, -1) == 0)
     throw LuaError("Unable to find function metatable.");
