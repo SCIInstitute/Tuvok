@@ -50,6 +50,10 @@ GLTreeRaycaster::GLTreeRaycaster(MasterController* pMasterController,
   m_pProgramRayCast1DLighting(NULL),
   m_pProgramRayCast2D(NULL),
   m_pProgramRayCast2DLighting(NULL),
+  m_pProgramRayCast1DColor(NULL),
+  m_pProgramRayCast1DLightingColor(NULL),
+  m_pProgramRayCast2DColor(NULL),
+  m_pProgramRayCast2DLightingColor(NULL),
   m_pToCDataset(NULL),
   m_bConverged(true),
   m_VisibilityState()
@@ -359,6 +363,22 @@ bool GLTreeRaycaster::LoadTraversalShaders() {
   vs.clear(); fs.clear();
   vs.push_back(FindFileInDirs("GLTreeRaycaster-entry-VS.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("GLTreeRaycaster-blend.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLTreeRaycaster-Method-1D-color.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
+  sd = ShaderDescriptor(vs, fs);
+#ifdef GLTREERAYCASTER_DEBUGVIEW
+  sd.AddDefine("#define DEBUG");
+#endif
+  sd.AddFragmentShaderString(poolFragment);
+  sd.AddFragmentShaderString(hashFragment);
+#ifdef GLTREERAYCASTER_WORKINGSET
+  sd.AddFragmentShaderString(infoFragment);
+#endif
+  if (!LoadCheckShader(&m_pProgramRayCast1DColor, sd, "Color 1D TF")) return false;
+
+  vs.clear(); fs.clear();
+  vs.push_back(FindFileInDirs("GLTreeRaycaster-entry-VS.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLTreeRaycaster-blend.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("GLTreeRaycaster-Method-1D-L.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("GLTreeRaycaster-GradientTools.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("lighting.glsl", m_vShaderSearchDirs, false));
@@ -373,6 +393,24 @@ bool GLTreeRaycaster::LoadTraversalShaders() {
   sd.AddFragmentShaderString(infoFragment);
 #endif
   if (!LoadCheckShader(&m_pProgramRayCast1DLighting, sd, "1D TF lighting")) return false;
+
+  vs.clear(); fs.clear();
+  vs.push_back(FindFileInDirs("GLTreeRaycaster-entry-VS.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLTreeRaycaster-blend.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLTreeRaycaster-Method-1D-L-color.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLTreeRaycaster-GradientTools.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("lighting.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
+  sd = ShaderDescriptor(vs, fs);
+#ifdef GLTREERAYCASTER_DEBUGVIEW
+  sd.AddDefine("#define DEBUG");
+#endif
+  sd.AddFragmentShaderString(poolFragment);
+  sd.AddFragmentShaderString(hashFragment);
+#ifdef GLTREERAYCASTER_WORKINGSET
+  sd.AddFragmentShaderString(infoFragment);
+#endif
+  if (!LoadCheckShader(&m_pProgramRayCast1DLightingColor, sd, "Color 1D TF lighting")) return false;
 
   vs.clear(); fs.clear();
   vs.push_back(FindFileInDirs("GLTreeRaycaster-entry-VS.glsl", m_vShaderSearchDirs, false));
@@ -394,6 +432,23 @@ bool GLTreeRaycaster::LoadTraversalShaders() {
   vs.clear(); fs.clear();
   vs.push_back(FindFileInDirs("GLTreeRaycaster-entry-VS.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("GLTreeRaycaster-blend.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLTreeRaycaster-Method-2D-color.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLTreeRaycaster-GradientTools.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
+  sd = ShaderDescriptor(vs, fs);
+#ifdef GLTREERAYCASTER_DEBUGVIEW
+  sd.AddDefine("#define DEBUG");
+#endif
+  sd.AddFragmentShaderString(poolFragment);
+  sd.AddFragmentShaderString(hashFragment);
+#ifdef GLTREERAYCASTER_WORKINGSET
+  sd.AddFragmentShaderString(infoFragment);
+#endif
+  if (!LoadCheckShader(&m_pProgramRayCast2DColor, sd, "Color 2D TF")) return false;
+
+  vs.clear(); fs.clear();
+  vs.push_back(FindFileInDirs("GLTreeRaycaster-entry-VS.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLTreeRaycaster-blend.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("GLTreeRaycaster-Method-2D-L.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("GLTreeRaycaster-GradientTools.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("lighting.glsl", m_vShaderSearchDirs, false));
@@ -409,6 +464,24 @@ bool GLTreeRaycaster::LoadTraversalShaders() {
 #endif
   if (!LoadCheckShader(&m_pProgramRayCast2DLighting, sd, "2D TF lighting")) return false;
 
+  vs.clear(); fs.clear();
+  vs.push_back(FindFileInDirs("GLTreeRaycaster-entry-VS.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLTreeRaycaster-blend.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLTreeRaycaster-Method-2D-L-color.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLTreeRaycaster-GradientTools.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("lighting.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
+  sd = ShaderDescriptor(vs, fs);
+#ifdef GLTREERAYCASTER_DEBUGVIEW
+  sd.AddDefine("#define DEBUG");
+#endif
+  sd.AddFragmentShaderString(poolFragment);
+  sd.AddFragmentShaderString(hashFragment);
+#ifdef GLTREERAYCASTER_WORKINGSET
+  sd.AddFragmentShaderString(infoFragment);
+#endif
+  if (!LoadCheckShader(&m_pProgramRayCast2DLightingColor, sd, "Color 2D TF lighting")) return false;
+
   return true;
 }
 
@@ -418,6 +491,10 @@ void GLTreeRaycaster::CleanupTraversalShaders() {
   CleanupShader(&m_pProgramRayCast1DLighting);
   CleanupShader(&m_pProgramRayCast2D);
   CleanupShader(&m_pProgramRayCast2DLighting);
+  CleanupShader(&m_pProgramRayCast1DColor);
+  CleanupShader(&m_pProgramRayCast1DLightingColor);
+  CleanupShader(&m_pProgramRayCast2DColor);
+  CleanupShader(&m_pProgramRayCast2DLightingColor);
 }
 
 void GLTreeRaycaster::SetRescaleFactors(const DOUBLEVECTOR3& vfRescale) {
@@ -732,17 +809,31 @@ void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
       break;
     case RM_1DTRANS : 
        m_p1DTransTex->Bind(2);
-      if (m_bUseLighting) 
-        shaderProgram = m_pProgramRayCast1DLighting;
-      else
-        shaderProgram = m_pProgramRayCast1D;
+      if (m_bUseLighting) {
+        if (this->ColorData()) 
+          shaderProgram = m_pProgramRayCast1DLightingColor;
+        else
+          shaderProgram = m_pProgramRayCast1DLighting;
+      } else {
+        if (this->ColorData()) 
+          shaderProgram = m_pProgramRayCast1DColor;
+        else
+          shaderProgram = m_pProgramRayCast1D;
+      }
       break;
     case RM_2DTRANS : 
       m_p2DTransTex->Bind(2);
-      if (m_bUseLighting) 
-        shaderProgram = m_pProgramRayCast2DLighting;
-      else
-        shaderProgram = m_pProgramRayCast2D;
+      if (m_bUseLighting) {
+        if (this->ColorData()) 
+          shaderProgram = m_pProgramRayCast2DLightingColor;
+        else
+          shaderProgram = m_pProgramRayCast2DLighting;
+      } else {
+        if (this->ColorData()) 
+          shaderProgram = m_pProgramRayCast2DColor;
+        else
+          shaderProgram = m_pProgramRayCast2D;
+      }
       break;
   }
 

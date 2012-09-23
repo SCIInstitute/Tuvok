@@ -100,6 +100,10 @@ namespace tuvok {
       GLSLProgram*    m_pProgramRayCast1DLighting;
       GLSLProgram*    m_pProgramRayCast2D;
       GLSLProgram*    m_pProgramRayCast2DLighting;
+      GLSLProgram*    m_pProgramRayCast1DColor;
+      GLSLProgram*    m_pProgramRayCast1DLightingColor;
+      GLSLProgram*    m_pProgramRayCast2DColor;
+      GLSLProgram*    m_pProgramRayCast2DLightingColor;
       UVFDataset*     m_pToCDataset;
       bool            m_bConverged;
       VisibilityState m_VisibilityState;
