@@ -93,7 +93,7 @@ namespace tuvok {
     /// then x,y,z.
     std::vector<std::vector<std::vector<std::vector<UINT64VECTOR3> > > >  m_vvaBrickSize;
     /// same layout as m_vvaBrickSize, but gives acceleration min/max info.
-    std::vector<std::vector<std::vector<std::vector<InternalMaxMinElement> > > > m_vvaMaxMin;
+    std::vector<std::vector<std::vector<InternalMaxMinVoxel> > > m_vvaMaxMin;
   };
 
   class TOCTimestep : public Timestep   {
@@ -127,7 +127,7 @@ public:
   virtual bool ContainsData(const BrickKey &k, double fMin,double fMax, double fMinGradient,double fMaxGradient) const;
 
   // Used by GLVolumePool to speed up visibility computations
-  InternalMaxMinElement MaxMinForKey(const BrickKey &k) const;
+  InternalMaxMinComponent MaxMinForKey(const BrickKey &k) const;
 
   // LOD Data
   /// @todo fixme -- this should take a brick key and just ignore the spatial

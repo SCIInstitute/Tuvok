@@ -127,7 +127,8 @@ AbstrConverter::Process8Bits(LargeRAWFile& InputData,
       uint64_t iPos = 0;
       uint64_t iDivLast = 0;
       while (iPos < iSize)  {
-        size_t iRead = InputData.ReadRAW((unsigned char*)pInData, iCurrentInCoreSize);
+        size_t iRead = InputData.ReadRAW((unsigned char*)pInData,
+                                         iCurrentInCoreSize);
         if (iRead == 0) break;
         std::for_each(pInData, pInData+iRead,
                       [&](unsigned char i) { ++aHist[i]; });

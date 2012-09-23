@@ -383,7 +383,7 @@ void UVFDataset::ComputeMetaData(size_t timestep) {
                      (pVolumeDataBlock->ulElementDimensionSize[0] == 4) ? 3 : 0
                   );
               } catch(const std::length_error&) {
-                InternalMaxMinElement elem;
+                InternalMaxMinComponent elem;
                 const std::pair<double,double> mm = std::make_pair(
                   -std::numeric_limits<double>::max(),
                    std::numeric_limits<double>::max()
@@ -577,7 +577,6 @@ size_t UVFDataset::GetLargestSingleBrickLod(size_t ts) const {
   }
   throw tuvok::Exception("invalid brick structure found, no "
                          "single brick level exists.");
-  return 0; // avoid compiler warning
 }
 
 UINT64VECTOR3 UVFDataset::GetBrickLayout(const size_t lod, const size_t iTs) const {
@@ -1125,7 +1124,7 @@ void UVFDataset::ComputeRange() {
       for(size_t tsi=0; tsi < m_timesteps.size(); ++tsi) {
         for (size_t i=0; i < GetBrickCount(0, tsi); i++) {
           const TOCTimestep* ts = static_cast<TOCTimestep*>(m_timesteps[tsi]);
-          const InternalMaxMinElement& maxMinElement = ts->m_pMaxMinData->GetValue(i, ts->GetDB()->GetComponentCount() == 4 ? 3 : 0);
+          const InternalMaxMinComponent& maxMinElement = ts->m_pMaxMinData->GetValue(i, ts->GetDB()->GetComponentCount() == 4 ? 3 : 0);
 
           if (i>0) {
             limits.first  = min(limits.first, maxMinElement.minScalar);
@@ -1145,7 +1144,7 @@ void UVFDataset::ComputeRange() {
           BrickKey k(tsi,0,i);
           const NDBrickKey& key = IndexToVectorKey(k);
 
-          const InternalMaxMinElement& maxMinElement =
+          const InternalMaxMinComponent& maxMinElement =
             ts->m_vvaMaxMin[0]
                           [static_cast<size_t>(key.brick[0])]
                           [static_cast<size_t>(key.brick[1])]
@@ -1164,8 +1163,8 @@ void UVFDataset::ComputeRange() {
   }
 }
 
-InternalMaxMinElement UVFDataset::MaxMinForKey(const BrickKey &k) const {
-  InternalMaxMinElement maxMinElement;
+InternalMaxMinComponent UVFDataset::MaxMinForKey(const BrickKey &k) const {
+  InternalMaxMinComponent maxMinElement;
   if (m_bToCBlock) {
     const TOCTimestep* ts = static_cast<TOCTimestep*>(m_timesteps[std::get<0>(k)]);
     size_t iLinIndex = size_t(ts->GetDB()->GetLinearBrickIndex(KeyToTOCVector(k)));
@@ -1187,7 +1186,7 @@ bool UVFDataset::ContainsData(const BrickKey &k, double isoval) const
 {
   // if we have no max min data we have to assume that every block is visible
   if(NULL == m_timesteps[std::get<0>(k)]->m_pMaxMinData) {return true;}
-  const InternalMaxMinElement maxMinElement = MaxMinForKey(k);
+  const InternalMaxMinComponent maxMinElement = MaxMinForKey(k);
   return (isoval <= maxMinElement.maxScalar);
 }
 
@@ -1195,7 +1194,7 @@ bool UVFDataset::ContainsData(const BrickKey &k, double fMin,double fMax) const
 {
   // if we have no max min data we have to assume that every block is visible
   if(NULL == m_timesteps[std::get<0>(k)]->m_pMaxMinData) {return true;}
-  const InternalMaxMinElement maxMinElement = MaxMinForKey(k);
+  const InternalMaxMinComponent maxMinElement = MaxMinForKey(k);
   return (fMax >= maxMinElement.minScalar && fMin <= maxMinElement.maxScalar);
 }
 
@@ -1203,7 +1202,7 @@ bool UVFDataset::ContainsData(const BrickKey &k, double fMin,double fMax, double
 {
   // if we have no max min data we have to assume that every block is visible
   if(NULL == m_timesteps[std::get<0>(k)]->m_pMaxMinData) {return true;}
-  const InternalMaxMinElement maxMinElement = MaxMinForKey(k);
+  const InternalMaxMinComponent maxMinElement = MaxMinForKey(k);
   return (fMax >= maxMinElement.minScalar &&
           fMin <= maxMinElement.maxScalar)
                          &&
