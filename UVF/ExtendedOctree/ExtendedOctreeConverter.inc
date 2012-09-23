@@ -243,7 +243,7 @@ void ExtendedOctreeConverter::DownsampleBricktoBrick(
     );
     for (uint32_t c = 0;c<iCompCount;c++) {
       *(pTargetData+c) = *p0;
-	  }
+    }
   }
 }
 

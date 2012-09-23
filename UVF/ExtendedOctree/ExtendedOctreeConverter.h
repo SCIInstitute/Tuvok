@@ -129,6 +129,7 @@ public:
 };
 
 class AbstrDebugOut;
+class ProgressTimer;
 
 /// Vector to store statistics of each brick
 typedef std::vector< BrickStats< double > > BrickStatVec;
@@ -149,15 +150,9 @@ public:
   */
   ExtendedOctreeConverter(const UINT64VECTOR3& vBrickSize,
                           uint32_t iOverlap, uint64_t iMemLimit,
-                          AbstrDebugOut& progress) :
-    m_fProgress(0.0f),
-    m_vBrickSize(vBrickSize),
-    m_iOverlap(iOverlap),
-    m_iMemLimit(iMemLimit),
-    m_iCacheAccessCounter(0),
-    m_pBrickStatVec(NULL),
-    m_Progress(progress)
-    {}
+                          AbstrDebugOut& progress);
+
+  virtual ~ExtendedOctreeConverter();
 
   /**
     This call starts the conversion process of a simple linear file of raw volume
@@ -358,6 +353,10 @@ private:
   /// internal data for the progress indicator call
   float m_fProgress;
 
+  /// tracks the time since start to produce and estimate how long it will take
+  /// to complete the conversion
+  ProgressTimer* m_pProgressTimer;
+
   /// the maximum brick size allowed (including overlap) e.g. the usable size is in x is m_vBrickSize.x-2*m_iOverlap
   UINT64VECTOR3 m_vBrickSize;
 
@@ -383,8 +382,9 @@ private:
   /// where to write progress information
   AbstrDebugOut& m_Progress;
 
-  /// Rewrites each brick using compression, if desired.
-  void CompressAll(ExtendedOctree& tree);
+  /// Computes max min stastistcs for each brick and rewrites 
+  /// it using compression, if desired.
+  void ComputeStatsAndCompressAll(ExtendedOctree& tree);
 
   /**
     Compresses the bricks using the method specified in m_eCompression

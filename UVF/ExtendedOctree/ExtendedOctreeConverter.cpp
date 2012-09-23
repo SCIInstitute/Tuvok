@@ -30,15 +30,38 @@
 #include "DebugOut/AbstrDebugOut.h"
 #include "ExtendedOctreeConverter.h"
 #include "zlib-compression.h"
+#include "Basics/ProgressTimer.h"
 
 // simple/generic progress update message
 #define PROGRESS \
   do { \
-    m_Progress.Message(_func_, "Converting to octree ... %5.2f%%", \
-                       m_fProgress * 100.0f); \
+    m_Progress.Message(_func_, "Generating Hierarchy ... %5.2f%% (%s)", \
+      m_fProgress * 100.0f,\
+      m_pProgressTimer->GetProgressMessage(m_fProgress).c_str() \
+    );\
   } while(0)
 
 #include "ExtendedOctreeConverter.inc"
+
+ExtendedOctreeConverter::ExtendedOctreeConverter(
+                          const UINT64VECTOR3& vBrickSize,
+                          uint32_t iOverlap, uint64_t iMemLimit,
+                          AbstrDebugOut& progress) :
+    m_fProgress(0.0f),
+    m_vBrickSize(vBrickSize),
+    m_iOverlap(iOverlap),
+    m_iMemLimit(iMemLimit),
+    m_iCacheAccessCounter(0),
+    m_pBrickStatVec(NULL),
+    m_Progress(progress),
+    m_pProgressTimer(new ProgressTimer())
+{
+  m_pProgressTimer->Start();
+}
+
+ExtendedOctreeConverter::~ExtendedOctreeConverter() {
+  delete m_pProgressTimer;
+}
 
 /*
   Convert (string):
@@ -47,17 +70,17 @@
   constructed from the given string
 */
 bool ExtendedOctreeConverter::Convert(const std::string& filename,
-                                      uint64_t iOffset,
-                                      ExtendedOctree::COMPONENT_TYPE eComponentType,
-                                      uint64_t iComponentCount,
-                                      const UINT64VECTOR3& vVolumeSize,
-                                      const DOUBLEVECTOR3& vVolumeAspect,
-                                      const std::string& targetFilename,
-                                      uint64_t iOutOffset,
-                                      BrickStatVec* stats,
-                                      COMPORESSION_TYPE compression,
-                                      bool bComputeMedian,
-                                      bool bClampToEdge) {
+              uint64_t iOffset,
+              ExtendedOctree::COMPONENT_TYPE eComponentType,
+              uint64_t iComponentCount,
+              const UINT64VECTOR3& vVolumeSize,
+              const DOUBLEVECTOR3& vVolumeAspect,
+              const std::string& targetFilename,
+              uint64_t iOutOffset,
+              BrickStatVec* stats,
+              COMPORESSION_TYPE compression,
+              bool bComputeMedian,
+              bool bClampToEdge) {
   LargeRAWFile_ptr inFile(new LargeRAWFile(filename));
   LargeRAWFile_ptr outFile(new LargeRAWFile(targetFilename));
 
@@ -70,7 +93,8 @@ bool ExtendedOctreeConverter::Convert(const std::string& filename,
   }
 
   return Convert(inFile, iOffset, eComponentType, iComponentCount, vVolumeSize,
-                 vVolumeAspect, outFile, iOutOffset, stats, compression, bComputeMedian, bClampToEdge);
+                 vVolumeAspect, outFile, iOutOffset, stats, compression,
+                 bComputeMedian, bClampToEdge);
 }
 
 /*
@@ -88,17 +112,17 @@ bool ExtendedOctreeConverter::Convert(const std::string& filename,
   only after an entire level is completed.
 */
 bool ExtendedOctreeConverter::Convert(LargeRAWFile_ptr pLargeRAWFileIn,
-                                      uint64_t iInOffset,
-                                      ExtendedOctree::COMPONENT_TYPE eComponentType,
-                                      const uint64_t iComponentCount,
-                                      const UINT64VECTOR3& vVolumeSize,
-                                      const DOUBLEVECTOR3& vVolumeAspect,
-                                      LargeRAWFile_ptr pLargeRAWFileOut,
-                                      uint64_t iOutOffset,
-                                      BrickStatVec* stats,
-                                      COMPORESSION_TYPE compression,
-                                      bool bComputeMedian,
-                                      bool bClampToEdge) {
+                      uint64_t iInOffset,
+                      ExtendedOctree::COMPONENT_TYPE eComponentType,
+                      const uint64_t iComponentCount,
+                      const UINT64VECTOR3& vVolumeSize,
+                      const DOUBLEVECTOR3& vVolumeAspect,
+                      LargeRAWFile_ptr pLargeRAWFileOut,
+                      uint64_t iOutOffset,
+                      BrickStatVec* stats,
+                      COMPORESSION_TYPE compression,
+                      bool bComputeMedian,
+                      bool bClampToEdge) {
   m_pBrickStatVec = stats;
   m_fProgress = 0.0f;
   PROGRESS;
@@ -200,7 +224,7 @@ bool ExtendedOctreeConverter::Convert(LargeRAWFile_ptr pLargeRAWFileIn,
   // write bricks in the cache to disk
   FlushCache(e);
 
-  CompressAll(e);
+  ComputeStatsAndCompressAll(e);
 
   // add header to file
   e.WriteHeader(pLargeRAWFileOut, iOutOffset);
@@ -398,16 +422,13 @@ void ExtendedOctreeConverter::ClampToEdge(std::vector<uint8_t>& vData,
   }
 }
 
-/// Rewrites every brick, compressed.
-void ExtendedOctreeConverter::CompressAll(ExtendedOctree& tree)
+/// Computes max min stastistcs for each brick and rewrites 
+/// it using compression, if desired.
+void ExtendedOctreeConverter::ComputeStatsAndCompressAll(ExtendedOctree& tree)
 {
   FlushCache(tree); // be sure we've got everything on disk.
   m_vBrickCache.clear(); // be double sure we don't use the cache anymore.
 
-  if(m_eCompression == CT_NONE) {
-    // compression is disabled.  That makes our job pretty easy.
-    return;
-  }
   const size_t iVoxelSize = tree.GetComponentTypeSize() *
                             size_t(tree.m_iComponentCount);
   const size_t maxbricksize = static_cast<size_t>(tree.m_iBrickSize.volume() *
@@ -417,37 +438,51 @@ void ExtendedOctreeConverter::CompressAll(ExtendedOctree& tree)
   std::shared_ptr<uint8_t> compressed(new uint8_t[maxbricksize],
                                       nonstd::DeleteArray<uint8_t>());
 
-  // foreach brick:
-  //   load it up
-  //   compress it
-  //   write compressed payload
-  //   update brick metadata based on what compression changed
-  for(size_t i=0; i < tree.m_vTOC.size(); ++i) {
-    tree.GetBrickData(BrickData.get(), i);
-    BrickStat(m_pBrickStatVec, i, BrickData.get(), BrickSize(tree, i),
-              tree.m_iComponentCount, tree.m_eComponentType);
-
-    uint64_t newlen = zcompress(BrickData, BrickSize(tree, i), compressed);
-    std::shared_ptr<uint8_t> data;
-
-    if(newlen < BrickSize(tree, i)) {
-      tree.m_vTOC[i].m_iLength = newlen;
-      tree.m_vTOC[i].m_eCompression = CT_ZLIB;
-      data = compressed;
-    } else {
-      tree.m_vTOC[i].m_iLength = BrickSize(tree, i);
-      tree.m_vTOC[i].m_eCompression = CT_NONE;
-      data = BrickData;
+  if(m_eCompression == CT_NONE) {
+    // compression is disabled.  That makes our job pretty easy: only compute
+    // the brick stats
+    for(size_t i=0; i < tree.m_vTOC.size(); ++i) {
+      tree.GetBrickData(BrickData.get(), i);
+      BrickStat(m_pBrickStatVec, i, BrickData.get(), BrickSize(tree, i),
+                tree.m_iComponentCount, tree.m_eComponentType);
+      const float progress = float(i) / tree.m_vTOC.size();
+      m_fProgress = MathTools::lerp(progress, 0.0f,1.0f, 0.8f,1.0f);
+      PROGRESS;
     }
-    if(i > 0) {
-      tree.m_vTOC[i].m_iOffset = tree.m_vTOC[i-1].m_iOffset +
-                                 tree.m_vTOC[i-1].m_iLength;
+  } else {
+
+    // foreach brick:
+    //   load it up
+    //   compress it
+    //   write compressed payload
+    //   update brick metadata based on what compression changed
+    for(size_t i=0; i < tree.m_vTOC.size(); ++i) {
+      tree.GetBrickData(BrickData.get(), i);
+      BrickStat(m_pBrickStatVec, i, BrickData.get(), BrickSize(tree, i),
+                tree.m_iComponentCount, tree.m_eComponentType);
+
+      uint64_t newlen = zcompress(BrickData, BrickSize(tree, i), compressed);
+      std::shared_ptr<uint8_t> data;
+
+      if(newlen < BrickSize(tree, i)) {
+        tree.m_vTOC[i].m_iLength = newlen;
+        tree.m_vTOC[i].m_eCompression = CT_ZLIB;
+        data = compressed;
+      } else {
+        tree.m_vTOC[i].m_iLength = BrickSize(tree, i);
+        tree.m_vTOC[i].m_eCompression = CT_NONE;
+        data = BrickData;
+      }
+      if(i > 0) {
+        tree.m_vTOC[i].m_iOffset = tree.m_vTOC[i-1].m_iOffset +
+                                   tree.m_vTOC[i-1].m_iLength;
+      }
+      tree.m_pLargeRAWFile->SeekPos(tree.m_vTOC[i].m_iOffset);
+      tree.m_pLargeRAWFile->WriteRAW(data.get(), tree.m_vTOC[i].m_iLength);
+      const float progress = float(i) / tree.m_vTOC.size();
+      m_fProgress = MathTools::lerp(progress, 0.0f,1.0f, 0.8f,1.0f);
+      PROGRESS;
     }
-    tree.m_pLargeRAWFile->SeekPos(tree.m_vTOC[i].m_iOffset);
-    tree.m_pLargeRAWFile->WriteRAW(data.get(), tree.m_vTOC[i].m_iLength);
-    const float progress = float(i) / tree.m_vTOC.size();
-    m_fProgress = MathTools::lerp(progress, 0.0f,1.0f, 0.8f,1.0f);
-    PROGRESS;
   }
 }
 
@@ -480,7 +515,9 @@ void ExtendedOctreeConverter::Compress(ExtendedOctree &tree, size_t iBrickSkip) 
   Convenience function that takes vector coordinates of a brick
   turns them into a 1D index and calls the scalar SetBrick
 */
-void ExtendedOctreeConverter::SetBrick(uint8_t* pData, ExtendedOctree &tree, const UINT64VECTOR4& vBrickCoords, bool bForceWrite) {
+void ExtendedOctreeConverter::SetBrick(uint8_t* pData, ExtendedOctree &tree,
+                                      const UINT64VECTOR4& vBrickCoords,
+                                      bool bForceWrite) {
   SetBrick(pData, tree, tree.BrickCoordsToIndex(vBrickCoords), bForceWrite);
 }
 
@@ -490,17 +527,21 @@ void ExtendedOctreeConverter::SetBrick(uint8_t* pData, ExtendedOctree &tree, con
   Convenience function that takes vector coordinates of a brick
   turns them into a 1D index and calls the scalar GetBrick
 */
-void ExtendedOctreeConverter::GetBrick(uint8_t* pData, ExtendedOctree &tree, const UINT64VECTOR4& vBrickCoords) {
+void ExtendedOctreeConverter::GetBrick(uint8_t* pData, ExtendedOctree &tree,
+                                       const UINT64VECTOR4& vBrickCoords) {
   GetBrick(pData, tree, tree.BrickCoordsToIndex(vBrickCoords));
 }
 
 /*
   SetupCache:
 
-  Computes the size of the cache: simply as available size divided by the size of a cache element
+  Computes the size of the cache: simply as available size divided
+  by the size of a cache element
 */
 void ExtendedOctreeConverter::SetupCache(ExtendedOctree &tree) {
-  size_t CacheElementDataSize = size_t(tree.GetComponentTypeSize() * tree.GetComponentCount() * tree.m_iBrickSize.volume());
+  size_t CacheElementDataSize = size_t(tree.GetComponentTypeSize() * 
+                                tree.GetComponentCount() * 
+                                tree.m_iBrickSize.volume());
   uint64_t iCacheElemCount = m_iMemLimit / (CacheElementDataSize + sizeof(CacheEntry));
   iCacheElemCount = std::min(iCacheElemCount, tree.ComputeBrickCount());
   m_vBrickCache.resize(size_t(iCacheElemCount));
