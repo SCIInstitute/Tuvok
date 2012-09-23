@@ -615,7 +615,7 @@ void GLTreeRaycaster::SetRendermode(AbstrRenderer::ERenderMode eRenderMode) {
   RecomputeBrickVisibility();
 }
 
-void GLTreeRaycaster::RecomputeBrickVisibility() {
+void GLTreeRaycaster::RecomputeBrickVisibility(bool bForceSynchronousUpdate) {
   if (!m_pVolumePool) return;
 
   if (this->ColorData()) {
@@ -631,8 +631,9 @@ void GLTreeRaycaster::RecomputeBrickVisibility() {
   case RM_1DTRANS: {
     double const fMin = double(m_p1DTrans->GetNonZeroLimits().x) * fRescaleFactor;
     double const fMax = double(m_p1DTrans->GetNonZeroLimits().y) * fRescaleFactor;
-    if (m_VisibilityState.NeedsUpdate(fMin, fMax)) {
-      m_pVolumePool->RecomputeVisibility(m_VisibilityState, m_iTimestep);
+    if (m_VisibilityState.NeedsUpdate(fMin, fMax) ||
+        (bForceSynchronousUpdate && !m_pVolumePool->IsVisibilityUpdated())) {
+      m_pVolumePool->RecomputeVisibility(m_VisibilityState, m_iTimestep, bForceSynchronousUpdate);
     } else
       return;
     break; }
@@ -641,15 +642,17 @@ void GLTreeRaycaster::RecomputeBrickVisibility() {
     double const fMax = double(m_p2DTrans->GetNonZeroLimits().y) * fRescaleFactor;
     double const fMinGradient = double(m_p2DTrans->GetNonZeroLimits().z);
     double const fMaxGradient = double(m_p2DTrans->GetNonZeroLimits().w);
-    if (m_VisibilityState.NeedsUpdate(fMin, fMax, fMinGradient, fMaxGradient)) {
-      m_pVolumePool->RecomputeVisibility(m_VisibilityState, m_iTimestep);
+    if (m_VisibilityState.NeedsUpdate(fMin, fMax, fMinGradient, fMaxGradient) ||
+        (bForceSynchronousUpdate && !m_pVolumePool->IsVisibilityUpdated())) {
+      m_pVolumePool->RecomputeVisibility(m_VisibilityState, m_iTimestep, bForceSynchronousUpdate);
     } else
       return;
     break; }
   case RM_ISOSURFACE: {
     double const fIsoValue = GetIsoValue();
-    if (m_VisibilityState.NeedsUpdate(fIsoValue)) {
-      m_pVolumePool->RecomputeVisibility(m_VisibilityState, m_iTimestep);
+    if (m_VisibilityState.NeedsUpdate(fIsoValue) ||
+        (bForceSynchronousUpdate && !m_pVolumePool->IsVisibilityUpdated())) {
+      m_pVolumePool->RecomputeVisibility(m_VisibilityState, m_iTimestep, bForceSynchronousUpdate);
     } else
       return;
     break; }
@@ -984,8 +987,7 @@ size_t GLTreeRaycaster::PH_SubframePagedBricks() const {
   return 0; /// @todo fixme this info isn't stored now.
 }
 void GLTreeRaycaster::PH_RecalculateVisibility() {
-  /// @todo synchronously recompute visibility
-  /// @todo ask alex how to do this
+  RecomputeBrickVisibility(true);
 }
 
 void GLTreeRaycaster::SetClipPlane(RenderRegion *renderRegion,

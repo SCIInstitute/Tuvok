@@ -8,7 +8,7 @@
 #include "Renderer/VisibilityState.h"
 
 //#define GLTREERAYCASTER_DEBUGVIEW  // define to toggle debug view with 'D'-key
-//#define GLTREERAYCASTER_PROFILE    // define to measure frame times
+#define GLTREERAYCASTER_PROFILE    // define to measure frame times
 //#define GLTREERAYCASTER_AVG_FPS    10 // define to measure pure averaged frame 
                                       // times without paging, requires enough 
                                       // GPU memory to host the working set
@@ -150,7 +150,7 @@ namespace tuvok {
       bool CreateVolumePool();
       uint32_t UpdateToVolumePool(const UINTVECTOR4& brick);
       uint32_t UpdateToVolumePool(std::vector<UINTVECTOR4>& hash);
-      void RecomputeBrickVisibility();
+      void RecomputeBrickVisibility(bool bForceSynchronousUpdate = false);
 
       // catch all circumstances that change the visibility of a brick
       virtual void SetIsoValue(float fIsovalue);

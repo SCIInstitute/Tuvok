@@ -1172,7 +1172,7 @@ namespace {
 
 } // anonymous namespace
 
-void GLVolumePool::RecomputeVisibility(VisibilityState const& visibility, size_t iTimestep)
+void GLVolumePool::RecomputeVisibility(VisibilityState const& visibility, size_t iTimestep, bool bForceSynchronousUpdate)
 {
 #ifdef GLVOLUMEPOOL_PROFILE
   m_Timer.Start();
@@ -1245,7 +1245,7 @@ void GLVolumePool::RecomputeVisibility(VisibilityState const& visibility, size_t
   m_TimesRecomputeVisibilityForBrickPool.Push(m_Timer.Elapsed() - t);
 #endif
 
-  if (!m_pUpdater) {
+  if (!m_pUpdater || bForceSynchronousUpdate) {
     // recompute visibility for the entire hierarchy immediately
     switch (visibility.GetRenderMode()) {
     case AbstrRenderer::RM_1DTRANS:
@@ -1261,14 +1261,14 @@ void GLVolumePool::RecomputeVisibility(VisibilityState const& visibility, size_t
       T_ERROR("Unhandled rendering mode.");
       return;
     }
-    m_bVisibilityUpdated = true;
+    m_bVisibilityUpdated = true; // will be true after we uploaded the metadata texture in the next line
   }
 
   // upload new metadata to GPU
   UploadMetadataTexture();
 
   // restart async updater because visibility changed
-  if (m_pUpdater) {
+  if (m_pUpdater && !bForceSynchronousUpdate) {
     m_pUpdater->Restart(visibility);
     m_bVisibilityUpdated = false;
     OTHER("computed visibility for %d bricks in volume pool and started async visibility update for the entire hierarchy", m_vPoolSlotData.size());
@@ -1326,7 +1326,7 @@ uint32_t GLVolumePool::UploadBricks(const std::vector<UINTVECTOR4>& vBrickIDs, s
     }
   }
   
-  if (bBusy) {
+  if (bBusy && !m_bVisibilityUpdated) {
     m_pUpdater->Resume(); // resume async updater if we were busy
   } else {
     if (!m_bVisibilityUpdated)
