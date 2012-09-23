@@ -53,8 +53,8 @@ ExtendedOctreeConverter::ExtendedOctreeConverter(
     m_iMemLimit(iMemLimit),
     m_iCacheAccessCounter(0),
     m_pBrickStatVec(NULL),
-    m_Progress(progress),
-    m_pProgressTimer(new ProgressTimer())
+    m_pProgressTimer(new ProgressTimer()),
+    m_Progress(progress)
 {
   m_pProgressTimer->Start();
 }
