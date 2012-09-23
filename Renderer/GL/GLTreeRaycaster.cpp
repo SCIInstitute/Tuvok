@@ -57,10 +57,10 @@ GLTreeRaycaster::GLTreeRaycaster(MasterController* pMasterController,
   , m_pFBODebug(NULL)
   , m_pFBODebugNext(NULL)
 #endif
+  , m_iSubframes(0)
   , m_iPagedBricks(0)
 #ifdef GLTREERAYCASTER_PROFILE
   , m_FrameTimes(100)
-  , m_iSubframes(0)
 #ifdef GLTREERAYCASTER_AVG_FPS
   , m_bAveraging(false)
 #endif
