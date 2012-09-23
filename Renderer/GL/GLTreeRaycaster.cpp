@@ -328,7 +328,10 @@ bool GLTreeRaycaster::LoadTraversalShaders() {
 
 #ifdef GLTREERAYCASTER_WORKINGSET
   const std::string infoFragment = m_pWorkingSetTable->GetShaderFragment(7);
-  const std::string poolFragment = m_pVolumePool->GetShaderFragment(3, 4, m_pWorkingSetTable->GetPrefixName());
+  const std::string poolFragment = m_pVolumePool->GetShaderFragment(
+    3, 4,
+    MCStrategyToVPoolStrategy(Controller::ConstInstance().PHState.BStrategy),
+    m_pWorkingSetTable->GetPrefixName());
 #else
   const std::string poolFragment = m_pVolumePool->GetShaderFragment(
     3, 4,
