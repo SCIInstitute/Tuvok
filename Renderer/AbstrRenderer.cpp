@@ -1761,6 +1761,7 @@ void AbstrRenderer::PH_SetPagedBricks(size_t) { }
 size_t AbstrRenderer::PH_FramePagedBricks() const { return 0; }
 size_t AbstrRenderer::PH_SubframePagedBricks() const { return 0; }
 void AbstrRenderer::PH_RecalculateVisibility() {}
+bool AbstrRenderer::PH_Converged() const { return false; }
 
 void AbstrRenderer::RegisterLuaFunctions(
     LuaClassRegistration<AbstrRenderer>& reg,
@@ -2185,6 +2186,8 @@ void AbstrRenderer::RegisterLuaFunctions(
                     "subframePagedBricks", "# this SUBframe", false);
   id = reg.function(&AbstrRenderer::PH_RecalculateVisibility,
                     "recalcVisibility", "synchronous!", false);
+  reg.function(&AbstrRenderer::PH_Converged, "converged",
+               "checks if rendering converged", false);
 
   /// Register renderer specific functions.
   me->RegisterDerivedClassLuaFunctions(reg, ss);

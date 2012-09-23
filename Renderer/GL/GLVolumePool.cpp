@@ -1,3 +1,4 @@
+#include "StdTuvokDefines.h"
 #include <algorithm>
 #include <iomanip>
 #include <limits>

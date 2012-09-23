@@ -297,6 +297,7 @@ class AbstrRenderer: public Scriptable {
     virtual size_t PH_FramePagedBricks() const;
     virtual size_t PH_SubframePagedBricks() const;
     virtual void PH_RecalculateVisibility();
+    virtual bool PH_Converged() const;
     ///@}
 
   public:

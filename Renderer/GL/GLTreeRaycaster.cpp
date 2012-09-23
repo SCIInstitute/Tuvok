@@ -1078,6 +1078,7 @@ size_t GLTreeRaycaster::PH_SubframePagedBricks() const {
 void GLTreeRaycaster::PH_RecalculateVisibility() {
   RecomputeBrickVisibility(true);
 }
+bool GLTreeRaycaster::PH_Converged() const { return m_bConverged; }
 
 void GLTreeRaycaster::SetClipPlane(RenderRegion *renderRegion,
                                    const ExtendedPlane& plane) {
