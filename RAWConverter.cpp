@@ -219,7 +219,7 @@ quantize(std::shared_ptr<LargeRAWFile> sourceData,
         /// \todo change this if we want to support non-color
         /// multi-component data
         MESSAGE("Dataset is 8bit.");
-        if (iComponentCount != 4 || bSigned) {
+        if (iComponentCount == 1 || bSigned) {
           MESSAGE("%u component, %s data",
                   static_cast<unsigned>(iComponentCount),
                   (bSigned) ? "signed" : "unsigned");
@@ -485,80 +485,9 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
 
   assert((iComponentCount*vVolumeSize.volume()*timesteps) > 0);
 
-  // our routines don't handle multi-component data very effectively. As a
-  // quick hack, we'll pull out each component separately, process them
-  // individually, and then pull them back together.
-  std::vector<std::shared_ptr<LargeRAWFile> > components;
-  if(iComponentCount > 1) {
-    MESSAGE("Splitting components up into files...");
-    // remember iComponentSize is in bits, not bytes.
-    components = make_raw(sourceData, iComponentCount, iComponentSize/8);
-
-    // ... process each component (individually)
-    typedef std::vector<std::shared_ptr<LargeRAWFile> > lfv;
-    for(lfv::iterator comp = components.begin(); comp != components.end();
-        ++comp) {
-      MESSAGE("Processing component %d",
-              std::distance(components.begin(), comp));
-      std::ofstream unused;
-      const std::ios::openmode mode = std::ios::out | std::ios::trunc |
-                                      std::ios::binary;
-      std::string tmpquant = mk_tmpfile(unused, mode);
-      unused.close();
-      // we need a temporary filename, but the data might not need any
-      // processing, in which case the file will never get created. quantize()
-      // will create it again if it needs to.
-      std::remove(tmpquant.c_str());
-      (*comp)->SeekStart();
-      *comp = quantize(*comp, tmpquant, bSigned, bIsFloat, iComponentSize, 1,
-                       timesteps, vVolumeSize.volume(), bQuantizeTo8Bit,
-                       &Histogram1D);
-    }
-
-    // now stitch everything back into a single file.
-    MESSAGE("Stitching components back into one file...");
-    std::ofstream ofs(tmpQuantizedFile.c_str(), std::ios::out |
-                                                std::ios::binary |
-                                                std::ios::trunc);
-    if(!ofs) {
-      T_ERROR("Could not create %s temporary file.", tmpQuantizedFile.c_str());
-      throw tuvok::io::IOException("Could not create temporary file!");
-    }
-
-    std::shared_ptr<unsigned char> data(new unsigned char[iComponentSize],
-      nonstd::DeleteArray<unsigned char>()
-    );
-    for(lfv::iterator c = components.begin(); c != components.end(); ++c) {
-      MESSAGE("component %u is %llu bytes.",
-              unsigned(std::distance(components.begin(), c)),
-              (*c)->GetCurrentSize());
-      (*c)->SeekStart();
-    }
-    // intersperse the components: while there are still bytes left, read one
-    // element from each component and stuff it into our output file.
-    size_t bytes=1;
-    do {
-      for(lfv::iterator c = components.begin(); c != components.end(); ++c) {
-        bytes = (*c)->ReadRAW(data.get(), iComponentSize/8);
-        if(bytes) {
-          ofs.write(reinterpret_cast<const char*>(data.get()), bytes);
-        }
-      }
-    } while(bytes > 0);
-
-    ofs.close();
-    sourceData = std::shared_ptr<LargeRAWFile>(
-      new TempFile(tmpQuantizedFile)
-    );
-    MESSAGE("source data is from %s, %llu bits, %llu components.",
-            tmpQuantizedFile.c_str(), iComponentSize, iComponentCount);
-    sourceData->Open(false);
-    components.clear();
-  } else {
-    sourceData = quantize(sourceData, tmpQuantizedFile, bSigned, bIsFloat,
-                          iComponentSize, iComponentCount, timesteps,
-                          vVolumeSize.volume(), bQuantizeTo8Bit, &Histogram1D);
-  }
+  sourceData = quantize(sourceData, tmpQuantizedFile, bSigned, bIsFloat,
+                        iComponentSize, iComponentCount, timesteps,
+                        vVolumeSize.volume(), bQuantizeTo8Bit, &Histogram1D);
 
   // if it was signed, we un-signed it. If it was unsigned.. it was unsigned.
   bSigned = false;
@@ -699,9 +628,9 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
           );
         uvfFile.AddDataBlock(Histogram2D);
 
-        MESSAGE("Storing acceleration data...");
-        uvfFile.AddDataBlock(MaxMinData);
       }
+      MESSAGE("Storing acceleration data...");
+      uvfFile.AddDataBlock(MaxMinData);
     } else {
       blocks[ts].rdb = std::shared_ptr<RasterDataBlock>(
         new RasterDataBlock()
