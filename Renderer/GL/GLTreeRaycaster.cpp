@@ -618,11 +618,6 @@ void GLTreeRaycaster::SetRendermode(AbstrRenderer::ERenderMode eRenderMode) {
 void GLTreeRaycaster::RecomputeBrickVisibility(bool bForceSynchronousUpdate) {
   if (!m_pVolumePool) return;
 
-  if (this->ColorData()) {
-    // We don't have good metadata for color data currently, so it can never be skipped.
-    return;
-  }
-
   double const fMaxValue = (m_pDataset->GetRange().first > m_pDataset->GetRange().second) ? m_p1DTrans->GetSize() : m_pDataset->GetRange().second;
   double const fRescaleFactor = fMaxValue / double(m_p1DTrans->GetSize()-1);
   
