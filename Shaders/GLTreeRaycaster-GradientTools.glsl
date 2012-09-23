@@ -1,6 +1,7 @@
 #version 420 core
 
 float samplePool(vec3 coords);
+float samplePoolAlpha(vec3 coords);
 
 vec3 ComputeGradient(vec3 vCenter, vec3 sampleDelta) {
   float fVolumValXp = samplePool(vCenter+vec3(+sampleDelta.x,0,0));
@@ -15,6 +16,25 @@ vec3 ComputeGradient(vec3 vCenter, vec3 sampleDelta) {
 }
 
 vec3 ComputeNormal(vec3 vCenter, vec3 StepSize, vec3 DomainScale) {
+  vec3 vGradient = ComputeGradient(vCenter, StepSize);
+  vec3 vNormal   = vGradient * DomainScale;
+  float l = length(vNormal); if (l>0.0) vNormal /= l; // safe normalization
+  return vNormal;
+}
+
+vec3 ComputeGradientAlpha(vec3 vCenter, vec3 sampleDelta) {
+  float fVolumValXp = samplePoolAlpha(vCenter+vec3(+sampleDelta.x,0,0));
+  float fVolumValXm = samplePoolAlpha(vCenter+vec3(-sampleDelta.x,0,0));
+  float fVolumValYp = samplePoolAlpha(vCenter+vec3(0,-sampleDelta.y,0));
+  float fVolumValYm = samplePoolAlpha(vCenter+vec3(0,+sampleDelta.y,0));
+  float fVolumValZp = samplePoolAlpha(vCenter+vec3(0,0,+sampleDelta.z));
+  float fVolumValZm = samplePoolAlpha(vCenter+vec3(0,0,-sampleDelta.z));
+  return vec3(fVolumValXm - fVolumValXp,
+              fVolumValYp - fVolumValYm,
+              fVolumValZm - fVolumValZp) / 2.0;
+}
+
+vec3 ComputeAlphaNormal(vec3 vCenter, vec3 StepSize, vec3 DomainScale) {
   vec3 vGradient = ComputeGradient(vCenter, StepSize);
   vec3 vNormal   = vGradient * DomainScale;
   float l = length(vNormal); if (l>0.0) vNormal /= l; // safe normalization
