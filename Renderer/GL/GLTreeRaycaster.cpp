@@ -903,7 +903,6 @@ uint32_t GLTreeRaycaster::UpdateToVolumePool(const UINTVECTOR4& brick) {
   return UpdateToVolumePool(bricks);
 }
 
-// TODO: this entire function should be part of the GPU mem-manager
 uint32_t GLTreeRaycaster::UpdateToVolumePool(std::vector<UINTVECTOR4>& hash) {
 /*
   // DEBUG Code
