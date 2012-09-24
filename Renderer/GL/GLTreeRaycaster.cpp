@@ -64,6 +64,7 @@ GLTreeRaycaster::GLTreeRaycaster(MasterController* pMasterController,
 #ifdef GLTREERAYCASTER_DEBUGVIEW
   , m_pFBODebug(NULL)
   , m_pFBODebugNext(NULL)
+  , m_bDebugViewColorLoDs(false)
 #endif
 #ifdef GLTREERAYCASTER_WORKINGSET
   , m_pWorkingSetTable(NULL)
@@ -266,7 +267,13 @@ bool GLTreeRaycaster::Initialize(std::shared_ptr<Context> ctx) {
 
   // now that we've created the hashtable and the volume pool
   // we can load the rest of the shader that depend on those
-  if (!LoadTraversalShaders()) return false;
+  std::vector<std::string> vDefines;
+#ifdef GLTREERAYCASTER_DEBUGVIEW
+  vDefines.push_back("#define DEBUG");
+  if (m_bDebugViewColorLoDs)
+    vDefines.push_back("#define COLOR_LODS");
+#endif
+  if (!LoadTraversalShaders(vDefines)) return false;
 
   // init near plane vbo
   m_pNearPlaneQuad = new GLVBO();
@@ -306,7 +313,7 @@ static GLVolumePool::MissingBrickStrategy MCStrategyToVPoolStrategy(
 }
 
 
-bool GLTreeRaycaster::LoadTraversalShaders() {
+bool GLTreeRaycaster::LoadTraversalShaders(const std::vector<std::string>& vDefines) {
 
 #ifdef GLTREERAYCASTER_WORKINGSET
   const std::string infoFragment = m_pWorkingSetTable->GetShaderFragment(7);
@@ -328,9 +335,7 @@ bool GLTreeRaycaster::LoadTraversalShaders() {
   fs.push_back(FindFileInDirs("GLTreeRaycaster-Method-1D.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
   ShaderDescriptor sd(vs, fs);
-#ifdef GLTREERAYCASTER_DEBUGVIEW
-  sd.AddDefine("#define DEBUG");
-#endif
+  sd.AddDefines(vDefines);
   sd.AddFragmentShaderString(poolFragment);
   sd.AddFragmentShaderString(hashFragment);
 #ifdef GLTREERAYCASTER_WORKINGSET
@@ -344,9 +349,7 @@ bool GLTreeRaycaster::LoadTraversalShaders() {
   fs.push_back(FindFileInDirs("GLTreeRaycaster-Method-1D-color.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
   sd = ShaderDescriptor(vs, fs);
-#ifdef GLTREERAYCASTER_DEBUGVIEW
-  sd.AddDefine("#define DEBUG");
-#endif
+  sd.AddDefines(vDefines);
   sd.AddFragmentShaderString(poolFragment);
   sd.AddFragmentShaderString(hashFragment);
 #ifdef GLTREERAYCASTER_WORKINGSET
@@ -362,9 +365,7 @@ bool GLTreeRaycaster::LoadTraversalShaders() {
   fs.push_back(FindFileInDirs("lighting.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
   sd = ShaderDescriptor(vs, fs);
-#ifdef GLTREERAYCASTER_DEBUGVIEW
-  sd.AddDefine("#define DEBUG");
-#endif
+  sd.AddDefines(vDefines);
   sd.AddFragmentShaderString(poolFragment);
   sd.AddFragmentShaderString(hashFragment);
 #ifdef GLTREERAYCASTER_WORKINGSET
@@ -380,9 +381,7 @@ bool GLTreeRaycaster::LoadTraversalShaders() {
   fs.push_back(FindFileInDirs("lighting.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
   sd = ShaderDescriptor(vs, fs);
-#ifdef GLTREERAYCASTER_DEBUGVIEW
-  sd.AddDefine("#define DEBUG");
-#endif
+  sd.AddDefines(vDefines);
   sd.AddFragmentShaderString(poolFragment);
   sd.AddFragmentShaderString(hashFragment);
 #ifdef GLTREERAYCASTER_WORKINGSET
@@ -397,9 +396,7 @@ bool GLTreeRaycaster::LoadTraversalShaders() {
   fs.push_back(FindFileInDirs("GLTreeRaycaster-GradientTools.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
   sd = ShaderDescriptor(vs, fs);
-#ifdef GLTREERAYCASTER_DEBUGVIEW
-  sd.AddDefine("#define DEBUG");
-#endif
+  sd.AddDefines(vDefines);
   sd.AddFragmentShaderString(poolFragment);
   sd.AddFragmentShaderString(hashFragment);
 #ifdef GLTREERAYCASTER_WORKINGSET
@@ -414,9 +411,7 @@ bool GLTreeRaycaster::LoadTraversalShaders() {
   fs.push_back(FindFileInDirs("GLTreeRaycaster-GradientTools.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
   sd = ShaderDescriptor(vs, fs);
-#ifdef GLTREERAYCASTER_DEBUGVIEW
-  sd.AddDefine("#define DEBUG");
-#endif
+  sd.AddDefines(vDefines);
   sd.AddFragmentShaderString(poolFragment);
   sd.AddFragmentShaderString(hashFragment);
 #ifdef GLTREERAYCASTER_WORKINGSET
@@ -432,9 +427,7 @@ bool GLTreeRaycaster::LoadTraversalShaders() {
   fs.push_back(FindFileInDirs("lighting.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
   sd = ShaderDescriptor(vs, fs);
-#ifdef GLTREERAYCASTER_DEBUGVIEW
-  sd.AddDefine("#define DEBUG");
-#endif
+  sd.AddDefines(vDefines);
   sd.AddFragmentShaderString(poolFragment);
   sd.AddFragmentShaderString(hashFragment);
 #ifdef GLTREERAYCASTER_WORKINGSET
@@ -450,9 +443,7 @@ bool GLTreeRaycaster::LoadTraversalShaders() {
   fs.push_back(FindFileInDirs("lighting.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
   sd = ShaderDescriptor(vs, fs);
-#ifdef GLTREERAYCASTER_DEBUGVIEW
-  sd.AddDefine("#define DEBUG");
-#endif
+  sd.AddDefines(vDefines);
   sd.AddFragmentShaderString(poolFragment);
   sd.AddFragmentShaderString(hashFragment);
 #ifdef GLTREERAYCASTER_WORKINGSET
@@ -1151,6 +1142,23 @@ bool GLTreeRaycaster::PH_IsWorkingSetTrackerAvailable() const {
   return true;
 #else
   return false;
+#endif
+}
+
+void GLTreeRaycaster::PH_SetDebugViewColorLoDs(bool b) {
+#ifdef GLTREERAYCASTER_DEBUGVIEW
+    m_bDebugViewColorLoDs = b;
+    
+    // recompile shaders
+    CleanupTraversalShaders();
+    std::vector<std::string> vDefines;
+    vDefines.push_back("#define DEBUG");
+    if (m_bDebugViewColorLoDs)
+      vDefines.push_back("#define COLOR_LODS");
+    if (!LoadTraversalShaders(vDefines)) {
+      T_ERROR("could not reload traversal shaders");
+    }
+    ScheduleWindowRedraw(GetFirst3DRegion());
 #endif
 }
 

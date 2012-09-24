@@ -1776,6 +1776,7 @@ void AbstrRenderer::PH_SetOptimalFrameAverageCount(size_t) { }
 size_t AbstrRenderer::PH_GetOptimalFrameAverageCount() const { return 0; }
 bool AbstrRenderer::PH_IsDebugViewAvailable() const { return false; }
 bool AbstrRenderer::PH_IsWorkingSetTrackerAvailable() const { return false; }
+void AbstrRenderer::PH_SetDebugViewColorLoDs(bool) { }
 
 
 void AbstrRenderer::RegisterLuaFunctions(
@@ -2213,7 +2214,9 @@ void AbstrRenderer::RegisterLuaFunctions(
   id = reg.function(&AbstrRenderer::PH_IsDebugViewAvailable, "isDebugViewAvailable",
                     "checks if debug view can be toggled", false);
   id = reg.function(&AbstrRenderer::PH_IsWorkingSetTrackerAvailable, "isWorkingSetTrackerAvailable",
-                    "checks if working set is being tracked (bad performace)", false);
+                    "checks if working set is being tracked (bad performance)", false);
+  id = reg.function(&AbstrRenderer::PH_SetDebugViewColorLoDs, "setDebugViewColorLoDs",
+                    "toggle colored lods in debug view", false);
   reg.function(&AbstrRenderer::PH_BrickIOTime, "brickIOTime",
                "time spent reading bricks", false);
   reg.function(&AbstrRenderer::PH_SetBrickIOTime, "setBrickIOTime",

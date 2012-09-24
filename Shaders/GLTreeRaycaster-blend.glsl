@@ -71,6 +71,7 @@ void main()
 
 #ifdef DEBUG
   debugFBO        = texelFetch(debugColor, screenpos,0);
+  debugFBO.w      = 1;
 #endif
     
   // fetch ray entry from texture and get ray exit point from vs-shader
@@ -171,7 +172,15 @@ void main()
 
 #ifdef DEBUG
           if (bOptimalResolution) {
+#ifdef COLOR_LODS
+            switch (iLOD % 3) {
+              case 0:  debugFBO.r += 0.0025; break;
+              case 1:  debugFBO.g += 0.0025; break;
+              default: debugFBO.b += 0.0025; break;
+            }
+#else
             debugFBO.r += 0.01;
+#endif
             debugFBO.w = 1;
           }
 #endif
@@ -194,7 +203,17 @@ void main()
 
 #ifdef DEBUG
       if (bEmpty && bOptimalResolution) {
+#ifdef COLOR_LODS
+#if 0
+        switch (iLOD % 3) {
+          case 0:  debugFBO.r += 0.025; break;
+          case 1:  debugFBO.g += 0.025; break;
+          default: debugFBO.b += 0.025; break;
+        }
+#endif
+#else
         debugFBO.g += 0.1;
+#endif
         debugFBO.w = 1;
       }
 #endif

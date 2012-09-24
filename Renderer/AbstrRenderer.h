@@ -311,6 +311,7 @@ class AbstrRenderer: public Scriptable {
     virtual size_t PH_GetOptimalFrameAverageCount() const;
     virtual bool PH_IsDebugViewAvailable() const;
     virtual bool PH_IsWorkingSetTrackerAvailable() const;
+    virtual void PH_SetDebugViewColorLoDs(bool);
     ///@}
 
   public:

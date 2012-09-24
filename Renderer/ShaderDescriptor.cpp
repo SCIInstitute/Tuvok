@@ -214,6 +214,11 @@ void ShaderDescriptor::AddDefine(const std::string& define) {
   this->si->defines.push_back(define);
 }
 
+void ShaderDescriptor::AddDefines(const std::vector<std::string>& defines) {
+  for (auto define = defines.cbegin(); define != defines.cend(); define++)
+    AddDefine(*define);
+}
+
 /// Adds a vertex shader in a string (i.e. not from a filename)
 void ShaderDescriptor::AddVertexShaderString(const std::string shader) {
   this->si->vertex.push_back(std::make_pair(shader, SHADER_VERTEX_STRING));

@@ -80,6 +80,7 @@ namespace tuvok {
       virtual size_t PH_GetOptimalFrameAverageCount() const;
       virtual bool PH_IsDebugViewAvailable() const;
       virtual bool PH_IsWorkingSetTrackerAvailable() const;
+      virtual void PH_SetDebugViewColorLoDs(bool b);
       ///@}
 
     protected:
@@ -117,6 +118,7 @@ namespace tuvok {
 #ifdef GLTREERAYCASTER_DEBUGVIEW
       GLFBOTex*       m_pFBODebug;
       GLFBOTex*       m_pFBODebugNext;
+      bool            m_bDebugViewColorLoDs;
 #endif
 #ifdef GLTREERAYCASTER_WORKINGSET
       GLHashTable*    m_pWorkingSetTable;
@@ -172,7 +174,7 @@ namespace tuvok {
       virtual void SetRescaleFactors(const DOUBLEVECTOR3& vfRescale);
       void CreateVBO();
       
-      bool LoadTraversalShaders();
+      bool LoadTraversalShaders(const std::vector<std::string>& vDefines = std::vector<std::string>());
       void CleanupTraversalShaders();
 
       // disable this function, in our implementation parameters are set once 
