@@ -1146,20 +1146,20 @@ bool GLTreeRaycaster::PH_IsWorkingSetTrackerAvailable() const {
 }
 
 void GLTreeRaycaster::PH_SetDebugViewColorLoDs(bool b) {
-#ifdef GLTREERAYCASTER_DEBUGVIEW
     m_bDebugViewColorLoDs = b;
     
     // recompile shaders
     CleanupTraversalShaders();
     std::vector<std::string> vDefines;
+#ifdef GLTREERAYCASTER_DEBUGVIEW
     vDefines.push_back("#define DEBUG");
     if (m_bDebugViewColorLoDs)
       vDefines.push_back("#define COLOR_LODS");
+#endif
     if (!LoadTraversalShaders(vDefines)) {
       T_ERROR("could not reload traversal shaders");
     }
     ScheduleWindowRedraw(GetFirst3DRegion());
-#endif
 }
 
 void GLTreeRaycaster::SetClipPlane(RenderRegion *renderRegion,
