@@ -139,7 +139,7 @@ bool ExtendedOctreeConverter::Convert(LargeRAWFile_ptr pLargeRAWFileIn,
   e.m_iOffset = iOutOffset;
   e.m_pLargeRAWFile = pLargeRAWFileOut;
   e.ComputeMetadata();
-  m_fProgress = 0.01f;
+  m_fProgress = 0.0f;
 
   m_eCompression = compression;
 
