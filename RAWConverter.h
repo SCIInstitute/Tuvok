@@ -90,6 +90,7 @@ public:
                                 const uint64_t iTargetBrickOverlap,
                                 const bool bUseMedian,
                                 const bool bClampToEdge,
+                                uint32_t iBrickCompression,
                                 UVFTables::ElementSemanticTable eType=UVFTables::ES_UNDEFINED,
                                 KVPairs* pKVPairs = NULL,
                                 const bool bQuantizeTo8Bit=false);
@@ -132,6 +133,7 @@ public:
                             const uint64_t iTargetBrickOverlap,
                             const bool bUseMedian,
                             const bool bClampToEdge,
+                            uint32_t iBrickCompression,
                             const bool bQuantizeTo8Bit);
 
   virtual bool ConvertToUVF(const std::list<std::string>& files,
@@ -142,6 +144,7 @@ public:
                             const uint64_t iTargetBrickOverlap,
                             const bool bUseMedian,
                             const bool bClampToEdge,
+                            uint32_t iBrickCompression,
                             const bool bQuantizeTo8Bit);
 
   virtual bool Analyze(const std::string& strSourceFilename,

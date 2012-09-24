@@ -108,7 +108,7 @@ bool TOCBlock::FlatDataToBrickedLOD(
   size_t iCacheSize,
   std::shared_ptr<MaxMinDataBlock> pMaxMinDatBlock,
   AbstrDebugOut* debugOut,
-  COMPORESSION_TYPE ct
+  COMPRESSION_TYPE ct
 ) {
 
   LargeRAWFile_ptr inFile(new LargeRAWFile(strSourceFile));
@@ -134,7 +134,7 @@ bool TOCBlock::FlatDataToBrickedLOD(
   size_t iCacheSize,
   std::shared_ptr<MaxMinDataBlock> pMaxMinDatBlock,
   AbstrDebugOut* debugOut,
-  COMPORESSION_TYPE ct
+  COMPRESSION_TYPE ct
 ) {
   m_vMaxBrickSize = vMaxBrickSize;
   m_iOverlap = iOverlap;

@@ -61,8 +61,8 @@ struct LODInfo {
 };
 
 /// This enum lists the different compression techniques
-enum COMPORESSION_TYPE {
-  CT_NONE,    // brick is not compressed
+enum COMPRESSION_TYPE {
+  CT_NONE = 0,    // brick is not compressed
   CT_ZLIB,    // brick is compressed using zlib
   CT_JPEG     // brick is (slice wise) compressed using JPG
 };
@@ -83,7 +83,7 @@ struct TOCEntry {
   uint64_t m_iLength;
 
   /// the compression scheme of this brick
-  COMPORESSION_TYPE m_eCompression;
+  COMPRESSION_TYPE m_eCompression;
 
   /// valid bytes in this brick (used for streaming files)
   /// for a complete brick m_iLength is euqal to m_iValidLength
@@ -102,7 +102,7 @@ struct TOCEntry {
   // padding this struct
   static size_t SizeInFile() {
     return // sizeof(uint64_t /*m_iOffset*/) +   // m_iOffset is not stored but computed at load
-           sizeof(uint64_t/*m_iLength*/) + sizeof(COMPORESSION_TYPE /*m_eCompression*/) +
+           sizeof(uint64_t/*m_iLength*/) + sizeof(COMPRESSION_TYPE /*m_eCompression*/) +
            sizeof(uint64_t /*m_iValidLength*/) + sizeof(UINTVECTOR2 /*m_iAtlasSize*/);
   }
 };

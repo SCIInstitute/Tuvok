@@ -36,7 +36,7 @@ public:
                               pMaxMinDatBlock =
                                 std::shared_ptr<MaxMinDataBlock>(),
                             AbstrDebugOut* pDebugOut=NULL,
-                            COMPORESSION_TYPE ct=CT_ZLIB);
+                            COMPRESSION_TYPE ct=CT_ZLIB);
   bool FlatDataToBrickedLOD(LargeRAWFile_ptr pSourceData,
                             const std::string& strTempFile,
                             ExtendedOctree::COMPONENT_TYPE eType,
@@ -52,7 +52,7 @@ public:
                               pMaxMinDatBlock =
                                 std::shared_ptr<MaxMinDataBlock>(),
                             AbstrDebugOut* pDebugOut=NULL,
-                            COMPORESSION_TYPE ct=CT_ZLIB);
+                            COMPRESSION_TYPE ct=CT_ZLIB);
 
   bool BrickedLODToFlatData(uint64_t iLoD,
                             const std::string& strTargetFile,

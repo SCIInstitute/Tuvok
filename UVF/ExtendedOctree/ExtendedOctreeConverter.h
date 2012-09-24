@@ -178,7 +178,7 @@ public:
                const DOUBLEVECTOR3& vVolumeAspect,
                const std::string& targetFile, uint64_t iOutOffset,
                BrickStatVec* stats,
-               COMPORESSION_TYPE compression,
+               COMPRESSION_TYPE compression,
                bool bComputeMedian,
                bool bClampToEdge);
 
@@ -206,7 +206,7 @@ public:
                const DOUBLEVECTOR3& vVolumeAspect,
                LargeRAWFile_ptr pLargeRAWOutFile, uint64_t iOutOffset,
                BrickStatVec* stats,
-               COMPORESSION_TYPE compression,
+               COMPRESSION_TYPE compression,
                bool bComputeMedian,
                bool bClampToEdge);
   /**
@@ -368,7 +368,7 @@ private:
 
   /// desired compression method for new bricks, may be ignored by the system
   /// e.g. when a compressed brick would be larger than the uncompressed
-  COMPORESSION_TYPE m_eCompression;
+  COMPRESSION_TYPE m_eCompression;
 
   /// the brick cache collection
   BrickCache m_vBrickCache;

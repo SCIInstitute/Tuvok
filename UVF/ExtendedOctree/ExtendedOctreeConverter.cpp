@@ -78,7 +78,7 @@ bool ExtendedOctreeConverter::Convert(const std::string& filename,
               const std::string& targetFilename,
               uint64_t iOutOffset,
               BrickStatVec* stats,
-              COMPORESSION_TYPE compression,
+              COMPRESSION_TYPE compression,
               bool bComputeMedian,
               bool bClampToEdge) {
   LargeRAWFile_ptr inFile(new LargeRAWFile(filename));
@@ -120,7 +120,7 @@ bool ExtendedOctreeConverter::Convert(LargeRAWFile_ptr pLargeRAWFileIn,
                       LargeRAWFile_ptr pLargeRAWFileOut,
                       uint64_t iOutOffset,
                       BrickStatVec* stats,
-                      COMPORESSION_TYPE compression,
+                      COMPRESSION_TYPE compression,
                       bool bComputeMedian,
                       bool bClampToEdge) {
   m_pBrickStatVec = stats;

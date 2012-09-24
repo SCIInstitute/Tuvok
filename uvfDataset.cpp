@@ -1528,7 +1528,7 @@ bool UVFDataset::Crop(const PLANE<float>& plane, const std::string& strTempDir,
       GetIsFloat(), GetDomainSize(), FLOATVECTOR3(GetScale()), strDesc,
       strSource, Controller::Instance().IOMan()->GetMaxBrickSize(),
       Controller::Instance().IOMan()->GetBrickOverlap(), bUseMedianFilter,
-      bClampToEdge)) {
+      bClampToEdge, 1 /* compress with zlib*/)) {
     T_ERROR("Unable to convert cropped data back to UVF");
     return false;
   }
