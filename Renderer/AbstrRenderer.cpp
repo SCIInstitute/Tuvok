@@ -1767,6 +1767,13 @@ void AbstrRenderer::PH_SetBrickIOTime(double) { }
 uint64_t AbstrRenderer::PH_BrickIOBytes() const { return 0; }
 void AbstrRenderer::PH_SetBrickIOBytes(uint64_t) { }
 double AbstrRenderer::PH_RenderingTime() const { return 0.0; }
+bool AbstrRenderer::PH_OpenLogfile(const std::string&) { return false; }
+bool AbstrRenderer::PH_CloseLogfile() { return false; }
+void AbstrRenderer::PH_SetOptimalFrameAverageCount(size_t) { }
+size_t AbstrRenderer::PH_GetOptimalFrameAverageCount() const { return 0; }
+bool AbstrRenderer::PH_IsDebugViewAvailable() const { return false; }
+bool AbstrRenderer::PH_IsWorkingSetTrackerAvailable() const { return false; }
+
 
 void AbstrRenderer::RegisterLuaFunctions(
     LuaClassRegistration<AbstrRenderer>& reg,
@@ -2180,7 +2187,7 @@ void AbstrRenderer::RegisterLuaFunctions(
                     "SyncStateManager", "", false);
 
   id = reg.function(&AbstrRenderer::PH_ClearWorkingSet,
-                    "clearWorkingSet", "clear the set", false);
+                    "clearWorkingSet", "clears pool data", false);
   // set the number of paged bricks; useful to reset it to 0 when timing stuff.
   id = reg.function(&AbstrRenderer::PH_SetPagedBricks,
                     "setPagedBricks", "useful for resetting", false);
@@ -2190,8 +2197,20 @@ void AbstrRenderer::RegisterLuaFunctions(
                     "subframePagedBricks", "# this SUBframe", false);
   id = reg.function(&AbstrRenderer::PH_RecalculateVisibility,
                     "recalcVisibility", "synchronous!", false);
-  reg.function(&AbstrRenderer::PH_Converged, "converged",
-               "checks if rendering converged", false);
+  id = reg.function(&AbstrRenderer::PH_Converged, "converged",
+                    "checks if rendering converged", false);
+  id = reg.function(&AbstrRenderer::PH_OpenLogfile, "openLogfile",
+                    "opens a new log file where frame stats will be written to", false);
+  id = reg.function(&AbstrRenderer::PH_CloseLogfile, "closeLogfile",
+                    "closes a open log file", false);
+  id = reg.function(&AbstrRenderer::PH_SetOptimalFrameAverageCount, "setOptimalFrameAveragingCount",
+                    "re-renders the optimal frame", false);
+  id = reg.function(&AbstrRenderer::PH_GetOptimalFrameAverageCount, "getOptimalFrameAveragingCount",
+                    "returns the number of frames that get re-rendered", false);
+  id = reg.function(&AbstrRenderer::PH_IsDebugViewAvailable, "isDebugViewAvailable",
+                    "checks if debug view can be toggled", false);
+  id = reg.function(&AbstrRenderer::PH_IsWorkingSetTrackerAvailable, "isWorkingSetTrackerAvailable",
+                    "checks if working set is being tracked (bad performace)", false);
   reg.function(&AbstrRenderer::PH_BrickIOTime, "brickIOTime",
                "time spent reading bricks", false);
   reg.function(&AbstrRenderer::PH_SetBrickIOTime, "setBrickIOTime",

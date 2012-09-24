@@ -225,6 +225,30 @@ GLVolumePool::GLVolumePool(const UINTVECTOR3& poolSize, UVFDataset* pDataset, GL
     m_pUpdater = new AsyncVisibilityUpdater(*this);
 }
 
+void GLVolumePool::Reset() {
+  // remember largest single brick parameters
+  uint32_t const iLastBrickIndex = *(m_vLoDOffsetTable.end()-1);
+  uint32_t const iLastBrickFlag = m_vBrickMetadata[iLastBrickIndex];
+
+  // clear pool slot data
+  for (auto slot = m_vPoolSlotData.begin(); slot != m_vPoolSlotData.end(); slot++) {
+   if (slot->m_iBrickID != int32_t(iLastBrickIndex)) {
+     slot->m_iBrickID = -1;
+     slot->m_iTimeOfCreation = 0;
+     slot->m_iOrigTimeOfCreation = 0;
+   }
+  }
+
+  // clear metadata
+  std::fill(m_vBrickMetadata.begin(), m_vBrickMetadata.end(), BI_MISSING);
+
+  // restore largest single brick flag
+  m_vBrickMetadata[iLastBrickIndex] = iLastBrickFlag;
+
+  // tell the GPU
+  UploadMetadataTexture();  
+}
+
 uint32_t GLVolumePool::GetLoDCount() const {
   return m_iLoDCount;
 }

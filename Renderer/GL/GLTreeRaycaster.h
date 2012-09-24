@@ -6,25 +6,11 @@
 #include "../../StdTuvokDefines.h"
 #include "GLRenderer.h"
 #include "Renderer/VisibilityState.h"
+#include "AvgMinMaxTracker.h" // for profiling
+#include <fstream> // for Paper Hack file log
 
 //#define GLTREERAYCASTER_DEBUGVIEW  // define to toggle debug view with 'D'-key
-#define GLTREERAYCASTER_PROFILE    // define to measure frame times
-//#define GLTREERAYCASTER_AVG_FPS    10 // define to measure pure averaged frame 
-                                      // times without paging, requires enough 
-                                      // GPU memory to host the working set
 //#define GLTREERAYCASTER_WORKINGSET // define to measure per frame working set
-//#define GLTREERAYCASTER_WRITE_LOG  // define to write render measurements to file
-
-#ifdef GLTREERAYCASTER_PROFILE
-#include "AvgMinMaxTracker.h"
-#else
-#ifdef GLTREERAYCASTER_AVG_FPS
-#undef GLTREERAYCASTER_AVG_FPS
-#endif
-#endif
-#ifdef GLTREERAYCASTER_WRITE_LOG
-#include <fstream>
-#endif
 
 class ExtendedPlane;
 
@@ -88,6 +74,12 @@ namespace tuvok {
       virtual uint64_t PH_BrickIOBytes() const;
       virtual void PH_SetBrickIOBytes(uint64_t b);
       virtual double PH_RenderingTime() const;
+      virtual bool PH_OpenLogfile(const std::string&);
+      virtual bool PH_CloseLogfile();
+      virtual void PH_SetOptimalFrameAverageCount(size_t);
+      virtual size_t PH_GetOptimalFrameAverageCount() const;
+      virtual bool PH_IsDebugViewAvailable() const;
+      virtual bool PH_IsWorkingSetTrackerAvailable() const;
       ///@}
 
     protected:
@@ -114,21 +106,20 @@ namespace tuvok {
       bool            m_bConverged;
       VisibilityState m_VisibilityState;
 
+      // profiling
+      uint32_t        m_iSubframes;
+      size_t          m_iPagedBricks;
+      AvgMinMaxTracker<float> m_FrameTimes;
+      size_t          m_iAveragingFrameCount;
+      bool            m_bAveragingFrameTimes;
+      std::ofstream*  m_pLogFile;
+
 #ifdef GLTREERAYCASTER_DEBUGVIEW
       GLFBOTex*       m_pFBODebug;
       GLFBOTex*       m_pFBODebugNext;
 #endif
-      uint32_t        m_iSubframes;
-      size_t          m_iPagedBricks;
-#ifdef GLTREERAYCASTER_PROFILE
-      AvgMinMaxTracker<float> m_FrameTimes;
-#ifdef GLTREERAYCASTER_AVG_FPS
-      bool            m_bAveraging;
-#endif
-#endif
+#ifdef GLTREERAYCASTER_WORKINGSET
       GLHashTable*    m_pWorkingSetTable;
-#ifdef GLTREERAYCASTER_WRITE_LOG
-      std::ofstream   m_LogFile;
 #endif
       double m_RenderingTime;
 

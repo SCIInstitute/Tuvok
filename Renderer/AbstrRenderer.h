@@ -298,11 +298,19 @@ class AbstrRenderer: public Scriptable {
     virtual size_t PH_SubframePagedBricks() const;
     virtual void PH_RecalculateVisibility();
     virtual bool PH_Converged() const;
+
     virtual double PH_BrickIOTime() const;
     virtual void PH_SetBrickIOTime(double d);
     virtual uint64_t PH_BrickIOBytes() const;
     virtual void PH_SetBrickIOBytes(uint64_t b);
     virtual double PH_RenderingTime() const;
+
+    virtual bool PH_OpenLogfile(const std::string&);
+    virtual bool PH_CloseLogfile();
+    virtual void PH_SetOptimalFrameAverageCount(size_t);
+    virtual size_t PH_GetOptimalFrameAverageCount() const;
+    virtual bool PH_IsDebugViewAvailable() const;
+    virtual bool PH_IsWorkingSetTrackerAvailable() const;
     ///@}
 
   public:

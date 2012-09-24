@@ -94,6 +94,9 @@ namespace tuvok {
                   GLSLProgram* pShaderProgram) const;
       void Disable() const;
 
+      // resets the pool data and preserves the single largest brick
+      void Reset();
+
       enum MissingBrickStrategy {
         OnlyNeeded,
         RequestAll,
