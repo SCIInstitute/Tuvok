@@ -83,6 +83,10 @@ namespace tuvok {
       virtual size_t PH_SubframePagedBricks() const;
       virtual void PH_RecalculateVisibility();
       virtual bool PH_Converged() const;
+      virtual double PH_BrickIOTime() const;
+      virtual void PH_SetBrickIOTime(double d);
+      virtual uint64_t PH_BrickIOBytes() const;
+      virtual void PH_SetBrickIOBytes(uint64_t b);
       ///@}
 
     protected:

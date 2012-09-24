@@ -137,6 +137,8 @@ GLVolumePool::GLVolumePool(const UINTVECTOR3& poolSize, UVFDataset* pDataset, GL
 #endif
     , m_iMinMaxScalarTimestep(0)
     , m_iMinMaxGradientTimestep(0)
+    , m_BrickIOTime(0.0)
+    , m_BrickIOBytes(0)
 {
   const uint64_t iBitWidth  = m_pDataset->GetBitWidth();
   const uint64_t iCompCount = m_pDataset->GetComponentCount();
@@ -1141,6 +1143,7 @@ namespace {
     // now iterate over the missing bricks and upload them to the GPU
     // todo: consider batching this if it turns out to make a difference
     //       from submitting each brick separately
+    Timer t;
     for (auto missingBrick = vBrickIDs.cbegin(); missingBrick < vBrickIDs.cend(); missingBrick++) {
       UINTVECTOR4 const& vBrickID = *missingBrick;
       BrickKey const key = pDataset->TOCVectorToKey(vBrickID, iTimestep);
@@ -1152,7 +1155,10 @@ namespace {
         // we might not have tested the brick for visibility yet since the updater's still running and we do not have a BI_UNKNOWN flag for now
         bool const bContainsData = ContainsData<eRenderMode>(visibility, brickIndex, vMinMaxScalar, vMinMaxGradient);
         if (bContainsData) {
+          t.Start();
           pDataset->GetBrick(key, vUploadMem);
+          pool.PH_SetBrickIOTime(pool.PH_BrickIOTime() + t.Elapsed());
+          pool.PH_SetBrickIOBytes(pool.PH_BrickIOBytes() + vUploadMem.size());
           if (!pool.UploadBrick(BrickElemInfo(vBrickID, vVoxelSize), &vUploadMem[0]))
             return iPagedBricks;
           else
@@ -1285,7 +1291,8 @@ void GLVolumePool::RecomputeVisibility(VisibilityState const& visibility, size_t
 #endif
 }
 
-uint32_t GLVolumePool::UploadBricks(const std::vector<UINTVECTOR4>& vBrickIDs, std::vector<unsigned char>& vUploadMem)
+uint32_t GLVolumePool::UploadBricks(const std::vector<UINTVECTOR4>& vBrickIDs,
+                                    std::vector<unsigned char>& vUploadMem)
 {
   // pause async updater because we will touch the meta data
   bool const bBusy = m_pUpdater && m_pUpdater->Pause();
@@ -1313,12 +1320,16 @@ uint32_t GLVolumePool::UploadBricks(const std::vector<UINTVECTOR4>& vBrickIDs, s
       }
     } else {
       // visibility is updated guaranteeing that requested bricks do contain data
+      Timer t;
       for (auto missingBrick = vBrickIDs.cbegin(); missingBrick < vBrickIDs.cend(); missingBrick++) {
         UINTVECTOR4 const& vBrickID = *missingBrick;
         BrickKey const key = m_pDataset->TOCVectorToKey(vBrickID, m_iMinMaxScalarTimestep);
         UINTVECTOR3 const vVoxelSize = m_pDataset->GetBrickVoxelCounts(key);
 
+        t.Start();
         m_pDataset->GetBrick(key, vUploadMem);
+        m_BrickIOTime += t.Elapsed();
+        m_BrickIOBytes += vUploadMem.size();
         if (!UploadBrick(BrickElemInfo(vBrickID, vVoxelSize), &vUploadMem[0]))
           break;
         else

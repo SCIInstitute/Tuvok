@@ -1076,6 +1076,18 @@ void GLTreeRaycaster::PH_RecalculateVisibility() {
   RecomputeBrickVisibility(true);
 }
 bool GLTreeRaycaster::PH_Converged() const { return m_bConverged; }
+double GLTreeRaycaster::PH_BrickIOTime() const {
+  return m_pVolumePool->PH_BrickIOTime();
+}
+void GLTreeRaycaster::PH_SetBrickIOTime(double d) {
+  m_pVolumePool->PH_SetBrickIOTime(d);
+}
+uint64_t GLTreeRaycaster::PH_BrickIOBytes() const {
+  return m_pVolumePool->PH_BrickIOBytes();
+}
+void GLTreeRaycaster::PH_SetBrickIOBytes(uint64_t b) {
+  m_pVolumePool->PH_SetBrickIOBytes(b);
+}
 
 void GLTreeRaycaster::SetClipPlane(RenderRegion *renderRegion,
                                    const ExtendedPlane& plane) {

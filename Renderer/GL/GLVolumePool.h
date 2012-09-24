@@ -6,6 +6,7 @@
 #include "StdTuvokDefines.h"
 #include <list>
 
+#include "Basics/Timer.h"
 #include "GLInclude.h"
 #include "GLTexture2D.h"
 #include "GLTexture3D.h"
@@ -14,7 +15,6 @@
 //#define GLVOLUMEPOOL_BUSY    // define to prevent the async worker from doing anything useful
 
 #ifdef GLVOLUMEPOOL_PROFILE
-#include "Basics/Timer.h"
 #include "Basics/AvgMinMaxTracker.h"
 #endif
 
@@ -122,6 +122,11 @@ namespace tuvok {
         double max;
       };
 
+      double PH_BrickIOTime() const { return m_BrickIOTime; }
+      void PH_SetBrickIOTime(double d) { m_BrickIOTime = d; }
+      uint64_t PH_BrickIOBytes() const { return m_BrickIOBytes; }
+      void PH_SetBrickIOBytes(uint64_t b) { m_BrickIOBytes = b; }
+
     protected:
       GLTexture2D* m_pPoolMetadataTexture;
       GLTexture3D* m_pPoolDataTexture;
@@ -166,6 +171,8 @@ namespace tuvok {
       size_t m_iMinMaxGradientTimestep;      // current timestep of gradient acceleration structure below
       std::vector<MinMax> m_vMinMaxScalar;   // accelerates access to minmax scalar information, gets constructed in c'tor
       std::vector<MinMax> m_vMinMaxGradient; // accelerates access to minmax gradient information, gets constructed on first access to safe some mem
+      double m_BrickIOTime;
+      uint64_t m_BrickIOBytes;
 
       void CreateGLResources();
       void FreeGLResources();
