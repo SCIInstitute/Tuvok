@@ -1762,12 +1762,16 @@ size_t AbstrRenderer::PH_FramePagedBricks() const { return 0; }
 size_t AbstrRenderer::PH_SubframePagedBricks() const { return 0; }
 void AbstrRenderer::PH_RecalculateVisibility() {}
 bool AbstrRenderer::PH_Converged() const { return false; }
+double AbstrRenderer::PH_BrickIOTime() const { return 0.0; }
+void AbstrRenderer::PH_SetBrickIOTime(double) { }
+uint64_t AbstrRenderer::PH_BrickIOBytes() const { return 0; }
+void AbstrRenderer::PH_SetBrickIOBytes(uint64_t) { }
+double AbstrRenderer::PH_RenderingTime() const { return 0.0; }
 
 void AbstrRenderer::RegisterLuaFunctions(
     LuaClassRegistration<AbstrRenderer>& reg,
     AbstrRenderer* me,
     LuaScripting* ss) {
-
   ss->vPrint("Registering abstract renderer functions.");
 
   std::string id;
@@ -2188,6 +2192,16 @@ void AbstrRenderer::RegisterLuaFunctions(
                     "recalcVisibility", "synchronous!", false);
   reg.function(&AbstrRenderer::PH_Converged, "converged",
                "checks if rendering converged", false);
+  reg.function(&AbstrRenderer::PH_BrickIOTime, "brickIOTime",
+               "time spent reading bricks", false);
+  reg.function(&AbstrRenderer::PH_SetBrickIOTime, "setBrickIOTime",
+               "reset time", false);
+  reg.function(&AbstrRenderer::PH_BrickIOBytes, "brickIOBytes",
+               "bytes read", false);
+  reg.function(&AbstrRenderer::PH_SetBrickIOBytes, "setBrickIOBytes",
+               "reset # of bytes read", false);
+  reg.function(&AbstrRenderer::PH_RenderingTime, "renderingTime",
+               "rendering time for last paint", false);
 
   /// Register renderer specific functions.
   me->RegisterDerivedClassLuaFunctions(reg, ss);

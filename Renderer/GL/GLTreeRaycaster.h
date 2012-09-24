@@ -87,6 +87,7 @@ namespace tuvok {
       virtual void PH_SetBrickIOTime(double d);
       virtual uint64_t PH_BrickIOBytes() const;
       virtual void PH_SetBrickIOBytes(uint64_t b);
+      virtual double PH_RenderingTime() const;
       ///@}
 
     protected:
@@ -129,6 +130,7 @@ namespace tuvok {
 #ifdef GLTREERAYCASTER_WRITE_LOG
       std::ofstream   m_LogFile;
 #endif
+      double m_RenderingTime;
 
       /** Loads GLSL vertex and fragment shaders. */
       virtual bool LoadShaders();

@@ -70,6 +70,7 @@ GLTreeRaycaster::GLTreeRaycaster(MasterController* pMasterController,
 #endif
 #endif
   , m_pWorkingSetTable(NULL)
+  , m_RenderingTime(0)
 {
   // a member of the parent class, hence it's initialized here
   m_bSupportsMeshes = false;
@@ -920,6 +921,7 @@ uint32_t GLTreeRaycaster::UpdateToVolumePool(std::vector<UINTVECTOR4>& hash) {
 }
 
 bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
+  Timer renTime; renTime.Start();
   glClearColor(0,0,0,0);
 
   size_t iStereoBufferCount = (m_bDoStereoRendering) ? 2 : 1;
@@ -1052,6 +1054,7 @@ bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
     m_bConverged = false;
   }
 #endif
+  m_RenderingTime = renTime.Elapsed();
 
   // always display intermediate results
   return true;
@@ -1088,6 +1091,7 @@ uint64_t GLTreeRaycaster::PH_BrickIOBytes() const {
 void GLTreeRaycaster::PH_SetBrickIOBytes(uint64_t b) {
   m_pVolumePool->PH_SetBrickIOBytes(b);
 }
+double GLTreeRaycaster::PH_RenderingTime() const { return m_RenderingTime; }
 
 void GLTreeRaycaster::SetClipPlane(RenderRegion *renderRegion,
                                    const ExtendedPlane& plane) {
