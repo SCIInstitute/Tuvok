@@ -40,6 +40,7 @@
 
 #include <sstream>
 #include <cstring>
+#include <iostream>
 
 #ifndef LUASCRIPTING_NO_TUVOK
 
@@ -360,6 +361,7 @@ void LuaScripting::logInfo(string log)
 #else
   MESSAGE(log.c_str());
 #endif
+  std::cout << log << "\n";
 }
 
 //-----------------------------------------------------------------------------
