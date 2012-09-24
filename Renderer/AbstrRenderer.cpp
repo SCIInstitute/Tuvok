@@ -1761,7 +1761,10 @@ void AbstrRenderer::PH_SetPagedBricks(size_t) { }
 size_t AbstrRenderer::PH_FramePagedBricks() const { return 0; }
 size_t AbstrRenderer::PH_SubframePagedBricks() const { return 0; }
 void AbstrRenderer::PH_RecalculateVisibility() {}
-bool AbstrRenderer::PH_Converged() const { return false; }
+bool AbstrRenderer::PH_Converged() const {
+  AbstrRenderer* ren = const_cast<AbstrRenderer*>(this);
+  return ren->CheckForRedraw();
+}
 double AbstrRenderer::PH_BrickIOTime() const { return 0.0; }
 void AbstrRenderer::PH_SetBrickIOTime(double) { }
 uint64_t AbstrRenderer::PH_BrickIOBytes() const { return 0; }
