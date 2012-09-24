@@ -1145,13 +1145,17 @@ bool GLTreeRaycaster::PH_IsWorkingSetTrackerAvailable() const {
 #endif
 }
 
+#ifdef GLTREERAYCASTER_DEBUGVIEW
 void GLTreeRaycaster::PH_SetDebugViewColorLoDs(bool b) {
-    m_bDebugViewColorLoDs = b;
-    
+#else
+void GLTreeRaycaster::PH_SetDebugViewColorLoDs(bool) {
+#endif
+
     // recompile shaders
     CleanupTraversalShaders();
     std::vector<std::string> vDefines;
 #ifdef GLTREERAYCASTER_DEBUGVIEW
+    m_bDebugViewColorLoDs = b;
     vDefines.push_back("#define DEBUG");
     if (m_bDebugViewColorLoDs)
       vDefines.push_back("#define COLOR_LODS");
