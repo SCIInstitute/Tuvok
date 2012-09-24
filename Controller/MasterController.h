@@ -196,6 +196,7 @@ public:
   ///@{
   void SetBrickStrategy(size_t strat);
   void SetRehashCount(uint32_t count);
+  void SetMaxGPUMem(uint64_t megs);
   PH_HackyState PHState;
   ///@}
 

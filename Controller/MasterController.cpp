@@ -300,6 +300,11 @@ void MasterController::SetBrickStrategy(size_t strat) {
 void MasterController::SetRehashCount(uint32_t n) {
   this->PHState.RehashCount = n;
 }
+void MasterController::SetMaxGPUMem(uint64_t M) {
+  const uint64_t megabyte = 1024 * 1024;
+  this->m_pSystemInfo->SetMaxUsableGPUMem(megabyte * M);
+  this->m_pGPUMemMan->MemSizesChanged();
+}
 void MasterController::RegisterLuaCommands() {
   std::shared_ptr<LuaScripting> ss = LuaScript();
 
@@ -375,13 +380,17 @@ void MasterController::RegisterLuaCommands() {
       LuaClassRegCallback<LuaTransferFun2DProxy>::Type(
           LuaTransferFun2DProxy::defineLuaInterface));
 
-  std::string id = m_pMemReg->registerFunction(this,
+  m_pMemReg->registerFunction(this,
     &MasterController::SetBrickStrategy, "tuvok.state.brickStrategy", "",
     false
   );
-  id = m_pMemReg->registerFunction(this,
+  m_pMemReg->registerFunction(this,
     &MasterController::SetRehashCount, "tuvok.state.rehashCount", "",
     false
+  );
+  m_pMemReg->registerFunction(this,
+    &MasterController::SetMaxGPUMem, "tuvok.state.gpuMem",
+    "sets a new max amount of GPU memory.  In megabytes.", false
   );
 }
 
