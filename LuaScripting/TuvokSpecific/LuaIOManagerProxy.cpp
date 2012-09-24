@@ -133,6 +133,8 @@ void LuaIOManagerProxy::bind()
                                nm + "setUseMedianFilter", "", false);
     id = mReg.registerFunction(mIO, &IOManager::SetClampToEdge,
                                nm + "setClampToEdge", "", false);
+    id = mReg.registerFunction(mIO, &IOManager::SetCompression,
+                               nm + "setUVFCompreesion", "", false);
     id = mReg.registerFunction(mIO, &IOManager::ScanDirectory,
                                nm + "scanDirectory", "", false);
     id = mReg.registerFunction(mIO, &IOManager::RegisterFinalConverter,
