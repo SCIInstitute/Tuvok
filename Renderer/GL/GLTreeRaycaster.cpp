@@ -1145,7 +1145,7 @@ double GLTreeRaycaster::PH_RenderingTime() const {
 bool GLTreeRaycaster::PH_OpenLogfile(const std::string& filename) {
   if (m_pLogFile)
     return false; // we already have a file do close and open
-  std::string logFilename;
+  std::string logFilename = filename;
 
   if (filename.empty()) {
     if (m_pToCDataset)
