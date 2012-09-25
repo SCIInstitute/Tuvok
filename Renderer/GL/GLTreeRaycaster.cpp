@@ -247,7 +247,9 @@ bool GLTreeRaycaster::Initialize(std::shared_ptr<Context> ctx) {
   UINTVECTOR3 const finestBrickLayout(m_pToCDataset->GetBrickLayout(0, 0));
   
   m_pglHashTable = new GLHashTable(finestBrickLayout,
-    uint32_t(511 / (m_pToCDataset->GetMaxBrickSize().volume() / 32768.)),
+    std::max<uint32_t>(15,
+      uint32_t(511 / (m_pToCDataset->GetMaxBrickSize().volume() / 32768.))),
+
     Controller::ConstInstance().PHState.RehashCount
   );
   m_pglHashTable->InitGL();
