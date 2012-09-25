@@ -63,6 +63,7 @@ bool GLFrameCapture::CaptureSingleFrame(const std::string& strFilename, bool bPr
  
     GL(glPixelStorei(GL_PACK_ALIGNMENT, 1));
     GL(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
+    GL(glReadBuffer(GL_COLOR_ATTACHMENT0));
     GL(glReadPixels(0,0,viewport[2],viewport[3],GL_RGBA,GL_UNSIGNED_SHORT,&image[0]));
 
     return SaveImage(strFilename, UINTVECTOR2(viewport[2], viewport[3]), image, bPreserveTransparency);
@@ -79,6 +80,7 @@ bool GLFrameCapture::CaptureSingleFrame(const std::string& strFilename, bool bPr
  
     GL(glPixelStorei(GL_PACK_ALIGNMENT, 1));
     GL(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
+    GL(glReadBuffer(GL_COLOR_ATTACHMENT0));
     GL(glReadPixels(0,0,viewport[2],viewport[3],GL_RGBA,GL_UNSIGNED_BYTE,&image[0]));
 
     return SaveImage(strFilename, UINTVECTOR2(viewport[2], viewport[3]), image, bPreserveTransparency);
