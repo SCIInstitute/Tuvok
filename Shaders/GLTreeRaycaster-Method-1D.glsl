@@ -4,16 +4,14 @@ layout(binding=2) uniform sampler1D transferFunction;
 
 uniform float fTransScale;
 
-vec4 samplePool4(vec3 coords);
+float samplePool(vec3 coords);
 
 vec4 ComputeColorFromVolume(vec3 currentPoolCoords, vec3 modelSpacePosition, vec3 sampleDelta) {
   // fetch volume
-  vec4 data = samplePool4(currentPoolCoords);
+  float data = samplePool(currentPoolCoords);
 
   // apply 1D TF
-  data.a = texture(transferFunction, data.a*fTransScale).a;
-
-  return data;
+  return texture(transferFunction, data*fTransScale);
 }
 
 /*
