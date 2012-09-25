@@ -178,6 +178,12 @@ void main()
 
           // early ray termination
           if (accRayColor.a > 0.99) {
+#ifdef DEBUG            
+            if (bOptimalResolution) {
+              debugFBO.b = 1;
+              debugFBO.w = 1;
+            }
+#endif            
             TerminateRay(bOptimalResolution);
             return;
           }
@@ -187,7 +193,7 @@ void main()
 
 #ifdef DEBUG
           if (bOptimalResolution) {
-            debugFBO.r += 0.01;
+            debugFBO.r += 0.0025;
             debugFBO.w = 1;
           }
 #endif
@@ -210,7 +216,7 @@ void main()
 
 #ifdef DEBUG
       if (bEmpty && bOptimalResolution) {
-        debugFBO.g += 0.1;
+        debugFBO.g += 0.05;
         debugFBO.w = 1;
       }
 #endif
