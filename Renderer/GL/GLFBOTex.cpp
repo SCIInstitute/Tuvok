@@ -331,6 +331,34 @@ void GLFBOTex::FinishDepthRead() {
   m_LastDepthTextUnit=0;
 }
 
+void GLFBOTex::CopyToFramebuffer(unsigned int iBuffer) {
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, m_hFBO);
+  glReadBuffer(GL_COLOR_ATTACHMENT0+iBuffer);
+
+  glBlitFramebuffer(0,0,m_iSizeX, m_iSizeY,
+                    0,0,m_iSizeX, m_iSizeY,
+                    GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+}
+
+void GLFBOTex::CopyToFramebuffer(unsigned int x, unsigned int w,
+                                 unsigned int y, unsigned int h,
+                                 unsigned int tx, unsigned int tw,
+                                 unsigned int ty, unsigned int th,
+                                 unsigned int iBuffer,
+                                 GLenum eFilter) {
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, m_hFBO);
+  glReadBuffer(GL_COLOR_ATTACHMENT0+iBuffer);
+
+  glBlitFramebuffer(x, y, x+w, y+h,
+                    tx, ty, tx+tw, ty+th,
+                    GL_COLOR_BUFFER_BIT, eFilter);
+
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+}
+
+
 void GLFBOTex::NoDrawBuffer() {
   GL(glDrawBuffer(GL_NONE));
 }

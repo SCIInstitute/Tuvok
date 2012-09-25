@@ -61,6 +61,13 @@ public:
   virtual void FinishRead(int iBuffer=0);
   virtual void ReadDepth(unsigned int iTargetUnit);
   virtual void FinishDepthRead();
+  virtual void CopyToFramebuffer(unsigned int iBuffer=0);
+  virtual void CopyToFramebuffer(unsigned int x, unsigned int w,
+                                 unsigned int y, unsigned int h,
+                                 unsigned int tx, unsigned int tw,
+                                 unsigned int ty, unsigned int th,
+                                 unsigned int iBuffer=0,
+                                 GLenum eFilter=GL_NEAREST);
   virtual operator GLuint(void) { return m_hTexture[0]; }
   virtual operator GLuint*(void) { return m_hTexture; }
 
