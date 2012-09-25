@@ -61,6 +61,8 @@ void TerminateRay(bool bOptimalResolution) {
 
 bool GetVolumeHit(vec3 currentPoolCoords, out vec4 color);
 vec3 GetVolumeNormal(vec3 currentPoolCoords, vec3 sampleDelta);
+vec3 RefineIsosurface(in vec3 vRayDir, in vec3 vCurrentPos);
+
 
 // go
 void main()
@@ -162,6 +164,7 @@ void main()
 
           // ray termination
           if (bHit) {
+            currentPoolCoords = RefineIsosurface(voxelSpaceDirection, currentPoolCoords);
             rayHitPos = mModelToEye * vec4(currentPos = (currentPoolCoords-normToPoolTrans)/normToPoolScale, 1);
             rayHitPos.a = color.r+1.0;
             rayHitNormal = mModelViewIT * vec4(GetVolumeNormal(currentPoolCoords, sampleDelta),0.0);

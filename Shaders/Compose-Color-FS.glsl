@@ -39,10 +39,23 @@ uniform sampler2D texRayHitPos;    ///< the hitposition of the ray (alpha flags 
 uniform sampler2D texRayHitNormal; ///< the surface normal at the hit position
 
 uniform vec3 vLightAmbient;
+uniform vec3 vLightDiffuse;
+uniform vec3 vLightSpecular;
 uniform vec3 vLightDir;
 
 uniform vec2 vScreensize;      ///< the size of the screen in pixels
 uniform vec2 vProjParam;       ///< X = far / (far - near)  / Y = (far * near / (near - far))
+
+vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient, vec3 vLightDiffuse, vec3 vLightSpecular) {
+  vNormal.z = abs(vNormal.z);
+
+  vec3 vViewDir    = normalize(vec3(0.0,0.0,0.0)-vPosition);
+  vec3 vReflection = normalize(reflect(vViewDir, vNormal));
+  return clamp(vLightAmbient+
+       vLightDiffuse*max(abs(dot(vNormal, -vLightDir)),0.0)+
+       vLightSpecular*pow(max(dot(vReflection, vLightDir),0.0),8.0), 0.0,1.0);
+}
+
 
 void main(void){
   // compute the coordinates to look up the previous pass
@@ -67,10 +80,11 @@ void main(void){
   float l = length(vNormal);
 
   vNormal.z = abs(vNormal.z);
-  vec3 vLightColor = vColor.rgb*(vLightAmbient + clamp(abs(dot(vNormal, -vLightDir)),0.0,1.0));
+
+  vec3 vLightColor = vec4(Lighting(vPosition.xyz, vNormal, vLightAmbient, vColor.rgb*vLightDiffuse, vLightSpecular),1.0);
 
   /// write result to fragment color
-  gl_FragColor    = vec4(vLightColor.x, vLightColor.y, vLightColor.z, 1.0);
+  gl_FragColor = vec4(vLightColor.x, vLightColor.y, vLightColor.z, 1.0);
 
   // compute non linear depth from linear eye depth
   gl_FragDepth = vProjParam.x + (vProjParam.y / -vPosition.z);

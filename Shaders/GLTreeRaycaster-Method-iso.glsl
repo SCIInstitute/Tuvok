@@ -15,6 +15,21 @@ vec3 GetVolumeNormal(vec3 currentPoolCoords, vec3 sampleDelta) {
   return ComputeNormal(currentPoolCoords, sampleDelta, vDomainScale);
 }
 
+vec3 RefineIsosurface(in vec3 vRayDir, in vec3 vCurrentPos) {
+  vRayDir /= 2.0;
+  vCurrentPos -= vRayDir;
+  for (int i = 0; i < 5; i++) {
+    vRayDir /= 2.0;
+    float voxel = samplePool(vCurrentPos);
+    if (voxel >= fIsoval) {
+      vCurrentPos -= vRayDir;
+    } else {
+      vCurrentPos += vRayDir;
+    }
+  }
+  return vCurrentPos;
+}
+
 
 /*
    For more information, please see: http://software.sci.utah.edu
