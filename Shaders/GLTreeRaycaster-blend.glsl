@@ -146,7 +146,8 @@ void main()
         iSteps = min(iSteps, int(ceil(length((normExitCoords-currentPos)*normToPoolScale)/stepSize)));
 
         // compute opacity correction factor
-        float ocFactor = exp2(float(iLOD)) / sampleRateModifier;
+        //float ocFactor = exp2(float(iLOD)) / sampleRateModifier;
+        float ocFactor = 1.0 / sampleRateModifier; // use the nicer "opacity correction" for now
 
         // now raycast through this brick
         vec3 currentPoolCoords = poolEntryCoords;
