@@ -1626,6 +1626,7 @@
     <None Include="Shaders\GLTreeRaycaster-entry-VS.glsl" />
     <None Include="Shaders\GLTreeRaycaster-frontfaces-FS.glsl" />
     <None Include="Shaders\GLTreeRaycaster-GradientTools.glsl" />
+    <None Include="Shaders\GLTreeRaycaster-iso.glsl" />
     <None Include="Shaders\GLTreeRaycaster-Method-1D-color.glsl" />
     <None Include="Shaders\GLTreeRaycaster-Method-1D-L-color.glsl" />
     <None Include="Shaders\GLTreeRaycaster-Method-1D-L.glsl" />
@@ -1634,6 +1635,8 @@
     <None Include="Shaders\GLTreeRaycaster-Method-2D-L-color.glsl" />
     <None Include="Shaders\GLTreeRaycaster-Method-2D-L.glsl" />
     <None Include="Shaders\GLTreeRaycaster-Method-2D.glsl" />
+    <None Include="Shaders\GLTreeRaycaster-Method-iso-color.glsl" />
+    <None Include="Shaders\GLTreeRaycaster-Method-iso.glsl" />
     <None Include="Shaders\GLTreeRaycaster-NearPlane-VS.glsl" />
     <None Include="Shaders\GLTreeRaycaster-VS.glsl" />
     <None Include="Shaders\lighting.glsl" />

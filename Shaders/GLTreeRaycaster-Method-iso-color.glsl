@@ -1,19 +1,18 @@
 #version 420 core
 
-layout(binding=2) uniform sampler1D transferFunction;
-
-uniform float fTransScale;
+uniform float fIsoval;
+uniform vec3 vDomainScale;
 
 vec4 samplePool4(vec3 coords);
+vec3 ComputeAlphaNormal(vec3 vCenter, vec3 StepSize, vec3 DomainScale);
 
-vec4 ComputeColorFromVolume(vec3 currentPoolCoords, vec3 modelSpacePosition, vec3 sampleDelta) {
-  // fetch volume
-  vec4 data = samplePool4(currentPoolCoords);
+bool GetVolumeHit(vec3 currentPoolCoords, out vec4 color) {
+  color = samplePool4(currentPoolCoords);
+  return color.a >= fIsoval;
+}
 
-  // apply 1D TF
-  data.a = texture(transferFunction, data.a*fTransScale).a;
-
-  return data;
+vec3 GetVolumeNormal(vec3 currentPoolCoords, vec3 sampleDelta) {
+  return ComputeAlphaNormal(currentPoolCoords, sampleDelta, vDomainScale);
 }
 
 /*

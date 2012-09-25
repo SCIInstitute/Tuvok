@@ -779,7 +779,7 @@ void GLRenderer::EndFrame(const vector<char>& justCompletedRegions) {
 
         switch (m_eStereoMode) {
           case SM_RB : m_pProgramComposeAnaglyphs->Enable(); 
-					   break;
+             break;
           case SM_SCANLINE: {
                         m_pProgramComposeScanlineStereo->Enable(); 
                         FLOATVECTOR2 vfWinSize = FLOATVECTOR2(m_vWinSize);
@@ -787,16 +787,16 @@ void GLRenderer::EndFrame(const vector<char>& justCompletedRegions) {
                         break;
                        }
           case SM_SBS: {
-					          m_pProgramSBSStereo->Enable(); 
+                    m_pProgramSBSStereo->Enable(); 
                     float fSplitCoord = (m_bOffscreenIsLowRes) ? 0.5f / m_fScreenResDecFactor : 0.5f;
                     m_pProgramSBSStereo->Set("fSplitCoord",fSplitCoord);
                     break;
                        }
           default : // SM_AF
-					m_pProgramAFStereo->Enable(); 
-					m_pProgramAFStereo->Set("iAlternatingFrameID",m_iAlternatingFrameID);
+          m_pProgramAFStereo->Enable(); 
+          m_pProgramAFStereo->Set("iAlternatingFrameID",m_iAlternatingFrameID);
                     break;
-		    }
+        }
 
         m_pContext->GetStateManager()->SetEnableDepthTest(false);
         FullscreenQuadRegions();
@@ -2742,10 +2742,15 @@ void GLRenderer::ComposeSurfaceImage(const RenderRegion &renderRegion, EStereoID
   m_pFBOIsoHit[size_t(eStereoID)]->Read(0, 0);
   m_pFBOIsoHit[size_t(eStereoID)]->Read(1, 1);
 
+  FLOATVECTOR3 a = m_cAmbient.xyz()*m_cAmbient.w;
   FLOATVECTOR3 d = m_cDiffuse.xyz()*m_cDiffuse.w;
+  FLOATVECTOR3 s = m_cSpecular.xyz()*m_cSpecular.w;
 
   if (m_bDoClearView) {
     m_pProgramCVCompose->Enable();
+    m_pProgramCVCompose->Set("vLightAmbient",a.x,a.y,a.z);
+    m_pProgramCVCompose->Set("vLightSpecular",s.x,s.y,s.z);
+    m_pProgramCVCompose->Set("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
     m_pProgramCVCompose->Set("vLightDiffuse", d.x*m_vIsoColor.x,
                                           d.y*m_vIsoColor.y, d.z*m_vIsoColor.z);
     m_pProgramCVCompose->Set("vLightDiffuse2", d.x*m_vCVColor.x,
@@ -2762,10 +2767,17 @@ void GLRenderer::ComposeSurfaceImage(const RenderRegion &renderRegion, EStereoID
   } else {
     if(this->ColorData()) {
       m_pProgramColorCompose->Enable();
+      m_pProgramColorCompose->Set("vLightAmbient",a.x,a.y,a.z);
+      m_pProgramColorCompose->Set("vLightSpecular",s.x,s.y,s.z);
+      m_pProgramColorCompose->Set("vLightDiffuse", d.x, d.y, d.z);
+      m_pProgramColorCompose->Set("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
     } else {
       m_pProgramIsoCompose->Enable();
+      m_pProgramIsoCompose->Set("vLightAmbient",a.x,a.y,a.z);
+      m_pProgramIsoCompose->Set("vLightSpecular",s.x,s.y,s.z);
+      m_pProgramIsoCompose->Set("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
       m_pProgramIsoCompose->Set("vLightDiffuse", d.x*m_vIsoColor.x,
-                                             d.y*m_vIsoColor.y, d.z*m_vIsoColor.z);
+                                                 d.y*m_vIsoColor.y, d.z*m_vIsoColor.z);
     }
   }
 
@@ -2871,22 +2883,6 @@ void GLRenderer::UpdateLightParamsInShaders() {
   m_pProgram2DTrans[1]->Set("vLightSpecular",s.x,s.y,s.z);
   m_pProgram2DTrans[1]->Set("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
   m_pProgram2DTrans[1]->Set("vDomainScale",scale.x,scale.y,scale.z);
-
-  m_pProgramIsoCompose->Enable();
-  m_pProgramIsoCompose->Set("vLightAmbient",a.x,a.y,a.z);
-  m_pProgramIsoCompose->Set("vLightDiffuse",d.x,d.y,d.z);
-  m_pProgramIsoCompose->Set("vLightSpecular",s.x,s.y,s.z);
-  m_pProgramIsoCompose->Set("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
-
-  m_pProgramColorCompose->Enable();
-  m_pProgramColorCompose->Set("vLightAmbient",a.x,a.y,a.z);
-  m_pProgramColorCompose->Set("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
-
-  m_pProgramCVCompose->Enable();
-  m_pProgramCVCompose->Set("vLightAmbient",a.x,a.y,a.z);
-  m_pProgramCVCompose->Set("vLightDiffuse",d.x,d.y,d.z);
-  m_pProgramCVCompose->Set("vLightSpecular",s.x,s.y,s.z);
-  m_pProgramCVCompose->Set("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
 
   m_pProgramMeshBTF->Enable();
   m_pProgramMeshBTF->Set("vLightAmbientM",aM.x,aM.y,aM.z);

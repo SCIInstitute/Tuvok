@@ -48,10 +48,12 @@ GLTreeRaycaster::GLTreeRaycaster(MasterController* pMasterController,
   m_pProgramRayCast1DLighting(NULL),
   m_pProgramRayCast2D(NULL),
   m_pProgramRayCast2DLighting(NULL),
+  m_pProgramRayCastISO(NULL),
   m_pProgramRayCast1DColor(NULL),
   m_pProgramRayCast1DLightingColor(NULL),
   m_pProgramRayCast2DColor(NULL),
   m_pProgramRayCast2DLightingColor(NULL),
+  m_pProgramRayCastISOColor(NULL),
   m_pToCDataset(NULL),
   m_bConverged(true),
   m_VisibilityState()
@@ -446,6 +448,34 @@ bool GLTreeRaycaster::LoadTraversalShaders(const std::vector<std::string>& vDefi
 #endif
   if (!LoadCheckShader(&m_pProgramRayCast2DLightingColor, sd, "Color 2D TF lighting")) return false;
 
+  vs.clear(); fs.clear();
+  vs.push_back(FindFileInDirs("GLTreeRaycaster-entry-VS.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLTreeRaycaster-iso.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLTreeRaycaster-Method-iso.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLTreeRaycaster-GradientTools.glsl", m_vShaderSearchDirs, false));
+  sd = ShaderDescriptor(vs, fs);
+  sd.AddDefines(vDefines);
+  sd.AddFragmentShaderString(poolFragment);
+  sd.AddFragmentShaderString(hashFragment);
+#ifdef GLTREERAYCASTER_WORKINGSET
+  sd.AddFragmentShaderString(infoFragment);
+#endif
+  if (!LoadCheckShader(&m_pProgramRayCastISO, sd, "Isosurface")) return false;
+
+  vs.clear(); fs.clear();
+  vs.push_back(FindFileInDirs("GLTreeRaycaster-entry-VS.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLTreeRaycaster-iso.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLTreeRaycaster-Method-iso-color.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLTreeRaycaster-GradientTools.glsl", m_vShaderSearchDirs, false));
+  sd = ShaderDescriptor(vs, fs);
+  sd.AddDefines(vDefines);
+  sd.AddFragmentShaderString(poolFragment);
+  sd.AddFragmentShaderString(hashFragment);
+#ifdef GLTREERAYCASTER_WORKINGSET
+  sd.AddFragmentShaderString(infoFragment);
+#endif
+  if (!LoadCheckShader(&m_pProgramRayCastISOColor, sd, "Color Isosurface")) return false;
+
   return true;
 }
 
@@ -455,10 +485,12 @@ void GLTreeRaycaster::CleanupTraversalShaders() {
   CleanupShader(&m_pProgramRayCast1DLighting);
   CleanupShader(&m_pProgramRayCast2D);
   CleanupShader(&m_pProgramRayCast2DLighting);
+  CleanupShader(&m_pProgramRayCastISO);
   CleanupShader(&m_pProgramRayCast1DColor);
   CleanupShader(&m_pProgramRayCast1DLightingColor);
   CleanupShader(&m_pProgramRayCast2DColor);
   CleanupShader(&m_pProgramRayCast2DLightingColor);
+  CleanupShader(&m_pProgramRayCastISOColor);
 }
 
 void GLTreeRaycaster::SetRescaleFactors(const DOUBLEVECTOR3& vfRescale) {
@@ -732,36 +764,40 @@ void GLTreeRaycaster::SetupRaycastShader(GLSLProgram* shaderProgram, RenderRegio
   shaderProgram->Set("mModelView", rr.modelView[size_t(eStereoID)], 4, false); 
   shaderProgram->Set("mModelViewProjection", rr.modelView[size_t(eStereoID)]*m_mProjection[size_t(eStereoID)], 4, false); 
 
-  float fScale         = CalculateScaling();
-  shaderProgram->Set("fTransScale",fScale);
-
-  if (m_eRenderMode == RM_2DTRANS) {
-    float fGradientScale = (m_pDataset->MaxGradientMagnitude() == 0) ?
-                            1.0f : 1.0f/m_pDataset->MaxGradientMagnitude();
-    shaderProgram->Set("fGradientScale",fGradientScale);
-  }
-
-  if (m_bUseLighting) {
-    FLOATVECTOR3 a = m_cAmbient.xyz()*m_cAmbient.w;
-    FLOATVECTOR3 d = m_cDiffuse.xyz()*m_cDiffuse.w;
-    FLOATVECTOR3 s = m_cSpecular.xyz()*m_cSpecular.w;
-
-#if 0
-    FLOATVECTOR3 aM = m_cAmbientM.xyz()*m_cAmbientM.w;
-    FLOATVECTOR3 dM = m_cDiffuseM.xyz()*m_cDiffuseM.w;
-    FLOATVECTOR3 sM = m_cSpecularM.xyz()*m_cSpecularM.w;
-#endif
+  if (m_eRenderMode == RM_ISOSURFACE) {
+    shaderProgram->Set("fIsoval", static_cast<float>
+                                        (this->GetNormalizedIsovalue()));
     FLOATVECTOR3 scale = 1.0f/vScale;
-
-    FLOATVECTOR3 vModelSpaceLightDir = ( FLOATVECTOR4(m_vLightDir,0.0f) * emm ).xyz().normalized();
-    FLOATVECTOR3 vModelSpaceEyePos   = (FLOATVECTOR4(0,0,0,1) * emm).xyz();
-
-    shaderProgram->Set("vLightAmbient",a.x,a.y,a.z);
-    shaderProgram->Set("vLightDiffuse",d.x,d.y,d.z);
-    shaderProgram->Set("vLightSpecular",s.x,s.y,s.z);
-    shaderProgram->Set("vModelSpaceLightDir",vModelSpaceLightDir.x,vModelSpaceLightDir.y,vModelSpaceLightDir.z);
-    shaderProgram->Set("vModelSpaceEyePos",vModelSpaceEyePos.x,vModelSpaceEyePos.y,vModelSpaceEyePos.z);
     shaderProgram->Set("vDomainScale",scale.x,scale.y,scale.z);
+    shaderProgram->Set("mModelToEye",emm.inverse(), 4, false);
+    shaderProgram->Set("mModelViewIT", rr.modelView[size_t(eStereoID)].inverse(), 4, true);
+  } else {
+    float fScale         = CalculateScaling();
+    shaderProgram->Set("fTransScale",fScale);
+
+    if (m_eRenderMode == RM_2DTRANS) {
+      float fGradientScale = (m_pDataset->MaxGradientMagnitude() == 0) ?
+                              1.0f : 1.0f/m_pDataset->MaxGradientMagnitude();
+      shaderProgram->Set("fGradientScale",fGradientScale);
+    }
+
+    if (m_bUseLighting) {
+      FLOATVECTOR3 a = m_cAmbient.xyz()*m_cAmbient.w;
+      FLOATVECTOR3 d = m_cDiffuse.xyz()*m_cDiffuse.w;
+      FLOATVECTOR3 s = m_cSpecular.xyz()*m_cSpecular.w;
+
+      FLOATVECTOR3 scale = 1.0f/vScale;
+
+      FLOATVECTOR3 vModelSpaceLightDir = ( FLOATVECTOR4(m_vLightDir,0.0f) * emm ).xyz().normalized();
+      FLOATVECTOR3 vModelSpaceEyePos   = (FLOATVECTOR4(0,0,0,1) * emm).xyz();
+
+      shaderProgram->Set("vLightAmbient",a.x,a.y,a.z);
+      shaderProgram->Set("vLightDiffuse",d.x,d.y,d.z);
+      shaderProgram->Set("vLightSpecular",s.x,s.y,s.z);
+      shaderProgram->Set("vModelSpaceLightDir",vModelSpaceLightDir.x,vModelSpaceLightDir.y,vModelSpaceLightDir.z);
+      shaderProgram->Set("vModelSpaceEyePos",vModelSpaceEyePos.x,vModelSpaceEyePos.y,vModelSpaceEyePos.z);
+      shaderProgram->Set("vDomainScale",scale.x,scale.y,scale.z);
+    }
   }
 }
 
@@ -772,7 +808,11 @@ void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
       if (m_bDoClearView) {
         // TODO: RM_CLEARVIEW
       } else {
-        // TODO: RM_ISOSURFACE
+        // RM_ISOSURFACE
+        if (this->ColorData()) 
+          shaderProgram = m_pProgramRayCastISOColor;
+        else
+          shaderProgram = m_pProgramRayCastISO;
       }
       break;
     case RM_1DTRANS : 
@@ -818,9 +858,16 @@ void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
                         m_pFBOStartColorNext[size_t(eStereoID)],
                         m_pFBORayStartNext[size_t(eStereoID)]);
 #else
-  m_TargetBinder.Bind(m_pFBO3DImageNext[size_t(eStereoID)],
-                      m_pFBOStartColorNext[size_t(eStereoID)],
-                      m_pFBORayStartNext[size_t(eStereoID)]);
+  if (m_eRenderMode == RM_ISOSURFACE) {
+    m_TargetBinder.Bind(m_pFBOIsoHit[size_t(eStereoID)], 0, 
+                        m_pFBOIsoHit[size_t(eStereoID)], 1,
+                        m_pFBORayStartNext[size_t(eStereoID)],0,
+                        m_pFBOStartColorNext[size_t(eStereoID)],0);
+  } else {
+    m_TargetBinder.Bind(m_pFBO3DImageNext[size_t(eStereoID)],
+                        m_pFBOStartColorNext[size_t(eStereoID)],
+                        m_pFBORayStartNext[size_t(eStereoID)]);
+  }
 #endif
 
   m_pFBORayStart[size_t(eStereoID)]->Read(0);
@@ -1043,6 +1090,15 @@ bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
     }
   }
   m_RenderingTime = renTime.Elapsed();
+
+    if (m_eRenderMode == RM_ISOSURFACE) {
+        for (size_t i = 0;i<iStereoBufferCount;i++) {
+          m_TargetBinder.Bind(m_pFBO3DImageNext[i]);
+          glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+          ComposeSurfaceImage(rr, EStereoID(i));
+        } 
+        m_TargetBinder.Unbind();
+    }
 
   // always display intermediate results
   return true;

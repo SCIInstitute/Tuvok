@@ -2230,5 +2230,14 @@
     <None Include="Shaders\GLTreeRaycaster-Method-2D-L-color.glsl">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="Shaders\GLTreeRaycaster-iso.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\GLTreeRaycaster-Method-iso-color.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\GLTreeRaycaster-Method-iso.glsl">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

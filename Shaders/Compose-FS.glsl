@@ -47,13 +47,13 @@ uniform vec2 vScreensize;      ///< the size of the screen in pixels
 uniform vec2 vProjParam;       ///< X = far / (far - near)  / Y = (far * near / (near - far))
 
 vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient, vec3 vLightDiffuse, vec3 vLightSpecular) {
-	vNormal.z = abs(vNormal.z);
+  vNormal.z = abs(vNormal.z);
 
-	vec3 vViewDir    = normalize(vec3(0.0,0.0,0.0)-vPosition);
-	vec3 vReflection = normalize(reflect(vViewDir, vNormal));
-	return clamp(vLightAmbient+
-		   vLightDiffuse*max(abs(dot(vNormal, -vLightDir)),0.0)+
-		   vLightSpecular*pow(max(dot(vReflection, vLightDir),0.0),8.0), 0.0,1.0);
+  vec3 vViewDir    = normalize(vec3(0.0,0.0,0.0)-vPosition);
+  vec3 vReflection = normalize(reflect(vViewDir, vNormal));
+  return clamp(vLightAmbient+
+       vLightDiffuse*max(abs(dot(vNormal, -vLightDir)),0.0)+
+       vLightSpecular*pow(max(dot(vReflection, vLightDir),0.0),8.0), 0.0,1.0);
 }
 
 void main(void){
@@ -71,5 +71,6 @@ void main(void){
   gl_FragColor = vec4(Lighting(vPosition.xyz, vNormal, vLightAmbient, vLightDiffuse, vLightSpecular),1.0);
 
   // compute non linear depth from linear eye depth
-  gl_FragDepth = vProjParam.x + (vProjParam.y / -vPosition.z);
+  float normZ = vProjParam.x + (vProjParam.y / -vPosition.z);
+  gl_FragDepth = normZ;
 }
