@@ -80,8 +80,10 @@ namespace tuvok {
       virtual size_t PH_GetOptimalFrameAverageCount() const;
       virtual bool PH_IsDebugViewAvailable() const;
       virtual bool PH_IsWorkingSetTrackerAvailable() const;
-      virtual void PH_SetDebugViewColorLoDs(bool b);
       ///@}
+
+      virtual void SetDebugView(uint32_t iDebugView);
+      virtual uint32_t GetDebugViewCount() const;
 
     protected:
       GLHashTable*    m_pglHashTable;
@@ -118,7 +120,6 @@ namespace tuvok {
 #ifdef GLTREERAYCASTER_DEBUGVIEW
       GLFBOTex*       m_pFBODebug;
       GLFBOTex*       m_pFBODebugNext;
-      bool            m_bDebugViewColorLoDs;
 #endif
 #ifdef GLTREERAYCASTER_WORKINGSET
       GLHashTable*    m_pWorkingSetTable;

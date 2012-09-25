@@ -311,7 +311,6 @@ class AbstrRenderer: public Scriptable {
     virtual size_t PH_GetOptimalFrameAverageCount() const;
     virtual bool PH_IsDebugViewAvailable() const;
     virtual bool PH_IsWorkingSetTrackerAvailable() const;
-    virtual void PH_SetDebugViewColorLoDs(bool);
     ///@}
 
   public:
@@ -481,6 +480,11 @@ class AbstrRenderer: public Scriptable {
 
     float GetIsoValue() const { return m_fIsovalue; }
 
+    virtual void CycleDebugViews();
+    virtual void SetDebugView(uint32_t iDebugView);
+    virtual uint32_t GetDebugViewCount() const;
+    uint32_t GetDebugView() const;
+
   private:
     // Functions in this section were made private due to the transition to Lua.
     // All functions in this section are exposed through the Lua interface.
@@ -502,9 +506,6 @@ class AbstrRenderer: public Scriptable {
     void SetUpDir(const FLOATVECTOR3& vDir);
     FLOATVECTOR3 GetUpDir() const;
     void ResetUpDir();
-
-    void SetDebugView(bool bDebugView);
-    bool GetDebugView() const;
 
     ERenderMode GetRendermode() {return m_eRenderMode;}
 
@@ -691,7 +692,7 @@ class AbstrRenderer: public Scriptable {
     UINTVECTOR2         m_vWinSize;
     int                 m_iLogoPos;
     std::string         m_strLogoFilename;
-    bool                m_bDebugView;
+    uint32_t            m_iDebugView;
 
     Interpolant         m_eInterpolant;
 

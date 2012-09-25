@@ -92,7 +92,7 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_vWinSize(0,0),
   m_iLogoPos(3),
   m_strLogoFilename(""),
-  m_bDebugView(false),
+  m_iDebugView(0),
   m_eInterpolant(Linear),
   m_bSupportsMeshes(false),
   msecPassedCurrentFrame(-1.0f),
@@ -1648,13 +1648,21 @@ void AbstrRenderer::ResetUpDir() {
   this->ScheduleCompleteRedraw();
 }
 
-void AbstrRenderer::SetDebugView(bool bDebugView) {
-  m_bDebugView = bDebugView;
+void AbstrRenderer::CycleDebugViews() {
+  SetDebugView((m_iDebugView + 1) % GetDebugViewCount());
+}
+
+void AbstrRenderer::SetDebugView(uint32_t iDebugView) {
+  m_iDebugView = iDebugView;
   this->ScheduleCompleteRedraw();
 }
 
-bool AbstrRenderer::GetDebugView() const {
-  return m_bDebugView;
+uint32_t AbstrRenderer::GetDebugView() const {
+  return m_iDebugView;
+}
+
+uint32_t AbstrRenderer::GetDebugViewCount() const {
+  return 1;
 }
 
 bool AbstrRenderer::Execute(const std::string& strCommand,
@@ -1776,7 +1784,6 @@ void AbstrRenderer::PH_SetOptimalFrameAverageCount(size_t) { }
 size_t AbstrRenderer::PH_GetOptimalFrameAverageCount() const { return 0; }
 bool AbstrRenderer::PH_IsDebugViewAvailable() const { return false; }
 bool AbstrRenderer::PH_IsWorkingSetTrackerAvailable() const { return false; }
-void AbstrRenderer::PH_SetDebugViewColorLoDs(bool) { }
 
 
 void AbstrRenderer::RegisterLuaFunctions(
@@ -1836,13 +1843,17 @@ void AbstrRenderer::RegisterLuaFunctions(
                     "resetUpDir",
                     "Reset the camera's up direction",
                     false);
+  id = reg.function(&AbstrRenderer::CycleDebugViews,
+                    "cycleDebugViews",
+                    "Cycle through available debug view modes",
+                    true);
   id = reg.function(&AbstrRenderer::SetDebugView,
                     "setDebugView",
-                    "Set whether debug view mode is enabled",
+                    "Set whether debug view mode",
                     true);
   id = reg.function(&AbstrRenderer::GetDebugView,
                     "getDebugView",
-                    "Retrieve whether debug view mode is enabled",
+                    "Retrieve current debug view mode",
                     true);
   id = reg.function(&AbstrRenderer::SetRendermode,
                     "setRenderMode",
@@ -2215,8 +2226,6 @@ void AbstrRenderer::RegisterLuaFunctions(
                     "checks if debug view can be toggled", false);
   id = reg.function(&AbstrRenderer::PH_IsWorkingSetTrackerAvailable, "isWorkingSetTrackerAvailable",
                     "checks if working set is being tracked (bad performance)", false);
-  id = reg.function(&AbstrRenderer::PH_SetDebugViewColorLoDs, "setDebugViewColorLoDs",
-                    "toggle colored lods in debug view", false);
   reg.function(&AbstrRenderer::PH_BrickIOTime, "brickIOTime",
                "time spent reading bricks", false);
   reg.function(&AbstrRenderer::PH_SetBrickIOTime, "setBrickIOTime",

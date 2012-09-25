@@ -64,7 +64,6 @@ GLTreeRaycaster::GLTreeRaycaster(MasterController* pMasterController,
 #ifdef GLTREERAYCASTER_DEBUGVIEW
   , m_pFBODebug(NULL)
   , m_pFBODebugNext(NULL)
-  , m_bDebugViewColorLoDs(false)
 #endif
 #ifdef GLTREERAYCASTER_WORKINGSET
   , m_pWorkingSetTable(NULL)
@@ -269,13 +268,7 @@ bool GLTreeRaycaster::Initialize(std::shared_ptr<Context> ctx) {
 
   // now that we've created the hashtable and the volume pool
   // we can load the rest of the shader that depend on those
-  std::vector<std::string> vDefines;
-#ifdef GLTREERAYCASTER_DEBUGVIEW
-  vDefines.push_back("#define DEBUG");
-  if (m_bDebugViewColorLoDs)
-    vDefines.push_back("#define COLOR_LODS");
-#endif
-  if (!LoadTraversalShaders(vDefines)) return false;
+  if (!LoadTraversalShaders()) return false;
 
   // init near plane vbo
   m_pNearPlaneQuad = new GLVBO();
@@ -603,11 +596,14 @@ bool GLTreeRaycaster::Continue3DDraw() {
 
 void GLTreeRaycaster::FillRayEntryBuffer(RenderRegion3D& rr, EStereoID eStereoID) {
 
-  m_TargetBinder.Bind(
 #ifdef GLTREERAYCASTER_DEBUGVIEW
-    m_pFBODebug, m_pFBODebugNext,
+  if (m_iDebugView == 2)
+    m_TargetBinder.Bind(m_pFBODebug, m_pFBODebugNext, m_pFBOStartColor[size_t(eStereoID)], m_pFBORayStart[size_t(eStereoID)]);
+  else
+    m_TargetBinder.Bind(m_pFBOStartColor[size_t(eStereoID)], m_pFBORayStart[size_t(eStereoID)]);
+#else
+  m_TargetBinder.Bind(m_pFBOStartColor[size_t(eStereoID)], m_pFBORayStart[size_t(eStereoID)]);
 #endif
-    m_pFBOStartColor[size_t(eStereoID)], m_pFBORayStart[size_t(eStereoID)]);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   m_TargetBinder.Bind(m_pFBORayStart[size_t(eStereoID)]);
@@ -722,7 +718,8 @@ void GLTreeRaycaster::SetupRaycastShader(GLSLProgram* shaderProgram, RenderRegio
                         vExtend, vScale, shaderProgram); // bound to 3 and 4
   m_pglHashTable->Enable(); // bound to 5
 #ifdef GLTREERAYCASTER_DEBUGVIEW
-  m_pFBODebug->Read(6);
+  if (m_iDebugView == 2)
+    m_pFBODebug->Read(6);
 #endif
 #ifdef GLTREERAYCASTER_WORKINGSET
   m_pWorkingSetTable->Enable(); // bound to 7
@@ -810,13 +807,22 @@ void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
 
   SetupRaycastShader(shaderProgram, rr, eStereoID);
 
+#ifdef GLTREERAYCASTER_DEBUGVIEW
+  if (m_iDebugView == 2)
+    m_TargetBinder.Bind(m_pFBO3DImageNext[size_t(eStereoID)],
+                        m_pFBOStartColorNext[size_t(eStereoID)],
+                        m_pFBORayStartNext[size_t(eStereoID)],
+                        m_pFBODebugNext);
+  else
+    m_TargetBinder.Bind(m_pFBO3DImageNext[size_t(eStereoID)],
+                        m_pFBOStartColorNext[size_t(eStereoID)],
+                        m_pFBORayStartNext[size_t(eStereoID)]);
+#else
   m_TargetBinder.Bind(m_pFBO3DImageNext[size_t(eStereoID)],
                       m_pFBOStartColorNext[size_t(eStereoID)],
-                      m_pFBORayStartNext[size_t(eStereoID)]
-#ifdef GLTREERAYCASTER_DEBUGVIEW
-                      , m_pFBODebugNext
+                      m_pFBORayStartNext[size_t(eStereoID)]);
 #endif
-                      );
+
   m_pFBORayStart[size_t(eStereoID)]->Read(0);
   m_pFBOStartColor[size_t(eStereoID)]->Read(1);
 
@@ -836,7 +842,8 @@ void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
   m_pFBORayStart[size_t(eStereoID)]->FinishRead();
   m_pFBOStartColor[size_t(eStereoID)]->FinishRead();
 #ifdef GLTREERAYCASTER_DEBUGVIEW
-  m_pFBODebug->FinishRead();
+  if (m_iDebugView == 2)
+    m_pFBODebug->FinishRead();
 #endif
 
   // done rendering for now
@@ -846,7 +853,8 @@ void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
   std::swap(m_pFBOStartColorNext[size_t(eStereoID)], m_pFBOStartColor[size_t(eStereoID)]);
   std::swap(m_pFBORayStartNext[size_t(eStereoID)], m_pFBORayStart[size_t(eStereoID)]);
 #ifdef GLTREERAYCASTER_DEBUGVIEW
-  std::swap(m_pFBODebugNext, m_pFBODebug);
+  if (m_iDebugView == 2)
+    std::swap(m_pFBODebugNext, m_pFBODebug);
 #endif
 }
 
@@ -1000,7 +1008,7 @@ bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
     }
 
 #ifdef GLTREERAYCASTER_DEBUGVIEW
-    if (m_bDebugView)
+    if (m_iDebugView == 2)
       std::swap(m_pFBODebug, m_pFBO3DImageNext[0]); // always use first eye
 #endif
   }
@@ -1147,25 +1155,37 @@ bool GLTreeRaycaster::PH_IsWorkingSetTrackerAvailable() const {
 #endif
 }
 
+uint32_t GLTreeRaycaster::GetDebugViewCount() const {
 #ifdef GLTREERAYCASTER_DEBUGVIEW
-void GLTreeRaycaster::PH_SetDebugViewColorLoDs(bool b) {
+  return 3;
 #else
-void GLTreeRaycaster::PH_SetDebugViewColorLoDs(bool) {
+  return 2;
 #endif
+}
 
-    // recompile shaders
-    CleanupTraversalShaders();
-    std::vector<std::string> vDefines;
-#ifdef GLTREERAYCASTER_DEBUGVIEW
-    m_bDebugViewColorLoDs = b;
+void GLTreeRaycaster::SetDebugView(uint32_t iDebugView) {
+
+  // recompile shaders
+  CleanupTraversalShaders();
+  std::vector<std::string> vDefines;
+
+  switch (iDebugView) {
+  case 0:
+    break; // no debug mode
+  case 1:
+    vDefines.push_back("#define COLOR_LODS");
+    break;
+  default:
+    // should only happen if GLTREERAYCASTER_DEBUGVIEW is defined
     vDefines.push_back("#define DEBUG");
-    if (m_bDebugViewColorLoDs)
-      vDefines.push_back("#define COLOR_LODS");
-#endif
-    if (!LoadTraversalShaders(vDefines)) {
-      T_ERROR("could not reload traversal shaders");
-    }
-    ScheduleWindowRedraw(GetFirst3DRegion());
+    break;
+  }
+
+  if (!LoadTraversalShaders(vDefines)) {
+    T_ERROR("could not reload traversal shaders");
+  }
+
+  AbstrRenderer::SetDebugView(iDebugView);
 }
 
 void GLTreeRaycaster::SetClipPlane(RenderRegion *renderRegion,

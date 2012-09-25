@@ -155,6 +155,20 @@ void main()
           // execute sampling function
           vec4 color = ComputeColorFromVolume(currentPoolCoords, (currentPoolCoords-normToPoolTrans)/normToPoolScale, sampleDelta);
 
+#ifdef COLOR_LODS
+          switch (iLOD % 3) {
+            case 0:  
+              color.g = color.b = 0;
+              break;
+            case 1:
+              color.r = color.b = 0;
+              break;
+            default:
+              color.r = color.g = 0;
+              break;
+          }
+#endif
+
           // apply oppacity correction
           OpacityCorrectColor(ocFactor, color);
 
@@ -172,15 +186,7 @@ void main()
 
 #ifdef DEBUG
           if (bOptimalResolution) {
-#ifdef COLOR_LODS
-            switch (iLOD % 3) {
-              case 0:  debugFBO.r += 0.0025; break;
-              case 1:  debugFBO.g += 0.0025; break;
-              default: debugFBO.b += 0.0025; break;
-            }
-#else
             debugFBO.r += 0.01;
-#endif
             debugFBO.w = 1;
           }
 #endif
@@ -203,17 +209,7 @@ void main()
 
 #ifdef DEBUG
       if (bEmpty && bOptimalResolution) {
-#ifdef COLOR_LODS
-#if 0
-        switch (iLOD % 3) {
-          case 0:  debugFBO.r += 0.025; break;
-          case 1:  debugFBO.g += 0.025; break;
-          default: debugFBO.b += 0.025; break;
-        }
-#endif
-#else
         debugFBO.g += 0.1;
-#endif
         debugFBO.w = 1;
       }
 #endif
