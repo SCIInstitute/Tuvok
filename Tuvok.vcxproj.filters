@@ -996,6 +996,9 @@
     <ClCompile Include="Basics\ProgressTimer.cpp">
       <Filter>Basics</Filter>
     </ClCompile>
+    <ClCompile Include="IO\MRCConverter.cpp">
+      <Filter>IO\Volume Converter</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Basics\Appendix.h">
@@ -1985,6 +1988,9 @@
     </ClInclude>
     <ClInclude Include="Basics\ProgressTimer.h">
       <Filter>Basics</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\MRCConverter.h">
+      <Filter>IO\Volume Converter</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

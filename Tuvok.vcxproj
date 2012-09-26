@@ -531,6 +531,7 @@
     <ClCompile Include="IO\GeomViewConverter.cpp" />
     <ClCompile Include="IO\Images\StackExporter.cpp" />
     <ClCompile Include="IO\LinesGeoConverter.cpp" />
+    <ClCompile Include="IO\MRCConverter.cpp" />
     <ClCompile Include="IO\TTIFFWriter\TTIFFWriter.cpp" />
     <ClCompile Include="IO\UVF\ExtendedOctree\ExtendedOctree.cpp" />
     <ClCompile Include="IO\UVF\ExtendedOctree\ExtendedOctreeConverter.cpp" />
@@ -1329,6 +1330,7 @@
     <ClInclude Include="IO\GeomViewConverter.h" />
     <ClInclude Include="IO\Images\StackExporter.h" />
     <ClInclude Include="IO\LinesGeoConverter.h" />
+    <ClInclude Include="IO\MRCConverter.h" />
     <ClInclude Include="IO\TTIFFWriter\TTIFFWriter.h" />
     <ClInclude Include="IO\UVF\ExtendedOctree\ExtendedOctree.h" />
     <ClInclude Include="IO\UVF\ExtendedOctree\ExtendedOctreeConverter.h" />
