@@ -848,15 +848,22 @@ void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
   SetupRaycastShader(shaderProgram, rr, eStereoID);
 
 #ifdef GLTREERAYCASTER_DEBUGVIEW
-  if (m_iDebugView == 2)
-    m_TargetBinder.Bind(m_pFBO3DImageNext[size_t(eStereoID)],
-                        m_pFBOStartColorNext[size_t(eStereoID)],
-                        m_pFBORayStartNext[size_t(eStereoID)],
-                        m_pFBODebugNext);
-  else
-    m_TargetBinder.Bind(m_pFBO3DImageNext[size_t(eStereoID)],
-                        m_pFBOStartColorNext[size_t(eStereoID)],
-                        m_pFBORayStartNext[size_t(eStereoID)]);
+  if (m_eRenderMode == RM_ISOSURFACE) {
+    m_TargetBinder.Bind(m_pFBOIsoHit[size_t(eStereoID)], 0, 
+                        m_pFBOIsoHit[size_t(eStereoID)], 1,
+                        m_pFBORayStartNext[size_t(eStereoID)],0,
+                        m_pFBOStartColorNext[size_t(eStereoID)],0);
+  } else {
+    if (m_iDebugView == 2)
+      m_TargetBinder.Bind(m_pFBO3DImageNext[size_t(eStereoID)],
+                          m_pFBOStartColorNext[size_t(eStereoID)],
+                          m_pFBORayStartNext[size_t(eStereoID)],
+                          m_pFBODebugNext);
+    else
+      m_TargetBinder.Bind(m_pFBO3DImageNext[size_t(eStereoID)],
+                          m_pFBOStartColorNext[size_t(eStereoID)],
+                          m_pFBORayStartNext[size_t(eStereoID)]);
+  }
 #else
   if (m_eRenderMode == RM_ISOSURFACE) {
     m_TargetBinder.Bind(m_pFBOIsoHit[size_t(eStereoID)], 0, 
