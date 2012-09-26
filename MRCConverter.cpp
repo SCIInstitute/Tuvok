@@ -112,7 +112,7 @@ public:
 private:
   std::ostream* stream;
 };
-
+ 
 MRCConverter::MRCConverter()
 {
   assert(sizeof(MRCHeader) == 1024);
@@ -121,21 +121,21 @@ MRCConverter::MRCConverter()
 }
 
 bool MRCConverter::ConvertToNative(
-     const std::string& strRawFilename, const std::string& strTargetFilename, 
-     uint64_t iHeaderSkip, uint64_t iComponentSize, uint64_t iComponentCount, 
-     bool bSigned, bool bFloatingPoint, UINT64VECTOR3 vVolumeSize,
-     FLOATVECTOR3 vVolumeAspect, bool bNoUserInteraction, 
-     const bool bQuantizeTo8Bit)
+     const std::string&, const std::string&, 
+     uint64_t, uint64_t, uint64_t, 
+     bool, bool, UINT64VECTOR3,
+     FLOATVECTOR3, bool, 
+     const bool)
 {
   return false;
 }
 
 bool MRCConverter::ConvertToRAW(
      const std::string& strSourceFilename, const std::string& strTempDir,
-     bool bNoUserInteraction, uint64_t& iHeaderSkip, uint64_t& iComponentSize,
+     bool, uint64_t& iHeaderSkip, uint64_t& iComponentSize,
      uint64_t& iComponentCount, bool& bConvertEndianess, bool& bSigned, 
      bool& bIsFloat, UINT64VECTOR3& vVolumeSize, FLOATVECTOR3& vVolumeAspect,
-     std::string& strTitle, UVFTables::ElementSemanticTable& eType,
+     std::string&, UVFTables::ElementSemanticTable&,
      std::string& strIntermediateFile, bool& bDeleteIntermediateFile)
 {
   // Input file
@@ -203,8 +203,8 @@ bool MRCConverter::ConvertToRAW(
 }
 
 
-bool MRCConverter::CanRead(const std::string& fn,
-                             const std::vector<int8_t>& start) const
+bool MRCConverter::CanRead(const std::string&,
+                             const std::vector<int8_t>&) const
 {
   /// @todo Read header and ensure 'map' corresponds to the character string
   ///       "MAP" (assuming last byte is a null terminator).
