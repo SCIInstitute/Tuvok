@@ -175,6 +175,7 @@ SOURCES += \
   ./RAWConverter.cpp \
   ./REKConverter.cpp \
   ./StkConverter.cpp \
+  ./MRCConverter.cpp \
   ./TiffVolumeConverter.cpp \
   ./TransferFunction1D.cpp \
   ./TransferFunction2D.cpp \
@@ -270,6 +271,7 @@ HEADERS += \
   ./RAWConverter.h \
   ./REKConverter.h \
   ./StkConverter.h \
+  ./MRCConverter.h \
   ./test/dicom.h \
   ./test/jpeg.h \
   ./test/minmax.h \

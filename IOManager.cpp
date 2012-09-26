@@ -83,6 +83,7 @@
 #include "TiffVolumeConverter.h"
 #include "VFFConverter.h"
 #include "VGStudioConverter.h"
+#include "MRCConverter.h"
 
 #include "Mesh.h"
 #include "AbstrGeoConverter.h"
@@ -170,6 +171,7 @@ IOManager::IOManager() :
   m_vpConverters.push_back(new InveonConverter());
   m_vpConverters.push_back(new AnalyzeConverter());
   m_vpConverters.push_back(new AmiraConverter());
+  m_vpConverters.push_back(new MRCConverter());
   m_dsFactory->AddReader(shared_ptr<UVFDataset>(new UVFDataset()));
 }
 
