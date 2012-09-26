@@ -175,6 +175,7 @@ HEADERS += \
            IO/RAWConverter.h \
            IO/REKConverter.h \
            IO/StkConverter.h \
+           IO/MRCConverter.h \
            IO/TiffVolumeConverter.h \
            IO/AbstrGeoConverter.h \
            IO/LinesGeoConverter.h \
@@ -476,6 +477,7 @@ SOURCES += \
            IO/RAWConverter.cpp \
            IO/REKConverter.cpp \
            IO/StkConverter.cpp \
+           IO/MRCConverter.cpp \
            IO/TiffVolumeConverter.cpp \
            IO/AbstrGeoConverter.cpp \
            IO/LinesGeoConverter.cpp \
