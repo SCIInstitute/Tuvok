@@ -31,8 +31,7 @@ using namespace tuvok;
 GLTreeRaycaster::GLTreeRaycaster(MasterController* pMasterController, 
                          bool bUseOnlyPowerOfTwo, 
                          bool bDownSampleTo8Bits, 
-                         bool bDisableBorder, 
-                         bool) :
+                         bool bDisableBorder) :
   GLRenderer(pMasterController,
              bUseOnlyPowerOfTwo, 
              bDownSampleTo8Bits, 

@@ -207,7 +207,6 @@ private:
                                           bool bUseOnlyPowerOfTwo,
                                           bool bDownSampleTo8Bits,
                                           bool bDisableBorder,
-                                          bool bNoRCClipplanes,
                                           bool bBiasAndScaleTF);
 
 private:

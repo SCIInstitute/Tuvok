@@ -353,7 +353,6 @@ class AbstrRenderer {
 
     virtual void SetLogoParams(std::string strLogoFilename, int iLogoPos);
     virtual void ClipPlaneRelativeLock(bool);
-    virtual bool CanDoClipPlane() {return true;}
 
     // Clear view
     virtual bool SupportsClearView() {return false;}

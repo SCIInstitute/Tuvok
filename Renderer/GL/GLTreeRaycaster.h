@@ -37,16 +37,13 @@ namespace tuvok {
       GLTreeRaycaster(MasterController* pMasterController, 
                   bool bUseOnlyPowerOfTwo, 
                   bool bDownSampleTo8Bits, 
-                  bool bDisableBorder, 
-                  bool bNoRCClipplanes);
+                  bool bDisableBorder);
       virtual ~GLTreeRaycaster();
 
 
       // this is work in  progress so before we start we disable all we can 
       virtual bool SupportsClearView() {return false;}
       virtual void Set1DTrans(const std::vector<unsigned char>& rgba);
-
-      virtual bool CanDoClipPlane() {return true;}
 
       virtual std::string ClearViewDisableReason() const {
         return "this renderer is work in progress and clearview is simply not implemented yet";

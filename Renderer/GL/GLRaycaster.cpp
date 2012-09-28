@@ -53,8 +53,7 @@ using namespace tuvok;
 GLRaycaster::GLRaycaster(MasterController* pMasterController, 
                          bool bUseOnlyPowerOfTwo, 
                          bool bDownSampleTo8Bits, 
-                         bool bDisableBorder, 
-                         bool bNoRCClipplanes) :
+                         bool bDisableBorder) :
   GLRenderer(pMasterController,
              bUseOnlyPowerOfTwo, 
              bDownSampleTo8Bits, 
@@ -62,8 +61,7 @@ GLRaycaster::GLRaycaster(MasterController* pMasterController,
   m_pFBORayEntry(NULL),
   m_pProgramRenderFrontFaces(NULL),
   m_pProgramRenderFrontFacesNT(NULL),
-  m_pProgramIso2(NULL),
-  m_bNoRCClipplanes(bNoRCClipplanes)
+  m_pProgramIso2(NULL)
 {
   m_bSupportsMeshes = false; // for now we require full support 
                              // otherweise we rather say no
@@ -105,23 +103,13 @@ bool GLRaycaster::LoadShaders() {
   }
 
   const char* shaderNames[7];
-  if (m_bNoRCClipplanes) {
-   shaderNames[0] = "GLRaycaster-1D-FS-NC.glsl";
-   shaderNames[1] = "GLRaycaster-1D-light-FS-NC.glsl";
-   shaderNames[2] = "GLRaycaster-2D-FS-NC.glsl";
-   shaderNames[3] = "GLRaycaster-2D-light-FS-NC.glsl";
-   shaderNames[4] = "GLRaycaster-Color-FS-NC.glsl";
-   shaderNames[5] = "GLRaycaster-ISO-CV-FS-NC.glsl";
-   shaderNames[6] = "GLRaycaster-ISO-FS-NC.glsl";
-  } else {
-   shaderNames[0] = "GLRaycaster-1D-FS.glsl";
-   shaderNames[1] = "GLRaycaster-1D-light-FS.glsl";
-   shaderNames[2] = "GLRaycaster-2D-FS.glsl";
-   shaderNames[3] = "GLRaycaster-2D-light-FS.glsl";
-   shaderNames[4] = "GLRaycaster-Color-FS.glsl";
-   shaderNames[5] = "GLRaycaster-ISO-CV-FS.glsl";
-   shaderNames[6] = "GLRaycaster-ISO-FS.glsl";
-  }
+  shaderNames[0] = "GLRaycaster-1D-FS.glsl";
+  shaderNames[1] = "GLRaycaster-1D-light-FS.glsl";
+  shaderNames[2] = "GLRaycaster-2D-FS.glsl";
+  shaderNames[3] = "GLRaycaster-2D-light-FS.glsl";
+  shaderNames[4] = "GLRaycaster-Color-FS.glsl";
+  shaderNames[5] = "GLRaycaster-ISO-CV-FS.glsl";
+  shaderNames[6] = "GLRaycaster-ISO-FS.glsl";
 
   std::string tfqn = m_pDataset
                      ? this->ColorData()
@@ -379,8 +367,6 @@ void GLRaycaster::RenderBox(const RenderRegion& renderRegion,
 
 /// Set the clip plane input variable in the shader.
 void GLRaycaster::ClipPlaneToShader(const ExtendedPlane& clipPlane, EStereoID eStereoID, bool bForce) {
-  if (m_bNoRCClipplanes) return;
-
   vector<GLSLProgram*> vCurrentShader;
 
   if (bForce) {

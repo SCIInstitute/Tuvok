@@ -145,7 +145,6 @@ MasterController::RequestNewVolumeRenderer(EVolumeRendererType eRendererType,
                                            bool bUseOnlyPowerOfTwo,
                                            bool bDownSampleTo8Bits,
                                            bool bDisableBorder,
-                                           bool bNoRCClipplanes,
                                            bool bBiasAndScaleTF) {
   std::string api;
   std::string method;
@@ -176,8 +175,7 @@ MasterController::RequestNewVolumeRenderer(EVolumeRendererType eRendererType,
     retval = new GLRaycaster(this,
                              bUseOnlyPowerOfTwo,
                              bDownSampleTo8Bits,
-                             bDisableBorder,
-                             bNoRCClipplanes);
+                             bDisableBorder);
     break;
   case OPENGL_TRAYCASTER :
     api = "OpenGL";
@@ -185,8 +183,7 @@ MasterController::RequestNewVolumeRenderer(EVolumeRendererType eRendererType,
     retval = new GLTreeRaycaster(this,
                              bUseOnlyPowerOfTwo,
                              bDownSampleTo8Bits,
-                             bDisableBorder,
-                             bNoRCClipplanes);
+                             bDisableBorder);
     break;
 
   case DIRECTX_RAYCASTER :

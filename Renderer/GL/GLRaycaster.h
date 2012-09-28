@@ -60,8 +60,7 @@ class GLRaycaster : public GLRenderer {
     GLRaycaster(MasterController* pMasterController, 
                 bool bUseOnlyPowerOfTwo, 
                 bool bDownSampleTo8Bits, 
-                bool bDisableBorder, 
-                bool bNoRCClipplanes);
+                bool bDisableBorder);
     virtual ~GLRaycaster();
 
 
@@ -83,14 +82,11 @@ class GLRaycaster : public GLRenderer {
 
     virtual ERendererType GetRendererType() const {return RT_RC;}
 
-    virtual bool CanDoClipPlane() {return !m_bNoRCClipplanes;}
-
   protected:
     GLFBOTex*       m_pFBORayEntry;
     GLSLProgram*    m_pProgramRenderFrontFaces;
     GLSLProgram*    m_pProgramRenderFrontFacesNT;
     GLSLProgram*    m_pProgramIso2;
-    bool            m_bNoRCClipplanes;
 
     /** Sets variables related to bricks in the shader. */
     void SetBrickDepShaderVars(const RenderRegion3D& region,

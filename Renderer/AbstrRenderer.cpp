@@ -1887,8 +1887,6 @@ void AbstrRenderer::RegisterLuaFunctions(
                     "isClipPlaneEnabled", "", false);
   id = reg.function(&AbstrRenderer::ClipPlaneShown,
                     "isClipPlaneShown", "", false);
-  id = reg.function(&AbstrRenderer::CanDoClipPlane,
-                    "canDoClipPlane", "", false);
 
   id = reg.function(&AbstrRenderer::SupportsClearView,
                     "supportsClearView", "Returns true if clear view is "
