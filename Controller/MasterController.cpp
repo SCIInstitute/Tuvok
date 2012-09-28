@@ -62,7 +62,6 @@ using namespace tuvok;
 
 MasterController::MasterController() :
   m_bDeleteDebugOutOnExit(false),
-  m_pProvenance(NULL),
   m_bExperimentalFeatures(false),
   m_pLuaScript(new LuaScripting()),
   m_pMemReg(new LuaMemberReg(m_pLuaScript)),
@@ -401,19 +400,6 @@ bool MasterController::Execute(const std::string&,
   return false;
 }
 
-void MasterController::RegisterProvenanceCB(provenance_func *pfunc)
-{
-  this->m_pProvenance = pfunc;
-}
-
-void MasterController::Provenance(const std::string kind,
-                                  const std::string cmd,
-                                  const std::string args)
-{
-  if(this->m_pProvenance) {
-    this->m_pProvenance(kind, cmd, args);
-  }
-}
 
 bool MasterController::ExperimentalFeatures() const {
   return m_bExperimentalFeatures;

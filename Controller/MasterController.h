@@ -162,22 +162,6 @@ public:
                        const std::vector< std::string >& strParams,
                        std::string& strMessage);
 
-  /// Provenance recording.
-  ///@{
-  /// Callback function prototype.
-  /// @param classification  type of event that occured
-  /// @param command         command to use for IV3D's scripting.
-  /// @param arguments       args for aforementioned command.  Might be empty.
-  typedef void (provenance_func)(const std::string classification,
-                                 const std::string command,
-                                 const std::string arguments);
-  /// Register new callback.  Overwrites the previous callback.
-  void RegisterProvenanceCB(provenance_func *);
-  /// Calls most recently registered provenance callback.
-  void Provenance(const std::string, const std::string,
-                  const std::string args = std::string());
-  ///@}
-
   /// Whether or not to expose certain features which aren't actually ready for
   /// users.
   bool ExperimentalFeatures() const;
@@ -244,7 +228,6 @@ private:
   ConsoleOut       m_DefaultOut;
   Scripting*       m_pScriptEngine;
   bool             m_bDeleteDebugOutOnExit;
-  provenance_func* m_pProvenance;
   bool             m_bExperimentalFeatures;
 
   std::shared_ptr<LuaScripting>       m_pLuaScript;

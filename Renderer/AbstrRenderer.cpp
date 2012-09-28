@@ -239,8 +239,6 @@ bool AbstrRenderer::LoadDataset(const string& strFilename) {
 
   MESSAGE("Load successful, initializing renderer!");
 
-  Controller::Instance().Provenance("file", "open", strFilename);
-
   // find the maximum LOD index
   m_iMaxLODIndex = m_pDataset->GetLODLevelCount()-1;
 
@@ -282,22 +280,12 @@ AbstrRenderer::~AbstrRenderer() {
       "deleteClass", m_pLua2DTrans);
 }
 
-static std::string render_mode(AbstrRenderer::ERenderMode mode) {
-  switch(mode) {
-    case AbstrRenderer::RM_1DTRANS: return "mode1d";
-    case AbstrRenderer::RM_2DTRANS: return "mode2d";
-    case AbstrRenderer::RM_ISOSURFACE: return "modeiso";
-    default: return "invalid";
-  };
-}
-
 void AbstrRenderer::SetRendermode(ERenderMode eRenderMode)
 {
   if (m_eRenderMode != eRenderMode) {
     m_eRenderMode = eRenderMode;
     m_bFirstDrawAfterModeChange = true;
     ScheduleCompleteRedraw();
-    Controller::Instance().Provenance("mode", render_mode(eRenderMode));
   }
 }
 
@@ -305,7 +293,6 @@ void AbstrRenderer::SetUseLighting(bool bUseLighting) {
   if (m_bUseLighting != bUseLighting) {
     m_bUseLighting = bUseLighting;
     Schedule3DWindowRedraws();
-    Controller::Instance().Provenance("light", "lighting");
   }
 }
 
@@ -324,7 +311,6 @@ void AbstrRenderer::SetDataset(Dataset *vds) {
   m_pDataset = vds;
   Controller::Instance().MemMan()->AddDataset(m_pDataset, this);
   ScheduleCompleteRedraw();
-  Controller::Instance().Provenance("file", "open", "<in_memory_buffer>");
 }
 
 /*
@@ -548,7 +534,6 @@ void AbstrRenderer::EnableClipPlane(RenderRegion *renderRegion) {
     if(!m_bClipPlaneOn) {
       m_bClipPlaneOn = true; /// @todo: Make this per RenderRegion.
       ScheduleWindowRedraw(renderRegion);
-      Controller::Instance().Provenance("clip", "clip", "0.0");
     }
   }
 }
@@ -560,7 +545,6 @@ void AbstrRenderer::DisableClipPlane(RenderRegion *renderRegion) {
     if(m_bClipPlaneOn) {
       m_bClipPlaneOn = false; /// @todo: Make this per RenderRegion.
       ScheduleWindowRedraw(renderRegion);
-      Controller::Instance().Provenance("clip", "clip", "disable");
     }
   }
 }
@@ -572,7 +556,6 @@ void AbstrRenderer::ShowClipPlane(bool bShown,
     m_bClipPlaneDisplayed = bShown; /// @todo: Make this per RenderRegion.
     if(m_bClipPlaneOn) {
       ScheduleWindowRedraw(renderRegion);
-      Controller::Instance().Provenance("clip", "showclip", "enable");
     }
   }
 }
@@ -613,13 +596,11 @@ uint64_t AbstrRenderer::GetSliceDepth(const RenderRegion *renderRegion) const {
 void AbstrRenderer::SetGlobalBBox(bool bRenderBBox) {
   m_bRenderGlobalBBox = bRenderBBox; /// @todo: Make this per RenderRegion.
   Schedule3DWindowRedraws();
-  Controller::Instance().Provenance("boundingbox", "global_bbox");
 }
 
 void AbstrRenderer::SetLocalBBox(bool bRenderBBox) {
   m_bRenderLocalBBox = bRenderBBox; /// @todo: Make this per RenderRegion.
   Schedule3DWindowRedraws();
-  Controller::Instance().Provenance("boundingbox", "local_bbox");
 }
 
 void AbstrRenderer::ScheduleCompleteRedraw() {
@@ -1327,7 +1308,6 @@ void AbstrRenderer::SetCVIsoValue(float fIsovalue) {
     }
     std::ostringstream prov;
     prov << fIsovalue;
-    Controller::Instance().Provenance("cv", "setcviso", prov.str());
   }
 }
 
