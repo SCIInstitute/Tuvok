@@ -51,7 +51,6 @@
 #include "../DebugOut/MultiplexOut.h"
 #include "../DebugOut/ConsoleOut.h"
 
-#include "../Scripting/Scriptable.h"
 #include "LuaScripting/LuaClassInstance.h"
 
 class SystemInfo;
@@ -85,7 +84,7 @@ struct PH_HackyState {
  * as opposed to directly with other modules.
  * You probably don't want to create an instance directly.  Use the singleton
  * provided by Controller::Instance(). */
-class MasterController : public Scriptable {
+class MasterController {
 public:
   enum EVolumeRendererType {
     OPENGL_SBVR = 0,
@@ -147,20 +146,11 @@ public:
   const SystemInfo* SysInfo() const { return m_pSystemInfo; }
   ///@}
 
-  Scripting*       ScriptEngine()       { return m_pScriptEngine; }
-  const Scripting* ScriptEngine() const { return m_pScriptEngine; }
-
   /// \todo this should return a pointer to memory.
   void Filter(std::string datasetName,
               uint32_t filter,
               void *var0 = 0, void *var1 = 0,
               void *var2 = 0, void *var3 = 0 );
-
-  // Scriptable implementation
-  virtual void RegisterCalls(Scripting* pScriptEngine);
-  virtual bool Execute(const std::string& strCommand,
-                       const std::vector< std::string >& strParams,
-                       std::string& strMessage);
 
   /// Whether or not to expose certain features which aren't actually ready for
   /// users.
@@ -226,7 +216,6 @@ private:
   IOManager*       m_pIOManager;
   MultiplexOut     m_DebugOut;
   ConsoleOut       m_DefaultOut;
-  Scripting*       m_pScriptEngine;
   bool             m_bDeleteDebugOutOnExit;
   bool             m_bExperimentalFeatures;
 

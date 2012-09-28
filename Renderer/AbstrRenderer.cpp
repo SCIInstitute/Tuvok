@@ -49,7 +49,6 @@
 #include "IO/TransferFunction1D.h"
 #include "IO/TransferFunction2D.h"
 #include "RenderMesh.h"
-#include "Scripting/Scripting.h"
 
 #include "LuaScripting/LuaScripting.h"
 #include "LuaScripting/LuaClassInstance.h"
@@ -60,8 +59,6 @@
 
 using namespace std;
 using namespace tuvok;
-
-static bool unregistered = true;
 
 static const FLOATVECTOR3 s_vEye(0,0,1.6f);
 static const FLOATVECTOR3 s_vAt(0,0,0);
@@ -183,10 +180,6 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_vShaderSearchDirs.push_back("Tuvok/Shaders");
   m_vShaderSearchDirs.push_back("../Tuvok/Shaders");
   m_vArrowGeometry = GeometryGenerator::GenArrow(0.3f,0.8f,0.006f,0.012f,20);
-
-  if(unregistered) {
-    RegisterCalls(m_pMasterController->ScriptEngine());
-  }
 
   // Create our dataset proxy.
   m_pLuaDataset =
@@ -1573,15 +1566,6 @@ void AbstrRenderer::InitStereoFrame() {
 void AbstrRenderer::ToggleStereoFrame() {
   m_iAlternatingFrameID = 1-m_iAlternatingFrameID;
   ScheduleRecompose();
-}
-
-
-void AbstrRenderer::RegisterCalls(Scripting* eng) {
-  eng->RegisterCommand(this, "eye", "float float float", "set eye position");
-  eng->RegisterCommand(this, "ref", "float float float",
-                       "set camera focus position (what the camera points at)");
-  eng->RegisterCommand(this, "vup", "float float float", "set view up vector");
-  unregistered = false;
 }
 
 void AbstrRenderer::SetViewPos(const FLOATVECTOR3& vPos) {

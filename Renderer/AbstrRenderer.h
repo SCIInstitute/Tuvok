@@ -49,7 +49,6 @@
 #include "../IO/Dataset.h"
 #include "../Basics/Plane.h"
 #include "../Basics/GeometryGenerator.h"
-#include "../Scripting/Scriptable.h"
 #include "Context.h"
 #include "Basics/Interpolant.h"
 
@@ -110,7 +109,7 @@ inline bool operator < (const Brick& left, const Brick& right) {
 
 /** \class AbstrRenderer
  * Base for all renderers. */
-class AbstrRenderer: public Scriptable {
+class AbstrRenderer {
   public:
 
     enum ERendererTarget {
@@ -837,8 +836,6 @@ class AbstrRenderer: public Scriptable {
 
 
     virtual bool IsVolumeResident(const BrickKey& key) const = 0;
-
-    virtual void RegisterCalls(Scripting*);
 
     /// Since m_Meshes no longer gets returned as a reference from GetMeshes,
     /// we need to implement these mutation functions to provide support via

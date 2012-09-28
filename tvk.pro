@@ -11,7 +11,7 @@ win32 {
 }
 RCC_DIR           = Build/rcc
 OBJECTS_DIR       = Build/objects
-DEPENDPATH       += . Basics Controller DebugOut IO Renderer Scripting
+DEPENDPATH       += . Basics Controller DebugOut IO Renderer 
 INCLUDEPATH      += . 3rdParty/GLEW IO/3rdParty/boost IO/3rdParty/zlib
 INCLUDEPATH      += Basics IO/exception
 QT               += opengl
@@ -274,8 +274,6 @@ HEADERS += \
            Renderer/TFScaling.h \
            Renderer/RenderMesh.h \
            Renderer/VisibilityState.h \
-           Scripting/Scriptable.h \
-           Scripting/Scripting.h \
            StdTuvokDefines.h
 
 unix:HEADERS += \
@@ -558,7 +556,6 @@ SOURCES += \
            Renderer/RenderRegion.cpp \
            Renderer/TFScaling.cpp \
            Renderer/VisibilityState.cpp \
-           Scripting/Scripting.cpp
 
 unix:SOURCES += \
   Basics/LargeFileAIO.cpp \

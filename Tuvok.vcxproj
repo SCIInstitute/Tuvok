@@ -1247,7 +1247,6 @@
     <ClCompile Include="IO\expressions\volume.cpp" />
     <ClCompile Include="Controller\MasterController.cpp" />
     <ClCompile Include="Renderer\VisibilityState.cpp" />
-    <ClCompile Include="Scripting\Scripting.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3rdParty\LUA\lapi.h" />
@@ -1578,8 +1577,6 @@
     <ClInclude Include="Controller\Controller.h" />
     <ClInclude Include="Controller\MasterController.h" />
     <ClInclude Include="Renderer\VisibilityState.h" />
-    <ClInclude Include="Scripting\Scriptable.h" />
-    <ClInclude Include="Scripting\Scripting.h" />
     <ClInclude Include="StdTuvokDefines.h" />
   </ItemGroup>
   <ItemGroup>

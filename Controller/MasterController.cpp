@@ -49,7 +49,6 @@
 #include "../Renderer/GL/GLSBVR.h"
 #include "../Renderer/GL/GLSBVR2D.h"
 
-#include "../Scripting/Scripting.h"
 #include "../LuaScripting/LuaScripting.h"
 #include "../LuaScripting/LuaMemberReg.h"
 #include "../LuaScripting/TuvokSpecific/LuaTuvokTypes.h"
@@ -70,8 +69,6 @@ MasterController::MasterController() :
   m_pSystemInfo   = new SystemInfo();
   m_pIOManager    = new IOManager();
   m_pGPUMemMan    = new GPUMemMan(this);
-  m_pScriptEngine = new Scripting();
-  RegisterCalls(m_pScriptEngine);
 
   using namespace std::placeholders;
   std::function<Dataset*(const std::string&, AbstrRenderer*)> f =
@@ -108,8 +105,6 @@ void MasterController::Cleanup() {
   m_pIOManager = NULL;
   delete m_pGPUMemMan;
   m_pGPUMemMan = NULL;
-  delete m_pScriptEngine;
-  m_pScriptEngine = NULL;
   m_pActiveRenderer = NULL;
 }
 
@@ -268,9 +263,6 @@ void MasterController::Filter(std::string, uint32_t,
 };
 
 
-void MasterController::RegisterCalls(Scripting*) {
-}
-
 RenderRegion* MasterController::LuaCreateRenderRegion3D(LuaClassInstance ren) {
   return new RenderRegion3D(ren.getRawPointer<AbstrRenderer>(LuaScript()));
 }
@@ -392,14 +384,6 @@ void MasterController::RegisterLuaCommands() {
     "sets a new max amount of GPU memory.  In megabytes.", false
   );
 }
-
-bool MasterController::Execute(const std::string&,
-                               const std::vector<std::string>&,
-                               std::string& strMessage) {
-  strMessage = "";
-  return false;
-}
-
 
 bool MasterController::ExperimentalFeatures() const {
   return m_bExperimentalFeatures;

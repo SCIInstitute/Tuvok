@@ -103,9 +103,6 @@
     <Filter Include="Controller">
       <UniqueIdentifier>{8aa5eec1-bd38-44ed-a2dd-309c6961ef7c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Scripting">
-      <UniqueIdentifier>{dc2eb033-ce87-46da-9c35-97260c5d26d0}</UniqueIdentifier>
-    </Filter>
     <Filter Include="IO\UVF\ExtendedOctree">
       <UniqueIdentifier>{1e4cc322-e18f-4a8d-b2c8-1fcd1b0e6e47}</UniqueIdentifier>
     </Filter>
@@ -791,9 +788,6 @@
     </ClCompile>
     <ClCompile Include="Controller\MasterController.cpp">
       <Filter>Controller</Filter>
-    </ClCompile>
-    <ClCompile Include="Scripting\Scripting.cpp">
-      <Filter>Scripting</Filter>
     </ClCompile>
     <ClCompile Include="Renderer\Context.cpp">
       <Filter>Renderer</Filter>
@@ -1777,12 +1771,6 @@
     </ClInclude>
     <ClInclude Include="Controller\MasterController.h">
       <Filter>Controller</Filter>
-    </ClInclude>
-    <ClInclude Include="Scripting\Scriptable.h">
-      <Filter>Scripting</Filter>
-    </ClInclude>
-    <ClInclude Include="Scripting\Scripting.h">
-      <Filter>Scripting</Filter>
     </ClInclude>
     <ClInclude Include="StdTuvokDefines.h" />
     <ClInclude Include="Renderer\Context.h">
