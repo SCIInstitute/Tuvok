@@ -166,11 +166,14 @@ public:
   void ReleaseVolumeRenderer(LuaClassInstance pVolumeRenderer);
   /// @}
 
+  void SetMaxGPUMem(uint64_t megs);
+  void SetMaxCPUMem(uint64_t megs);
+  void SetMaxCPUMem(float fractionOfMemory);
+
   /// disgusting centralized storage for state we need to record for the paper
   ///@{
   void SetBrickStrategy(size_t strat);
   void SetRehashCount(uint32_t count);
-  void SetMaxGPUMem(uint64_t megs);
   PH_HackyState PHState;
   ///@}
 

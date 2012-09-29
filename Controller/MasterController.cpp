@@ -288,11 +288,26 @@ void MasterController::SetBrickStrategy(size_t strat) {
 void MasterController::SetRehashCount(uint32_t n) {
   this->PHState.RehashCount = n;
 }
-void MasterController::SetMaxGPUMem(uint64_t M) {
+
+void MasterController::SetMaxGPUMem(uint64_t megs) {
   const uint64_t megabyte = 1024 * 1024;
-  this->m_pSystemInfo->SetMaxUsableGPUMem(megabyte * M);
-  this->m_pGPUMemMan->MemSizesChanged();
+  m_pSystemInfo->SetMaxUsableGPUMem(megabyte * megs);
+  m_pGPUMemMan->MemSizesChanged();
 }
+
+void MasterController::SetMaxCPUMem(uint64_t megs) {
+  const uint64_t megabyte = 1024 * 1024;
+  m_pSystemInfo->SetMaxUsableCPUMem(megabyte * megs);
+  m_pGPUMemMan->MemSizesChanged();
+}
+
+void MasterController::SetMaxCPUMem(float fractionOfMemory) {
+  const uint64_t exisitngMem = this->m_pSystemInfo->GetCPUMemSize();
+  m_pSystemInfo->SetMaxUsableCPUMem(uint64_t(exisitngMem*fractionOfMemory));
+  m_pGPUMemMan->MemSizesChanged();
+}
+
+
 void MasterController::RegisterLuaCommands() {
   std::shared_ptr<LuaScripting> ss = LuaScript();
 
