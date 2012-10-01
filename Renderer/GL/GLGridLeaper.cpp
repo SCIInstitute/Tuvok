@@ -842,6 +842,8 @@ bool GLGridLeaper::CheckForRedraw() {
   // can't draw to a size zero window.
   if (m_vWinSize.area() == 0) return false; 
 
+  if (m_bPerformReCompose) return true;
+
   // if we have not converged yet redraw immediately
   // TODO: after finished implementing and debugging
   // we should be using the m_iCheckCounter here similar

@@ -1459,7 +1459,11 @@ void AbstrRenderer::SetColors(FLOATVECTOR4 ambient,
   m_vLightDir = lightDir;
 
   UpdateLightParamsInShaders();
-  if (m_bUseLighting) Schedule3DWindowRedraws();
+
+  if (m_eRenderMode == RM_ISOSURFACE)
+    ScheduleRecompose();
+  else 
+    if (m_bUseLighting) Schedule3DWindowRedraws();
 }
 
 FLOATVECTOR4 AbstrRenderer::GetAmbient() const {
