@@ -32,15 +32,13 @@ GLTreeRaycaster::GLTreeRaycaster(MasterController* pMasterController,
                          bool bUseOnlyPowerOfTwo, 
                          bool bDownSampleTo8Bits, 
                          bool bDisableBorder) :
-  GLRenderer(pMasterController,
+  GLGPURayTraverser(pMasterController,
              bUseOnlyPowerOfTwo, 
              bDownSampleTo8Bits, 
              bDisableBorder),
 
   m_pglHashTable(NULL),
   m_pVolumePool(NULL),
-  m_pNearPlaneQuad(NULL),
-  m_pBBoxVBO(NULL),
   m_pProgramRenderFrontFaces(NULL),
   m_pProgramRenderFrontFacesNearPlane(NULL),
   m_pProgramRayCast1D(NULL),
@@ -144,7 +142,7 @@ GLTreeRaycaster::~GLTreeRaycaster() {
 
 
 void GLTreeRaycaster::CleanupShaders() {
-  GLRenderer::CleanupShaders();
+  GLGPURayTraverser::CleanupShaders();
 
   CleanupShader(&m_pProgramRenderFrontFaces);
   CleanupShader(&m_pProgramRenderFrontFacesNearPlane);
@@ -161,7 +159,7 @@ struct {
 } deleteFBO;
 
 void GLTreeRaycaster::Cleanup() {
-  GLRenderer::Cleanup();
+  GLGPURayTraverser::Cleanup();
 
   std::for_each(m_pFBORayStart.begin(),        m_pFBORayStart.end(),        deleteFBO);
   std::for_each(m_pFBORayStartNext.begin(),    m_pFBORayStartNext.end(),    deleteFBO);
@@ -172,11 +170,6 @@ void GLTreeRaycaster::Cleanup() {
   deleteFBO(m_pFBODebug);
   deleteFBO(m_pFBODebugNext);
 #endif
-
-  delete m_pBBoxVBO;
-  m_pBBoxVBO = NULL;
-  delete m_pNearPlaneQuad;
-  m_pNearPlaneQuad = NULL;
 
   if (m_pglHashTable) {
     m_pglHashTable->FreeGL();
@@ -204,7 +197,7 @@ void recreateFBO(GLFBOTex*& fbo, std::shared_ptr<Context> pContext,
 }
 
 void GLTreeRaycaster::CreateOffscreenBuffers() {
-  GLRenderer::CreateOffscreenBuffers();
+  GLGPURayTraverser::CreateOffscreenBuffers();
 
   GLenum intformat, type;
   switch (m_eBlendPrecision) {
@@ -239,7 +232,7 @@ void GLTreeRaycaster::CreateOffscreenBuffers() {
 }
 
 bool GLTreeRaycaster::Initialize(std::shared_ptr<Context> ctx) {
-  if (!GLRenderer::Initialize(ctx)) {
+  if (!GLGPURayTraverser::Initialize(ctx)) {
     T_ERROR("Error in parent call -> aborting");
     return false;
   }
@@ -263,23 +256,13 @@ bool GLTreeRaycaster::Initialize(std::shared_ptr<Context> ctx) {
   m_pWorkingSetTable->InitGL();
 #endif
 
-  CreateVBO();
+  FillBBoxVBO();
 
   if (!CreateVolumePool()) return false;
 
   // now that we've created the hashtable and the volume pool
   // we can load the rest of the shader that depend on those
   if (!LoadTraversalShaders()) return false;
-
-  // init near plane vbo
-  m_pNearPlaneQuad = new GLVBO();
-  std::vector<FLOATVECTOR3> posData;
-  posData.push_back(FLOATVECTOR3(-1.0f,  1.0f, -0.5f));
-  posData.push_back(FLOATVECTOR3( 1.0f,  1.0f, -0.5f));
-  posData.push_back(FLOATVECTOR3( 1.0f, -1.0f, -0.5f));
-  posData.push_back(FLOATVECTOR3(-1.0f, -1.0f, -0.5f));
-  m_pNearPlaneQuad->AddVertexData(posData);
-
 
   return true;
 }
@@ -493,14 +476,11 @@ void GLTreeRaycaster::CleanupTraversalShaders() {
 }
 
 void GLTreeRaycaster::SetRescaleFactors(const DOUBLEVECTOR3& vfRescale) {
-  GLRenderer::SetRescaleFactors(vfRescale);
-  CreateVBO();
+  GLGPURayTraverser::SetRescaleFactors(vfRescale);
+  FillBBoxVBO();
 }
 
-void GLTreeRaycaster::CreateVBO() {
-  delete m_pBBoxVBO;
-  m_pBBoxVBO = NULL;
-
+void GLTreeRaycaster::FillBBoxVBO() {
   FLOATVECTOR3 vCenter, vExtend;
   GetVolumeAABB(vCenter, vExtend);
 
@@ -522,14 +502,14 @@ void GLTreeRaycaster::CreateVBO() {
 
     Clipper::BoxPlane(posData, normal, d);
   }
-  
 
+  m_pBBoxVBO->ClearVertexData();
   m_pBBoxVBO->AddVertexData(posData);
 }
 
 
 bool GLTreeRaycaster::LoadShaders() {
-  if (!GLRenderer::LoadShaders()) {
+  if (!GLGPURayTraverser::LoadShaders()) {
     T_ERROR("Error in parent call -> aborting");
     return false;
   }
@@ -616,27 +596,27 @@ void GLTreeRaycaster::FillRayEntryBuffer(RenderRegion3D& rr, EStereoID eStereoID
 }
 
 void GLTreeRaycaster::SetIsoValue(float fIsovalue) {
-  GLRenderer::SetIsoValue(fIsovalue);
+  GLGPURayTraverser::SetIsoValue(fIsovalue);
   RecomputeBrickVisibility();
 }
 
 void GLTreeRaycaster::Changed2DTrans() {
-  GLRenderer::Changed2DTrans();
+  GLGPURayTraverser::Changed2DTrans();
   RecomputeBrickVisibility();
 }
 
 void GLTreeRaycaster::Changed1DTrans() {
-  GLRenderer::Changed1DTrans();
+  GLGPURayTraverser::Changed1DTrans();
   RecomputeBrickVisibility();
 }
 
 void GLTreeRaycaster::Set1DTrans(const std::vector<unsigned char>& rgba) {
-  GLRenderer::Set1DTrans(rgba);
+  GLGPURayTraverser::Set1DTrans(rgba);
   RecomputeBrickVisibility();
 }
 
 void GLTreeRaycaster::SetRendermode(AbstrRenderer::ERenderMode eRenderMode) {
-  GLRenderer::SetRendermode(eRenderMode);
+  GLGPURayTraverser::SetRendermode(eRenderMode);
   RecomputeBrickVisibility();
 }
 
@@ -1058,7 +1038,7 @@ bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
 }
 
 void GLTreeRaycaster::SetInterpolant(Interpolant eInterpolant) {  
-  GLRenderer::SetInterpolant(eInterpolant);
+  GLGPURayTraverser::SetInterpolant(eInterpolant);
   m_pVolumePool->SetFilterMode(ComputeGLFilter());
 }
 
@@ -1199,23 +1179,23 @@ void GLTreeRaycaster::SetDebugView(uint32_t iDebugView) {
 
 void GLTreeRaycaster::SetClipPlane(RenderRegion *renderRegion,
                                    const ExtendedPlane& plane) {
-  GLRenderer::SetClipPlane(renderRegion, plane);
-  CreateVBO();
+  GLGPURayTraverser::SetClipPlane(renderRegion, plane);
+  FillBBoxVBO();
 }
 
 void GLTreeRaycaster::EnableClipPlane(RenderRegion *renderRegion) {
-  GLRenderer::EnableClipPlane(renderRegion);
-  CreateVBO();
+  GLGPURayTraverser::EnableClipPlane(renderRegion);
+  FillBBoxVBO();
 }
 
 void GLTreeRaycaster::DisableClipPlane(RenderRegion *renderRegion) {
-  GLRenderer::DisableClipPlane(renderRegion);
-  CreateVBO();
+  GLGPURayTraverser::DisableClipPlane(renderRegion);
+  FillBBoxVBO();
 }
 
 void GLTreeRaycaster::ClipPlaneRelativeLock(bool bRelative) {
-  GLRenderer::ClipPlaneRelativeLock(bRelative);
-  CreateVBO();
+  GLGPURayTraverser::ClipPlaneRelativeLock(bRelative);
+  FillBBoxVBO();
 }
 
 /*

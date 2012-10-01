@@ -993,6 +993,9 @@
     <ClCompile Include="IO\MRCConverter.cpp">
       <Filter>IO\Volume Converter</Filter>
     </ClCompile>
+    <ClCompile Include="Renderer\GL\GLGPURayTraverser.cpp">
+      <Filter>Renderer\GL</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Basics\Appendix.h">
@@ -1979,6 +1982,9 @@
     </ClInclude>
     <ClInclude Include="IO\MRCConverter.h">
       <Filter>IO\Volume Converter</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\GL\GLGPURayTraverser.h">
+      <Filter>Renderer\GL</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

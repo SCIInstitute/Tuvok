@@ -40,17 +40,18 @@
 #define GLRAYCASTER_H
 
 #include "../../StdTuvokDefines.h"
-#include "GLRenderer.h"
+#include "GLGPURayTraverser.h"
 
 class ExtendedPlane;
 
 namespace tuvok {
+  class GLVBO;
 
 /** \class GLRaycaster
  * GPU Rayster.
  *
  * GLRaycaster is a GLSL-based raycaster for volumetric data */
-class GLRaycaster : public GLRenderer {
+class GLRaycaster : public GLGPURayTraverser {
   public:
     /** Constructs a VRer with immediate redraw, and
      * wireframe mode off.

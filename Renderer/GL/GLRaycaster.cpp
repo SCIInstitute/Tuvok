@@ -37,6 +37,7 @@
 #include "GLInclude.h"
 #include "GLRaycaster.h"
 #include "GLFBOTex.h"
+#include "GLVBO.h"
 
 #include <Controller/Controller.h>
 #include "../GPUMemMan/GPUMemMan.h"
@@ -55,7 +56,7 @@ GLRaycaster::GLRaycaster(MasterController* pMasterController,
                          bool bUseOnlyPowerOfTwo, 
                          bool bDownSampleTo8Bits, 
                          bool bDisableBorder) :
-  GLRenderer(pMasterController,
+  GLGPURayTraverser(pMasterController,
              bUseOnlyPowerOfTwo, 
              bDownSampleTo8Bits, 
              bDisableBorder),
@@ -73,7 +74,7 @@ GLRaycaster::~GLRaycaster() {
 
 
 void GLRaycaster::CleanupShaders() {
-  GLRenderer::CleanupShaders();
+  GLGPURayTraverser::CleanupShaders();
 
   CleanupShader(&m_pProgramRenderFrontFaces);
   CleanupShader(&m_pProgramRenderFrontFacesNT);
@@ -81,7 +82,7 @@ void GLRaycaster::CleanupShaders() {
 }
 
 void GLRaycaster::Cleanup() {
-  GLRenderer::Cleanup();
+  GLGPURayTraverser::Cleanup();
 
   if (m_pFBORayEntry){
     m_pMasterController->MemMan()->FreeFBO(m_pFBORayEntry); 
@@ -90,7 +91,7 @@ void GLRaycaster::Cleanup() {
 }
 
 void GLRaycaster::CreateOffscreenBuffers() {
-  GLRenderer::CreateOffscreenBuffers();
+  GLGPURayTraverser::CreateOffscreenBuffers();
   if (m_pFBORayEntry){m_pMasterController->MemMan()->FreeFBO(m_pFBORayEntry); m_pFBORayEntry = NULL;}
   if (m_vWinSize.area() > 0) {
     m_pFBORayEntry = m_pMasterController->MemMan()->GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP, m_vWinSize.x, m_vWinSize.y, GL_RGBA16F, GL_RGBA, GL_HALF_FLOAT, m_pContext->GetShareGroupID(), false);
@@ -98,7 +99,7 @@ void GLRaycaster::CreateOffscreenBuffers() {
 }
 
 bool GLRaycaster::LoadShaders() {
-  if (!GLRenderer::LoadShaders()) {
+  if (!GLGPURayTraverser::LoadShaders()) {
     T_ERROR("Error in parent call -> aborting");
     return false;
   }
@@ -335,11 +336,12 @@ void GLRaycaster::RenderBox(const RenderRegion& renderRegion,
     Clipper::BoxPlane(posData, normal, d);
   }
 
-  glBegin(GL_TRIANGLES);
-    for (auto vertex = posData.begin(); vertex != posData.end(); ++vertex) {
-      glVertex3f(vertex->x, vertex->y, vertex->z);
-    }
-  glEnd();
+  m_pBBoxVBO->ClearVertexData();
+  m_pBBoxVBO->AddVertexData(posData);
+
+  m_pBBoxVBO->Bind();
+  m_pBBoxVBO->Draw(GL_TRIANGLES);
+  m_pBBoxVBO->UnBind();
 }
 
 
@@ -358,13 +360,10 @@ void GLRaycaster::Render3DPreLoop(const RenderRegion3D &) {
     FLOATMATRIX4 mInvProj = m_mProjection[0].inverse();
     mInvProj.setProjection();
     m_pProgramRenderFrontFacesNT->Enable();
-
-    glBegin(GL_QUADS);
-      glVertex3d(-1.0,  1.0, -0.5);
-      glVertex3d( 1.0,  1.0, -0.5);
-      glVertex3d( 1.0, -1.0, -0.5);
-      glVertex3d(-1.0, -1.0, -0.5);
-    glEnd();
+    
+    m_pNearPlaneQuad->Bind();
+    m_pNearPlaneQuad->Draw(GL_QUADS);
+    m_pNearPlaneQuad->UnBind();
 
     m_TargetBinder.Unbind();
   }
@@ -480,7 +479,7 @@ void GLRaycaster::Render3DInLoop(const RenderRegion3D& renderRegion,
 
 
 void GLRaycaster::RenderHQMIPPreLoop(RenderRegion2D &region) {
-  GLRenderer::RenderHQMIPPreLoop(region);
+  GLGPURayTraverser::RenderHQMIPPreLoop(region);
 
   m_pProgramHQMIPRot->Enable();
   m_pProgramHQMIPRot->Set("vScreensize",float(m_vWinSize.x), float(m_vWinSize.y));
@@ -531,7 +530,7 @@ void GLRaycaster::RenderHQMIPInLoop(const RenderRegion2D &renderRegion,
 }
 
 void GLRaycaster::StartFrame() {
-  GLRenderer::StartFrame();
+  GLGPURayTraverser::StartFrame();
 
   FLOATVECTOR2 vfWinSize = FLOATVECTOR2(m_vWinSize);
   switch (m_eRenderMode) {
@@ -568,7 +567,7 @@ void GLRaycaster::StartFrame() {
 }
 
 void GLRaycaster::SetDataDepShaderVars() {
-  GLRenderer::SetDataDepShaderVars();
+  GLGPURayTraverser::SetDataDepShaderVars();
   if (m_eRenderMode == RM_ISOSURFACE && m_bDoClearView) {
     m_pProgramIso2->Enable();
     m_pProgramIso2->Set("fIsoval", static_cast<float>

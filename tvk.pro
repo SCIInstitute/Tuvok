@@ -247,6 +247,7 @@ HEADERS += \
            Renderer/GL/GLInclude.h \
            Renderer/GL/GLObject.h \
            Renderer/GL/GLRaycaster.h \
+           Renderer/GL/GLGPURayTraverser.h \
            Renderer/GL/GLTreeRaycaster.h \
            Renderer/GL/GLRenderer.h \
            Renderer/GL/GLSBVR.h \
@@ -531,6 +532,7 @@ SOURCES += \
            Renderer/GL/GLFBOTex.cpp \
            Renderer/GL/GLFrameCapture.cpp \
            Renderer/GL/GLRaycaster.cpp \
+           Renderer/GL/GLGPURayTraverser.cpp \
            Renderer/GL/GLRenderer.cpp \
            Renderer/GL/GLSBVR.cpp \
            Renderer/GL/GLSBVR2D.cpp \

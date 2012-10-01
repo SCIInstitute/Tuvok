@@ -4,7 +4,7 @@
 #define GLTREERAYCASTER_H
 
 #include "../../StdTuvokDefines.h"
-#include "GLRenderer.h"
+#include "GLGPURayTraverser.h"
 #include "Renderer/VisibilityState.h"
 #include "AvgMinMaxTracker.h" // for profiling
 #include <fstream> // for Paper Hack file log
@@ -27,7 +27,7 @@ namespace tuvok {
    * GPU Raycaster.
    *
    * GLTreeRaycaster is a GLSL-based raycaster for volumetric data */
-  class GLTreeRaycaster : public GLRenderer {
+  class GLTreeRaycaster : public GLGPURayTraverser {
     public:
       /** Constructs a VRer with immediate redraw, and
        * wireframe mode off.
@@ -86,8 +86,6 @@ namespace tuvok {
       GLHashTable*    m_pglHashTable;
       GLVolumePool*   m_pVolumePool;
       std::vector<unsigned char> m_vUploadMem;
-      GLVBO*          m_pNearPlaneQuad;
-      GLVBO*          m_pBBoxVBO;
       std::array<GLFBOTex*,2> m_pFBORayStart;
       std::array<GLFBOTex*,2> m_pFBORayStartNext;
       std::array<GLFBOTex*,2> m_pFBOStartColor;
@@ -172,7 +170,7 @@ namespace tuvok {
 
 
       virtual void SetRescaleFactors(const DOUBLEVECTOR3& vfRescale);
-      void CreateVBO();
+      void FillBBoxVBO();
       
       bool LoadTraversalShaders(const std::vector<std::string>& vDefines = std::vector<std::string>());
       void CleanupTraversalShaders();
