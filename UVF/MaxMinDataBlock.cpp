@@ -78,7 +78,7 @@ uint64_t MaxMinDataBlock::GetHeaderFromFile(LargeRAWFile_ptr pStreamFile, uint64
   m_vfMaxMinData.resize(size_t(ulBrickCount));
 
   for(MaxMinVec::iterator i = m_vfMaxMinData.begin();
-	  i != m_vfMaxMinData.end(); ++i) {
+    i != m_vfMaxMinData.end(); ++i) {
     (*i).resize(m_iComponentCount);
     for (size_t j = 0;j<m_iComponentCount;j++) {
       pStreamFile->ReadData((*i)[j].minScalar, bIsBigEndian);
@@ -105,7 +105,7 @@ uint64_t MaxMinDataBlock::CopyToFile(LargeRAWFile_ptr pStreamFile, uint64_t iOff
   }
 
   for (MaxMinVec::const_iterator i = m_vfMaxMinData.begin();
-	   i != m_vfMaxMinData.end(); ++i) {
+     i != m_vfMaxMinData.end(); ++i) {
     for (size_t j = 0;j<m_iComponentCount;j++) {
       pStreamFile->WriteData((*i)[j].minScalar, bIsBigEndian);
       pStreamFile->WriteData((*i)[j].maxScalar, bIsBigEndian);
