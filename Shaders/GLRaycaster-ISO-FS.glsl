@@ -47,10 +47,7 @@ uniform int  iTileID;          ///< ID of the current tile
 uniform vec3 vDomainScale;
 
 varying vec3 vEyePos;
-uniform vec4 vClipPlane;
 
-bool ClipByPlane(inout vec3 vRayEntry, inout vec3 vRayExit,
-                 in vec4 clip_plane);
 vec3 ComputeNormal(vec3 vHitPosTex, vec3 StepSize,
                    vec3 DomainScale);
 vec3 RefineIsosurface(in vec3 vRayDir, 
@@ -65,48 +62,44 @@ void main(void)
   vec3  vRayEntry    = texture2D(texRayExitPos, vFragCoords).xyz;
   vec3  vRayExit     = vEyePos;
 
-  if (ClipByPlane(vRayEntry, vRayExit, vClipPlane)) {
-    vec3  vRayEntryTex  = (gl_TextureMatrix[0] * vec4(vRayEntry,1.0)).xyz;
-    vec3  vRayExitTex   = (gl_TextureMatrix[0] * vec4(vRayExit,1.0)).xyz;
-    float fRayLength    = length(vRayExit - vRayEntry);
-    float fRayLengthTex = length(vRayExitTex - vRayEntryTex);
+  vec3  vRayEntryTex  = (gl_TextureMatrix[0] * vec4(vRayEntry,1.0)).xyz;
+  vec3  vRayExitTex   = (gl_TextureMatrix[0] * vec4(vRayExit,1.0)).xyz;
+  float fRayLength    = length(vRayExit - vRayEntry);
+  float fRayLengthTex = length(vRayExitTex - vRayEntryTex);
 
-    // compute the maximum number of steps before the domain is left
-    int iStepCount = int(fRayLength/fRayStepsize)+1;
-    vec3  vRayIncTex = (vRayExitTex-vRayEntryTex)/(fRayLength/fRayStepsize);
+  // compute the maximum number of steps before the domain is left
+  int iStepCount = int(fRayLength/fRayStepsize)+1;
+  vec3  vRayIncTex = (vRayExitTex-vRayEntryTex)/(fRayLength/fRayStepsize);
 
-    // do the actual raycasting
-    vec4  vHitPosTex     = vec4(0.0,0.0,0.0,0.0);
-    vec3  vCurrentPosTex = vRayEntryTex;
-    for (int i = 0;i<iStepCount;i++) {
-      float fVolumVal = sampleVolume(vCurrentPosTex).x;
+  // do the actual raycasting
+  vec4  vHitPosTex     = vec4(0.0,0.0,0.0,0.0);
+  vec3  vCurrentPosTex = vRayEntryTex;
+  for (int i = 0;i<iStepCount;i++) {
+    float fVolumVal = sampleVolume(vCurrentPosTex).x;
 
-      if (fVolumVal >= fIsoval) {
-        vHitPosTex = vec4(vCurrentPosTex.x, vCurrentPosTex.y, vCurrentPosTex.z, 1);
-        break;
-      }
-      vCurrentPosTex += vRayIncTex;
+    if (fVolumVal >= fIsoval) {
+      vHitPosTex = vec4(vCurrentPosTex.x, vCurrentPosTex.y, vCurrentPosTex.z, 1);
+      break;
     }
-
-    // store surface hit if one is found
-    if (vHitPosTex.a != 0.0)
-      vHitPosTex.xyz = RefineIsosurface(vRayIncTex, vHitPosTex.xyz, fIsoval);
-    else
-      discard;
-
-    // interpolate eye space position
-    float fInterpolParam = length(vHitPosTex.xyz-vRayEntryTex)/fRayLengthTex;
-    vec3 vHitPos = vRayEntry * (1.0-fInterpolParam) + vRayExit * fInterpolParam;
-    gl_FragData[0] = vec4(vHitPos.xyz,fInterpolParam);
-
-    // store non-linear depth
-    gl_FragDepth = vProjParam.x + (vProjParam.y / -vHitPos.z);
-
-    // store normal
-    vec3 vNormal =  ComputeNormal(vHitPosTex.xyz, vVoxelStepsize,
-                                  vDomainScale);
-    gl_FragData[1] = vec4(vNormal,float(iTileID));
-  } else {
-    discard;
+    vCurrentPosTex += vRayIncTex;
   }
+
+  // store surface hit if one is found
+  if (vHitPosTex.a != 0.0)
+    vHitPosTex.xyz = RefineIsosurface(vRayIncTex, vHitPosTex.xyz, fIsoval);
+  else
+    discard;
+
+  // interpolate eye space position
+  float fInterpolParam = length(vHitPosTex.xyz-vRayEntryTex)/fRayLengthTex;
+  vec3 vHitPos = vRayEntry * (1.0-fInterpolParam) + vRayExit * fInterpolParam;
+  gl_FragData[0] = vec4(vHitPos.xyz,fInterpolParam);
+
+  // store non-linear depth
+  gl_FragDepth = vProjParam.x + (vProjParam.y / -vHitPos.z);
+
+  // store normal
+  vec3 vNormal =  ComputeNormal(vHitPosTex.xyz, vVoxelStepsize,
+                                vDomainScale);
+  gl_FragData[1] = vec4(vNormal,float(iTileID));
 }

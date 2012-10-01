@@ -1587,7 +1587,6 @@
     <None Include="Shaders\BBox-FS.glsl" />
     <None Include="Shaders\BBox-VS.glsl" />
     <None Include="Shaders\BTF.glsl" />
-    <None Include="Shaders\clip-plane.glsl" />
     <None Include="Shaders\Compose-AF-FS.glsl" />
     <None Include="Shaders\Compose-Anaglyphs-FS.glsl" />
     <None Include="Shaders\Compose-Color-FS.glsl" />

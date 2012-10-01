@@ -50,12 +50,9 @@ uniform vec3 vLightAmbient;
 uniform vec3 vLightSpecular;
 uniform vec3 vLightDiffuse;
 uniform vec3 vLightDir;
-uniform vec4 vClipPlane;
 
 varying vec3 vEyePos;
 
-bool ClipByPlane(inout vec3 vRayEntry, inout vec3 vRayExit,
-                 in vec4 clip_plane);
 vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient,
               vec3 vLightDiffuse, vec3 vLightSpecular, vec3 vLightDir);
 vec3 ComputeGradient(vec3 vCenter, vec3 StepSize);
@@ -70,55 +67,51 @@ void main(void)
   vec3  vRayEntry    = texture2D(texRayExitPos, vFragCoords).xyz;
   vec3  vRayExit     = vEyePos;
 
-  if (ClipByPlane(vRayEntry, vRayExit, vClipPlane)) {
-    vec3  vRayEntryTex = (gl_TextureMatrix[0] * vec4(vRayEntry,1.0)).xyz;
-    vec3  vRayExitTex  = (gl_TextureMatrix[0] * vec4(vRayExit,1.0)).xyz;
-    vec3  vRayDir      = vRayExit - vRayEntry;
+  vec3  vRayEntryTex = (gl_TextureMatrix[0] * vec4(vRayEntry,1.0)).xyz;
+  vec3  vRayExitTex  = (gl_TextureMatrix[0] * vec4(vRayExit,1.0)).xyz;
+  vec3  vRayDir      = vRayExit - vRayEntry;
 
-    float fRayLength = length(vRayDir);
-    vRayDir /= fRayLength;
+  float fRayLength = length(vRayDir);
+  vRayDir /= fRayLength;
 
-    // compute the maximum number of steps before the domain is left
-    int iStepCount = int(fRayLength/fRayStepsize)+1;
+  // compute the maximum number of steps before the domain is left
+  int iStepCount = int(fRayLength/fRayStepsize)+1;
 
-    vec3  fRayInc    = vRayDir*fRayStepsize;
-    vec3  vRayIncTex = (vRayExitTex-vRayEntryTex)/(fRayLength/fRayStepsize);
+  vec3  fRayInc    = vRayDir*fRayStepsize;
+  vec3  vRayIncTex = (vRayExitTex-vRayEntryTex)/(fRayLength/fRayStepsize);
 
-    // do the actual raycasting
-    vec4  vColor = vec4(0.0,0.0,0.0,0.0);
-    vec3  vCurrentPosTex = vRayEntryTex;
-    vec3  vCurrentPos    = vRayEntry;
-    for (int i = 0;i<iStepCount;i++) {
-      float fVolumVal = sampleVolume( vCurrentPosTex).x;
+  // do the actual raycasting
+  vec4  vColor = vec4(0.0,0.0,0.0,0.0);
+  vec3  vCurrentPosTex = vRayEntryTex;
+  vec3  vCurrentPos    = vRayEntry;
+  for (int i = 0;i<iStepCount;i++) {
+    float fVolumVal = sampleVolume( vCurrentPosTex).x;
 
-      // compute the gradient/normal
-      vec3  vGradient = ComputeGradient(vCurrentPosTex, vVoxelStepsize);
-      float fGradientMag = length(vGradient);
+    // compute the gradient/normal
+    vec3  vGradient = ComputeGradient(vCurrentPosTex, vVoxelStepsize);
+    float fGradientMag = length(vGradient);
 
-      // apply 2D transfer function
-      vec4  vTransVal = texture2D(texTrans, vec2(fVolumVal*fTransScale, 1.0-fGradientMag*fGradientScale));
+    // apply 2D transfer function
+    vec4  vTransVal = texture2D(texTrans, vec2(fVolumVal*fTransScale, 1.0-fGradientMag*fGradientScale));
 
-      // compute lighting
-      vec3 vNormal     = gl_NormalMatrix * (vGradient * vDomainScale);
-      float l = length(vNormal); if (l>0.0) vNormal /= l; // secure normalization
-      vec3 vLightColor = Lighting(vCurrentPos, vNormal, vLightAmbient,
-                                  vLightDiffuse*vTransVal.xyz, vLightSpecular,
-                                  vLightDir);
+    // compute lighting
+    vec3 vNormal     = gl_NormalMatrix * (vGradient * vDomainScale);
+    float l = length(vNormal); if (l>0.0) vNormal /= l; // secure normalization
+    vec3 vLightColor = Lighting(vCurrentPos, vNormal, vLightAmbient,
+                                vLightDiffuse*vTransVal.xyz, vLightSpecular,
+                                vLightDir);
 
-      /// apply opacity correction
-      vTransVal.a = 1.0 - pow(1.0 - vTransVal.a, fStepScale);
+    /// apply opacity correction
+    vTransVal.a = 1.0 - pow(1.0 - vTransVal.a, fStepScale);
 
-      vTransVal = clamp(vec4(vLightColor.x, vLightColor.y, vLightColor.z, vTransVal.a),0.0,1.0);
-      vColor = UnderCompositing(vTransVal,vColor);
+    vTransVal = clamp(vec4(vLightColor.x, vLightColor.y, vLightColor.z, vTransVal.a),0.0,1.0);
+    vColor = UnderCompositing(vTransVal,vColor);
 
-      vCurrentPos    += fRayInc;
-      vCurrentPosTex += vRayIncTex;
+    vCurrentPos    += fRayInc;
+    vCurrentPosTex += vRayIncTex;
 
-      if (vColor.a >= 0.99) break;
-    }
-
-    gl_FragColor  = vColor;
-  } else {
-    discard;
+    if (vColor.a >= 0.99) break;
   }
+
+  gl_FragColor  = vColor;
 }

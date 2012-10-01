@@ -48,7 +48,6 @@ uniform vec3 vLightDiffuse;
 uniform vec3 vLightSpecular;
 uniform vec3 vLightDir;
 uniform vec3 vDomainScale;
-uniform vec4 vClipPlane;
 
 varying vec3 vEyePos;
 
@@ -79,8 +78,6 @@ varying vec3 vEyePos;
 #endif
   
 vec4 sampleVolume(vec3 coords);
-bool ClipByPlane(inout vec3 vRayEntry, inout vec3 vRayExit,
-                 in vec4 clip_plane);
 vec4 UnderCompositing(vec4 src, vec4 dst);
 
 
@@ -93,49 +90,45 @@ void main(void)
   vec3  vRayEntry    = texture2D(texRayExitPos, vFragCoords).xyz;
   vec3  vRayExit     = vEyePos;
 
-  if (ClipByPlane(vRayEntry, vRayExit, vClipPlane)) {
-    vec3  vRayEntryTex = (gl_TextureMatrix[0] * vec4(vRayEntry,1.0)).xyz;
-    vec3  vRayExitTex  = (gl_TextureMatrix[0] * vec4(vRayExit,1.0)).xyz;
-    vec3  vRayDir      = vRayExit - vRayEntry;
+  vec3  vRayEntryTex = (gl_TextureMatrix[0] * vec4(vRayEntry,1.0)).xyz;
+  vec3  vRayExitTex  = (gl_TextureMatrix[0] * vec4(vRayExit,1.0)).xyz;
+  vec3  vRayDir      = vRayExit - vRayEntry;
 
-    float fRayLength = length(vRayDir);
-    vRayDir /= fRayLength;
+  float fRayLength = length(vRayDir);
+  vRayDir /= fRayLength;
 
-    // compute the maximum number of steps before the domain is left
-    int iStepCount = int(fRayLength/fRayStepsize)+1;
+  // compute the maximum number of steps before the domain is left
+  int iStepCount = int(fRayLength/fRayStepsize)+1;
 
-    vec3  fRayInc    = vRayDir*fRayStepsize;
-    vec3  vRayIncTex = (vRayExitTex-vRayEntryTex)/(fRayLength/fRayStepsize);
+  vec3  fRayInc    = vRayDir*fRayStepsize;
+  vec3  vRayIncTex = (vRayExitTex-vRayEntryTex)/(fRayLength/fRayStepsize);
 
-    // do the actual raycasting
-    vec4  vColor = vec4(0.0,0.0,0.0,0.0);
-    vec3  vCurrentPosTex = vRayEntryTex;
-    vec3  vCurrentPos    = vRayEntry;
-    for (int i = 0;i<iStepCount;i++) {
+  // do the actual raycasting
+  vec4  vColor = vec4(0.0,0.0,0.0,0.0);
+  vec3  vCurrentPosTex = vRayEntryTex;
+  vec3  vCurrentPos    = vRayEntry;
+  for (int i = 0;i<iStepCount;i++) {
 
 #if defined(BIAS_SCALE)
-  vec4 stepColor = VRender1DLit(vCurrentPosTex, fTransScale, TFuncBias,
-                              fStepScale, vVoxelStepsize,
-                              vDomainScale, vCurrentPos,
-                              vLightAmbient, vLightDiffuse,
-                              vLightSpecular, vLightDir);
+vec4 stepColor = VRender1DLit(vCurrentPosTex, fTransScale, TFuncBias,
+                            fStepScale, vVoxelStepsize,
+                            vDomainScale, vCurrentPos,
+                            vLightAmbient, vLightDiffuse,
+                            vLightSpecular, vLightDir);
 #else
-  vec4 stepColor = VRender1DLit(vCurrentPosTex, fTransScale,
-                              fStepScale, vVoxelStepsize,
-                              vDomainScale, vCurrentPos,
-                              vLightAmbient, vLightDiffuse,
-                              vLightSpecular, vLightDir);
+vec4 stepColor = VRender1DLit(vCurrentPosTex, fTransScale,
+                            fStepScale, vVoxelStepsize,
+                            vDomainScale, vCurrentPos,
+                            vLightAmbient, vLightDiffuse,
+                            vLightSpecular, vLightDir);
 #endif
 
-      vColor = UnderCompositing(stepColor, vColor);
-      vCurrentPos    += fRayInc;
-      vCurrentPosTex += vRayIncTex;
+    vColor = UnderCompositing(stepColor, vColor);
+    vCurrentPos    += fRayInc;
+    vCurrentPosTex += vRayIncTex;
 
-      if (vColor.a >= 0.99) break;
-    }
-
-    gl_FragColor = vColor;
-  } else {
-    discard;
+    if (vColor.a >= 0.99) break;
   }
+
+  gl_FragColor = vColor;
 }

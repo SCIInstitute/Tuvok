@@ -130,6 +130,10 @@ class GLRenderer : public AbstrRenderer {
     Timer           m_Timer;
     GPUState        m_BaseState;
 
+    void MaxMinBoxToVector(const FLOATVECTOR3& vMinPoint,
+                           const FLOATVECTOR3& vMaxPoint,
+                           std::vector<FLOATVECTOR3>& posData) const;
+
     void SetRenderTargetArea(const RenderRegion& renderRegion,
                              bool bDecreaseScreenResNow);
     void SetRenderTargetArea(UINTVECTOR2 minCoord, UINTVECTOR2 maxCoord,

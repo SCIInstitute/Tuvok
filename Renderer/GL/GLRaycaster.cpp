@@ -46,6 +46,7 @@
 #include "GLTexture2D.h"
 #include "Renderer/TFScaling.h"
 #include "Basics/MathTools.h"
+#include "Basics/Clipper.h"
 
 using namespace std;
 using namespace tuvok;
@@ -137,7 +138,6 @@ bool GLRaycaster::LoadShaders() {
                           "GLRaycaster-VS.glsl",
                           NULL,
                           "Compositing.glsl",   // UnderCompositing
-                          "clip-plane.glsl",    // ClipByPlane
                           "Volume3D.glsl",      // SampleVolume
                           tfqn.c_str(),         // VRender1D
                           bias.c_str(),
@@ -147,7 +147,6 @@ bool GLRaycaster::LoadShaders() {
                           "GLRaycaster-VS.glsl",
                           NULL,
                           "Compositing.glsl",   // UnderCompositing
-                          "clip-plane.glsl",    // ClipByPlane
                           "Volume3D.glsl",      // SampleVolume
                           "lighting.glsl",      // Lighting
                           tfqnLit.c_str(),      // VRender1DLit
@@ -156,35 +155,30 @@ bool GLRaycaster::LoadShaders() {
                           "GLRaycaster-VS.glsl",
                           NULL,
                           "Compositing.glsl",   // UnderCompositing
-                          "clip-plane.glsl",    // ClipByPlane
                           "Volume3D.glsl",      // SampleVolume, ComputeGradient
                           shaderNames[2], NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[1], m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl",
                           NULL,
                           "Compositing.glsl",   // UnderCompositing
-                          "clip-plane.glsl",    // ClipByPlane
                           "Volume3D.glsl",      // SampleVolume, ComputeGradient
                           "lighting.glsl",      // Lighting
                           shaderNames[3], NULL) ||
      !LoadAndVerifyShader(&m_pProgramIso, m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl",
                           NULL,
-                          "clip-plane.glsl",       // ClipByPlane
                           "RefineIsosurface.glsl", // RefineIsosurface
                           "Volume3D.glsl",        // SampleVolume, ComputeNormal
                           shaderNames[6], NULL) ||
      !LoadAndVerifyShader(&m_pProgramColor, m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl",
                           NULL,
-                          "clip-plane.glsl",       // ClipByPlane
                           "RefineIsosurface.glsl", // RefineIsosurface
                           "Volume3D.glsl",        // SampleVolume, ComputeNormal
                           shaderNames[4], NULL) ||
      !LoadAndVerifyShader(&m_pProgramIso2, m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl",
                           NULL,
-                          "clip-plane.glsl",       // ClipByPlane
                           "RefineIsosurface.glsl", // RefineIsosurface
                           "Volume3D.glsl",        // SampleVolume, ComputeNormal
                           shaderNames[5], NULL) ||
@@ -236,9 +230,6 @@ bool GLRaycaster::LoadShaders() {
 
     UpdateLightParamsInShaders();
 
-    /// We always clip against the plane in the shader, so initialize the plane
-    /// to be way out in left field, ensuring nothing will be clipped.
-    ClipPlaneToShader(ExtendedPlane::FarawayPlane(), SI_LEFT_OR_MONO, true);
     return true;
   }
 
@@ -312,7 +303,7 @@ void GLRaycaster::RenderBox(const RenderRegion& renderRegion,
                             const FLOATVECTOR3& vExtend,
                             const FLOATVECTOR3& vMinCoords,
                             const FLOATVECTOR3& vMaxCoords, bool bCullBack,
-                            EStereoID eStereoID) const  {
+                            EStereoID eStereoID) const {
   
   m_pContext->GetStateManager()->SetCullState(bCullBack ? CULL_FRONT : CULL_BACK);
 
@@ -330,81 +321,27 @@ void GLRaycaster::RenderBox(const RenderRegion& renderRegion,
 
   m.setTextureMatrix();
 
-  glBegin(GL_QUADS);
-    // BACK
-    glVertex3f(vMaxPoint.x, vMinPoint.y, vMinPoint.z);
-    glVertex3f(vMinPoint.x, vMinPoint.y, vMinPoint.z);
-    glVertex3f(vMinPoint.x, vMaxPoint.y, vMinPoint.z);
-    glVertex3f(vMaxPoint.x, vMaxPoint.y, vMinPoint.z);
-    // FRONT
-    glVertex3f(vMaxPoint.x, vMaxPoint.y, vMaxPoint.z);
-    glVertex3f(vMinPoint.x, vMaxPoint.y, vMaxPoint.z);
-    glVertex3f(vMinPoint.x, vMinPoint.y, vMaxPoint.z);
-    glVertex3f(vMaxPoint.x, vMinPoint.y, vMaxPoint.z);
-    // LEFT
-    glVertex3f(vMinPoint.x, vMaxPoint.y, vMinPoint.z);
-    glVertex3f(vMinPoint.x, vMinPoint.y, vMinPoint.z);
-    glVertex3f(vMinPoint.x, vMinPoint.y, vMaxPoint.z);
-    glVertex3f(vMinPoint.x, vMaxPoint.y, vMaxPoint.z);
-    // RIGHT
-    glVertex3f(vMaxPoint.x, vMaxPoint.y, vMaxPoint.z);
-    glVertex3f(vMaxPoint.x, vMinPoint.y, vMaxPoint.z);
-    glVertex3f(vMaxPoint.x, vMinPoint.y, vMinPoint.z);
-    glVertex3f(vMaxPoint.x, vMaxPoint.y, vMinPoint.z);
-    // BOTTOM
-    glVertex3f(vMaxPoint.x, vMinPoint.y, vMaxPoint.z);
-    glVertex3f(vMinPoint.x, vMinPoint.y, vMaxPoint.z);
-    glVertex3f(vMinPoint.x, vMinPoint.y, vMinPoint.z);
-    glVertex3f(vMaxPoint.x, vMinPoint.y, vMinPoint.z);
-    // TOP
-    glVertex3f(vMaxPoint.x, vMaxPoint.y, vMinPoint.z);
-    glVertex3f(vMinPoint.x, vMaxPoint.y, vMinPoint.z);
-    glVertex3f(vMinPoint.x, vMaxPoint.y, vMaxPoint.z);
-    glVertex3f(vMaxPoint.x, vMaxPoint.y, vMaxPoint.z);
+  std::vector<FLOATVECTOR3> posData;
+  MaxMinBoxToVector(vMinPoint, vMaxPoint, posData);
+
+  if ( m_bClipPlaneOn ) {
+    // clip plane is normaly defined in world space, transform back to model space
+    FLOATMATRIX4 inv = (renderRegion.rotation * renderRegion.translation).inverse();
+    PLANE<float> transformed = m_ClipPlane.Plane() * inv;
+
+    const FLOATVECTOR3 normal(transformed.xyz().normalized());
+    const float d = transformed.d();
+
+    Clipper::BoxPlane(posData, normal, d);
+  }
+
+  glBegin(GL_TRIANGLES);
+    for (auto vertex = posData.begin(); vertex != posData.end(); ++vertex) {
+      glVertex3f(vertex->x, vertex->y, vertex->z);
+    }
   glEnd();
 }
 
-
-/// Set the clip plane input variable in the shader.
-void GLRaycaster::ClipPlaneToShader(const ExtendedPlane& clipPlane, EStereoID eStereoID, bool bForce) {
-  vector<GLSLProgram*> vCurrentShader;
-
-  if (bForce) {
-    vCurrentShader.push_back(m_pProgram1DTrans[0]);
-    vCurrentShader.push_back(m_pProgram1DTrans[1]);
-    vCurrentShader.push_back(m_pProgram2DTrans[0]);
-    vCurrentShader.push_back(m_pProgram2DTrans[1]);
-    vCurrentShader.push_back(m_pProgramIso);
-    vCurrentShader.push_back(m_pProgramColor);
-    vCurrentShader.push_back(m_pProgramIso2);
-  } else {
-    switch (m_eRenderMode) {
-      case RM_1DTRANS    :  vCurrentShader.push_back(m_pProgram1DTrans[m_bUseLighting ? 1 : 0]);
-                            break;
-      case RM_2DTRANS    :  vCurrentShader.push_back(m_pProgram2DTrans[m_bUseLighting ? 1 : 0]);
-                            break;
-      case RM_ISOSURFACE :  if (this->ColorData())
-                              vCurrentShader.push_back(m_pProgramColor);
-                            else
-                              vCurrentShader.push_back(m_pProgramIso);
-                            if (m_bDoClearView) vCurrentShader.push_back(m_pProgramIso2);
-                            break;
-      default    :          T_ERROR("Invalid rendermode set");
-                            break;
-    }
-  }
-
-  if (bForce || m_bClipPlaneOn) {
-    ExtendedPlane plane(clipPlane);
-
-    plane.Transform(m_mView[size_t(eStereoID)], false);
-    for (size_t i = 0;i<vCurrentShader.size();i++) {
-      vCurrentShader[i]->Enable();
-      vCurrentShader[i]->Set("vClipPlane", plane.x(), plane.y(),
-                                                        plane.z(), plane.d());
-    }
-  }
-}
 
 void GLRaycaster::Render3DPreLoop(const RenderRegion3D &) {
 
@@ -472,8 +409,6 @@ void GLRaycaster::Render3DInLoop(const RenderRegion3D& renderRegion,
 
   renderRegion.modelView[size_t(eStereoID)].setModelview();
   m_mProjection[size_t(eStereoID)].setProjection();
-
-  if (m_bClipPlaneOn) ClipPlaneToShader(m_ClipPlane, eStereoID);
 
   // write frontfaces (ray entry points)
   m_TargetBinder.Bind(m_pFBORayEntry);
@@ -675,12 +610,4 @@ FLOATMATRIX4 GLRaycaster::ComputeEyeToTextureMatrix(const RenderRegion &renderRe
   m = mInvModelView * mTrans1 * mScale * mTrans2;
 
   return m;
-}
-
-
-void GLRaycaster::DisableClipPlane(RenderRegion* renderRegion) {
-  AbstrRenderer::DisableClipPlane(renderRegion);
-  /// We always clip against the plane in the shader, so initialize the plane
-  /// to be way out in left field, ensuring nothing will be clipped.
-  ClipPlaneToShader(ExtendedPlane::FarawayPlane(),SI_LEFT_OR_MONO,true);
 }

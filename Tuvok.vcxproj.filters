@@ -2000,9 +2000,6 @@
     <None Include="Shaders\BTF.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\clip-plane.glsl">
-      <Filter>Shaders</Filter>
-    </None>
     <None Include="Shaders\Compose-AF-FS.glsl">
       <Filter>Shaders</Filter>
     </None>

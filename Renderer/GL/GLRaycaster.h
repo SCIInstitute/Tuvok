@@ -77,9 +77,6 @@ class GLRaycaster : public GLRenderer {
       return "";
     }
 
-
-    virtual void DisableClipPlane(RenderRegion* renderRegion);
-
     virtual ERendererType GetRendererType() const {return RT_RC;}
 
   protected:
@@ -105,9 +102,6 @@ class GLRaycaster : public GLRenderer {
 
     virtual void RenderHQMIPPreLoop(RenderRegion2D &region);
     virtual void RenderHQMIPInLoop(const RenderRegion2D &renderRegion, const Brick& b);
-
-    /// Set the clip plane input variable in the shader.
-    void ClipPlaneToShader(const ExtendedPlane &clipPlane, EStereoID eStereoID=SI_LEFT_OR_MONO, bool bForce = false);
 
     virtual void StartFrame();
     virtual void SetDataDepShaderVars();
