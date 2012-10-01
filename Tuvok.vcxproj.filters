@@ -810,9 +810,6 @@
     <ClCompile Include="IO\UVF\TOCBlock.cpp">
       <Filter>IO\UVF</Filter>
     </ClCompile>
-    <ClCompile Include="Renderer\GL\GLTreeRaycaster.cpp">
-      <Filter>Renderer\GL</Filter>
-    </ClCompile>
     <ClCompile Include="IO\AmiraConverter.cpp">
       <Filter>IO\Volume Converter</Filter>
     </ClCompile>
@@ -994,6 +991,9 @@
       <Filter>IO\Volume Converter</Filter>
     </ClCompile>
     <ClCompile Include="Renderer\GL\GLGPURayTraverser.cpp">
+      <Filter>Renderer\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\GL\GLGridLeaper.cpp">
       <Filter>Renderer\GL</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1812,9 +1812,6 @@
     <ClInclude Include="IO\UVF\TOCBlock.h">
       <Filter>IO\UVF</Filter>
     </ClInclude>
-    <ClInclude Include="Renderer\GL\GLTreeRaycaster.h">
-      <Filter>Renderer\GL</Filter>
-    </ClInclude>
     <ClInclude Include="IO\AmiraConverter.h">
       <Filter>IO\Volume Converter</Filter>
     </ClInclude>
@@ -1984,6 +1981,9 @@
       <Filter>IO\Volume Converter</Filter>
     </ClInclude>
     <ClInclude Include="Renderer\GL\GLGPURayTraverser.h">
+      <Filter>Renderer\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\GL\GLGridLeaper.h">
       <Filter>Renderer\GL</Filter>
     </ClInclude>
   </ItemGroup>

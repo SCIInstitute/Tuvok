@@ -45,7 +45,7 @@
 #include "../Renderer/GPUMemMan/GPUMemMan.h"
 #include "../Renderer/GPUMemMan/GPUMemManDataStructs.h"
 #include "../Renderer/GL/GLRaycaster.h"
-#include "../Renderer/GL/GLTreeRaycaster.h"
+#include "../Renderer/GL/GLGridLeaper.h"
 #include "../Renderer/GL/GLSBVR.h"
 #include "../Renderer/GL/GLSBVR2D.h"
 
@@ -153,7 +153,7 @@ MasterController::RequestNewVolumeRenderer(EVolumeRendererType eRendererType,
   switch (eRendererType) {
   case OPENGL_SBVR :
     api = "OpenGL";
-    method = "Slice Based Volume Renderer";
+    method = "Slice-Based Volume Renderer";
     retval = new GLSBVR(this,
                         bUseOnlyPowerOfTwo,
                         bDownSampleTo8Bits,
@@ -162,7 +162,7 @@ MasterController::RequestNewVolumeRenderer(EVolumeRendererType eRendererType,
 
   case OPENGL_2DSBVR :
     api = "OpenGL";
-    method = "Axis Aligned 2D Slice Based Volume Renderer";
+    method = "Axis-Aligned 2D Slice-Based Volume Renderer";
     retval = new GLSBVR2D(this,
                           bUseOnlyPowerOfTwo,
                           bDownSampleTo8Bits,
@@ -177,10 +177,10 @@ MasterController::RequestNewVolumeRenderer(EVolumeRendererType eRendererType,
                              bDownSampleTo8Bits,
                              bDisableBorder);
     break;
-  case OPENGL_TRAYCASTER :
+  case OPENGL_GRIDLEAPER :
     api = "OpenGL";
-    method = "Tree Raycaster";
-    retval = new GLTreeRaycaster(this,
+    method = "Grid Leaper";
+    retval = new GLGridLeaper(this,
                              bUseOnlyPowerOfTwo,
                              bDownSampleTo8Bits,
                              bDisableBorder);
@@ -189,7 +189,7 @@ MasterController::RequestNewVolumeRenderer(EVolumeRendererType eRendererType,
   case DIRECTX_RAYCASTER :
   case DIRECTX_2DSBVR :
   case DIRECTX_SBVR :
-  case DIRECTX_TRAYCASTER:
+  case DIRECTX_GRIDLEAPER:
     m_DebugOut.Error(_func_,"DirectX 10 renderer not yet implemented."
                             "Please select OpenGL as the render API "
                             "in the settings dialog.");
@@ -328,12 +328,12 @@ void MasterController::RegisterLuaCommands() {
   AddLuaRendererType(renderer, "OpenGL_SVBR", OPENGL_SBVR);
   AddLuaRendererType(renderer, "OpenGL_2DSBVR", OPENGL_2DSBVR);
   AddLuaRendererType(renderer, "OpenGL_Raycaster", OPENGL_RAYCASTER);
-  AddLuaRendererType(renderer, "OpenGL_TRaycaster", OPENGL_TRAYCASTER);
+  AddLuaRendererType(renderer, "OpenGL_TRaycaster", OPENGL_GRIDLEAPER);
 
   AddLuaRendererType(renderer, "DirectX_SVBR", DIRECTX_SBVR);
   AddLuaRendererType(renderer, "DirectX_2DSBVR", DIRECTX_2DSBVR);
   AddLuaRendererType(renderer, "DirectX_Raycaster", DIRECTX_RAYCASTER);
-  AddLuaRendererType(renderer, "DirectX_TRaycaster", DIRECTX_TRAYCASTER);
+  AddLuaRendererType(renderer, "DirectX_TRaycaster", DIRECTX_GRIDLEAPER);
 
   // Register RenderRegion3D.
   ss->registerClass<RenderRegion>(this,

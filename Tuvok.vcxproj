@@ -556,8 +556,8 @@
     <ClCompile Include="Renderer\CullingLOD.cpp" />
     <ClCompile Include="Renderer\GL\GLCommon.cpp" />
     <ClCompile Include="Renderer\GL\GLGPURayTraverser.cpp" />
+    <ClCompile Include="Renderer\GL\GLGridLeaper.cpp" />
     <ClCompile Include="Renderer\GL\GLHashTable.cpp" />
-    <ClCompile Include="Renderer\GL\GLTreeRaycaster.cpp" />
     <ClCompile Include="Renderer\GL\GLVBO.cpp" />
     <ClCompile Include="Renderer\GL\GLVolumePool.cpp" />
     <ClCompile Include="Renderer\RenderMesh.cpp" />
@@ -1361,8 +1361,8 @@
     <ClInclude Include="Renderer\GL\GLCommon.h" />
     <ClInclude Include="Renderer\GL\GLContext.h" />
     <ClInclude Include="Renderer\GL\GLGPURayTraverser.h" />
+    <ClInclude Include="Renderer\GL\GLGridLeaper.h" />
     <ClInclude Include="Renderer\GL\GLHashTable.h" />
-    <ClInclude Include="Renderer\GL\GLTreeRaycaster.h" />
     <ClInclude Include="Renderer\GL\GLVBO.h" />
     <ClInclude Include="Renderer\GL\GLVolumePool.h" />
     <ClInclude Include="Renderer\GL\QtGLContext.h" />

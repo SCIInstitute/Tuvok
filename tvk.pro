@@ -248,7 +248,7 @@ HEADERS += \
            Renderer/GL/GLObject.h \
            Renderer/GL/GLRaycaster.h \
            Renderer/GL/GLGPURayTraverser.h \
-           Renderer/GL/GLTreeRaycaster.h \
+           Renderer/GL/GLGridLeaper.h \
            Renderer/GL/GLRenderer.h \
            Renderer/GL/GLSBVR.h \
            Renderer/GL/GLSBVR2D.h \
@@ -546,7 +546,7 @@ SOURCES += \
            Renderer/GL/GLVolume2DTex.cpp \
            Renderer/GL/GLVolume3DTex.cpp \
            Renderer/GL/RenderMeshGL.cpp \   
-           Renderer/GL/GLTreeRaycaster.cpp \
+           Renderer/GL/GLGridLeaper.cpp \
            Renderer/GL/GLVolumePool.cpp \
            Renderer/GL/GLVBO.cpp \
            Renderer/GPUMemMan/GPUMemMan.cpp \

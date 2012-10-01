@@ -1,5 +1,5 @@
 #include "GLInclude.h"
-#include "GLTreeRaycaster.h"
+#include "GLGridLeaper.h"
 #include "GLFBOTex.h"
 
 #include <Controller/Controller.h>
@@ -28,7 +28,7 @@ using namespace std::placeholders;
 using namespace std;
 using namespace tuvok;
 
-GLTreeRaycaster::GLTreeRaycaster(MasterController* pMasterController, 
+GLGridLeaper::GLGridLeaper(MasterController* pMasterController, 
                          bool bUseOnlyPowerOfTwo, 
                          bool bDownSampleTo8Bits, 
                          bool bDisableBorder) :
@@ -60,11 +60,11 @@ GLTreeRaycaster::GLTreeRaycaster(MasterController* pMasterController,
   , m_iAveragingFrameCount(0)
   , m_bAveragingFrameTimes(false)
   , m_pLogFile(NULL)
-#ifdef GLTREERAYCASTER_DEBUGVIEW
+#ifdef GLGRIDLEAPER_DEBUGVIEW
   , m_pFBODebug(NULL)
   , m_pFBODebugNext(NULL)
 #endif
-#ifdef GLTREERAYCASTER_WORKINGSET
+#ifdef GLGRIDLEAPER_WORKINGSET
   , m_pWorkingSetTable(NULL)
 #endif
   , m_RenderingTime(0)
@@ -79,7 +79,7 @@ GLTreeRaycaster::GLTreeRaycaster(MasterController* pMasterController,
 }
 
 
-bool GLTreeRaycaster::CreateVolumePool() {
+bool GLGridLeaper::CreateVolumePool() {
   m_pVolumePool = Controller::Instance().MemMan()->GetVolumePool(m_pToCDataset, ComputeGLFilter(),  m_pContext->GetShareGroupID());
 
   if (!m_pVolumePool) return false;
@@ -111,7 +111,7 @@ bool GLTreeRaycaster::CreateVolumePool() {
   return true;
 }
 
-bool GLTreeRaycaster::LoadDataset(const string& strFilename) {
+bool GLGridLeaper::LoadDataset(const string& strFilename) {
   if(!AbstrRenderer::LoadDataset(strFilename)) {
     return false;
   }
@@ -131,17 +131,17 @@ bool GLTreeRaycaster::LoadDataset(const string& strFilename) {
 
   return true;
 }
-GLTreeRaycaster::~GLTreeRaycaster() {
+GLGridLeaper::~GLGridLeaper() {
   PH_CloseLogfile();
   delete m_pglHashTable; m_pglHashTable = NULL;
-#ifdef GLTREERAYCASTER_WORKINGSET
+#ifdef GLGRIDLEAPER_WORKINGSET
   delete m_pWorkingSetTable; m_pWorkingSetTable = NULL;
 #endif
   Controller::Instance().MemMan()->DeleteVolumePool(&m_pVolumePool);
 }
 
 
-void GLTreeRaycaster::CleanupShaders() {
+void GLGridLeaper::CleanupShaders() {
   GLGPURayTraverser::CleanupShaders();
 
   CleanupShader(&m_pProgramRenderFrontFaces);
@@ -158,7 +158,7 @@ struct {
   }
 } deleteFBO;
 
-void GLTreeRaycaster::Cleanup() {
+void GLGridLeaper::Cleanup() {
   GLGPURayTraverser::Cleanup();
 
   std::for_each(m_pFBORayStart.begin(),        m_pFBORayStart.end(),        deleteFBO);
@@ -166,7 +166,7 @@ void GLTreeRaycaster::Cleanup() {
   std::for_each(m_pFBOStartColor.begin(),     m_pFBOStartColor.end(),     deleteFBO);
   std::for_each(m_pFBOStartColorNext.begin(), m_pFBOStartColorNext.end(), deleteFBO);
 
-#ifdef GLTREERAYCASTER_DEBUGVIEW
+#ifdef GLGRIDLEAPER_DEBUGVIEW
   deleteFBO(m_pFBODebug);
   deleteFBO(m_pFBODebugNext);
 #endif
@@ -177,7 +177,7 @@ void GLTreeRaycaster::Cleanup() {
     m_pglHashTable = NULL;
   }
 
-#ifdef GLTREERAYCASTER_WORKINGSET
+#ifdef GLGRIDLEAPER_WORKINGSET
   if (m_pWorkingSetTable) {
     m_pWorkingSetTable->FreeGL();
     delete m_pWorkingSetTable;
@@ -196,7 +196,7 @@ void recreateFBO(GLFBOTex*& fbo, std::shared_ptr<Context> pContext,
     ws.y, intformat, format, type, pContext->GetShareGroupID(), false);
 }
 
-void GLTreeRaycaster::CreateOffscreenBuffers() {
+void GLGridLeaper::CreateOffscreenBuffers() {
   GLGPURayTraverser::CreateOffscreenBuffers();
 
   GLenum intformat, type;
@@ -224,14 +224,14 @@ void GLTreeRaycaster::CreateOffscreenBuffers() {
     for_each(m_pFBOStartColorNext.begin(), m_pFBOStartColorNext.end(), 
       bind(recreateFBO, _1, m_pContext ,m_vWinSize, intformat, GL_RGBA, type));
 
-#ifdef GLTREERAYCASTER_DEBUGVIEW
+#ifdef GLGRIDLEAPER_DEBUGVIEW
     recreateFBO(m_pFBODebug, m_pContext ,m_vWinSize, intformat, GL_RGBA, type);
     recreateFBO(m_pFBODebugNext, m_pContext ,m_vWinSize, intformat, GL_RGBA, type);
 #endif
   }
 }
 
-bool GLTreeRaycaster::Initialize(std::shared_ptr<Context> ctx) {
+bool GLGridLeaper::Initialize(std::shared_ptr<Context> ctx) {
   if (!GLGPURayTraverser::Initialize(ctx)) {
     T_ERROR("Error in parent call -> aborting");
     return false;
@@ -247,7 +247,7 @@ bool GLTreeRaycaster::Initialize(std::shared_ptr<Context> ctx) {
   );
   m_pglHashTable->InitGL();
 
-#ifdef GLTREERAYCASTER_WORKINGSET
+#ifdef GLGRIDLEAPER_WORKINGSET
   m_pWorkingSetTable = new GLHashTable(
     finestBrickLayout, finestBrickLayout.volume() *
                        uint32_t(m_pToCDataset->GetLargestSingleBrickLod(0)),
@@ -267,7 +267,7 @@ bool GLTreeRaycaster::Initialize(std::shared_ptr<Context> ctx) {
   return true;
 }
 
-bool GLTreeRaycaster::LoadCheckShader(GLSLProgram** shader, ShaderDescriptor& sd, std::string name)  {
+bool GLGridLeaper::LoadCheckShader(GLSLProgram** shader, ShaderDescriptor& sd, std::string name)  {
   MESSAGE("Loading %s shader.", name.c_str());
   *shader = m_pMasterController->MemMan()->GetGLSLProgram(sd, m_pContext->GetShareGroupID());
   if (!(*shader) || !(*shader)->IsValid())
@@ -292,9 +292,9 @@ static GLVolumePool::MissingBrickStrategy MCStrategyToVPoolStrategy(
 }
 
 
-bool GLTreeRaycaster::LoadTraversalShaders(const std::vector<std::string>& vDefines) {
+bool GLGridLeaper::LoadTraversalShaders(const std::vector<std::string>& vDefines) {
 
-#ifdef GLTREERAYCASTER_WORKINGSET
+#ifdef GLGRIDLEAPER_WORKINGSET
   const std::string infoFragment = m_pWorkingSetTable->GetShaderFragment(7);
   const std::string poolFragment = m_pVolumePool->GetShaderFragment(
     3, 4,
@@ -309,151 +309,151 @@ bool GLTreeRaycaster::LoadTraversalShaders(const std::vector<std::string>& vDefi
   const std::string hashFragment = m_pglHashTable->GetShaderFragment(5);
 
   std::vector<std::string> vs, fs;
-  vs.push_back(FindFileInDirs("GLTreeRaycaster-entry-VS.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLTreeRaycaster-blend.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLTreeRaycaster-Method-1D.glsl", m_vShaderSearchDirs, false));
+  vs.push_back(FindFileInDirs("GLGridLeaper-entry-VS.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLGridLeaper-blend.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLGridLeaper-Method-1D.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
   ShaderDescriptor sd(vs, fs);
   sd.AddDefines(vDefines);
   sd.AddFragmentShaderString(poolFragment);
   sd.AddFragmentShaderString(hashFragment);
-#ifdef GLTREERAYCASTER_WORKINGSET
+#ifdef GLGRIDLEAPER_WORKINGSET
   sd.AddFragmentShaderString(infoFragment);
 #endif
   if (!LoadCheckShader(&m_pProgramRayCast1D, sd, "1D TF")) return false;
 
   vs.clear(); fs.clear();
-  vs.push_back(FindFileInDirs("GLTreeRaycaster-entry-VS.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLTreeRaycaster-blend.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLTreeRaycaster-Method-1D-color.glsl", m_vShaderSearchDirs, false));
+  vs.push_back(FindFileInDirs("GLGridLeaper-entry-VS.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLGridLeaper-blend.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLGridLeaper-Method-1D-color.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
   sd = ShaderDescriptor(vs, fs);
   sd.AddDefines(vDefines);
   sd.AddFragmentShaderString(poolFragment);
   sd.AddFragmentShaderString(hashFragment);
-#ifdef GLTREERAYCASTER_WORKINGSET
+#ifdef GLGRIDLEAPER_WORKINGSET
   sd.AddFragmentShaderString(infoFragment);
 #endif
   if (!LoadCheckShader(&m_pProgramRayCast1DColor, sd, "Color 1D TF")) return false;
 
   vs.clear(); fs.clear();
-  vs.push_back(FindFileInDirs("GLTreeRaycaster-entry-VS.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLTreeRaycaster-blend.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLTreeRaycaster-Method-1D-L.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLTreeRaycaster-GradientTools.glsl", m_vShaderSearchDirs, false));
+  vs.push_back(FindFileInDirs("GLGridLeaper-entry-VS.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLGridLeaper-blend.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLGridLeaper-Method-1D-L.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLGridLeaper-GradientTools.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("lighting.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
   sd = ShaderDescriptor(vs, fs);
   sd.AddDefines(vDefines);
   sd.AddFragmentShaderString(poolFragment);
   sd.AddFragmentShaderString(hashFragment);
-#ifdef GLTREERAYCASTER_WORKINGSET
+#ifdef GLGRIDLEAPER_WORKINGSET
   sd.AddFragmentShaderString(infoFragment);
 #endif
   if (!LoadCheckShader(&m_pProgramRayCast1DLighting, sd, "1D TF lighting")) return false;
 
   vs.clear(); fs.clear();
-  vs.push_back(FindFileInDirs("GLTreeRaycaster-entry-VS.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLTreeRaycaster-blend.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLTreeRaycaster-Method-1D-L-color.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLTreeRaycaster-GradientTools.glsl", m_vShaderSearchDirs, false));
+  vs.push_back(FindFileInDirs("GLGridLeaper-entry-VS.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLGridLeaper-blend.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLGridLeaper-Method-1D-L-color.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLGridLeaper-GradientTools.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("lighting.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
   sd = ShaderDescriptor(vs, fs);
   sd.AddDefines(vDefines);
   sd.AddFragmentShaderString(poolFragment);
   sd.AddFragmentShaderString(hashFragment);
-#ifdef GLTREERAYCASTER_WORKINGSET
+#ifdef GLGRIDLEAPER_WORKINGSET
   sd.AddFragmentShaderString(infoFragment);
 #endif
   if (!LoadCheckShader(&m_pProgramRayCast1DLightingColor, sd, "Color 1D TF lighting")) return false;
 
   vs.clear(); fs.clear();
-  vs.push_back(FindFileInDirs("GLTreeRaycaster-entry-VS.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLTreeRaycaster-blend.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLTreeRaycaster-Method-2D.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLTreeRaycaster-GradientTools.glsl", m_vShaderSearchDirs, false));
+  vs.push_back(FindFileInDirs("GLGridLeaper-entry-VS.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLGridLeaper-blend.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLGridLeaper-Method-2D.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLGridLeaper-GradientTools.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
   sd = ShaderDescriptor(vs, fs);
   sd.AddDefines(vDefines);
   sd.AddFragmentShaderString(poolFragment);
   sd.AddFragmentShaderString(hashFragment);
-#ifdef GLTREERAYCASTER_WORKINGSET
+#ifdef GLGRIDLEAPER_WORKINGSET
   sd.AddFragmentShaderString(infoFragment);
 #endif
   if (!LoadCheckShader(&m_pProgramRayCast2D, sd, "2D TF")) return false;
 
   vs.clear(); fs.clear();
-  vs.push_back(FindFileInDirs("GLTreeRaycaster-entry-VS.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLTreeRaycaster-blend.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLTreeRaycaster-Method-2D-color.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLTreeRaycaster-GradientTools.glsl", m_vShaderSearchDirs, false));
+  vs.push_back(FindFileInDirs("GLGridLeaper-entry-VS.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLGridLeaper-blend.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLGridLeaper-Method-2D-color.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLGridLeaper-GradientTools.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
   sd = ShaderDescriptor(vs, fs);
   sd.AddDefines(vDefines);
   sd.AddFragmentShaderString(poolFragment);
   sd.AddFragmentShaderString(hashFragment);
-#ifdef GLTREERAYCASTER_WORKINGSET
+#ifdef GLGRIDLEAPER_WORKINGSET
   sd.AddFragmentShaderString(infoFragment);
 #endif
   if (!LoadCheckShader(&m_pProgramRayCast2DColor, sd, "Color 2D TF")) return false;
 
   vs.clear(); fs.clear();
-  vs.push_back(FindFileInDirs("GLTreeRaycaster-entry-VS.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLTreeRaycaster-blend.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLTreeRaycaster-Method-2D-L.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLTreeRaycaster-GradientTools.glsl", m_vShaderSearchDirs, false));
+  vs.push_back(FindFileInDirs("GLGridLeaper-entry-VS.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLGridLeaper-blend.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLGridLeaper-Method-2D-L.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLGridLeaper-GradientTools.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("lighting.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
   sd = ShaderDescriptor(vs, fs);
   sd.AddDefines(vDefines);
   sd.AddFragmentShaderString(poolFragment);
   sd.AddFragmentShaderString(hashFragment);
-#ifdef GLTREERAYCASTER_WORKINGSET
+#ifdef GLGRIDLEAPER_WORKINGSET
   sd.AddFragmentShaderString(infoFragment);
 #endif
   if (!LoadCheckShader(&m_pProgramRayCast2DLighting, sd, "2D TF lighting")) return false;
 
   vs.clear(); fs.clear();
-  vs.push_back(FindFileInDirs("GLTreeRaycaster-entry-VS.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLTreeRaycaster-blend.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLTreeRaycaster-Method-2D-L-color.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLTreeRaycaster-GradientTools.glsl", m_vShaderSearchDirs, false));
+  vs.push_back(FindFileInDirs("GLGridLeaper-entry-VS.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLGridLeaper-blend.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLGridLeaper-Method-2D-L-color.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLGridLeaper-GradientTools.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("lighting.glsl", m_vShaderSearchDirs, false));
   fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
   sd = ShaderDescriptor(vs, fs);
   sd.AddDefines(vDefines);
   sd.AddFragmentShaderString(poolFragment);
   sd.AddFragmentShaderString(hashFragment);
-#ifdef GLTREERAYCASTER_WORKINGSET
+#ifdef GLGRIDLEAPER_WORKINGSET
   sd.AddFragmentShaderString(infoFragment);
 #endif
   if (!LoadCheckShader(&m_pProgramRayCast2DLightingColor, sd, "Color 2D TF lighting")) return false;
 
   vs.clear(); fs.clear();
-  vs.push_back(FindFileInDirs("GLTreeRaycaster-entry-VS.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLTreeRaycaster-iso.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLTreeRaycaster-Method-iso.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLTreeRaycaster-GradientTools.glsl", m_vShaderSearchDirs, false));
+  vs.push_back(FindFileInDirs("GLGridLeaper-entry-VS.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLGridLeaper-iso.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLGridLeaper-Method-iso.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLGridLeaper-GradientTools.glsl", m_vShaderSearchDirs, false));
   sd = ShaderDescriptor(vs, fs);
   sd.AddDefines(vDefines);
   sd.AddFragmentShaderString(poolFragment);
   sd.AddFragmentShaderString(hashFragment);
-#ifdef GLTREERAYCASTER_WORKINGSET
+#ifdef GLGRIDLEAPER_WORKINGSET
   sd.AddFragmentShaderString(infoFragment);
 #endif
   if (!LoadCheckShader(&m_pProgramRayCastISO, sd, "Isosurface")) return false;
 
   vs.clear(); fs.clear();
-  vs.push_back(FindFileInDirs("GLTreeRaycaster-entry-VS.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLTreeRaycaster-iso.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLTreeRaycaster-Method-iso-color.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLTreeRaycaster-GradientTools.glsl", m_vShaderSearchDirs, false));
+  vs.push_back(FindFileInDirs("GLGridLeaper-entry-VS.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLGridLeaper-iso.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLGridLeaper-Method-iso-color.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs("GLGridLeaper-GradientTools.glsl", m_vShaderSearchDirs, false));
   sd = ShaderDescriptor(vs, fs);
   sd.AddDefines(vDefines);
   sd.AddFragmentShaderString(poolFragment);
   sd.AddFragmentShaderString(hashFragment);
-#ifdef GLTREERAYCASTER_WORKINGSET
+#ifdef GLGRIDLEAPER_WORKINGSET
   sd.AddFragmentShaderString(infoFragment);
 #endif
   if (!LoadCheckShader(&m_pProgramRayCastISOColor, sd, "Color Isosurface")) return false;
@@ -462,7 +462,7 @@ bool GLTreeRaycaster::LoadTraversalShaders(const std::vector<std::string>& vDefi
 }
 
 
-void GLTreeRaycaster::CleanupTraversalShaders() {
+void GLGridLeaper::CleanupTraversalShaders() {
   CleanupShader(&m_pProgramRayCast1D);
   CleanupShader(&m_pProgramRayCast1DLighting);
   CleanupShader(&m_pProgramRayCast2D);
@@ -475,12 +475,12 @@ void GLTreeRaycaster::CleanupTraversalShaders() {
   CleanupShader(&m_pProgramRayCastISOColor);
 }
 
-void GLTreeRaycaster::SetRescaleFactors(const DOUBLEVECTOR3& vfRescale) {
+void GLGridLeaper::SetRescaleFactors(const DOUBLEVECTOR3& vfRescale) {
   GLGPURayTraverser::SetRescaleFactors(vfRescale);
   FillBBoxVBO();
 }
 
-void GLTreeRaycaster::FillBBoxVBO() {
+void GLGridLeaper::FillBBoxVBO() {
   FLOATVECTOR3 vCenter, vExtend;
   GetVolumeAABB(vCenter, vExtend);
 
@@ -508,7 +508,7 @@ void GLTreeRaycaster::FillBBoxVBO() {
 }
 
 
-bool GLTreeRaycaster::LoadShaders() {
+bool GLGridLeaper::LoadShaders() {
   if (!GLGPURayTraverser::LoadShaders()) {
     T_ERROR("Error in parent call -> aborting");
     return false;
@@ -516,13 +516,13 @@ bool GLTreeRaycaster::LoadShaders() {
 
 
   if(!LoadAndVerifyShader(&m_pProgramRenderFrontFaces, m_vShaderSearchDirs,
-                          "GLTreeRaycaster-entry-VS.glsl",
+                          "GLGridLeaper-entry-VS.glsl",
                           NULL,
-                          "GLTreeRaycaster-frontfaces-FS.glsl", NULL) ||
+                          "GLGridLeaper-frontfaces-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramRenderFrontFacesNearPlane, m_vShaderSearchDirs,
-                          "GLTreeRaycaster-NearPlane-VS.glsl",
+                          "GLGridLeaper-NearPlane-VS.glsl",
                           NULL,
-                          "GLTreeRaycaster-frontfaces-FS.glsl", NULL) )
+                          "GLGridLeaper-frontfaces-FS.glsl", NULL) )
   {
       Cleanup();
       T_ERROR("Error loading a shader.");
@@ -533,7 +533,7 @@ bool GLTreeRaycaster::LoadShaders() {
   return true;
 }
 
-FLOATMATRIX4 GLTreeRaycaster::ComputeEyeToModelMatrix(const RenderRegion &renderRegion,
+FLOATMATRIX4 GLGridLeaper::ComputeEyeToModelMatrix(const RenderRegion &renderRegion,
                                                       EStereoID eStereoID) const {
 
   FLOATVECTOR3 vCenter, vExtend;
@@ -548,13 +548,13 @@ FLOATMATRIX4 GLTreeRaycaster::ComputeEyeToModelMatrix(const RenderRegion &render
   return renderRegion.modelView[size_t(eStereoID)].inverse() * mTrans * mScale * mNormalize;
 }
 
-bool GLTreeRaycaster::Continue3DDraw() {
+bool GLGridLeaper::Continue3DDraw() {
   return !m_bConverged;
 }
 
-void GLTreeRaycaster::FillRayEntryBuffer(RenderRegion3D& rr, EStereoID eStereoID) {
+void GLGridLeaper::FillRayEntryBuffer(RenderRegion3D& rr, EStereoID eStereoID) {
 
-#ifdef GLTREERAYCASTER_DEBUGVIEW
+#ifdef GLGRIDLEAPER_DEBUGVIEW
   if (m_iDebugView == 2)
     m_TargetBinder.Bind(m_pFBODebug, m_pFBODebugNext, m_pFBOStartColor[size_t(eStereoID)], m_pFBORayStart[size_t(eStereoID)]);
   else
@@ -595,32 +595,32 @@ void GLTreeRaycaster::FillRayEntryBuffer(RenderRegion3D& rr, EStereoID eStereoID
   m_pBBoxVBO->UnBind();
 }
 
-void GLTreeRaycaster::SetIsoValue(float fIsovalue) {
+void GLGridLeaper::SetIsoValue(float fIsovalue) {
   GLGPURayTraverser::SetIsoValue(fIsovalue);
   RecomputeBrickVisibility();
 }
 
-void GLTreeRaycaster::Changed2DTrans() {
+void GLGridLeaper::Changed2DTrans() {
   GLGPURayTraverser::Changed2DTrans();
   RecomputeBrickVisibility();
 }
 
-void GLTreeRaycaster::Changed1DTrans() {
+void GLGridLeaper::Changed1DTrans() {
   GLGPURayTraverser::Changed1DTrans();
   RecomputeBrickVisibility();
 }
 
-void GLTreeRaycaster::Set1DTrans(const std::vector<unsigned char>& rgba) {
+void GLGridLeaper::Set1DTrans(const std::vector<unsigned char>& rgba) {
   GLGPURayTraverser::Set1DTrans(rgba);
   RecomputeBrickVisibility();
 }
 
-void GLTreeRaycaster::SetRendermode(AbstrRenderer::ERenderMode eRenderMode) {
+void GLGridLeaper::SetRendermode(AbstrRenderer::ERenderMode eRenderMode) {
   GLGPURayTraverser::SetRendermode(eRenderMode);
   RecomputeBrickVisibility();
 }
 
-void GLTreeRaycaster::RecomputeBrickVisibility(bool bForceSynchronousUpdate) {
+void GLGridLeaper::RecomputeBrickVisibility(bool bForceSynchronousUpdate) {
   if (!m_pVolumePool) return;
 
   double const fMaxValue = (m_pDataset->GetRange().first > m_pDataset->GetRange().second) ? m_p1DTrans->GetSize() : m_pDataset->GetRange().second;
@@ -663,7 +663,7 @@ void GLTreeRaycaster::RecomputeBrickVisibility(bool bForceSynchronousUpdate) {
 }
 
 
-void GLTreeRaycaster::SetupRaycastShader(GLSLProgram* shaderProgram, RenderRegion3D& rr, EStereoID eStereoID) {
+void GLGridLeaper::SetupRaycastShader(GLSLProgram* shaderProgram, RenderRegion3D& rr, EStereoID eStereoID) {
   UINTVECTOR3 vDomainSize = UINTVECTOR3(m_pToCDataset->GetDomainSize());
   FLOATVECTOR3 vScale = FLOATVECTOR3(m_pToCDataset->GetScale());
   FLOATVECTOR3 vExtend = FLOATVECTOR3(vDomainSize) * vScale;
@@ -675,11 +675,11 @@ void GLTreeRaycaster::SetupRaycastShader(GLSLProgram* shaderProgram, RenderRegio
   m_pVolumePool->Enable(m_FrustumCullingLOD.GetLoDFactor(), 
                         vExtend, vScale, shaderProgram); // bound to 3 and 4
   m_pglHashTable->Enable(); // bound to 5
-#ifdef GLTREERAYCASTER_DEBUGVIEW
+#ifdef GLGRIDLEAPER_DEBUGVIEW
   if (m_iDebugView == 2)
     m_pFBODebug->Read(6);
 #endif
-#ifdef GLTREERAYCASTER_WORKINGSET
+#ifdef GLGRIDLEAPER_WORKINGSET
   m_pWorkingSetTable->Enable(); // bound to 7
 #endif
 
@@ -727,7 +727,7 @@ void GLTreeRaycaster::SetupRaycastShader(GLSLProgram* shaderProgram, RenderRegio
   }
 }
 
-void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
+void GLGridLeaper::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
   GLSLProgram* shaderProgram = NULL;
   switch (m_eRenderMode) {
     default: 
@@ -773,7 +773,7 @@ void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
 
   SetupRaycastShader(shaderProgram, rr, eStereoID);
 
-#ifdef GLTREERAYCASTER_DEBUGVIEW
+#ifdef GLGRIDLEAPER_DEBUGVIEW
   if (m_eRenderMode == RM_ISOSURFACE) {
     m_TargetBinder.Bind(m_pFBOIsoHit[size_t(eStereoID)], 0, 
                         m_pFBOIsoHit[size_t(eStereoID)], 1,
@@ -821,7 +821,7 @@ void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
   // unbind input textures
   m_pFBORayStart[size_t(eStereoID)]->FinishRead();
   m_pFBOStartColor[size_t(eStereoID)]->FinishRead();
-#ifdef GLTREERAYCASTER_DEBUGVIEW
+#ifdef GLGRIDLEAPER_DEBUGVIEW
   if (m_iDebugView == 2)
     m_pFBODebug->FinishRead();
 #endif
@@ -832,13 +832,13 @@ void GLTreeRaycaster::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
   // swap current and next resume color
   std::swap(m_pFBOStartColorNext[size_t(eStereoID)], m_pFBOStartColor[size_t(eStereoID)]);
   std::swap(m_pFBORayStartNext[size_t(eStereoID)], m_pFBORayStart[size_t(eStereoID)]);
-#ifdef GLTREERAYCASTER_DEBUGVIEW
+#ifdef GLGRIDLEAPER_DEBUGVIEW
   if (m_iDebugView == 2)
     std::swap(m_pFBODebugNext, m_pFBODebug);
 #endif
 }
 
-bool GLTreeRaycaster::CheckForRedraw() {
+bool GLGridLeaper::CheckForRedraw() {
   // can't draw to a size zero window.
   if (m_vWinSize.area() == 0) return false; 
 
@@ -856,13 +856,13 @@ bool GLTreeRaycaster::CheckForRedraw() {
   return false;
 }
 
-uint32_t GLTreeRaycaster::UpdateToVolumePool(const UINTVECTOR4& brick) {
+uint32_t GLGridLeaper::UpdateToVolumePool(const UINTVECTOR4& brick) {
   std::vector<UINTVECTOR4> bricks;
   bricks.push_back(brick);
   return UpdateToVolumePool(bricks);
 }
 
-uint32_t GLTreeRaycaster::UpdateToVolumePool(std::vector<UINTVECTOR4>& hash) {
+uint32_t GLGridLeaper::UpdateToVolumePool(std::vector<UINTVECTOR4>& hash) {
 /*
   // DEBUG Code
   uint32_t iHQLevel = std::numeric_limits<uint32_t>::max();
@@ -878,7 +878,7 @@ uint32_t GLTreeRaycaster::UpdateToVolumePool(std::vector<UINTVECTOR4>& hash) {
   return m_pVolumePool->UploadBricks(hash, m_vUploadMem);
 }
 
-bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
+bool GLGridLeaper::Render3DRegion(RenderRegion3D& rr) {
   Timer renTime; renTime.Start();
   glClearColor(0,0,0,0);
 
@@ -893,7 +893,7 @@ bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
     m_iSubframes = 0;
     m_iPagedBricks = 0;
 
-#ifdef GLTREERAYCASTER_WORKINGSET
+#ifdef GLGRIDLEAPER_WORKINGSET
     // clear the info hash table at the beginning of every frame
     m_pWorkingSetTable->ClearData();
 #endif
@@ -967,7 +967,7 @@ bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
                   << m_vUploadMem.size() * m_iPagedBricks / 1024.f / 1024.f << ";\t"; // paged in memory (MB)
     }
 
-#ifdef GLTREERAYCASTER_WORKINGSET
+#ifdef GLGRIDLEAPER_WORKINGSET
     std::vector<UINTVECTOR4> vUsedBricks = m_pWorkingSetTable->GetData();
 
     // debug output
@@ -987,7 +987,7 @@ bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
       *m_pLogFile << std::endl;
     }
 
-#ifdef GLTREERAYCASTER_DEBUGVIEW
+#ifdef GLGRIDLEAPER_DEBUGVIEW
     if (m_iDebugView == 2)
       std::swap(m_pFBODebug, m_pFBO3DImageNext[0]); // always use first eye
 #endif
@@ -1009,7 +1009,7 @@ bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
                     << m_iSubframes << ";\t" // subframe count
                     << m_iPagedBricks << ";\t" // paged in brick count
                     << m_vUploadMem.size() * m_iPagedBricks / 1024.f / 1024.f << ";\t"; // paged in memory (MB)
-#ifdef GLTREERAYCASTER_WORKINGSET
+#ifdef GLGRIDLEAPER_WORKINGSET
         std::vector<UINTVECTOR4> vUsedBricks = m_pWorkingSetTable->GetData();
         *m_pLogFile << vUsedBricks.size() << ";\t" // working set brick count
                     << m_vUploadMem.size() * vUsedBricks.size() / 1024.f / 1024.f << ";\t"; // working set memory (MB)
@@ -1037,45 +1037,45 @@ bool GLTreeRaycaster::Render3DRegion(RenderRegion3D& rr) {
   return true;
 }
 
-void GLTreeRaycaster::SetInterpolant(Interpolant eInterpolant) {  
+void GLGridLeaper::SetInterpolant(Interpolant eInterpolant) {  
   GLGPURayTraverser::SetInterpolant(eInterpolant);
   m_pVolumePool->SetFilterMode(ComputeGLFilter());
 }
 
-void GLTreeRaycaster::PH_ClearWorkingSet() {
+void GLGridLeaper::PH_ClearWorkingSet() {
   m_pVolumePool->Reset();
 }
-void GLTreeRaycaster::PH_SetPagedBricks(size_t bricks) {
+void GLGridLeaper::PH_SetPagedBricks(size_t bricks) {
   m_iPagedBricks = bricks;
 }
-size_t GLTreeRaycaster::PH_FramePagedBricks() const {
+size_t GLGridLeaper::PH_FramePagedBricks() const {
   return static_cast<size_t>(m_iPagedBricks);
 }
-size_t GLTreeRaycaster::PH_SubframePagedBricks() const {
+size_t GLGridLeaper::PH_SubframePagedBricks() const {
   return 0; /// @todo fixme this info isn't stored now.
 }
-void GLTreeRaycaster::PH_RecalculateVisibility() {
+void GLGridLeaper::PH_RecalculateVisibility() {
   RecomputeBrickVisibility(true);
 }
-bool GLTreeRaycaster::PH_Converged() const {
+bool GLGridLeaper::PH_Converged() const {
   return m_bConverged;
 }
-double GLTreeRaycaster::PH_BrickIOTime() const {
+double GLGridLeaper::PH_BrickIOTime() const {
   return m_pVolumePool->PH_BrickIOTime();
 }
-void GLTreeRaycaster::PH_SetBrickIOTime(double d) {
+void GLGridLeaper::PH_SetBrickIOTime(double d) {
   m_pVolumePool->PH_SetBrickIOTime(d);
 }
-uint64_t GLTreeRaycaster::PH_BrickIOBytes() const {
+uint64_t GLGridLeaper::PH_BrickIOBytes() const {
   return m_pVolumePool->PH_BrickIOBytes();
 }
-void GLTreeRaycaster::PH_SetBrickIOBytes(uint64_t b) {
+void GLGridLeaper::PH_SetBrickIOBytes(uint64_t b) {
   m_pVolumePool->PH_SetBrickIOBytes(b);
 }
-double GLTreeRaycaster::PH_RenderingTime() const {
+double GLGridLeaper::PH_RenderingTime() const {
   return m_RenderingTime;
 }
-bool GLTreeRaycaster::PH_OpenLogfile(const std::string& filename) {
+bool GLGridLeaper::PH_OpenLogfile(const std::string& filename) {
   if (m_pLogFile)
     return false; // we already have a file do close and open
   std::string logFilename = filename;
@@ -1100,7 +1100,7 @@ bool GLTreeRaycaster::PH_OpenLogfile(const std::string& filename) {
               << "subframe count;\t"
               << "paged in brick count;\t"
               << "paged in memory (MB);\t";
-#ifdef GLTREERAYCASTER_WORKINGSET
+#ifdef GLGRIDLEAPER_WORKINGSET
   *m_pLogFile << "working set brick count;\t"
               << "working set memory (MB);\t";
 #endif
@@ -1109,7 +1109,7 @@ bool GLTreeRaycaster::PH_OpenLogfile(const std::string& filename) {
   return true;
 }
 
-bool GLTreeRaycaster::PH_CloseLogfile() {
+bool GLGridLeaper::PH_CloseLogfile() {
   if (m_pLogFile) {
     m_pLogFile->close();
     delete m_pLogFile;
@@ -1120,39 +1120,39 @@ bool GLTreeRaycaster::PH_CloseLogfile() {
   }
 }
 
-void GLTreeRaycaster::PH_SetOptimalFrameAverageCount(size_t iValue) {
+void GLGridLeaper::PH_SetOptimalFrameAverageCount(size_t iValue) {
   m_iAveragingFrameCount = iValue;
 }
 
-size_t GLTreeRaycaster::PH_GetOptimalFrameAverageCount() const {
+size_t GLGridLeaper::PH_GetOptimalFrameAverageCount() const {
   return m_iAveragingFrameCount;
 }
 
-bool GLTreeRaycaster::PH_IsDebugViewAvailable() const {
-#ifdef GLTREERAYCASTER_DEBUGVIEW
+bool GLGridLeaper::PH_IsDebugViewAvailable() const {
+#ifdef GLGRIDLEAPER_DEBUGVIEW
   return true;
 #else
   return false;
 #endif
 }
 
-bool GLTreeRaycaster::PH_IsWorkingSetTrackerAvailable() const {
-#ifdef GLTREERAYCASTER_WORKINGSET
+bool GLGridLeaper::PH_IsWorkingSetTrackerAvailable() const {
+#ifdef GLGRIDLEAPER_WORKINGSET
   return true;
 #else
   return false;
 #endif
 }
 
-uint32_t GLTreeRaycaster::GetDebugViewCount() const {
-#ifdef GLTREERAYCASTER_DEBUGVIEW
+uint32_t GLGridLeaper::GetDebugViewCount() const {
+#ifdef GLGRIDLEAPER_DEBUGVIEW
   return 3;
 #else
   return 2;
 #endif
 }
 
-void GLTreeRaycaster::SetDebugView(uint32_t iDebugView) {
+void GLGridLeaper::SetDebugView(uint32_t iDebugView) {
 
   // recompile shaders
   CleanupTraversalShaders();
@@ -1165,7 +1165,7 @@ void GLTreeRaycaster::SetDebugView(uint32_t iDebugView) {
     vDefines.push_back("#define COLOR_LODS");
     break;
   default:
-    // should only happen if GLTREERAYCASTER_DEBUGVIEW is defined
+    // should only happen if GLGRIDLEAPER_DEBUGVIEW is defined
     vDefines.push_back("#define DEBUG");
     break;
   }
@@ -1177,23 +1177,23 @@ void GLTreeRaycaster::SetDebugView(uint32_t iDebugView) {
   AbstrRenderer::SetDebugView(iDebugView);
 }
 
-void GLTreeRaycaster::SetClipPlane(RenderRegion *renderRegion,
+void GLGridLeaper::SetClipPlane(RenderRegion *renderRegion,
                                    const ExtendedPlane& plane) {
   GLGPURayTraverser::SetClipPlane(renderRegion, plane);
   FillBBoxVBO();
 }
 
-void GLTreeRaycaster::EnableClipPlane(RenderRegion *renderRegion) {
+void GLGridLeaper::EnableClipPlane(RenderRegion *renderRegion) {
   GLGPURayTraverser::EnableClipPlane(renderRegion);
   FillBBoxVBO();
 }
 
-void GLTreeRaycaster::DisableClipPlane(RenderRegion *renderRegion) {
+void GLGridLeaper::DisableClipPlane(RenderRegion *renderRegion) {
   GLGPURayTraverser::DisableClipPlane(renderRegion);
   FillBBoxVBO();
 }
 
-void GLTreeRaycaster::ClipPlaneRelativeLock(bool bRelative) {
+void GLGridLeaper::ClipPlaneRelativeLock(bool bRelative) {
   GLGPURayTraverser::ClipPlaneRelativeLock(bRelative);
   FillBBoxVBO();
 }

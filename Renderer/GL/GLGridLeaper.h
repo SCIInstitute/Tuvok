@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef GLTREERAYCASTER_H
-#define GLTREERAYCASTER_H
+#ifndef GLGRIDLEAPER_H
+#define GLGRIDLEAPER_H
 
 #include "../../StdTuvokDefines.h"
 #include "GLGPURayTraverser.h"
@@ -9,8 +9,8 @@
 #include "AvgMinMaxTracker.h" // for profiling
 #include <fstream> // for Paper Hack file log
 
-//#define GLTREERAYCASTER_DEBUGVIEW  // define to toggle debug view with 'D'-key
-//#define GLTREERAYCASTER_WORKINGSET // define to measure per frame working set
+//#define GLGRIDLEAPER_DEBUGVIEW  // define to toggle debug view with 'D'-key
+//#define GLGRIDLEAPER_WORKINGSET // define to measure per frame working set
 
 class ExtendedPlane;
 
@@ -23,22 +23,22 @@ namespace tuvok {
   class ShaderDescriptor;
 
 
-  /** \class GLTreeRaycaster
+  /** \class GLGridLeaper
    * GPU Raycaster.
    *
-   * GLTreeRaycaster is a GLSL-based raycaster for volumetric data */
-  class GLTreeRaycaster : public GLGPURayTraverser {
+   * GLGridLeaper is a GLSL-based raycaster for volumetric data */
+  class GLGridLeaper : public GLGPURayTraverser {
     public:
       /** Constructs a VRer with immediate redraw, and
        * wireframe mode off.
        * \param pMasterController message routing object
        * \param bUseOnlyPowerOfTwo force power of two textures (compatibility)
        * \param bDownSampleTo8Bits force 8bit textures (compatibility) */
-      GLTreeRaycaster(MasterController* pMasterController, 
+      GLGridLeaper(MasterController* pMasterController, 
                   bool bUseOnlyPowerOfTwo, 
                   bool bDownSampleTo8Bits, 
                   bool bDisableBorder);
-      virtual ~GLTreeRaycaster();
+      virtual ~GLGridLeaper();
 
 
       // this is work in  progress so before we start we disable all we can 
@@ -114,11 +114,11 @@ namespace tuvok {
       bool            m_bAveragingFrameTimes;
       std::ofstream*  m_pLogFile;
 
-#ifdef GLTREERAYCASTER_DEBUGVIEW
+#ifdef GLGRIDLEAPER_DEBUGVIEW
       GLFBOTex*       m_pFBODebug;
       GLFBOTex*       m_pFBODebugNext;
 #endif
-#ifdef GLTREERAYCASTER_WORKINGSET
+#ifdef GLGRIDLEAPER_WORKINGSET
       GLHashTable*    m_pWorkingSetTable;
 #endif
       double m_RenderingTime;
@@ -185,7 +185,7 @@ namespace tuvok {
   };
 } // tuvok namespace.
 
-#endif // GLTREERAYCASTER_H
+#endif // GLGRIDLEAPER_H
 
 /*
    For more information, please see: http://software.sci.utah.edu
