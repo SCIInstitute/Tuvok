@@ -1,5 +1,3 @@
-#define WRITE_SHADERS
-
 #include "StdTuvokDefines.h"
 #include <algorithm>
 #include <iomanip>
