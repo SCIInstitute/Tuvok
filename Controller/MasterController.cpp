@@ -255,11 +255,6 @@ void MasterController::ReleaseVolumeRenderer(AbstrRenderer* pVolumeRenderer) {
 }
 
 
-void MasterController::Filter(std::string, uint32_t,
-                              void*, void *, void *, void * ) {
-};
-
-
 RenderRegion* MasterController::LuaCreateRenderRegion3D(LuaClassInstance ren) {
   return new RenderRegion3D(ren.getRawPointer<AbstrRenderer>(LuaScript()));
 }

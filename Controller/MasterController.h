@@ -146,12 +146,6 @@ public:
   const SystemInfo* SysInfo() const { return m_pSystemInfo; }
   ///@}
 
-  /// \todo this should return a pointer to memory.
-  void Filter(std::string datasetName,
-              uint32_t filter,
-              void *var0 = 0, void *var1 = 0,
-              void *var2 = 0, void *var3 = 0 );
-
   /// Whether or not to expose certain features which aren't actually ready for
   /// users.
   bool ExperimentalFeatures() const;
@@ -178,15 +172,7 @@ public:
   ///@}
 
 private:
-
-  /// Returns the most recently registered renderer.
-  const AbstrRenderer *Renderer() const {
-    return m_vVolumeRenderer[m_vVolumeRenderer.size()-1];
-  }
-
-
   /// Initializer; add all our builtin commands.
-  void RegisterInternalCommands();
   void RegisterLuaCommands();
 
   RenderRegion* LuaCreateRenderRegion3D(LuaClassInstance ren);
