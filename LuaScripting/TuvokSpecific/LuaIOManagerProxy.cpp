@@ -224,10 +224,10 @@ bool LuaIOManagerProxy::ExportMesh(shared_ptr<Mesh> mesh,
 
 bool LuaIOManagerProxy::ReBrickDataset(const string& strSourceFilename,
                                        const string& strTargetFilename,
-                                       const string& strTempDir,
-                                       bool bQuantizeTo8Bit) const {
+                                       const string& strTempDir) const {
   return mIO->ReBrickDataset(strSourceFilename, strTargetFilename, strTempDir,
-                             bQuantizeTo8Bit);
+                             mIO->GetBuilderBrickSize(),
+                             mIO->GetBrickOverlap(), false);
 }
 
 bool LuaIOManagerProxy::ConvertDataset(const list<std::string>& files,

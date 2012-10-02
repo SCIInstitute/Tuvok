@@ -85,8 +85,7 @@ private:
                   const std::string& strTargetFilename) const;
   bool ReBrickDataset(const std::string& strSourceFilename,
                       const std::string& strTargetFilename,
-                      const std::string& strTempDir,
-                      bool bQuantizeTo8Bit) const;
+                      const std::string& strTempDir) const;
   bool ConvertDataset(const std::list<std::string>& files,
                       const std::string& strTargetFilename,
                       const std::string& strTempDir,
