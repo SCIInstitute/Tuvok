@@ -73,24 +73,6 @@ namespace tuvok {
   }
 }
 
-class MergeDataset {
-public:
-  MergeDataset(std::string _strFilename="", uint64_t _iHeaderSkip=0, bool _bDelete=false,
-               double _fScale=1.0, double _fBias=0.0) :
-    strFilename(_strFilename),
-    iHeaderSkip(_iHeaderSkip),
-    bDelete(_bDelete),
-    fScale(_fScale),
-    fBias(_fBias)
-  {}
-
-  std::string strFilename;
-  uint64_t iHeaderSkip;
-  bool bDelete;
-  double fScale;
-  double fBias;
-};
-
 class IOManager {
 public:
   IOManager();
