@@ -77,7 +77,7 @@ class LargeFileAIO : public LargeFileFD {
     virtual void close();
 
     typedef std::unordered_map<struct aiocb*,
-                               std::shared_ptr<const void> > Reqs;
+                               std::shared_ptr<const void>> Reqs;
   private:
     LargeFileAIO(const LargeFileAIO&);
     LargeFileAIO& operator=(const LargeFileAIO&);

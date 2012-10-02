@@ -34,7 +34,7 @@
 namespace tuvok {
   template<typename From, typename To>
   struct Hash {
-    typedef std::unordered_map<From, To, std::equal_to<From> > Table;
+    typedef std::unordered_map<From, To, std::equal_to<From>> Table;
   };
 }
 
