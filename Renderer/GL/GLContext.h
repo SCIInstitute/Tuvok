@@ -73,7 +73,7 @@ public:
     
     static std::shared_ptr<Context> Current(int iShareGroupID) {
        if(contextMap.find(GetContext()) == contextMap.end()) {
-         std::pair<const void*, std::shared_ptr<Context> > tmp(
+         std::pair<const void*, std::shared_ptr<Context>> tmp(
             GetContext(),
             std::shared_ptr<Context>(new GLContext(iShareGroupID))
          );

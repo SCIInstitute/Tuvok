@@ -30,5 +30,4 @@
 
 using namespace tuvok;
 
-std::map<const void*, std::shared_ptr<Context> > Context::contextMap;
-
+std::map<const void*, std::shared_ptr<Context>> Context::contextMap;

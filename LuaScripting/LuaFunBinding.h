@@ -613,7 +613,7 @@ public:
 // record is cleared. This is because a shared pointer
 // reference to LuaScripting will be stored inside of the provenance system.
 template <typename T>
-class LuaStrictStack<std::shared_ptr<T> >
+class LuaStrictStack<std::shared_ptr<T>>
 {
 public:
 
@@ -672,7 +672,7 @@ public:
 
 // Generic vector type that uses previously defined types on the stack.
 template <typename T1, typename T2>
-class LuaStrictStack<std::pair<T1, T2> >
+class LuaStrictStack<std::pair<T1, T2>>
 {
 public:
 
@@ -737,7 +737,7 @@ public:
 
 // Generic vector type that uses previously defined types on the stack.
 template <typename T>
-class LuaStrictStack<std::vector<T> >
+class LuaStrictStack<std::vector<T>>
 {
 public:
 
@@ -888,7 +888,7 @@ public:
 
 // Essentially the same implementation as std::vector.
 template <typename T>
-class LuaStrictStack<std::list<T> >
+class LuaStrictStack<std::list<T>>
 {
 public:
 
@@ -1041,7 +1041,7 @@ public:
 /// so we need to specialize every tuple we use.
 
 template <typename T1, typename T2>
-class LuaStrictStack<std::tuple<T1, T2> >
+class LuaStrictStack<std::tuple<T1, T2>>
 {
 public:
 
@@ -1097,7 +1097,7 @@ public:
 
 /// Handles tConverterFormat (in IOManager)
 template <typename T1, typename T2, typename T3, typename T4>
-class LuaStrictStack<std::tuple<T1, T2, T3, T4> >
+class LuaStrictStack<std::tuple<T1, T2, T3, T4>>
 {
 public:
 
@@ -1169,7 +1169,7 @@ public:
 
 template <typename T1, typename T2, typename T3, typename T4, typename T5, 
           typename T6, typename T7>
-class LuaStrictStack<std::tuple<T1, T2, T3, T4, T5, T6, T7> >
+class LuaStrictStack<std::tuple<T1, T2, T3, T4, T5, T6, T7>>
 {
 public:
 
@@ -1349,7 +1349,7 @@ struct LuaTuvokTupleTable<Tuple, 1> {
 
   static void print(const Tuple& t, std::ostringstream& os)
   {
-    os << LuaStrictStack<typename std::tuple_element<0, Tuple>::type >::
+    os << LuaStrictStack<typename std::tuple_element<0, Tuple>::type>::
         getValStr(std::get<0>(t));
   }
 };
@@ -1377,7 +1377,7 @@ void luaPrintTuple(const std::tuple<TupleArgs...>& t, std::ostringstream& os)
 
 // Implementation of tuple-Lua-pass-through using variadic templates.
 template <typename... Values>
-class LuaStrictStack<std::tuple<Values...> >
+class LuaStrictStack<std::tuple<Values...>>
 {
 public:
 

@@ -34,7 +34,7 @@ class ShaderDescriptor {
 
     static ShaderDescriptor Create(
       std::vector<std::string> directories,
-      std::vector<std::pair<uint32_t, std::string> > fragmentDataBindings,
+      std::vector<std::pair<uint32_t, std::string>> fragmentDataBindings,
       ...
     );
 
@@ -74,7 +74,7 @@ class ShaderDescriptor {
     SIterator begin_fragment() const;
     SIterator end_fragment() const;
 
-    std::vector<std::pair<uint32_t, std::string> > fragmentDataBindings;
+    std::vector<std::pair<uint32_t, std::string>> fragmentDataBindings;
   private:
     struct sinfo;
     std::shared_ptr<sinfo> si;

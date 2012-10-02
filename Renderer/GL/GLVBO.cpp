@@ -159,15 +159,15 @@ void GLVBO::AddVertexData(const std::vector<int8_t>& vertexData){
   if (!vertexData.empty())
     AddVertexData(1, sizeof(int8_t), GL_BYTE, vertexData.size(), &(vertexData[0]));
 }
-void GLVBO::AddVertexData(const std::vector< VECTOR2<int8_t> >& vertexData){
+void GLVBO::AddVertexData(const std::vector<VECTOR2<int8_t>>& vertexData){
   if (!vertexData.empty())
     AddVertexData(2, sizeof(int8_t), GL_BYTE, vertexData.size(), &(vertexData[0]));
 }
-void GLVBO::AddVertexData(const std::vector< VECTOR3<int8_t> >& vertexData){
+void GLVBO::AddVertexData(const std::vector<VECTOR3<int8_t>>& vertexData){
   if (!vertexData.empty())
     AddVertexData(3, sizeof(int8_t), GL_BYTE, vertexData.size(), &(vertexData[0]));
 }
-void GLVBO::AddVertexData(const std::vector< VECTOR4<int8_t> >& vertexData){
+void GLVBO::AddVertexData(const std::vector<VECTOR4<int8_t>>& vertexData){
   if (!vertexData.empty())
     AddVertexData(4, sizeof(int8_t), GL_BYTE, vertexData.size(), &(vertexData[0]));
 }
@@ -176,15 +176,15 @@ void GLVBO::AddVertexData(const std::vector<uint8_t>& vertexData){
   if (!vertexData.empty())
     AddVertexData(1, sizeof(int8_t), GL_UNSIGNED_BYTE, vertexData.size(), &(vertexData[0]));
 }
-void GLVBO::AddVertexData(const std::vector< VECTOR2<uint8_t> >& vertexData){
+void GLVBO::AddVertexData(const std::vector<VECTOR2<uint8_t>>& vertexData){
   if (!vertexData.empty())
     AddVertexData(2, sizeof(int8_t), GL_UNSIGNED_BYTE, vertexData.size(), &(vertexData[0]));
 }
-void GLVBO::AddVertexData(const std::vector< VECTOR3<uint8_t> >& vertexData){
+void GLVBO::AddVertexData(const std::vector<VECTOR3<uint8_t>>& vertexData){
   if (!vertexData.empty())
     AddVertexData(3, sizeof(int8_t), GL_UNSIGNED_BYTE, vertexData.size(), &(vertexData[0]));
 }
-void GLVBO::AddVertexData(const std::vector< VECTOR4<uint8_t> >& vertexData){
+void GLVBO::AddVertexData(const std::vector<VECTOR4<uint8_t>>& vertexData){
   if (!vertexData.empty())
     AddVertexData(4, sizeof(int8_t), GL_UNSIGNED_BYTE, vertexData.size(), &(vertexData[0]));
 }

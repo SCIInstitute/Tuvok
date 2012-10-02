@@ -55,14 +55,14 @@ namespace tuvok {
       void AddVertexData(const std::vector<UINTVECTOR4>& vertexData);
 
       void AddVertexData(const std::vector<int8_t>& vertexData);
-      void AddVertexData(const std::vector< VECTOR2<int8_t> >& vertexData);
-      void AddVertexData(const std::vector< VECTOR3<int8_t> >& vertexData);
-      void AddVertexData(const std::vector< VECTOR4<int8_t> >& vertexData);
+      void AddVertexData(const std::vector<VECTOR2<int8_t>>& vertexData);
+      void AddVertexData(const std::vector<VECTOR3<int8_t>>& vertexData);
+      void AddVertexData(const std::vector<VECTOR4<int8_t>>& vertexData);
 
       void AddVertexData(const std::vector<uint8_t>& vertexData);
-      void AddVertexData(const std::vector< VECTOR2<uint8_t> >& vertexData);
-      void AddVertexData(const std::vector< VECTOR3<uint8_t> >& vertexData);
-      void AddVertexData(const std::vector< VECTOR4<uint8_t> >& vertexData);
+      void AddVertexData(const std::vector<VECTOR2<uint8_t>>& vertexData);
+      void AddVertexData(const std::vector<VECTOR3<uint8_t>>& vertexData);
+      void AddVertexData(const std::vector<VECTOR4<uint8_t>>& vertexData);
 
       void ClearVertexData();
 

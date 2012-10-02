@@ -1127,7 +1127,7 @@ void AbstrRenderer::PlanFrame(RenderRegion3D& region) {
     FLOATVECTOR3 vMinPoint = vCenter-vExtend/2.0, 
                  vMaxPoint = vCenter+vExtend/2.0;
 
-     for (vector<shared_ptr<RenderMesh> >::iterator mesh = m_Meshes.begin();
+     for (vector<shared_ptr<RenderMesh>>::iterator mesh = m_Meshes.begin();
          mesh != m_Meshes.end(); mesh++) {
       if ((*mesh)->GetActive()) {
         (*mesh)->SetVolumeAABB(vMinPoint, vMaxPoint);

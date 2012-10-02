@@ -628,7 +628,7 @@ class AbstrRenderer {
     }
 
     // Return value references are not supported by lua.
-    std::vector<std::shared_ptr<RenderMesh> > GetMeshes() {return m_Meshes;}
+    std::vector<std::shared_ptr<RenderMesh>> GetMeshes() {return m_Meshes;}
     void ReloadMesh(size_t index, const std::shared_ptr<Mesh> m);
 
     float GetSampleRateModifier() const { return m_fSampleRateModifier; }
@@ -695,7 +695,7 @@ class AbstrRenderer {
     Interpolant         m_eInterpolant;
 
     bool                m_bSupportsMeshes;
-    std::vector<std::shared_ptr<RenderMesh> > m_Meshes;
+    std::vector<std::shared_ptr<RenderMesh>> m_Meshes;
 
 
     /// parameters for dynamic resolution adjustments
@@ -860,7 +860,6 @@ class AbstrRenderer {
     LuaClassInstance m_pLua1DTrans;
     LuaTransferFun1DProxy* m_pLua1DTransPtr;
     LuaClassInstance LuaGet1DTrans();
-
 };
 
 }; //namespace tuvok

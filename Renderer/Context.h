@@ -52,7 +52,7 @@ public:
   int GetShareGroupID() const {return m_iShareGroupID;} 
 
 protected:
-  static std::map<const void*, std::shared_ptr<Context> > contextMap;
+  static std::map<const void*, std::shared_ptr<Context>> contextMap;
   std::shared_ptr<StateManager> m_pState;
   const void* ctx; /// will be GLXContext, HGLRC, or Device
   int m_iShareGroupID;

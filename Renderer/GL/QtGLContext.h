@@ -79,7 +79,7 @@ class QtGLContext : public Context {
 
     static std::shared_ptr<Context> Current(int iShareGroupID) {
        if(contextMap.find(QGLContext::currentContext()) == contextMap.end()) {
-         std::pair<const void*, std::shared_ptr<Context> > tmp(
+         std::pair<const void*, std::shared_ptr<Context>> tmp(
            QGLContext::currentContext(),
            std::shared_ptr<Context>(new QtGLContext(iShareGroupID))
          );

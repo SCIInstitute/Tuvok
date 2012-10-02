@@ -123,7 +123,7 @@ public:
   // (we don't need to write any lua code, tuple handles it for us).
   typedef std::tuple<UINT64VECTOR3, FLOATVECTOR3, uint64_t, int, 
                      std::pair<double, double>, std::pair<int64_t, int64_t>,
-                     std::pair<uint64_t, uint64_t> > TupleStructProxy;
+                     std::pair<uint64_t, uint64_t>> TupleStructProxy;
 
   static RangeInfo get(lua_State* L, int pos)
   {

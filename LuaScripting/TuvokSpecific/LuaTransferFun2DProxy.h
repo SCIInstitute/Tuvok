@@ -113,7 +113,7 @@ public:
     lua_pushstring(L, "points");
     lua_gettable(L, pos);
     ret.pPoints = 
-        LuaStrictStack<std::vector<FLOATVECTOR2> >::get(L, lua_gettop(L));
+        LuaStrictStack<std::vector<FLOATVECTOR2>>::get(L, lua_gettop(L));
     lua_pop(L, 1);
 
     lua_pushstring(L, "gradCoords0");
@@ -129,7 +129,7 @@ public:
     lua_pushstring(L, "gradStops");
     lua_gettable(L, pos);
     ret.pGradientStops =
-        LuaStrictStack<std::vector<GradientStop> >::get(L,lua_gettop(L));
+        LuaStrictStack<std::vector<GradientStop>>::get(L,lua_gettop(L));
 
     return ret;
   }
@@ -146,7 +146,7 @@ public:
     lua_settable(L, tbl);
 
     lua_pushstring(L, "points");
-    LuaStrictStack<std::vector<FLOATVECTOR2> >::push(L, in.pPoints);
+    LuaStrictStack<std::vector<FLOATVECTOR2>>::push(L, in.pPoints);
     lua_settable(L, tbl);
 
     lua_pushstring(L, "gradCoords0");
@@ -158,7 +158,7 @@ public:
     lua_settable(L, tbl);
 
     lua_pushstring(L, "gradStops");
-    LuaStrictStack<std::vector<GradientStop> >::push(L, in.pGradientStops);
+    LuaStrictStack<std::vector<GradientStop>>::push(L, in.pGradientStops);
     lua_settable(L, tbl);
   }
 
@@ -166,11 +166,11 @@ public:
   {
     std::ostringstream os;
     os << "{" << LuaStrictStack<bool>::getValStr(in.bRadial)
-       << "," << LuaStrictStack<std::vector<FLOATVECTOR2> >::getValStr(
+       << "," << LuaStrictStack<std::vector<FLOATVECTOR2>>::getValStr(
            in.pPoints)
        << "," << LuaStrictStack<FLOATVECTOR2>::getValStr(in.pGradientCoords[0])
        << "," << LuaStrictStack<FLOATVECTOR2>::getValStr(in.pGradientCoords[1])
-       << "," << LuaStrictStack<std::vector<GradientStop> >::getValStr(
+       << "," << LuaStrictStack<std::vector<GradientStop>>::getValStr(
            in.pGradientStops)
        << "}";
     return os.str();
@@ -204,7 +204,7 @@ public:
     lua_pushstring(L, "points");
     lua_gettable(L, pos);
     ret.pPoints = 
-        LuaStrictStack<std::vector<FLOATVECTOR2> >::get(L, lua_gettop(L));
+        LuaStrictStack<std::vector<FLOATVECTOR2>>::get(L, lua_gettop(L));
     lua_pop(L, 1);
 
     lua_pushstring(L, "gradCoords0");
@@ -220,7 +220,7 @@ public:
     lua_pushstring(L, "gradStops");
     lua_gettable(L, pos);
     ret.pGradientStops =
-        LuaStrictStack<std::vector<GradientStop> >::get(L,lua_gettop(L));
+        LuaStrictStack<std::vector<GradientStop>>::get(L,lua_gettop(L));
 
     return ret;
   }
@@ -237,7 +237,7 @@ public:
     lua_settable(L, tbl);
 
     lua_pushstring(L, "points");
-    LuaStrictStack<std::vector<FLOATVECTOR2> >::push(L, in.pPoints);
+    LuaStrictStack<std::vector<FLOATVECTOR2>>::push(L, in.pPoints);
     lua_settable(L, tbl);
 
     lua_pushstring(L, "gradCoords0");
@@ -249,7 +249,7 @@ public:
     lua_settable(L, tbl);
 
     lua_pushstring(L, "gradStops");
-    LuaStrictStack<std::vector<GradientStop> >::push(L, in.pGradientStops);
+    LuaStrictStack<std::vector<GradientStop>>::push(L, in.pGradientStops);
     lua_settable(L, tbl);
   }
 
@@ -257,11 +257,11 @@ public:
   {
     std::ostringstream os;
     os << "{" << LuaStrictStack<bool>::getValStr(in.bRadial)
-       << "," << LuaStrictStack<std::vector<FLOATVECTOR2> >::getValStr(
+       << "," << LuaStrictStack<std::vector<FLOATVECTOR2>>::getValStr(
            in.pPoints)
        << "," << LuaStrictStack<FLOATVECTOR2>::getValStr(in.pGradientCoords[0])
        << "," << LuaStrictStack<FLOATVECTOR2>::getValStr(in.pGradientCoords[1])
-       << "," << LuaStrictStack<std::vector<GradientStop> >::getValStr(
+       << "," << LuaStrictStack<std::vector<GradientStop>>::getValStr(
            in.pGradientStops)
        << "}";
     return os.str();

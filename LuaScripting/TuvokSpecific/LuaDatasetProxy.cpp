@@ -151,12 +151,12 @@ void LuaDatasetProxy::defineLuaInterface(
 
   // Register our functions
   id = reg.function(&LuaDatasetProxy::getDatasetType, "getDSType", "", false);
-  id = reg.function(&LuaDatasetProxy::proxyGetMetadata, "getMetadata", "", 
+  id = reg.function(&LuaDatasetProxy::proxyGetMetadata, "getMetadata", "",
                     false);
 }
 
 
-std::vector< std::pair < std::string, std::string > > 
+std::vector<std::pair<std::string, std::string>>
 LuaDatasetProxy::proxyGetMetadata()
 {
   return mDS->GetMetadata();

@@ -71,7 +71,7 @@ namespace tuvok {
                              GLint iMinFilter = GL_NEAREST);
 
     private:
-      std::vector< std::vector<GLTexture2D*> > m_pTextures;
+      std::vector< std::vector<GLTexture2D*>> m_pTextures;
 
       uint32_t m_iSizeX;
       uint32_t m_iSizeY;

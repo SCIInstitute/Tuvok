@@ -60,7 +60,7 @@ namespace tuvok
 // All numeric types are converted to doubles inside Lua. Therefore there is
 // no need to specialize on the type of vector.
 template<typename T>
-class LuaStrictStack<VECTOR4<T> >
+class LuaStrictStack<VECTOR4<T>>
 {
 public:
 
@@ -198,7 +198,7 @@ public:
 };
 
 template<typename T>
-class LuaStrictStack<VECTOR3<T> >
+class LuaStrictStack<VECTOR3<T>>
 {
 public:
 
@@ -318,7 +318,7 @@ public:
 };
 
 template<typename T>
-class LuaStrictStack<VECTOR2<T> >
+class LuaStrictStack<VECTOR2<T>>
 {
 public:
 
@@ -433,7 +433,7 @@ public:
 /// matrix/matrix and matrix/vector products inside of Lua.
 
 template<typename T>
-class LuaStrictStack<MATRIX2<T> >
+class LuaStrictStack<MATRIX2<T>>
 {
 public:
 
@@ -447,12 +447,12 @@ public:
 
     lua_pushinteger(L, 1);
     lua_gettable(L, pos);
-    rows[0] = LuaStrictStack<VECTOR2<T> >::get(L, lua_gettop(L));
+    rows[0] = LuaStrictStack<VECTOR2<T>>::get(L, lua_gettop(L));
     lua_pop(L, 1);
 
     lua_pushinteger(L, 2);
     lua_gettable(L, pos);
-    rows[1] = LuaStrictStack<VECTOR2<T> >::get(L, lua_gettop(L));
+    rows[1] = LuaStrictStack<VECTOR2<T>>::get(L, lua_gettop(L));
     lua_pop(L, 1);
 
     return MATRIX2<T>(rows);
@@ -465,11 +465,11 @@ public:
 
     // Push rows of the matrix.
     lua_pushinteger(L, 1);
-    LuaStrictStack<VECTOR2<T> >::push(L, VECTOR2<T>(in.m11, in.m12));
+    LuaStrictStack<VECTOR2<T>>::push(L, VECTOR2<T>(in.m11, in.m12));
     lua_settable(L, tbl);
 
     lua_pushinteger(L, 2);
-    LuaStrictStack<VECTOR2<T> >::push(L, VECTOR2<T>(in.m21, in.m22));
+    LuaStrictStack<VECTOR2<T>>::push(L, VECTOR2<T>(in.m21, in.m22));
     lua_settable(L, tbl);
   }
 
@@ -477,10 +477,10 @@ public:
   {
     std::ostringstream os;
     os << "{ \n  ";
-    os << LuaStrictStack<VECTOR2<T> >::getValStr(VECTOR2<T>(in.m11, in.m12));
+    os << LuaStrictStack<VECTOR2<T>>::getValStr(VECTOR2<T>(in.m11, in.m12));
     os << ",\n";
     os << "  ";
-    os << LuaStrictStack<VECTOR2<T> >::getValStr(VECTOR2<T>(in.m21, in.m22));
+    os << LuaStrictStack<VECTOR2<T>>::getValStr(VECTOR2<T>(in.m21, in.m22));
     os << " }";
     return os.str();
   }
@@ -489,7 +489,7 @@ public:
 };
 
 template<typename T>
-class LuaStrictStack<MATRIX3<T> >
+class LuaStrictStack<MATRIX3<T>>
 {
 public:
 
@@ -503,17 +503,17 @@ public:
 
     lua_pushinteger(L, 1);
     lua_gettable(L, pos);
-    rows[0] = LuaStrictStack<VECTOR3<T> >::get(L, lua_gettop(L));
+    rows[0] = LuaStrictStack<VECTOR3<T>>::get(L, lua_gettop(L));
     lua_pop(L, 1);
 
     lua_pushinteger(L, 2);
     lua_gettable(L, pos);
-    rows[1] = LuaStrictStack<VECTOR3<T> >::get(L, lua_gettop(L));
+    rows[1] = LuaStrictStack<VECTOR3<T>>::get(L, lua_gettop(L));
     lua_pop(L, 1);
 
     lua_pushinteger(L, 3);
     lua_gettable(L, pos);
-    rows[2] = LuaStrictStack<VECTOR3<T> >::get(L, lua_gettop(L));
+    rows[2] = LuaStrictStack<VECTOR3<T>>::get(L, lua_gettop(L));
     lua_pop(L, 1);
 
     return MATRIX3<T>(rows);
@@ -526,15 +526,15 @@ public:
 
     // Push rows of the matrix.
     lua_pushinteger(L, 1);
-    LuaStrictStack<VECTOR3<T> >::push(L, VECTOR3<T>(in.m11, in.m12, in.m13));
+    LuaStrictStack<VECTOR3<T>>::push(L, VECTOR3<T>(in.m11, in.m12, in.m13));
     lua_settable(L, tbl);
 
     lua_pushinteger(L, 2);
-    LuaStrictStack<VECTOR3<T> >::push(L, VECTOR3<T>(in.m21, in.m22, in.m23));
+    LuaStrictStack<VECTOR3<T>>::push(L, VECTOR3<T>(in.m21, in.m22, in.m23));
     lua_settable(L, tbl);
 
     lua_pushinteger(L, 3);
-    LuaStrictStack<VECTOR3<T> >::push(L, VECTOR3<T>(in.m31, in.m32, in.m33));
+    LuaStrictStack<VECTOR3<T>>::push(L, VECTOR3<T>(in.m31, in.m32, in.m33));
     lua_settable(L, tbl);
   }
 
@@ -542,13 +542,13 @@ public:
   {
     std::ostringstream os;
     os << "{ \n  ";
-    os << LuaStrictStack<VECTOR3<T> >::getValStr(VECTOR3<T>(in.m11, in.m12, in.m13));
+    os << LuaStrictStack<VECTOR3<T>>::getValStr(VECTOR3<T>(in.m11, in.m12, in.m13));
     os << ",\n";
     os << "  ";
-    os << LuaStrictStack<VECTOR3<T> >::getValStr(VECTOR3<T>(in.m21, in.m22, in.m23));
+    os << LuaStrictStack<VECTOR3<T>>::getValStr(VECTOR3<T>(in.m21, in.m22, in.m23));
     os << ",\n";
     os << "  ";
-    os << LuaStrictStack<VECTOR3<T> >::getValStr(VECTOR3<T>(in.m31, in.m32, in.m33));
+    os << LuaStrictStack<VECTOR3<T>>::getValStr(VECTOR3<T>(in.m31, in.m32, in.m33));
     os << " }";
     return os.str();
   }
@@ -558,7 +558,7 @@ public:
 
 
 template<typename T>
-class LuaStrictStack<MATRIX4<T> >
+class LuaStrictStack<MATRIX4<T>>
 {
 public:
 
@@ -572,22 +572,22 @@ public:
 
     lua_pushinteger(L, 1);
     lua_gettable(L, pos);
-    rows[0] = LuaStrictStack<VECTOR4<T> >::get(L, lua_gettop(L));
+    rows[0] = LuaStrictStack<VECTOR4<T>>::get(L, lua_gettop(L));
     lua_pop(L, 1);
 
     lua_pushinteger(L, 2);
     lua_gettable(L, pos);
-    rows[1] = LuaStrictStack<VECTOR4<T> >::get(L, lua_gettop(L));
+    rows[1] = LuaStrictStack<VECTOR4<T>>::get(L, lua_gettop(L));
     lua_pop(L, 1);
 
     lua_pushinteger(L, 3);
     lua_gettable(L, pos);
-    rows[2] = LuaStrictStack<VECTOR4<T> >::get(L, lua_gettop(L));
+    rows[2] = LuaStrictStack<VECTOR4<T>>::get(L, lua_gettop(L));
     lua_pop(L, 1);
 
     lua_pushinteger(L, 4);
     lua_gettable(L, pos);
-    rows[3] = LuaStrictStack<VECTOR4<T> >::get(L, lua_gettop(L));
+    rows[3] = LuaStrictStack<VECTOR4<T>>::get(L, lua_gettop(L));
     lua_pop(L, 1);
 
     return MATRIX4<T>(rows);
@@ -600,19 +600,19 @@ public:
 
     // Push rows of the matrix.
     lua_pushinteger(L, 1);
-    LuaStrictStack<VECTOR4<T> >::push(L, VECTOR4<T>(in.m11, in.m12, in.m13, in.m14));
+    LuaStrictStack<VECTOR4<T>>::push(L, VECTOR4<T>(in.m11, in.m12, in.m13, in.m14));
     lua_settable(L, tbl);
 
     lua_pushinteger(L, 2);
-    LuaStrictStack<VECTOR4<T> >::push(L, VECTOR4<T>(in.m21, in.m22, in.m23, in.m24));
+    LuaStrictStack<VECTOR4<T>>::push(L, VECTOR4<T>(in.m21, in.m22, in.m23, in.m24));
     lua_settable(L, tbl);
 
     lua_pushinteger(L, 3);
-    LuaStrictStack<VECTOR4<T> >::push(L, VECTOR4<T>(in.m31, in.m32, in.m33, in.m34));
+    LuaStrictStack<VECTOR4<T>>::push(L, VECTOR4<T>(in.m31, in.m32, in.m33, in.m34));
     lua_settable(L, tbl);
 
     lua_pushinteger(L, 4);
-    LuaStrictStack<VECTOR4<T> >::push(L, VECTOR4<T>(in.m41, in.m42, in.m43, in.m44));
+    LuaStrictStack<VECTOR4<T>>::push(L, VECTOR4<T>(in.m41, in.m42, in.m43, in.m44));
     lua_settable(L, tbl);
   }
 
@@ -620,16 +620,16 @@ public:
   {
     std::ostringstream os;
     os << "{ \n  ";
-    os << LuaStrictStack<VECTOR4<T> >::getValStr(VECTOR4<T>(in.m11, in.m12, in.m13, in.m14));
+    os << LuaStrictStack<VECTOR4<T>>::getValStr(VECTOR4<T>(in.m11, in.m12, in.m13, in.m14));
     os << ",\n";
     os << "  ";
-    os << LuaStrictStack<VECTOR4<T> >::getValStr(VECTOR4<T>(in.m21, in.m22, in.m23, in.m24));
+    os << LuaStrictStack<VECTOR4<T>>::getValStr(VECTOR4<T>(in.m21, in.m22, in.m23, in.m24));
     os << ",\n";
     os << "  ";
-    os << LuaStrictStack<VECTOR4<T> >::getValStr(VECTOR4<T>(in.m31, in.m32, in.m33, in.m34));
+    os << LuaStrictStack<VECTOR4<T>>::getValStr(VECTOR4<T>(in.m31, in.m32, in.m33, in.m34));
     os << ",\n";
     os << "  ";
-    os << LuaStrictStack<VECTOR4<T> >::getValStr(VECTOR4<T>(in.m41, in.m42, in.m43, in.m44));
+    os << LuaStrictStack<VECTOR4<T>>::getValStr(VECTOR4<T>(in.m41, in.m42, in.m43, in.m44));
     os << " }";
     return os.str();
   }
@@ -652,22 +652,22 @@ public:
 
     lua_pushinteger(L, 1);
     lua_gettable(L, pos);
-    rows[0] = LuaStrictStack<VECTOR4<T> >::get(L, lua_gettop(L));
+    rows[0] = LuaStrictStack<VECTOR4<T>>::get(L, lua_gettop(L));
     lua_pop(L, 1);
 
     lua_pushinteger(L, 2);
     lua_gettable(L, pos);
-    rows[1] = LuaStrictStack<VECTOR4<T> >::get(L, lua_gettop(L));
+    rows[1] = LuaStrictStack<VECTOR4<T>>::get(L, lua_gettop(L));
     lua_pop(L, 1);
 
     lua_pushinteger(L, 3);
     lua_gettable(L, pos);
-    rows[2] = LuaStrictStack<VECTOR4<T> >::get(L, lua_gettop(L));
+    rows[2] = LuaStrictStack<VECTOR4<T>>::get(L, lua_gettop(L));
     lua_pop(L, 1);
 
     lua_pushinteger(L, 4);
     lua_gettable(L, pos);
-    rows[3] = LuaStrictStack<VECTOR4<T> >::get(L, lua_gettop(L));
+    rows[3] = LuaStrictStack<VECTOR4<T>>::get(L, lua_gettop(L));
     lua_pop(L, 1);
 
     return MATRIX4<T>(rows);
@@ -680,19 +680,19 @@ public:
 
     // Push rows of the matrix.
     lua_pushinteger(L, 1);
-    LuaStrictStack<VECTOR4<T> >::push(L, VECTOR4<T>(in.m11, in.m12, in.m13, in.m14));
+    LuaStrictStack<VECTOR4<T>>::push(L, VECTOR4<T>(in.m11, in.m12, in.m13, in.m14));
     lua_settable(L, tbl);
 
     lua_pushinteger(L, 2);
-    LuaStrictStack<VECTOR4<T> >::push(L, VECTOR4<T>(in.m21, in.m22, in.m23, in.m24));
+    LuaStrictStack<VECTOR4<T>>::push(L, VECTOR4<T>(in.m21, in.m22, in.m23, in.m24));
     lua_settable(L, tbl);
 
     lua_pushinteger(L, 3);
-    LuaStrictStack<VECTOR4<T> >::push(L, VECTOR4<T>(in.m31, in.m32, in.m33, in.m34));
+    LuaStrictStack<VECTOR4<T>>::push(L, VECTOR4<T>(in.m31, in.m32, in.m33, in.m34));
     lua_settable(L, tbl);
 
     lua_pushinteger(L, 4);
-    LuaStrictStack<VECTOR4<T> >::push(L, VECTOR4<T>(in.m41, in.m42, in.m43, in.m44));
+    LuaStrictStack<VECTOR4<T>>::push(L, VECTOR4<T>(in.m41, in.m42, in.m43, in.m44));
     lua_settable(L, tbl);
   }
 
@@ -700,16 +700,16 @@ public:
   {
     std::ostringstream os;
     os << "{ \n  ";
-    os << LuaStrictStack<VECTOR4<T> >::getValStr(VECTOR4<T>(in.m11, in.m12, in.m13, in.m14));
+    os << LuaStrictStack<VECTOR4<T>>::getValStr(VECTOR4<T>(in.m11, in.m12, in.m13, in.m14));
     os << ",\n";
     os << "  ";
-    os << LuaStrictStack<VECTOR4<T> >::getValStr(VECTOR4<T>(in.m21, in.m22, in.m23, in.m24));
+    os << LuaStrictStack<VECTOR4<T>>::getValStr(VECTOR4<T>(in.m21, in.m22, in.m23, in.m24));
     os << ",\n";
     os << "  ";
-    os << LuaStrictStack<VECTOR4<T> >::getValStr(VECTOR4<T>(in.m31, in.m32, in.m33, in.m34));
+    os << LuaStrictStack<VECTOR4<T>>::getValStr(VECTOR4<T>(in.m31, in.m32, in.m33, in.m34));
     os << ",\n";
     os << "  ";
-    os << LuaStrictStack<VECTOR4<T> >::getValStr(VECTOR4<T>(in.m41, in.m42, in.m43, in.m44));
+    os << LuaStrictStack<VECTOR4<T>>::getValStr(VECTOR4<T>(in.m41, in.m42, in.m43, in.m44));
     os << " }";
     return os.str();
   }
@@ -733,19 +733,19 @@ public:
 
     lua_pushinteger(L, 1);
     lua_gettable(L, pos);
-    VECTOR4<float> plane=LuaStrictStack<VECTOR4<float> >::get(L, lua_gettop(L));
+    VECTOR4<float> plane=LuaStrictStack<VECTOR4<float>>::get(L, lua_gettop(L));
     lua_pop(L, 1);
 
     lua_pushinteger(L, 2);
     lua_gettable(L, pos);
     FLOATMATRIX4 m1 =
-        LuaStrictStack<FLOATMATRIX4 >::get(L, lua_gettop(L));
+        LuaStrictStack<FLOATMATRIX4>::get(L, lua_gettop(L));
     lua_pop(L, 1);
 
     lua_pushinteger(L, 3);
     lua_gettable(L, pos);
     FLOATMATRIX4 m2 =
-        LuaStrictStack<FLOATMATRIX4 >::get(L, lua_gettop(L));
+        LuaStrictStack<FLOATMATRIX4>::get(L, lua_gettop(L));
     lua_pop(L, 1);
 
     return ExtendedPlane(m1, m2, plane);
@@ -758,18 +758,18 @@ public:
 
     // Push rows of the matrix.
     lua_pushinteger(L, 1);
-    LuaStrictStack<VECTOR4<float> >::push(L, VECTOR4<float>(in.Plane().x,
-                                                            in.Plane().y,
-                                                            in.Plane().z,
-                                                            in.Plane().w));
+    LuaStrictStack<VECTOR4<float>>::push(L, VECTOR4<float>(in.Plane().x,
+                                                           in.Plane().y,
+                                                           in.Plane().z,
+                                                           in.Plane().w));
     lua_settable(L, tbl);
 
     lua_pushinteger(L, 2);
-    LuaStrictStack<FLOATMATRIX4 >::push(L, FLOATMATRIX4(in.Mat1()));
+    LuaStrictStack<FLOATMATRIX4>::push(L, FLOATMATRIX4(in.Mat1()));
     lua_settable(L, tbl);
 
     lua_pushinteger(L, 3);
-    LuaStrictStack<FLOATMATRIX4 >::push(L, FLOATMATRIX4(in.Mat2()));
+    LuaStrictStack<FLOATMATRIX4>::push(L, FLOATMATRIX4(in.Mat2()));
     lua_settable(L, tbl);
   }
 
@@ -777,7 +777,7 @@ public:
   {
     std::ostringstream os;
     os << "{ ";
-    os << LuaStrictStack<VECTOR4<float> >::getValStr(
+    os << LuaStrictStack<VECTOR4<float>>::getValStr(
         VECTOR4<float>(in.Plane()));
     os << " }";
     return os.str();

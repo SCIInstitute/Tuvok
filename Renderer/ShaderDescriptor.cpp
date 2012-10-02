@@ -19,8 +19,8 @@ enum shader_type { SHADER_VERTEX_DISK, SHADER_VERTEX_STRING,
 
 struct ShaderDescriptor::sinfo {
   std::vector<std::string> defines;
-  std::vector<std::pair<std::string, enum shader_type> > vertex;
-  std::vector<std::pair<std::string, enum shader_type> > fragment;
+  std::vector<std::pair<std::string, enum shader_type>> vertex;
+  std::vector<std::pair<std::string, enum shader_type>> fragment;
   bool operator==(const ShaderDescriptor::sinfo& sdi) const;
 };
 bool ShaderDescriptor::sinfo::operator==(const ShaderDescriptor::sinfo& sdi)
@@ -111,7 +111,7 @@ static std::string find_filename(const std::vector<std::string>& directories,
 
 ShaderDescriptor ShaderDescriptor::Create(
   std::vector<std::string> directories, 
-  std::vector<std::pair<uint32_t, std::string> > fragmentDataBindings,
+  std::vector<std::pair<uint32_t, std::string>> fragmentDataBindings,
   ...
 ) {
   ShaderDescriptor rv;
@@ -148,7 +148,7 @@ ShaderDescriptor ShaderDescriptor::Create(
   directories.push_back(Controller::Instance().SysInfo()->GetProgramPath());
   directories = existing(directories); // prune bad directories
     
-  typedef std::vector<std::pair<std::string, enum shader_type> > sv;
+  typedef std::vector<std::pair<std::string, enum shader_type>> sv;
   for(sv::iterator v = rv.si->vertex.begin(); v != rv.si->vertex.end(); ++v) {
     v->first = find_filename(directories, v->first);
   }
@@ -198,7 +198,7 @@ ShaderDescriptor ShaderDescriptor::Create(
   directories.push_back(Controller::Instance().SysInfo()->GetProgramPath());
   directories = existing(directories); // prune bad directories
     
-  typedef std::vector<std::pair<std::string, enum shader_type> > sv;
+  typedef std::vector<std::pair<std::string, enum shader_type>> sv;
   for(sv::iterator v = rv.si->vertex.begin(); v != rv.si->vertex.end(); ++v) {
     v->first = find_filename(directories, v->first);
   }
@@ -259,7 +259,7 @@ static std::string readfile(const std::string& filename) {
   return std::string(&file[0]);
 }
 
-typedef std::vector<std::pair<std::string, enum shader_type> > slist;
+typedef std::vector<std::pair<std::string, enum shader_type>> slist;
 // internal implementation: we keep track of which object (ShaderDescriptor) we
 // came from, the location within that object, and what type we are.  The
 // latter helps us with equality; no location in the vertex shader list is

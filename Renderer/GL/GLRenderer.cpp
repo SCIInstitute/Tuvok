@@ -238,7 +238,7 @@ bool GLRenderer::Initialize(std::shared_ptr<Context> ctx) {
                                                   m_pLua2DTrans);
   }
 
-  for (vector<shared_ptr<RenderMesh> >::iterator mesh = m_Meshes.begin();
+  for (vector<shared_ptr<RenderMesh>>::iterator mesh = m_Meshes.begin();
        mesh != m_Meshes.end(); mesh++) {
     (*mesh)->InitRenderer();
   }
@@ -2069,7 +2069,7 @@ void GLRenderer::CheckMeshStatus() {
   if (m_bSupportsMeshes) {
     m_iNumTransMeshes = 0;
     m_iNumMeshes = 0;
-    for (vector<shared_ptr<RenderMesh> >::iterator mesh = m_Meshes.begin();
+    for (vector<shared_ptr<RenderMesh>>::iterator mesh = m_Meshes.begin();
          mesh != m_Meshes.end(); mesh++) {
       if ((*mesh)->GetActive()) {
         m_iNumMeshes++;
@@ -2238,14 +2238,14 @@ void GLRenderer::GeometryPostRender() {
 
 void GLRenderer::SetMeshBTFSorting(bool bSortBTF) {
   m_bSortMeshBTF = bSortBTF;
-  for (vector<shared_ptr<RenderMesh> >::iterator mesh = m_Meshes.begin();
+  for (vector<shared_ptr<RenderMesh>>::iterator mesh = m_Meshes.begin();
        mesh != m_Meshes.end(); mesh++) {
     (*mesh)->EnableOverSorting(bSortBTF);
   }
 }
 
 void GLRenderer::RenderOpaqueGeometry() {
-  for (vector<shared_ptr<RenderMesh> >::iterator mesh = m_Meshes.begin();
+  for (vector<shared_ptr<RenderMesh>>::iterator mesh = m_Meshes.begin();
        mesh != m_Meshes.end(); mesh++) {
    if ((*mesh)->GetActive()) (*mesh)->RenderOpaqueGeometry();
   }
@@ -2343,7 +2343,7 @@ void GLRenderer::RenderTransBackGeometry() {
 
   // only one transparent mesh -> render it
   if (m_iNumTransMeshes == 1)  {
-    for (vector<shared_ptr<RenderMesh> >::iterator mesh = m_Meshes.begin();
+    for (vector<shared_ptr<RenderMesh>>::iterator mesh = m_Meshes.begin();
          mesh != m_Meshes.end(); mesh++) {
      if ((*mesh)->GetActive()) (*mesh)->RenderTransGeometryBehind();
     }
@@ -2352,7 +2352,7 @@ void GLRenderer::RenderTransBackGeometry() {
   
   // more than one transparent mesh -> merge them before sorting and rendering
   SortIndexPVec mergedMesh;
-  for (vector<shared_ptr<RenderMesh> >::iterator mesh = m_Meshes.begin();
+  for (vector<shared_ptr<RenderMesh>>::iterator mesh = m_Meshes.begin();
        mesh != m_Meshes.end(); mesh++) {
     if ((*mesh)->GetActive()) {
       const SortIndexPVec& m = (*mesh)->GetBehindPointList(false);
@@ -2373,7 +2373,7 @@ void GLRenderer::RenderTransInGeometry() {
 
   // only one transparent mesh -> render it
   if (m_iNumTransMeshes == 1)  {
-    for (vector<shared_ptr<RenderMesh> >::iterator mesh = m_Meshes.begin();
+    for (vector<shared_ptr<RenderMesh>>::iterator mesh = m_Meshes.begin();
          mesh != m_Meshes.end(); mesh++) {
      if ((*mesh)->GetActive()) (*mesh)->RenderTransGeometryInside();
     }
@@ -2382,7 +2382,7 @@ void GLRenderer::RenderTransInGeometry() {
   
   // more than one transparent mesh -> merge them before sorting and rendering
   SortIndexPVec mergedMesh;
-  for (vector<shared_ptr<RenderMesh> >::iterator mesh = m_Meshes.begin();
+  for (vector<shared_ptr<RenderMesh>>::iterator mesh = m_Meshes.begin();
        mesh != m_Meshes.end(); mesh++) {
     if ((*mesh)->GetActive()) {
       const SortIndexPVec& m = (*mesh)->GetInPointList(false);
@@ -2403,7 +2403,7 @@ void GLRenderer::RenderTransFrontGeometry() {
 
   // only one transparent mesh -> render it
   if (m_iNumTransMeshes == 1)  {
-    for (vector<shared_ptr<RenderMesh> >::iterator mesh = m_Meshes.begin();
+    for (vector<shared_ptr<RenderMesh>>::iterator mesh = m_Meshes.begin();
           mesh != m_Meshes.end(); mesh++) {
       if ((*mesh)->GetActive()) (*mesh)->RenderTransGeometryFront();
     }
@@ -2412,7 +2412,7 @@ void GLRenderer::RenderTransFrontGeometry() {
   
   // more than one transparent mesh -> merge them before sorting and rendering
   SortIndexPVec mergedMesh;
-  for (vector<shared_ptr<RenderMesh> >::iterator mesh = m_Meshes.begin();
+  for (vector<shared_ptr<RenderMesh>>::iterator mesh = m_Meshes.begin();
        mesh != m_Meshes.end(); mesh++) {
     if ((*mesh)->GetActive()) {
       const SortIndexPVec& m = (*mesh)->GetFrontPointList(false);
@@ -2580,7 +2580,7 @@ void GLRenderer::RenderClipPlane(EStereoID eStereoID)
 }
 
 void GLRenderer::ScanForNewMeshes() {
-  vector<shared_ptr<Mesh> > meshVec = m_pDataset->GetMeshes();
+  vector<shared_ptr<Mesh>> meshVec = m_pDataset->GetMeshes();
   for (size_t i = m_Meshes.size(); i<meshVec.size();i++) {
     m_Meshes.push_back(shared_ptr<RenderMesh>(new RenderMeshGL(*meshVec[i])));
     m_Meshes[m_Meshes.size()-1]->InitRenderer();
@@ -2604,8 +2604,8 @@ bool GLRenderer::LoadDataset(const string& strFilename) {
   if (m_pProgram1DTrans[0] != NULL) SetDataDepShaderVars();
 
   // convert meshes in dataset to RenderMeshes
-  vector<shared_ptr<Mesh> > meshVec = m_pDataset->GetMeshes();
-  for (vector<shared_ptr<Mesh> >::const_iterator mesh = meshVec.begin();
+  vector<shared_ptr<Mesh>> meshVec = m_pDataset->GetMeshes();
+  for (vector<shared_ptr<Mesh>>::const_iterator mesh = meshVec.begin();
        mesh != meshVec.end(); mesh++) {
     m_Meshes.push_back(shared_ptr<RenderMesh>(new RenderMeshGL(**mesh)));
   }
