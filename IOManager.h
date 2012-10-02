@@ -65,7 +65,6 @@ namespace tuvok {
   class FileBackedDataset;
   class Mesh;
   class UVFDataset;
-  class MasterController;
   namespace io {
     class DSFactory;
   }
@@ -135,19 +134,12 @@ public:
     return ConvertDataset(files, strTargetFilename, strTempDir, bNoUserInteraction,
                           m_iBuilderBrickSize,m_iBrickOverlap, bQuantizeTo8Bit);
   }
-  bool ReBrickDataset(const std::string& strSourceFilename,
-                      const std::string& strTargetFilename,
-                      const std::string& strTempDir,
-                      bool bQuantizeTo8Bit=false) const {
-    return ReBrickDataset(strSourceFilename, strTargetFilename, strTempDir,
-                          m_iBuilderBrickSize,m_iBrickOverlap,bQuantizeTo8Bit);
-  }
 
   std::shared_ptr<tuvok::Mesh> LoadMesh(const std::string& meshfile) const;
 
   void AddMesh(const UVF* sourceDataset,
-                  const std::string& trisoup_file,
-                  const std::string& uvf) const;
+               const std::string& trisoup_file,
+               const std::string& uvf) const;
 
   ///@{
   /// We jump into the memory manager to load a data set, but the memory
@@ -253,7 +245,6 @@ public:
   bool GetClampToEdge() const {
     return m_bClampToEdge;
   }
-
 
 private:
   std::vector<tuvok::AbstrGeoConverter*> m_vpGeoConverters;
