@@ -78,7 +78,7 @@ public:
   IOManager();
   ~IOManager();
 
-  std::vector<std::shared_ptr<FileStackInfo> >
+  std::vector<std::shared_ptr<FileStackInfo>>
     ScanDirectory(std::string strDirectory) const;
   bool ConvertDataset(FileStackInfo* pStack,
                       const std::string& strTargetFilename,
@@ -197,11 +197,11 @@ public:
   std::string GetImageExportDialogString() const;
 
 
-  std::vector< std::pair <std::string, std::string > >
+  std::vector<std::pair<std::string, std::string>>
     GetImportFormatList() const;
-  std::vector< std::pair <std::string, std::string > >
+  std::vector<std::pair<std::string, std::string>>
     GetExportFormatList() const;
-  std::vector< tConverterFormat > GetFormatList() const;
+  std::vector<tConverterFormat> GetFormatList() const;
   bool HasConverterForExt(std::string ext,
                           bool bMustSupportExport,
                           bool bMustSupportImport) const {
@@ -213,11 +213,11 @@ public:
 
   std::string GetLoadGeoDialogString() const;
   std::string GetGeoExportDialogString() const;
-  std::vector< std::pair <std::string, std::string > >
+  std::vector<std::pair<std::string, std::string>>
     GetGeoImportFormatList() const;
-  std::vector< std::pair <std::string, std::string > >
+  std::vector<std::pair<std::string, std::string>>
     GetGeoExportFormatList() const;
-  std::vector< tConverterFormat > GetGeoFormatList() const;
+  std::vector<tConverterFormat> GetGeoFormatList() const;
   bool HasGeoConverterForExt(std::string ext,
                              bool bMustSupportExport,
                              bool bMustSupportImport) const {
