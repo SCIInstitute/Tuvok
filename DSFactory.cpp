@@ -77,7 +77,7 @@ DSFactory::Reader(const std::string& filename) const
   std::vector<int8_t> bytes(512);
   first_block(filename, bytes);
 
-  typedef std::list<std::shared_ptr<Dataset> > DSList;
+  typedef std::list<std::shared_ptr<Dataset>> DSList;
   for(DSList::const_iterator ds = datasets.begin(); ds != datasets.end(); ++ds)
   {
     MESSAGE("Checking if %s can open %s", (*ds)->Name(), filename.c_str());

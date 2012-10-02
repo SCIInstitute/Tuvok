@@ -26,7 +26,7 @@ int main() {
     );
     inorder(tree, print_tree, NULL);
 
-    std::vector<std::vector<int8_t> > inputs;
+    std::vector<std::vector<int8_t>> inputs;
     inputs.resize(1);
     inputs[0].resize(128);
     std::vector<int8_t> output;

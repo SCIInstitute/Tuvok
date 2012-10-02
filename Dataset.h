@@ -73,7 +73,7 @@ public:
   // references. It doesn't make sense in terms of Lua. Pointers in the form of 
   // shared_ptr's are fine however and are represented as lightuserdata in Lua.
   // See Tuvok's LuaDatasetProxy.
-  std::vector<std::shared_ptr<Mesh> > GetMeshes() const { return m_vpMeshList; }
+  std::vector<std::shared_ptr<Mesh>> GetMeshes() const { return m_vpMeshList; }
   std::shared_ptr<const Histogram1D> Get1DHistogram() const {return m_pHist1D;}
   std::shared_ptr<const Histogram2D> Get2DHistogram() const {return m_pHist2D;}
   virtual float MaxGradientMagnitude() const = 0;
@@ -137,8 +137,8 @@ public:
   virtual bool GetIsFloat() const = 0;
   virtual bool IsSameEndianness() const = 0;
   virtual std::pair<double,double> GetRange() const = 0;
-  virtual const std::vector< std::pair < std::string, std::string > > GetMetadata() const {
-    std::vector< std::pair < std::string, std::string > > v;
+  virtual const std::vector<std::pair<std::string, std::string>> GetMetadata() const {
+    std::vector<std::pair<std::string, std::string>> v;
     return v;
   }
 
@@ -175,7 +175,7 @@ public:
 protected:
   std::shared_ptr<Histogram1D>          m_pHist1D;
   std::shared_ptr<Histogram2D>          m_pHist2D;
-  std::vector<std::shared_ptr<Mesh> >   m_vpMeshList;
+  std::vector<std::shared_ptr<Mesh>>   m_vpMeshList;
 
   DOUBLEVECTOR3      m_UserScale;
   DOUBLEVECTOR3      m_DomainScale;

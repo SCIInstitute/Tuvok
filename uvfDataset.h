@@ -91,9 +91,9 @@ namespace tuvok {
     std::vector<UINT64VECTOR3>   m_vaBrickCount;
     /// the size of each individual brick.  Slowest moving dimension is LOD;
     /// then x,y,z.
-    std::vector<std::vector<std::vector<std::vector<UINT64VECTOR3> > > >  m_vvaBrickSize;
+    std::vector<std::vector<std::vector<std::vector<UINT64VECTOR3>>>>  m_vvaBrickSize;
     /// same layout as m_vvaBrickSize, but gives acceleration min/max info.
-    std::vector<std::vector<std::vector<InternalMaxMinVoxel> > > m_vvaMaxMin;
+    std::vector<std::vector<std::vector<InternalMaxMinVoxel>>> m_vvaMaxMin;
   };
 
   class TOCTimestep : public Timestep   {
@@ -169,7 +169,7 @@ public:
                         void *pUserContext= NULL,
                         uint64_t iOverlap=0) const;
 
-  virtual const std::vector<std::pair<std::string, std::string> > GetMetadata() const;
+  virtual const std::vector<std::pair<std::string, std::string>> GetMetadata() const;
 
   virtual bool SaveRescaleFactors();
   virtual bool Crop( const PLANE<float>& plane, const std::string& strTempDir, 

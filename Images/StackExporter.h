@@ -48,7 +48,7 @@ class StackExporter
 {
 public:
 
-  static std::vector<std::pair<std::string,std::string> > GetSuportedImageFormats();
+  static std::vector<std::pair<std::string,std::string>> GetSuportedImageFormats();
 
   static bool WriteStacks(const std::string& strRAWFilename, 
                           const std::string& strTargetFilename,

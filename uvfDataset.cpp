@@ -774,7 +774,7 @@ void UVFDataset::GetHistograms(size_t) {
 
   m_pHist2D.reset();
   if (ts->m_pHist2DDataBlock != NULL) {
-    const std::vector< std::vector<uint64_t> >& vHist2D =
+    const std::vector<std::vector<uint64_t>>& vHist2D =
       ts->m_pHist2DDataBlock->GetHistogram();
 
     VECTOR2<size_t> vSize(vHist2D.size(),vHist2D[0].size());
@@ -1210,8 +1210,8 @@ bool UVFDataset::ContainsData(const BrickKey &k, double fMin,double fMax, double
           fMinGradient <= maxMinElement.maxGradient);
 }
 
-const std::vector< std::pair < std::string, std::string > > UVFDataset::GetMetadata() const {
-  std::vector< std::pair < std::string, std::string > > v;
+const std::vector<std::pair<std::string, std::string>> UVFDataset::GetMetadata() const {
+  std::vector<std::pair<std::string, std::string>> v;
   if (m_pKVDataBlock)  {
     for (size_t i = 0;i<m_pKVDataBlock->GetKeyCount();i++) {
       v.push_back(std::make_pair(m_pKVDataBlock->GetKeyByIndex(i), m_pKVDataBlock->GetValueByIndex(i)));

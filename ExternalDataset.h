@@ -89,7 +89,7 @@ public:
   /// *before* the data.
   ///@{
   void SetHistogram(const std::vector<uint32_t>&);
-  void SetHistogram(const std::vector<std::vector<uint32_t> >&);
+  void SetHistogram(const std::vector<std::vector<uint32_t>>&);
   ///@}
 
   /// Adds a brick to the dataset.  The first two parameters give the data

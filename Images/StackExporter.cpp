@@ -45,8 +45,8 @@
 #include "Controller/Controller.h"
 
 
-std::vector<std::pair<std::string,std::string> > StackExporter::GetSuportedImageFormats() {
-  std::vector<std::pair<std::string,std::string> > formats;
+std::vector<std::pair<std::string,std::string>> StackExporter::GetSuportedImageFormats() {
+  std::vector<std::pair<std::string,std::string>> formats;
 
   formats.push_back(std::make_pair("raw","RAW RGBA file without header information"));
 

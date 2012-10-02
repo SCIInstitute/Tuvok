@@ -132,7 +132,7 @@ class AbstrDebugOut;
 class ProgressTimer;
 
 /// Vector to store statistics of each brick
-typedef std::vector< BrickStats< double > > BrickStatVec;
+typedef std::vector<BrickStats<double>> BrickStatVec;
 
 /*! \brief A class that takes a volume as a 1D array and
  *         turns it into a bricked, hierarchical Extended octree

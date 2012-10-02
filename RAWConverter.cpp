@@ -368,12 +368,12 @@ static std::string mk_tmpfile(std::ofstream& ofs, std::ios::openmode mode)
 /// given a data source, grab out every 'N'th element and put it in its own
 /// file.
 /// @return a list of temporary files with each component
-std::vector<std::shared_ptr<LargeRAWFile> >
+std::vector<std::shared_ptr<LargeRAWFile>>
 make_raw(std::shared_ptr<LargeRAWFile> source, uint64_t n_components,
          size_t csize) {
-  typedef std::vector<std::shared_ptr<LargeRAWFile> > files;
+  typedef std::vector<std::shared_ptr<LargeRAWFile>> files;
   const size_t nc = static_cast<size_t>(n_components);
-  std::vector<std::shared_ptr<LargeRAWFile> > components(nc);
+  std::vector<std::shared_ptr<LargeRAWFile>> components(nc);
 
   for(files::iterator f=components.begin(); f != components.end(); ++f) {
     std::ofstream ofs;

@@ -63,7 +63,7 @@ typedef void* QPainter;
 typedef Grid2D<uint32_t> Histogram2D;
 typedef Grid2D<float> NormalizedHistogram2D;
 typedef Grid2D<FLOATVECTOR4> ColorData2D;
-typedef Grid2D< VECTOR4<char> > ColorData2D8Bit;
+typedef Grid2D< VECTOR4<char>> ColorData2D8Bit;
 
 typedef std::pair< float, FLOATVECTOR4 > GradientStop;
 
@@ -107,7 +107,7 @@ public:
   void GetFloatArray(float** pfData);
 
   // Functions bound into Lua.
-  std::shared_ptr<const std::vector<TFPolygon> > SwatchGet() const;
+  std::shared_ptr<const std::vector<TFPolygon>> SwatchGet() const;
   size_t SwatchArrayGetSize() const;
   void SwatchPushBack(const TFPolygon& swatch);
   void SwatchErase(size_t swatchIndex);
@@ -130,7 +130,7 @@ public:
   size_t SwatchGetNumPoints(size_t i) const;
 
 
-  std::shared_ptr<std::vector< TFPolygon > > m_pvSwatches;
+  std::shared_ptr<std::vector<TFPolygon>> m_pvSwatches;
 
   const VECTOR2<size_t> GetSize() const {return m_iSize;}
   const VECTOR2<size_t> GetRenderSize() const {

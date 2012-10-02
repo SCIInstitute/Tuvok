@@ -103,10 +103,10 @@ public:
   std::vector<uint64_t> ulLODLevelCount;
   uint64_t ulElementDimension;
   std::vector<uint64_t> ulElementDimensionSize;
-  std::vector<std::vector<UVFTables::ElementSemanticTable> > ulElementSemantic;
-  std::vector<std::vector<uint64_t> > ulElementBitSize;
-  std::vector<std::vector<uint64_t> > ulElementMantissa;
-  std::vector<std::vector<bool> > bSignedElement;
+  std::vector<std::vector<UVFTables::ElementSemanticTable>> ulElementSemantic;
+  std::vector<std::vector<uint64_t>> ulElementBitSize;
+  std::vector<std::vector<uint64_t>> ulElementMantissa;
+  std::vector<std::vector<bool>> bSignedElement;
   uint64_t ulOffsetToDataBlock;
 
   virtual uint64_t ComputeDataSize() const {return ComputeDataSize(NULL);}
@@ -248,17 +248,17 @@ protected:
   virtual DataBlock* Clone() const;
   virtual uint64_t GetOffsetToNextBlock() const;
 
-  std::vector<std::vector<uint64_t> >
+  std::vector<std::vector<uint64_t>>
     CountToVectors(std::vector<uint64_t> vCountVector) const;
   uint64_t ComputeElementSize() const;
   virtual uint64_t GetLODSize(std::vector<uint64_t>& vLODIndices) const;
   virtual uint64_t
     ComputeLODLevelSize(const std::vector<uint64_t>& vReducedDomainSize) const;
-  virtual std::vector<std::vector<uint64_t> >
+  virtual std::vector<std::vector<uint64_t>>
     ComputeBricks(const std::vector<uint64_t>& vDomainSize) const;
 
-  virtual std::vector<std::vector<uint64_t> > GenerateCartesianProduct(
-    const std::vector<std::vector<uint64_t> >& vElements, uint64_t iIndex=0
+  virtual std::vector<std::vector<uint64_t>> GenerateCartesianProduct(
+    const std::vector<std::vector<uint64_t>>& vElements, uint64_t iIndex=0
   ) const;
   uint64_t RecompLODIndexCount() const;
   void CleanupTemp();
@@ -270,9 +270,9 @@ protected:
 
   // CONVENIENCE FUNCTION HELPERS
   std::vector<uint64_t> m_vLODOffsets;
-  std::vector<std::vector<uint64_t> > m_vBrickCount;
-  std::vector<std::vector<uint64_t> > m_vBrickOffsets;
-  std::vector<std::vector<std::vector<uint64_t> > > m_vBrickSizes;
+  std::vector<std::vector<uint64_t>> m_vBrickCount;
+  std::vector<std::vector<uint64_t>> m_vBrickOffsets;
+  std::vector<std::vector<std::vector<uint64_t>>> m_vBrickSizes;
 
   uint64_t Serialize(const std::vector<uint64_t>& vec,
                      const std::vector<uint64_t>& vSizes) const;

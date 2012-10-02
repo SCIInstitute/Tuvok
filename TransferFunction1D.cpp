@@ -370,7 +370,7 @@ void TransferFunction1D::ComputeNonZeroLimits() {
   }
 }
 
-std::shared_ptr<std::vector<FLOATVECTOR4> > TransferFunction1D::GetColorData() {
+std::shared_ptr<std::vector<FLOATVECTOR4>> TransferFunction1D::GetColorData() {
   return m_pvColorData;
 }
 

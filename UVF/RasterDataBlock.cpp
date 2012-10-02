@@ -286,8 +286,8 @@ uint64_t RasterDataBlock::CopyToFile(LargeRAWFile_ptr pStreamFile, uint64_t iOff
  * \return - the cartesian product of the ordered elements in the input vectors
  *           as a vector of vectors
  */
-vector<vector<uint64_t> > RasterDataBlock::GenerateCartesianProduct(const vector<vector<uint64_t> >& vElements, uint64_t iIndex)  const {
-  vector<vector<uint64_t> > vResult;
+vector<vector<uint64_t>> RasterDataBlock::GenerateCartesianProduct(const vector<vector<uint64_t>>& vElements, uint64_t iIndex)  const {
+  vector<vector<uint64_t>> vResult;
   if (iIndex == vElements.size()-1) {
     for (size_t i = 0;i<vElements[vElements.size()-1].size();i++) {
       vector<uint64_t> v;
@@ -295,7 +295,7 @@ vector<vector<uint64_t> > RasterDataBlock::GenerateCartesianProduct(const vector
       vResult.push_back(v);
     }
   } else {
-    vector<vector<uint64_t> > vTmpResult = GenerateCartesianProduct(vElements,iIndex+1);
+    vector<vector<uint64_t>> vTmpResult = GenerateCartesianProduct(vElements,iIndex+1);
     for (size_t j = 0;j<vTmpResult.size();j++) {
       for (size_t i = 0;i<vElements[size_t(iIndex)].size();i++) {
         vector<uint64_t> v;
@@ -318,8 +318,8 @@ vector<vector<uint64_t> > RasterDataBlock::GenerateCartesianProduct(const vector
  * \return - a vector of vectors, where each vector holds a list of bricksizes
  *           in one dimension
  */
-vector<vector<uint64_t> > RasterDataBlock::ComputeBricks(const vector<uint64_t>& vDomainSize) const {
-  vector<vector<uint64_t> > vBrickLayout;
+vector<vector<uint64_t>> RasterDataBlock::ComputeBricks(const vector<uint64_t>& vDomainSize) const {
+  vector<vector<uint64_t>> vBrickLayout;
 
   for (size_t iDomainDimension = 0;iDomainDimension<vDomainSize.size();iDomainDimension++) {
     uint64_t iSize         = vDomainSize[iDomainDimension];
@@ -369,8 +369,8 @@ uint64_t RasterDataBlock::ComputeLODLevelSizeAndOffsetTables(const vector<uint64
   uint64_t uiBitsPerElement = ComputeElementSize();
 
   // compute brick layout
-  vector<vector<uint64_t> > vBricks = ComputeBricks(vReducedDomainSize);
-  vector<vector<uint64_t> > vBrickPermutation = GenerateCartesianProduct(vBricks);
+  vector<vector<uint64_t>> vBricks = ComputeBricks(vReducedDomainSize);
+  vector<vector<uint64_t>> vBrickPermutation = GenerateCartesianProduct(vBricks);
 
   for (size_t i=0; i < vBricks.size(); i++) {
     m_vBrickCount[size_t(iLOD)].push_back(vBricks[i].size());
@@ -400,8 +400,8 @@ uint64_t RasterDataBlock::ComputeLODLevelSize(const vector<uint64_t>& vReducedDo
   uint64_t uiBitsPerElement = ComputeElementSize();
 
   // compute brick layout
-  vector<vector<uint64_t> > vBricks = ComputeBricks(vReducedDomainSize);
-  vector<vector<uint64_t> > vBrickPermutation = GenerateCartesianProduct(vBricks);
+  vector<vector<uint64_t>> vBricks = ComputeBricks(vReducedDomainSize);
+  vector<vector<uint64_t>> vBrickPermutation = GenerateCartesianProduct(vBricks);
 
   ulSize = 0;
   for (size_t i = 0;i<vBrickPermutation.size();i++) {
@@ -455,8 +455,8 @@ uint64_t RasterDataBlock::GetLODSizeAndOffsetTables(vector<uint64_t>& vLODIndice
   return ulSize;
 }
 
-vector<vector<uint64_t> > RasterDataBlock::CountToVectors(vector<uint64_t> vCountVector) const {
-  vector<vector<uint64_t> > vResult;
+vector<vector<uint64_t>> RasterDataBlock::CountToVectors(vector<uint64_t> vCountVector) const {
+  vector<vector<uint64_t>> vResult;
 
   vResult.resize(vCountVector.size());
   for (size_t i=0;i<vCountVector.size();i++) {
@@ -475,7 +475,7 @@ uint64_t RasterDataBlock::ComputeDataSize(string* pstrProblem) const {
   uint64_t iDataSize = 0;
 
   // iterate over all LOD-Group Combinations
-  vector<vector<uint64_t> > vLODCombis = GenerateCartesianProduct(CountToVectors(ulLODLevelCount));
+  vector<vector<uint64_t>> vLODCombis = GenerateCartesianProduct(CountToVectors(ulLODLevelCount));
 
   for (size_t i = 0;i<vLODCombis.size();i++) {
     uint64_t iLODLevelSize = GetLODSize(vLODCombis[i]);
@@ -491,7 +491,7 @@ uint64_t RasterDataBlock::ComputeDataSizeAndOffsetTables() {
   uint64_t iDataSize = 0;
 
   // iterate over all LOD-Group Combinations
-  vector<vector<uint64_t> > vLODCombis = GenerateCartesianProduct(CountToVectors(ulLODLevelCount));
+  vector<vector<uint64_t>> vLODCombis = GenerateCartesianProduct(CountToVectors(ulLODLevelCount));
 
   m_vLODOffsets.resize(vLODCombis.size());
   m_vBrickCount.resize(vLODCombis.size());
@@ -796,7 +796,7 @@ void RasterDataBlock::SubSample(LargeRAWFile_ptr pSourceFile,
   }
 
   // generate offset vector
-  vector<vector<uint64_t> > vOffsetVectors = GenerateCartesianProduct(CountToVectors(vReduction));
+  vector<vector<uint64_t>> vOffsetVectors = GenerateCartesianProduct(CountToVectors(vReduction));
 
   // generate 1D offset coords into serialized source data
   vector<uint64_t> vPrefixProd;
@@ -1012,7 +1012,7 @@ RasterDataBlock::FlatDataToBrickedLOD(
   LargeRAWFile_ptr tempFile;
 
   // iterate over all LOD-Group Combinations
-  vector<vector<uint64_t> > vLODCombis = GenerateCartesianProduct(CountToVectors(ulLODLevelCount));
+  vector<vector<uint64_t>> vLODCombis = GenerateCartesianProduct(CountToVectors(ulLODLevelCount));
 
   vector<uint64_t> vLastReducedDomainSize;
   vLastReducedDomainSize.resize(ulDomainSemantics.size());
@@ -1071,13 +1071,13 @@ RasterDataBlock::FlatDataToBrickedLOD(
     //Console::printf("\n    Generating bricks:\n");
 
     // compute brick layout
-    vector< vector<uint64_t> > vBricks = ComputeBricks(vReducedDomainSize);
-    vector< vector<uint64_t> > vBrickPermutation = GenerateCartesianProduct(vBricks);
+    vector< vector<uint64_t>> vBricks = ComputeBricks(vReducedDomainSize);
+    vector< vector<uint64_t>> vBrickPermutation = GenerateCartesianProduct(vBricks);
 
     // compute positions of bricks in source data
     vector<uint64_t> vBrickLayout;
     for (size_t j=0;j<vBricks.size();j++) vBrickLayout.push_back(vBricks[j].size());
-    vector< vector<uint64_t> > vBrickIndices = GenerateCartesianProduct(CountToVectors(vBrickLayout));
+    vector< vector<uint64_t>> vBrickIndices = GenerateCartesianProduct(CountToVectors(vBrickLayout));
 
     vector<uint64_t> vPrefixProd;
     vPrefixProd.push_back(1);

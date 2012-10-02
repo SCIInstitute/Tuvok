@@ -201,11 +201,11 @@ IOManager::~IOManager()
   m_pFinalConverter.reset();
 }
 
-vector<std::shared_ptr<FileStackInfo> >
+vector<std::shared_ptr<FileStackInfo>>
 IOManager::ScanDirectory(string strDirectory) const {
   MESSAGE("Scanning directory %s", strDirectory.c_str());
 
-  vector<std::shared_ptr<FileStackInfo> > fileStacks;
+  vector<std::shared_ptr<FileStackInfo>> fileStacks;
 
   DICOMParser parseDICOM;
   parseDICOM.GetDirInfo(strDirectory);
@@ -1423,7 +1423,7 @@ public:
 protected:
   T                  m_TIsoValue;
   uint32_t           m_iIndexoffset;
-  std::shared_ptr<MarchingCubes<T> > m_pMarchingCubes;
+  std::shared_ptr<MarchingCubes<T>> m_pMarchingCubes;
   UINT64VECTOR3      m_vDataSize;
   tuvok::AbstrGeoConverter* m_conv;
   FLOATVECTOR4       m_vColor;
@@ -1633,7 +1633,7 @@ using namespace tuvok;
 using namespace tuvok::io;
 
 std::string IOManager::GetImageExportDialogString() const {
-  std::vector<std::pair<std::string,std::string> > formats = StackExporter::GetSuportedImageFormats();
+  std::vector<std::pair<std::string,std::string>> formats = StackExporter::GetSuportedImageFormats();
 
   string strDialog = "All known Files ( ";
   for(size_t i = 0; i< formats.size(); ++i) {
@@ -1731,8 +1731,8 @@ string IOManager::GetExportDialogString() const {
   return strDialog;
 }
 
-vector< pair <string, string > > IOManager::GetExportFormatList() const {
-  vector< pair <string, string > > v;
+vector<pair<string, string>> IOManager::GetExportFormatList() const {
+  vector<pair<string, string>> v;
   v.push_back(make_pair("UVF", "Universal Volume Format"));
   for (size_t i = 0;i<m_vpConverters.size();i++) {
     if (m_vpConverters[i]->CanExportData()) {
@@ -1746,8 +1746,8 @@ vector< pair <string, string > > IOManager::GetExportFormatList() const {
   return v;
 }
 
-vector< pair <string, string > > IOManager::GetImportFormatList() const {
-  vector< pair <string, string > > v;
+vector<pair<string, string>> IOManager::GetImportFormatList() const {
+  vector<pair<string, string>> v;
   v.push_back(make_pair("UVF", "Universal Volume Format"));
   for (size_t i = 0;i<m_vpConverters.size();i++) {
     if (m_vpConverters[i]->CanImportData()) {
@@ -1865,8 +1865,8 @@ string IOManager::GetGeoExportDialogString() const {
 
 
 
-vector< pair <string, string > > IOManager::GetGeoExportFormatList() const {
-  vector< pair <string, string > > v;
+vector<pair<string, string>> IOManager::GetGeoExportFormatList() const {
+  vector<pair<string, string>> v;
   for (size_t i = 0;i<m_vpGeoConverters.size();i++) {
     for (size_t j = 0;j<m_vpGeoConverters[i]->SupportedExt().size();j++) {
       if (m_vpGeoConverters[i]->CanExportData()) {
@@ -1879,8 +1879,8 @@ vector< pair <string, string > > IOManager::GetGeoExportFormatList() const {
   return v;
 }
 
-vector< pair <string, string > > IOManager::GetGeoImportFormatList() const {
-  vector< pair <string, string > > v;
+vector<pair<string, string>> IOManager::GetGeoImportFormatList() const {
+  vector<pair<string, string>> v;
   for (size_t i = 0;i<m_vpGeoConverters.size();i++) {
     if (m_vpGeoConverters[i]->CanImportData()) {
       for (size_t j = 0;j<m_vpGeoConverters[i]->SupportedExt().size();j++) {
@@ -2230,7 +2230,7 @@ CreateUVFFromRDB(const std::string& filename,
 // Identifies the 'widest' type that is utilized in a series of UVFs.
 // For example, if we've got FP data in one UVF and unsigned bytes in
 // another, the 'widest' type is FP.
-void IdentifyType(const std::vector<std::shared_ptr<UVFDataset> >& uvf,
+void IdentifyType(const std::vector<std::shared_ptr<UVFDataset>>& uvf,
                   size_t& bit_width, bool& is_float, bool &is_signed)
 {
   bit_width = 0;
@@ -2348,11 +2348,11 @@ namespace {
   template<typename T>
   void ReadAndEvalBrick(
     RasterDataBlock& rdb,
-    const std::vector<std::shared_ptr<UVFDataset> >& uvfs,
+    const std::vector<std::shared_ptr<UVFDataset>>& uvfs,
     const std::vector<BrickTable::const_iterator>& iters,
     tuvok::expression::Node* tree
   ) {
-    std::vector<std::vector<T> > involumes(uvfs.size());
+    std::vector<std::vector<T>> involumes(uvfs.size());
     std::vector<T> output;
     for(size_t i=0; i < uvfs.size(); ++i) {
       MESSAGE("Reading brick from volume %u/%u...", static_cast<unsigned>(i+1),
@@ -2391,7 +2391,7 @@ IOManager::EvaluateExpression(const std::string& expr,
 
   // open all of those files and get UVF datasets for each of them.
   const bool verify=false;
-  std::vector<std::shared_ptr<UVFDataset> > uvf;
+  std::vector<std::shared_ptr<UVFDataset>> uvf;
   typedef std::vector<std::string>::const_iterator citer;
   for(citer f = volumes.begin(); f != volumes.end(); ++f) {
     uvf.push_back(std::shared_ptr<UVFDataset>(
@@ -2402,7 +2402,7 @@ IOManager::EvaluateExpression(const std::string& expr,
   }
   // ensure those UVFs are "equal" in some sense (same number of voxels, etc).
   MergeableDatasets mergeable;
-  typedef std::vector<std::shared_ptr<UVFDataset> >::const_iterator uiter;
+  typedef std::vector<std::shared_ptr<UVFDataset>>::const_iterator uiter;
   for(uiter u = uvf.begin(); u != uvf.end(); ++u) {
     if(!mergeable(**uvf.begin(), **u)) {
       throw tuvok::io::UnmergeableDatasets("Incompatible input volumes",

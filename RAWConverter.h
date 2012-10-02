@@ -47,7 +47,7 @@
 #include "Controller/Controller.h"
 #include "IOManager.h"  // for the size defines
 
-typedef std::vector< std::pair < std::string, std::string > > KVPairs;
+typedef std::vector<std::pair<std::string, std::string>> KVPairs;
 
 template<class T> class MinMaxScanner {
 public:

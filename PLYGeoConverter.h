@@ -126,9 +126,9 @@ namespace tuvok {
       EPROP_UNKNOWN
     };
 
-    std::vector<std::pair<propType, vertexProp> > vertexProps;
-    std::vector<std::tuple<propType, propType, faceProp> > faceProps;
-    std::vector<std::pair<propType, edgeProp> > edgeProps;
+    std::vector<std::pair<propType, vertexProp>> vertexProps;
+    std::vector<std::tuple<propType, propType, faceProp>> faceProps;
+    std::vector<std::pair<propType, edgeProp>> edgeProps;
 
     propType StringToType(const std::string& token);
     vertexProp StringToVProp(const std::string& token);

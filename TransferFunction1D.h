@@ -68,7 +68,7 @@ public:
   void Resample(size_t iTargetSize);
   void FillOrTruncate(size_t iTargetSize);
 
-  std::shared_ptr<std::vector<FLOATVECTOR4> > GetColorData();
+  std::shared_ptr<std::vector<FLOATVECTOR4>> GetColorData();
   FLOATVECTOR4 GetColor(size_t index) const;
   void SetColor(size_t index, FLOATVECTOR4 color);
 
@@ -95,7 +95,7 @@ private:
 
   /// m_pvColorData exists as a shared pointer so that it can be handed off in
   /// an efficient manner to C++ code (from Lua inside of Tuvok).
-  std::shared_ptr<std::vector<FLOATVECTOR4> > m_pvColorData;
+  std::shared_ptr<std::vector<FLOATVECTOR4>> m_pvColorData;
 
   float Smoothstep(float x) const;
 };

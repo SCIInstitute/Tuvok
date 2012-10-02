@@ -407,7 +407,7 @@ void TransferFunction2D::Update1DTrans(const TransferFunction1D* p1DTrans) {
   size_t iSize = min<size_t>(m_iSize.x,  m_Trans1D.GetSize());
 
   m_Trans1DImage = QImage(int(iSize), 1, QImage::Format_ARGB32);
-  shared_ptr<vector<FLOATVECTOR4> > tfdata = m_Trans1D.GetColorData();
+  shared_ptr<vector<FLOATVECTOR4>> tfdata = m_Trans1D.GetColorData();
   for (size_t i = 0;i<iSize;i++) {
     float r = std::max(0.0f,std::min((*tfdata)[i][0],1.0f));
     float g = std::max(0.0f,std::min((*tfdata)[i][1],1.0f));
@@ -501,7 +501,7 @@ void TransferFunction2D::SwatchUpdate(size_t i, const TFPolygon& swatch) {
   (*m_pvSwatches)[i] = swatch;
 }
 
-std::shared_ptr<const std::vector<TFPolygon> > 
+std::shared_ptr<const std::vector<TFPolygon>> 
 TransferFunction2D::SwatchGet() const {
   return m_pvSwatches;
 }

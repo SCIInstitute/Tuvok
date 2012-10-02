@@ -47,7 +47,7 @@ class Node {
     /// For iteration over all children in the tree.  Order is
     /// "leftmost" to "rightmost".
     ///@{
-    typedef std::vector<std::shared_ptr<Node> >::const_iterator citer;
+    typedef std::vector<std::shared_ptr<Node>>::const_iterator citer;
     citer begin() const;
     citer end() const;
     ///@}
@@ -68,7 +68,7 @@ class Node {
     const std::shared_ptr<Node> GetChild(size_t index) const;
 
   private:
-    std::vector<std::shared_ptr<Node> > children;
+    std::vector<std::shared_ptr<Node>> children;
 };
 
 namespace { template<typename T> void NullDeleter(T*) {} }
@@ -79,7 +79,7 @@ namespace { template<typename T> void NullDeleter(T*) {} }
 /// @param output: the output volume.
 template<typename T>
 void evaluate(Node& tree,
-              std::vector<std::vector<T> >& volumes,
+              std::vector<std::vector<T>>& volumes,
               std::vector<T>& output)
 {
   // First make sure the volumes make sense.

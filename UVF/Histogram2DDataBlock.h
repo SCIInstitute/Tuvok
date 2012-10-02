@@ -25,10 +25,10 @@ public:
   bool Compute(const RasterDataBlock* source,
                size_t iHistoBinCount, double fMaxNonZeroValue);
 
-  const std::vector< std::vector<uint64_t> >& GetHistogram() const {
+  const std::vector<std::vector<uint64_t>>& GetHistogram() const {
     return m_vHistData;
   }
-  void SetHistogram(std::vector< std::vector<uint64_t> >& vHistData,
+  void SetHistogram(std::vector<std::vector<uint64_t>>& vHistData,
                     float fMaxGradMagnitude) {
     m_vHistData = vHistData;
     m_fMaxGradMagnitude=fMaxGradMagnitude;
@@ -37,8 +37,8 @@ public:
   float GetMaxGradMagnitude() const {return m_fMaxGradMagnitude;}
 
 protected:
-  std::vector<std::vector<uint64_t> > m_vHistData;
-  float                               m_fMaxGradMagnitude;
+  std::vector<std::vector<uint64_t>> m_vHistData;
+  float                              m_fMaxGradMagnitude;
 
   virtual void CopyHeaderToFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset,
                                 bool bIsBigEndian, bool bIsLastBlock);

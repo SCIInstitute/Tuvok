@@ -42,7 +42,7 @@ using namespace boost;
 
 namespace tuvok {
 
-typedef std::vector<std::vector<uint32_t> > hist2d;
+typedef std::vector<std::vector<uint32_t>> hist2d;
 
 ExternalDataset::ExternalDataset()
 {
@@ -251,7 +251,7 @@ void ExternalDataset::SetHistogram(const std::vector<uint32_t>& hist)
               sizeof(uint32_t)*hist.size());
 }
 
-void ExternalDataset::SetHistogram(const std::vector<std::vector<uint32_t> >& hist)
+void ExternalDataset::SetHistogram(const std::vector<std::vector<uint32_t>>& hist)
 {
   // assume the 2D histogram is square: hist[0].size() == hist[1].size() == ...
   const VECTOR2<size_t> sz(hist.size(), hist[0].size());
