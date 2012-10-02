@@ -118,27 +118,13 @@ public:
                       const uint64_t iMaxBrickSize,
                       uint64_t iBrickOverlap,
                       bool bQuantizeTo8Bit=false) const;
-  bool MergeDatasets(const std::vector <std::string>& strFilenames,
-                     const std::vector <double>& vScales,
+  bool MergeDatasets(const std::vector<std::string>& strFilenames,
+                     const std::vector<double>& vScales,
                      const std::vector<double>& vBiases,
                      const std::string& strTargetFilename,
                      const std::string& strTempDir,
                      bool bUseMaxMode=true,
                      bool bNoUserInteraction=false) const;
-  tuvok::UVFDataset* ConvertDataset(FileStackInfo* pStack,
-                                    const std::string& strTargetFilename,
-                                    const std::string& strTempDir,
-                                    tuvok::AbstrRenderer* requester,
-                                    const uint64_t iMaxBrickSize,
-                                    uint64_t iBrickOverlap,
-                                    bool bQuantizeTo8Bit=false) const;
-  tuvok::UVFDataset* ConvertDataset(const std::string& strFilename,
-                                    const std::string& strTargetFilename,
-                                    const std::string& strTempDir,
-                                    tuvok::AbstrRenderer* requester,
-                                    const uint64_t iMaxBrickSize,
-                                    uint64_t iBrickOverlap,
-                                    bool bQuantizeTo8Bit=false) const;
 
   /// evaluates the given expression. v[n] in the expression refers to
   /// the volume given by volumes[n].
@@ -154,23 +140,6 @@ public:
                       const uint64_t iBrickOverlap,
                       bool bQuantizeTo8Bit=false) const;
 
-  // convenience calls that use the default bricksizes and overlaps
-  tuvok::UVFDataset* ConvertDataset(FileStackInfo* pStack,
-                                    const std::string& strTargetFilename,
-                                    const std::string& strTempDir,
-                                    tuvok::AbstrRenderer* requester,
-                                    const bool bQuantizeTo8Bit=false) const {
-    return ConvertDataset(pStack, strTargetFilename, strTempDir, requester,
-                          m_iBuilderBrickSize, m_iBrickOverlap, bQuantizeTo8Bit);
-  }
-  tuvok::UVFDataset* ConvertDataset(const std::string& strFilename,
-                                    const std::string& strTargetFilename,
-                                    const std::string& strTempDir,
-                                    tuvok::AbstrRenderer* requester,
-                                    const bool bQuantizeTo8Bit=false) {
-    return ConvertDataset(strFilename, strTargetFilename, strTempDir, requester,
-                          m_iBuilderBrickSize, m_iBrickOverlap,bQuantizeTo8Bit);
-  }
   bool ConvertDataset(FileStackInfo* pStack,
                       const std::string& strTargetFilename,
                       const std::string& strTempDir,

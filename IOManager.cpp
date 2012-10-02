@@ -1238,34 +1238,6 @@ bool IOManager::ConvertDataset(const list<string>& files,
   return false;
 }
 
-UVFDataset* IOManager::ConvertDataset(FileStackInfo* pStack,
-                                      const string& strTargetFilename,
-                                      const string& strTempDir,
-                                      AbstrRenderer* requester,
-                                      const uint64_t iMaxBrickSize,
-                                      uint64_t iBrickOverlap,
-                                      const bool bQuantizeTo8Bit) const {
-  if (!ConvertDataset(pStack, strTargetFilename, strTempDir, iMaxBrickSize,
-                      iBrickOverlap,bQuantizeTo8Bit)) {
-    return NULL;
-  }
-  return dynamic_cast<UVFDataset*>(LoadDataset(strTargetFilename, requester));
-}
-
-UVFDataset* IOManager::ConvertDataset(const string& strFilename,
-                                      const string& strTargetFilename,
-                                      const string& strTempDir,
-                                      AbstrRenderer* requester,
-                                      const uint64_t iMaxBrickSize,
-                                      uint64_t iBrickOverlap,
-                                      const bool bQuantizeTo8Bit) const {
-  if (!ConvertDataset(strFilename, strTargetFilename, strTempDir, false,
-                      iMaxBrickSize, iBrickOverlap,bQuantizeTo8Bit)) {
-    return NULL;
-  }
-  return dynamic_cast<UVFDataset*>(LoadDataset(strTargetFilename, requester));
-}
-
 void IOManager::SetMemManLoadFunction(
   std::function<tuvok::Dataset*(const std::string&,
                                      AbstrRenderer*)>& f
