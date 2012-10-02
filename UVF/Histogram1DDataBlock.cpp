@@ -2,6 +2,10 @@
 
 #include "RasterDataBlock.h"
 #include "../../Basics/MathTools.h"
+#include "../../Controller/Controller.h"
+#include "../../Basics/ProgressTimer.h"
+
+// simple/generic progress update message
 
 using namespace std;
 using namespace UVFTables;
@@ -112,6 +116,50 @@ bool Histogram1DDataBlock::Compute(const TOCBlock* source, uint64_t iLevel) {
 
   return true;
 }
+
+template <class T> 
+void Histogram1DDataBlock::ComputeTemplate(const TOCBlock* source,
+                                           uint64_t iLevel) {
+  // compute histogram by iterating over all bricks of the given level
+  UINT64VECTOR3 bricksInSourceLevel = source->GetBrickCount(iLevel);
+
+  size_t iCompcount = size_t(source->GetComponentCount());
+  T* pTempBrickData = new T[size_t(source->GetMaxBricksize().volume())
+                            *iCompcount];
+
+  uint32_t iOverlap =source->GetOverlap();
+
+  ProgressTimer timer;
+  timer.Start();
+
+  for (uint64_t bz = 0;bz<bricksInSourceLevel.z;bz++) {
+    for (uint64_t by = 0;by<bricksInSourceLevel.y;by++) {
+      for (uint64_t bx = 0;bx<bricksInSourceLevel.x;bx++) {
+        UINT64VECTOR4 brickCoords(bx,by,bz,iLevel);
+        source->GetData((uint8_t*)pTempBrickData, brickCoords);
+        UINTVECTOR3 bricksize = UINTVECTOR3(source->GetBrickSize(brickCoords));
+
+        for (uint32_t z = iOverlap;z<bricksize.z-iOverlap;z++) {
+          for (uint32_t y = iOverlap;y<bricksize.y-iOverlap;y++) {
+            for (uint32_t x = iOverlap;x<bricksize.x-iOverlap;x++) {
+              // TODO: think about what todo with multi component data
+              //       right now we only pick the first component
+              size_t val = size_t(pTempBrickData[iCompcount*(x+y*bricksize.x+z*bricksize.x*bricksize.y)]);
+              m_vHistData[val]++;
+            }
+          }
+        }
+      }
+    }
+
+    float progress = float(bz)/float(bricksInSourceLevel.z);
+    MESSAGE("Computing 1D Histogram %5.2f%% (%s)", 
+            progress * 100.0f,
+            timer.GetProgressMessage(progress).c_str());
+  }
+  delete [] pTempBrickData;
+}
+
 
 size_t Histogram1DDataBlock::Compress(size_t maxTargetSize) {
   if (m_vHistData.size() > maxTargetSize) {

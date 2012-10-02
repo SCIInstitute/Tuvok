@@ -4,6 +4,9 @@
 #include "Basics/Checksums/MD5.h"
 #include "Basics/nonstd.h"
 #include "DataBlock.h"
+#include "Controller/Controller.h"
+#include "Basics/ProgressTimer.h"
+
 
 using namespace std;
 using namespace UVFTables;
@@ -162,18 +165,27 @@ vector<unsigned char> UVF::ComputeChecksum(LargeRAWFile_ptr streamFile, Checksum
 
   streamFile->SeekPos(iOffset);
 
-  unsigned char *ucBlock=new unsigned char[1<<20];
+  ProgressTimer timer;
+  timer.Start();
+
+  unsigned char *ucBlock=new unsigned char[1<<25];
   switch (eChecksumSemanticsEntry) {
     case CS_CRC32 : {
               CRC32     crc;
-              uint64_t iBlocks=iFileSize>>20;
+              uint64_t iBlocks=iFileSize>>25;
               unsigned long dwCRC32=0xFFFFFFFF;
               for (uint64_t i=0; i<iBlocks; i++) {
-                streamFile->ReadRAW(ucBlock,1<<20);
-                crc.chunk(ucBlock,1<<20,dwCRC32);
+                streamFile->ReadRAW(ucBlock,1<<25);
+                crc.chunk(ucBlock,1<<25,dwCRC32);
+
+                float progress = float(i)/float(iBlocks-1);
+                MESSAGE("Computing CRC32 Checksum %5.2f%% (%s)", 
+                        progress * 100.0f,
+                        timer.GetProgressMessage(progress).c_str());
+
               }
 
-              size_t iLengthLastChunk=size_t(iFileSize-(iBlocks<<20));
+              size_t iLengthLastChunk=size_t(iFileSize-(iBlocks<<25));
               streamFile->ReadRAW(ucBlock,iLengthLastChunk);
               crc.chunk(ucBlock,iLengthLastChunk,dwCRC32);
               dwCRC32^=0xFFFFFFFF;
@@ -191,11 +203,16 @@ vector<unsigned char> UVF::ComputeChecksum(LargeRAWFile_ptr streamFile, Checksum
 
               while (iSize > 0)
               {
-                iBlockSize = uint32_t(min(iSize,uint64_t(1<<20)));
+                iBlockSize = uint32_t(min(iSize,uint64_t(1<<25)));
 
                 streamFile->ReadRAW(ucBlock,iBlockSize);
                 md5.Update(ucBlock, iBlockSize, iError);
                 iSize   -= iBlockSize;
+
+                float progress = 1.0f - float(iSize)/float(iFileSize);
+                MESSAGE("Computing MD5 Checksum %5.2f%% (%s)", 
+                        progress * 100.0f,
+                        timer.GetProgressMessage(progress).c_str());
               }
 
               checkSum = md5.Final(iError);

@@ -438,6 +438,8 @@ void ExtendedOctreeConverter::ComputeStatsAndCompressAll(ExtendedOctree& tree)
   std::shared_ptr<uint8_t> compressed(new uint8_t[maxbricksize],
                                       nonstd::DeleteArray<uint8_t>());
 
+  size_t iReportInterval = std::max<size_t>(1, tree.m_vTOC.size()/2000);
+
   if(m_eCompression == CT_NONE) {
     // compression is disabled.  That makes our job pretty easy: only compute
     // the brick stats
@@ -447,7 +449,11 @@ void ExtendedOctreeConverter::ComputeStatsAndCompressAll(ExtendedOctree& tree)
                 tree.m_iComponentCount, tree.m_eComponentType);
       const float progress = float(i) / tree.m_vTOC.size();
       m_fProgress = MathTools::lerp(progress, 0.0f,1.0f, 0.8f,1.0f);
-      PROGRESS;
+
+      if (i % iReportInterval == 0) {
+        m_fProgress = MathTools::lerp(progress, 0.0f,1.0f, 0.8f,1.0f);
+        PROGRESS;
+      }
     }
   } else {
 
@@ -480,8 +486,11 @@ void ExtendedOctreeConverter::ComputeStatsAndCompressAll(ExtendedOctree& tree)
       tree.m_pLargeRAWFile->SeekPos(tree.m_vTOC[i].m_iOffset);
       tree.m_pLargeRAWFile->WriteRAW(data.get(), tree.m_vTOC[i].m_iLength);
       const float progress = float(i) / tree.m_vTOC.size();
-      m_fProgress = MathTools::lerp(progress, 0.0f,1.0f, 0.8f,1.0f);
-      PROGRESS;
+      
+      if (i % iReportInterval == 0) {
+        m_fProgress = MathTools::lerp(progress, 0.0f,1.0f, 0.8f,1.0f);
+        PROGRESS;
+      }
     }
   }
 }
