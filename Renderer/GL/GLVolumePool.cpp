@@ -1,3 +1,5 @@
+#define WRITE_SHADERS
+
 #include "StdTuvokDefines.h"
 #include <algorithm>
 #include <iomanip>
@@ -363,41 +365,62 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit,
      << "uniform float fLoDFactor;\n"
      << "uniform float fLevelZeroWorldSpaceError;\n"
      << "uniform vec3 volumeAspect;\n"
-     << "#define iMaxLOD " << m_iLoDCount-1 << "\n"
-     << "uniform uint vLODOffset[" << m_iLoDCount << "] = uint[](";
-  for (uint32_t i = 0;i<m_iLoDCount;++i) {
-    ss << "uint(" << m_vLoDOffsetTable[i] << ")";
-    if (i<m_iLoDCount-1) {
-      ss << ", ";
+     << "#define iMaxLOD " << m_iLoDCount-1 << "\n";
+  if (m_iLoDCount < 2) {
+    // HACK: aparently GLSL (at least NVIDIA's implementation)
+    //       does not like arrays with just a single element
+    //       so if we only have one LOD we just append a dummy
+    //       element to each array
+    ss << "uniform uint vLODOffset[2] = uint[]("
+       << "uint(" << m_vLoDOffsetTable[0] << "), uint(0));\n"
+       << "uniform vec3 vLODLayout[2] = vec3[](\n";
+       FLOATVECTOR3 vLoDSize = GetFloatBrickLayout(m_volumeSize,
+                                                  m_maxInnerBrickSize, 0);
+    ss << "  vec3(" << vLoDSize.x << ", " << vLoDSize.y << ", " 
+       << vLoDSize.z << "), // Level \n"
+       << "  vec3(0.0,0.0,0.0) // Dummy \n );\n"
+       << "uniform uvec2 iLODLayoutSize[2] = uvec2[](\n";
+    vLoDSize = GetFloatBrickLayout(m_volumeSize, m_maxInnerBrickSize, 0);
+    ss << "  uvec2(" << unsigned(ceil(vLoDSize.x)) << ", "
+       << unsigned(ceil(vLoDSize.x)) * unsigned(ceil(vLoDSize.y))
+       << "), // Level 0\n"
+       << "  uvec2(uint(0),uint(0)) // Dummy \n );\n";
+  } else {
+    ss << "uniform uint vLODOffset[" << m_iLoDCount << "] = uint[](";
+    for (uint32_t i = 0;i<m_iLoDCount;++i) {
+      ss << "uint(" << m_vLoDOffsetTable[i] << ")";
+      if (i<m_iLoDCount-1) {
+        ss << ", ";
+      }
     }
-  }
-  ss << ");\n"
-     << "uniform vec3 vLODLayout[" << m_iLoDCount << "] = vec3[](\n";
-  for (uint32_t i = 0;i<m_vLoDOffsetTable.size();++i) {
-    FLOATVECTOR3 vLoDSize = GetFloatBrickLayout(m_volumeSize,
-                                                m_maxInnerBrickSize, i);
-    ss << "  vec3(" << vLoDSize.x << ", " << vLoDSize.y << ", "
-       << vLoDSize.z << ")";
-    if (i<m_iLoDCount-1) {
-      ss << ",";
+    ss << ");\n"
+       << "uniform vec3 vLODLayout[" << m_iLoDCount << "] = vec3[](\n";
+    for (uint32_t i = 0;i<m_vLoDOffsetTable.size();++i) {
+      FLOATVECTOR3 vLoDSize = GetFloatBrickLayout(m_volumeSize,
+                                                  m_maxInnerBrickSize, i);
+      ss << "  vec3(" << vLoDSize.x << ", " << vLoDSize.y << ", "
+         << vLoDSize.z << ")";
+      if (i<m_iLoDCount-1) {
+        ss << ",";
+      }
+      ss << "// Level " << i << "\n";
     }
-    ss << "// Level " << i << "\n";
-  }
-  ss << ");\n"
-     << "uniform uvec2 iLODLayoutSize[" << m_iLoDCount << "] = uvec2[](\n";
-  for (uint32_t i = 0;i<m_vLoDOffsetTable.size();++i) {
-    FLOATVECTOR3 vLoDSize = GetFloatBrickLayout(m_volumeSize,
-                                                m_maxInnerBrickSize, i);    
-    ss << "   uvec2(" << unsigned(ceil(vLoDSize.x)) << ", "
-       << unsigned(ceil(vLoDSize.x)) * unsigned(ceil(vLoDSize.y)) << ")";
-    if (i<m_iLoDCount-1) {
-      ss << ",";
+    ss << ");\n"
+       << "uniform uvec2 iLODLayoutSize[" << m_iLoDCount << "] = uvec2[](\n";
+    for (uint32_t i = 0;i<m_vLoDOffsetTable.size();++i) {
+      FLOATVECTOR3 vLoDSize = GetFloatBrickLayout(m_volumeSize,
+                                                  m_maxInnerBrickSize, i);    
+      ss << "   uvec2(" << unsigned(ceil(vLoDSize.x)) << ", "
+         << unsigned(ceil(vLoDSize.x)) * unsigned(ceil(vLoDSize.y)) << ")";
+      if (i<m_iLoDCount-1) {
+        ss << ",";
+      }
+      ss << "// Level " << i << "\n";
     }
-    ss << "// Level " << i << "\n";
+    ss << ");\n";
   }
 
-  ss << ");\n"
-     << "\n"
+  ss << "\n"
      << "uint Hash(uvec4 brick);\n"
      << "\n"
      << "uint ReportMissingBrick(uvec4 brick) {\n"
