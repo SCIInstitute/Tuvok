@@ -25,9 +25,10 @@
    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
    DEALINGS IN THE SOFTWARE.
 */
-#include "AmiraConverter.h"
+#include <algorithm>
 #include <fstream>
 #include <iterator>
+#include "AmiraConverter.h"
 
 // Your standard ostream_iterator will essentially do "stream << *iter".  That
 // doesn't work well for binary files, however, in which we need to use

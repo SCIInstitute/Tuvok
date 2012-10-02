@@ -33,6 +33,7 @@
            University of Utah
 */
 #include "../StdTuvokDefines.h"
+#include <algorithm>
 #include <cctype>
 #include <fstream>
 #include <functional>

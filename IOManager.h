@@ -40,14 +40,12 @@
 #define IOMANAGER_H
 
 #include "StdTuvokDefines.h"
-#include <algorithm>
-#include <fstream>
 #include <functional>
-#include <limits>
 #include <list>
 #include <memory>
 #include <string>
 #include <tuple>
+#include <vector>
 #include "Basics/TuvokException.h"
 #include "Basics/Vectors.h"
 

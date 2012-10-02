@@ -31,6 +31,7 @@
            SCI Institute
            University of Utah
 */
+#include <fstream>
 #include "AnalyzeConverter.h"
 #include "Basics/SysTools.h"
 
