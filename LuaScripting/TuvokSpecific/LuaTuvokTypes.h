@@ -63,7 +63,6 @@ template<typename T>
 class LuaStrictStack<VECTOR4<T>>
 {
 public:
-
   typedef VECTOR4<T> Type;
 
   static VECTOR4<T> get(lua_State* L, int pos)
@@ -132,76 +131,25 @@ template<typename T>
 class LuaStrictStack<const VECTOR4<T>& >
 {
 public:
-
   typedef VECTOR4<T> Type;
 
-  static VECTOR4<T> get(lua_State* L, int pos)
-  {
-    Type ret;
+  static Type get(lua_State* L, int pos)
+  { return LuaStrictStack<Type>::get(L, pos); }
+  static void push(lua_State* L, Type in)
+  { LuaStrictStack<Type>::push(L, in); }
 
-    // There should be a table at 'pos', containing four numerical elements.
-    luaL_checktype(L, pos, LUA_TTABLE);
-
-    lua_pushinteger(L, 1);
-    lua_gettable(L, pos);
-    ret.x = static_cast<T>(luaL_checknumber(L, -1));
-    lua_pop(L, 1);
-
-    lua_pushinteger(L, 2);
-    lua_gettable(L, pos);
-    ret.y = static_cast<T>(luaL_checknumber(L, -1));
-    lua_pop(L, 1);
-
-    lua_pushinteger(L, 3);
-    lua_gettable(L, pos);
-    ret.z = static_cast<T>(luaL_checknumber(L, -1));
-    lua_pop(L, 1);
-
-    lua_pushinteger(L, 4);
-    lua_gettable(L, pos);
-    ret.w = static_cast<T>(luaL_checknumber(L, -1));
-    lua_pop(L, 1);
-
-    return ret;
-  }
-
-  static void push(lua_State* L, VECTOR4<T> in)
-  {
-    lua_newtable(L);
-    int tbl = lua_gettop(L);
-
-    lua_pushinteger(L, 1);
-    lua_pushnumber(L, static_cast<lua_Number>(in.x));
-    lua_settable(L, tbl);
-
-    lua_pushinteger(L, 2);
-    lua_pushnumber(L, static_cast<lua_Number>(in.y));
-    lua_settable(L, tbl);
-
-    lua_pushinteger(L, 3);
-    lua_pushnumber(L, static_cast<lua_Number>(in.z));
-    lua_settable(L, tbl);
-
-    lua_pushinteger(L, 4);
-    lua_pushnumber(L, static_cast<lua_Number>(in.w));
-    lua_settable(L, tbl);
-  }
-
-  static std::string getValStr(VECTOR4<T> in)
-  {
-    std::ostringstream os;
-    os << "{" << in.x << ", " << in.y << ", " << in.z << ", " << in.w << "}";
-    return os.str();
-  }
-  static std::string getTypeStr() { return "Vector4"; }
-  static VECTOR4<T>  getDefault() { return VECTOR4<T>(); }
+  static std::string getValStr(Type in)
+  { return LuaStrictStack<Type>::getValStr(in); }
+  static std::string getTypeStr()
+  { return LuaStrictStack<Type>::getTypeStr(); }
+  static Type getDefault()
+  { return LuaStrictStack<Type>::getDefault(); }
 };
 
 template<typename T>
 class LuaStrictStack<VECTOR3<T>>
 {
 public:
-
   typedef VECTOR3<T> Type;
 
   static VECTOR3<T> get(lua_State* L, int pos)
@@ -261,70 +209,29 @@ template<typename T>
 class LuaStrictStack<const VECTOR3<T>& >
 {
 public:
-
   typedef VECTOR3<T> Type;
 
-  static VECTOR3<T> get(lua_State* L, int pos)
-  {
-    VECTOR3<T> ret;
+  static Type get(lua_State* L, int pos)
+  { return LuaStrictStack<Type>::get(L, pos); }
 
-    // There should be a table at 'pos', containing four numerical elements.
-    luaL_checktype(L, pos, LUA_TTABLE);
+  static void push(lua_State* L, Type in)
+  { LuaStrictStack<Type>::push(L, in); }
 
-    lua_pushinteger(L, 1);
-    lua_gettable(L, pos);
-    ret.x = static_cast<T>(luaL_checknumber(L, -1));
-    lua_pop(L, 1);
-
-    lua_pushinteger(L, 2);
-    lua_gettable(L, pos);
-    ret.y = static_cast<T>(luaL_checknumber(L, -1));
-    lua_pop(L, 1);
-
-    lua_pushinteger(L, 3);
-    lua_gettable(L, pos);
-    ret.z = static_cast<T>(luaL_checknumber(L, -1));
-    lua_pop(L, 1);
-
-    return ret;
-  }
-
-  static void push(lua_State* L, VECTOR3<T> in)
-  {
-    lua_newtable(L);
-    int tbl = lua_gettop(L);
-
-    lua_pushinteger(L, 1);
-    lua_pushnumber(L, static_cast<lua_Number>(in.x));
-    lua_settable(L, tbl);
-
-    lua_pushinteger(L, 2);
-    lua_pushnumber(L, static_cast<lua_Number>(in.y));
-    lua_settable(L, tbl);
-
-    lua_pushinteger(L, 3);
-    lua_pushnumber(L, static_cast<lua_Number>(in.z));
-    lua_settable(L, tbl);
-  }
-
-  static std::string getValStr(VECTOR3<T> in)
-  {
-    std::ostringstream os;
-    os << "{" << in.x << ", " << in.y << ", " << in.z << "}";
-    return os.str();
-  }
-  static std::string getTypeStr() { return "Vector3"; }
-  static VECTOR3<T>  getDefault() { return VECTOR3<T>(); }
+  static std::string getValStr(Type in)
+  { return LuaStrictStack<Type>::getValStr(in); }
+  static std::string getTypeStr()
+  { return LuaStrictStack<Type>::getTypeStr(); }
+  static VECTOR3<T>  getDefault()
+  { return LuaStrictStack<Type>::getDefault(); }
 };
 
 template<typename T>
 class LuaStrictStack<VECTOR2<T>>
 {
 public:
-
   typedef VECTOR2<T> Type;
 
-  static VECTOR2<T> get(lua_State* L, int pos)
+  static Type get(lua_State* L, int pos)
   {
     VECTOR2<T> ret;
 
@@ -344,7 +251,7 @@ public:
     return ret;
   }
 
-  static void push(lua_State* L, VECTOR2<T> in)
+  static void push(lua_State* L, const Type& in)
   {
     lua_newtable(L);
     int tbl = lua_gettop(L);
@@ -358,7 +265,7 @@ public:
     lua_settable(L, tbl);
   }
 
-  static std::string getValStr(VECTOR2<T> in)
+  static std::string getValStr(const Type& in)
   {
     std::ostringstream os;
     os << "{" << in.x << ", " << in.y << "}";
@@ -368,56 +275,24 @@ public:
   static VECTOR2<T>  getDefault() { return VECTOR2<T>(); }
 };
 
-// Exact same duplicate of VECTOR2<T>, but as a const reference specialization.
 template<typename T>
 class LuaStrictStack<const VECTOR2<T>& >
 {
 public:
-
   typedef VECTOR2<T> Type;
 
-  static VECTOR2<T> get(lua_State* L, int pos)
-  {
-    VECTOR2<T> ret;
+  static Type get(lua_State* L, int pos)
+  { return LuaStrictStack<Type>::get(L, pos); }
 
-    // There should be a table at 'pos', containing four numerical elements.
-    luaL_checktype(L, pos, LUA_TTABLE);
+  static void push(lua_State* L, const Type& in)
+  { LuaStrictStack<Type>::push(L, in); }
 
-    lua_pushinteger(L, 1);
-    lua_gettable(L, pos);
-    ret.x = static_cast<T>(luaL_checknumber(L, -1));
-    lua_pop(L, 1);
-
-    lua_pushinteger(L, 2);
-    lua_gettable(L, pos);
-    ret.y = static_cast<T>(luaL_checknumber(L, -1));
-    lua_pop(L, 1);
-
-    return ret;
-  }
-
-  static void push(lua_State* L, VECTOR2<T> in)
-  {
-    lua_newtable(L);
-    int tbl = lua_gettop(L);
-
-    lua_pushinteger(L, 1);
-    lua_pushnumber(L, static_cast<lua_Number>(in.x));
-    lua_settable(L, tbl);
-
-    lua_pushinteger(L, 2);
-    lua_pushnumber(L, static_cast<lua_Number>(in.y));
-    lua_settable(L, tbl);
-  }
-
-  static std::string getValStr(VECTOR2<T> in)
-  {
-    std::ostringstream os;
-    os << "{" << in.x << ", " << in.y << "}";
-    return os.str();
-  }
-  static std::string getTypeStr() { return "Vector2"; }
-  static VECTOR2<T>  getDefault() { return VECTOR2<T>(); }
+  static std::string getValStr(const Type& in)
+  { return LuaStrictStack<Type>::getValStr(in); }
+  static std::string getTypeStr() 
+  { return LuaStrictStack<Type>::getTypeStr(); }
+  static Type getDefault() 
+  { return LuaStrictStack<Type>::getDefault(); }
 };
 
 
@@ -436,7 +311,6 @@ template<typename T>
 class LuaStrictStack<MATRIX2<T>>
 {
 public:
-
   typedef MATRIX2<T> Type;
 
   static MATRIX2<T> get(lua_State* L, int pos)
@@ -492,7 +366,6 @@ template<typename T>
 class LuaStrictStack<MATRIX3<T>>
 {
 public:
-
   typedef MATRIX3<T> Type;
 
   static MATRIX3<T> get(lua_State* L, int pos)
@@ -561,7 +434,6 @@ template<typename T>
 class LuaStrictStack<MATRIX4<T>>
 {
 public:
-
   typedef MATRIX4<T> Type;
 
   static MATRIX4<T> get(lua_State* L, int pos)
@@ -641,80 +513,19 @@ template<typename T>
 class LuaStrictStack<const MATRIX4<T>& >
 {
 public:
-
   typedef MATRIX4<T> Type;
 
-  static MATRIX4<T> get(lua_State* L, int pos)
-  {
-    VECTOR4<T> rows[4];
+  static Type get(lua_State* L, int pos)
+  { return LuaStrictStack<Type>::get(L, pos); }
+  static void push(lua_State* L, Type in)
+  { LuaStrictStack<Type>::push(L, in); }
 
-    luaL_checktype(L, pos, LUA_TTABLE);
-
-    lua_pushinteger(L, 1);
-    lua_gettable(L, pos);
-    rows[0] = LuaStrictStack<VECTOR4<T>>::get(L, lua_gettop(L));
-    lua_pop(L, 1);
-
-    lua_pushinteger(L, 2);
-    lua_gettable(L, pos);
-    rows[1] = LuaStrictStack<VECTOR4<T>>::get(L, lua_gettop(L));
-    lua_pop(L, 1);
-
-    lua_pushinteger(L, 3);
-    lua_gettable(L, pos);
-    rows[2] = LuaStrictStack<VECTOR4<T>>::get(L, lua_gettop(L));
-    lua_pop(L, 1);
-
-    lua_pushinteger(L, 4);
-    lua_gettable(L, pos);
-    rows[3] = LuaStrictStack<VECTOR4<T>>::get(L, lua_gettop(L));
-    lua_pop(L, 1);
-
-    return MATRIX4<T>(rows);
-  }
-
-  static void push(lua_State* L, MATRIX4<T> in)
-  {
-    lua_newtable(L);
-    int tbl = lua_gettop(L);
-
-    // Push rows of the matrix.
-    lua_pushinteger(L, 1);
-    LuaStrictStack<VECTOR4<T>>::push(L, VECTOR4<T>(in.m11, in.m12, in.m13, in.m14));
-    lua_settable(L, tbl);
-
-    lua_pushinteger(L, 2);
-    LuaStrictStack<VECTOR4<T>>::push(L, VECTOR4<T>(in.m21, in.m22, in.m23, in.m24));
-    lua_settable(L, tbl);
-
-    lua_pushinteger(L, 3);
-    LuaStrictStack<VECTOR4<T>>::push(L, VECTOR4<T>(in.m31, in.m32, in.m33, in.m34));
-    lua_settable(L, tbl);
-
-    lua_pushinteger(L, 4);
-    LuaStrictStack<VECTOR4<T>>::push(L, VECTOR4<T>(in.m41, in.m42, in.m43, in.m44));
-    lua_settable(L, tbl);
-  }
-
-  static std::string getValStr(MATRIX4<T> in)
-  {
-    std::ostringstream os;
-    os << "{ \n  ";
-    os << LuaStrictStack<VECTOR4<T>>::getValStr(VECTOR4<T>(in.m11, in.m12, in.m13, in.m14));
-    os << ",\n";
-    os << "  ";
-    os << LuaStrictStack<VECTOR4<T>>::getValStr(VECTOR4<T>(in.m21, in.m22, in.m23, in.m24));
-    os << ",\n";
-    os << "  ";
-    os << LuaStrictStack<VECTOR4<T>>::getValStr(VECTOR4<T>(in.m31, in.m32, in.m33, in.m34));
-    os << ",\n";
-    os << "  ";
-    os << LuaStrictStack<VECTOR4<T>>::getValStr(VECTOR4<T>(in.m41, in.m42, in.m43, in.m44));
-    os << " }";
-    return os.str();
-  }
-  static std::string getTypeStr() { return "Matrix44"; }
-  static MATRIX4<T>  getDefault() { return MATRIX4<T>(); }
+  static std::string getValStr(Type in)
+  { return LuaStrictStack<Type>::getValStr(in); }
+  static std::string getTypeStr()
+  { return LuaStrictStack<Type>::getTypeStr(); }
+  static MATRIX4<T>  getDefault()
+  { return LuaStrictStack<Type>::getDefault(); }
 };
 
 

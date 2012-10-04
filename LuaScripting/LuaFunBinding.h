@@ -442,78 +442,62 @@ public:
 
   typedef std::string Type;
 
-  static std::string get(lua_State* L, int pos)
+  static Type get(lua_State* L, int pos)
   {
     return luaL_checkstring(L, pos);
   }
 
-  static void push(lua_State* L, std::string in)
+  static void push(lua_State* L, const Type& in)
   {
     lua_pushstring(L, in.c_str());
   }
 
-  static std::string getValStr(std::string in)
+  static std::string getValStr(const Type& in)
   {
     std::ostringstream os;
     os << "'" << in << "'";
     return os.str();
   }
   static std::string getTypeStr() { return "string"; }
-  static std::string getDefault() { return ""; }
+  static Type        getDefault() { return ""; }
 };
 
 template<>
 class LuaStrictStack<std::string&>
 {
 public:
-
   typedef std::string Type;
 
-  static std::string get(lua_State* L, int pos)
-  {
-    return luaL_checkstring(L, pos);
-  }
+  static Type get(lua_State* L, int pos)
+  { return LuaStrictStack<Type>::get(L, pos); }
+  static void push(lua_State* L, const Type& in)
+  { LuaStrictStack<Type>::push(L, in); }
 
-  static void push(lua_State* L, const std::string& in)
-  {
-    lua_pushstring(L, in.c_str());
-  }
-
-  static std::string getValStr(const std::string& in)
-  {
-    std::ostringstream os;
-    os << "'" << in << "'";
-    return os.str();
-  }
-  static std::string getTypeStr() { return "string"; }
-  static std::string getDefault() { return ""; }
+  static std::string getValStr(const Type& in)
+  { return LuaStrictStack<Type>::getValStr(in); }
+  static std::string getTypeStr()
+  { return LuaStrictStack<Type>::getTypeStr(); }
+  static Type getDefault()
+  { return LuaStrictStack<Type>::getDefault(); }
 };
 
 template<>
 class LuaStrictStack<const std::string&>
 {
 public:
-
   typedef std::string Type;
 
-  static std::string get(lua_State* L, int pos)
-  {
-    return luaL_checkstring(L, pos);
-  }
+  static Type get(lua_State* L, int pos)
+  { return LuaStrictStack<Type>::get(L, pos); }
+  static void push(lua_State* L, const Type& in)
+  { LuaStrictStack<Type>::push(L, in); }
 
-  static void push(lua_State* L, const std::string& in)
-  {
-    lua_pushstring(L, in.c_str());
-  }
-
-  static std::string getValStr(const std::string& in)
-  {
-    std::ostringstream os;
-    os << "'" << in << "'";
-    return os.str();
-  }
-  static std::string getTypeStr() { return "string"; }
-  static std::string getDefault() { return ""; }
+  static std::string getValStr(const Type& in)
+  { return LuaStrictStack<Type>::getValStr(in); }
+  static std::string getTypeStr()
+  { return LuaStrictStack<Type>::getTypeStr(); }
+  static Type getDefault()
+  { return LuaStrictStack<Type>::getDefault(); }
 };
 
 template<>
@@ -775,7 +759,7 @@ public:
     return ret;
   }
 
-  static void push(lua_State* L, Type in)
+  static void push(lua_State* L, const Type& in)
   {
     LuaStackRAII _a(L, 0, 1);
 
@@ -784,7 +768,7 @@ public:
     int tblPos = lua_gettop(L);
 
     int index = 1;
-    typename Type::iterator it;
+    typename Type::const_iterator it;
     for (it = in.begin(); it != in.end(); ++it)
     {
       lua_pushinteger(L, index);
@@ -794,11 +778,11 @@ public:
     }
   }
 
-  static std::string getValStr(Type in)
+  static std::string getValStr(const Type& in)
   {
     std::ostringstream os;
     os << "{";
-    for (typename Type::iterator it = in.begin(); it != in.end(); ++it)
+    for (typename Type::const_iterator it = in.begin(); it != in.end(); ++it)
     {
       if (it != in.begin())
         os << ", ";
@@ -811,79 +795,23 @@ public:
   static Type getDefault() {return Type();}
 };
 
-// This is the exact same implementation as above.
 template <typename T>
 class LuaStrictStack<const std::vector<T>& >
 {
 public:
-
   typedef std::vector<typename LuaStrictStack<T>::Type > Type;
 
   static Type get(lua_State* L, int pos)
-  {
-    // Ensure that there is a table on the top of the stack.
-    LuaStackRAII _a(L, 0, 0);
+  { return LuaStrictStack<Type>::get(L, pos); }
+  static void push(lua_State* L, const Type& in)
+  { LuaStrictStack<Type>::push(L, in); }
 
-    Type ret;
-
-    luaL_checktype(L, pos, LUA_TTABLE);
-
-    // There should be a table at 'pos', containing four numerical elements.
-    int index = 1;
-    while ( 1 )
-    {
-      // Check to see if this index exists in the table.
-      lua_pushinteger(L, index);
-      lua_gettable(L, pos);
-
-      if (lua_isnil(L, -1))
-      {
-        lua_pop(L, 1);
-        break;
-      }
-
-      ret.push_back(LuaStrictStack<T>::get(L, lua_gettop(L)));
-      lua_pop(L, 1);
-
-      ++index;
-    }
-
-    return ret;
-  }
-
-  static void push(lua_State* L, Type in)
-  {
-    LuaStackRAII _a(L, 0, 1);
-
-    // Place all of our vector values in a new table.
-    lua_newtable(L);
-    int tblPos = lua_gettop(L);
-
-    int index = 1;
-    for (typename Type::iterator it = in.begin(); it != in.end(); ++it)
-    {
-      lua_pushinteger(L, index);
-      LuaStrictStack<T>::push(L, *it);
-      lua_settable(L, tblPos);
-      ++index;
-    }
-  }
-
-  static std::string getValStr(Type in)
-  {
-    std::ostringstream os;
-    os << "{";
-    for (typename Type::iterator it = in.begin(); it != in.end(); ++it)
-    {
-      if (it != in.begin())
-        os << ", ";
-      os << LuaStrictStack<T>::getValStr(*it);
-    }
-    os << "}";
-    return os.str();
-  }
-  static std::string getTypeStr() { return "GenericVector"; }
-  static Type getDefault() {return Type();}
+  static std::string getValStr(const Type& in)
+  { return LuaStrictStack<Type>::getValStr(in); }
+  static std::string getTypeStr() 
+  { return LuaStrictStack<Type>::getTypeStr(); }
+  static Type getDefault()
+  {return LuaStrictStack<Type>::getDefault();}
 };
 
 // Essentially the same implementation as std::vector.
@@ -926,7 +854,7 @@ public:
     return ret;
   }
 
-  static void push(lua_State* L, Type in)
+  static void push(lua_State* L, const Type& in)
   {
     LuaStackRAII _a(L, 0, 1);
 
@@ -935,7 +863,7 @@ public:
     int tblPos = lua_gettop(L);
 
     int index = 1;
-    for (typename Type::iterator it = in.begin(); it != in.end(); ++it)
+    for (typename Type::const_iterator it = in.begin(); it != in.end(); ++it)
     {
       lua_pushinteger(L, index);
       LuaStrictStack<T>::push(L, *it);
@@ -944,11 +872,11 @@ public:
     }
   }
 
-  static std::string getValStr(Type in)
+  static std::string getValStr(const Type& in)
   {
     std::ostringstream os;
     os << "{";
-    for (typename Type::iterator it = in.begin(); it != in.end(); ++it)
+    for (typename Type::const_iterator it = in.begin(); it != in.end(); ++it)
     {
       if (it != in.begin())
         os << ", ";
@@ -966,74 +894,19 @@ template <typename T>
 class LuaStrictStack<const std::list<T>& >
 {
 public:
-
   typedef std::list<typename LuaStrictStack<T>::Type > Type;
 
   static Type get(lua_State* L, int pos)
-  {
-    // Ensure that there is a table on the top of the stack.
-    LuaStackRAII _a(L, 0, 0);
+  { return LuaStrictStack<Type>::get(L, pos); }
+  static void push(lua_State* L, const Type& in)
+  { LuaStrictStack<Type>::push(L, in); }
 
-    Type ret;
-
-    luaL_checktype(L, pos, LUA_TTABLE);
-
-    // There should be a table at 'pos', containing four numerical elements.
-    int index = 1;
-    while ( 1 )
-    {
-      // Check to see if this index exists in the table.
-      lua_pushinteger(L, index);
-      lua_gettable(L, pos);
-
-      if (lua_isnil(L, -1))
-      {
-        lua_pop(L, 1);
-        break;
-      }
-
-      ret.push_back(LuaStrictStack<T>::get(L, lua_gettop(L)));
-      lua_pop(L, 1);
-
-      ++index;
-    }
-
-    return ret;
-  }
-
-  static void push(lua_State* L, Type in)
-  {
-    LuaStackRAII _a(L, 0, 1);
-
-    // Place all of our vector values in a new table.
-    lua_newtable(L);
-    int tblPos = lua_gettop(L);
-
-    int index = 1;
-    for (typename Type::iterator it = in.begin(); it != in.end(); ++it)
-    {
-      lua_pushinteger(L, index);
-      LuaStrictStack<T>::push(L, *it);
-      lua_settable(L, tblPos);
-      ++index;
-    }
-  }
-
-  static std::string getValStr(Type in)
-  {
-    std::ostringstream os;
-    os << "{";
-    for (typename Type::iterator it = in.begin(); it != in.end(); ++it)
-    {
-      if (it != in.begin())
-        os << ", ";
-      os << LuaStrictStack<T>::getValStr(*it);
-    }
-    os << "}";
-    return os.str();
-  }
-  static std::string getTypeStr() { return "GenericList"; }
-  static Type getDefault() {return Type();}
+  static std::string getValStr(const Type& in)
+  { return LuaStrictStack<Type>::getValStr(in); }
+  static std::string getTypeStr()
+  { return LuaStrictStack<Type>::getTypeStr(); }
+  static Type getDefault()
+  {return LuaStrictStack<Type>::getDefault();}
 };
 
 #ifdef DETECTED_OS_WINDOWS
