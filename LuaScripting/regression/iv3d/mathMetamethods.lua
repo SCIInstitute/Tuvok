@@ -24,7 +24,7 @@ print('Metatable:')
 for i,v in ipairs(getmetatable(v1)) do print(i .. ': ' .. v) end
 
 print('Contents of v2.')
-for i,v in ipairs(v1) do print(i .. ': ' .. v) end
+for i,v in ipairs(v2) do print(i .. ': ' .. v) end
 
 -----------------------------------------
 -- Test scalar * vector multiplication --
@@ -86,13 +86,34 @@ print('Passed vector addition: ')
 -----------------------------
 -- Test vector subtraction --
 -----------------------------
+vr = v1 - v2
+if vr[1] ~= 1.0 or vr[2] ~= 0.0 or vr[3] ~= -1.0 or vr[4] ~= -3.0 then
+  error(header .. 'Failed vector subtraction.')
+end
+print('Passed vector subtraction: ')
 
+vr = v2 - v1
+if vr[1] ~= -1.0 or vr[2] ~= 0.0 or vr[3] ~= 1.0 or vr[4] ~= 3.0 then
+  error(header .. 'Failed vector subtraction.')
+end
+print('Passed vector subtraction: ')
 
-
+--v1 = math.v4(1.0, 1.0, 1.0, 1.0)
+--v2 = math.v4(0.0, 1.0, 2.0, 4.0)
 -------------------------
 -- Test unary negation --
 -------------------------
+vr = -v1
+if vr[1] ~= -1.0 or vr[2] ~= -1.0 or vr[3] ~= -1.0 or vr[4] ~= -1.0 then
+  error(header .. 'Failed unary negation.')
+end
+print('Passed unary negation: ')
 
+vr = -v2
+if vr[1] ~= 0.0 or vr[2] ~= -1.0 or vr[3] ~= -2.0 or vr[4] ~= -4.0 then
+  error(header .. 'Failed unary negation.')
+end
+print('Passed unary negation: ')
 
 
 -- Test scalar * matrix multiplication

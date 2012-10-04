@@ -53,14 +53,25 @@
 namespace tuvok
 {
 
-// TODO: Add metatable to vector types in order to get basic vector operations
-//       to function inside of Lua (add, subtract, and multiply metamethods).
-//       ALSO: Metatable could specify type (template specialization type)
-//       so we can use something like 'info <var>' to get in-depth information
-//       on a variable.
 //       Another possibility is just storing a light user data pointer to the
 //       appropriate 'getValStr', and 'get' functions. Then call:
 //       getValStr(get(L, pos)).
+
+/// Utility lua math registration class.
+class LuaMathFunctions
+{
+public:
+  // Called from MasterController to register misc mathematical functions.
+  static void registerMathFunctions(std::shared_ptr<LuaScripting> ss); 
+
+  //
+  // Utility functions. 
+  //
+
+  // Returns true if the metatable of the object at stack position 'object'
+  // matches the metatable given by the stack position 'mt'.
+  static bool isOfType(lua_State* L, int object, int mt);
+};
 
 // All numeric types are converted to doubles inside Lua. Therefore there is
 // no need to specialize on the type of vector.
@@ -145,31 +156,10 @@ public:
   {
     LuaStackRAII _a(L, 0, 0);
 
-    // Push our metatable onto the top of the stack.
     getMT(L);
-    int ourMT = lua_gettop(L);
-
-    // Grab the metatable of the object at 'index'.
-    if (lua_getmetatable(L, index) == 0)
-    {
-      lua_pop(L, 1);
-      return false;
-    }
-    int theirMT = lua_gettop(L);
-
-    // Test to see if the metatable of the type given at index is identical
-    // to our types metatable (they will only be identical if they are the
-    // same type).
-    if (lua_rawequal(L, ourMT, theirMT) == 1)
-    {
-      lua_pop(L, 2);
-      return true;
-    }
-    else
-    {
-      lua_pop(L, 2);
-      return false;
-    }
+    bool ret = LuaMathFunctions::isOfType(L, index, lua_gettop(L));
+    lua_pop(L, 1);
+    return ret;
   }
 
 private:
@@ -221,13 +211,13 @@ private:
     MUL_SEMANTIC semantic = SCALAR_PRODUCT;
 
     lua_Number scalar;
-    Type v1;
-    Type v2;
+    LuaStrictStack<VECTOR4<lua_Number>>::Type v1;
+    LuaStrictStack<VECTOR4<lua_Number>>::Type v2;
 
     // The first thing we need to do is determine the types of the parameters.
     if (isOurType(L, 1))
     {
-      v1 = get(L, 1);
+      v1 = LuaStrictStack<VECTOR4<lua_Number>>::get(L, 1);
       if (lua_isnumber(L, 2))   // Is the second parameter a scalar?
       {
         // Perform a scalar multiplication.
@@ -236,7 +226,7 @@ private:
       else if (isOurType(L, 2)) // Is the second parameter another vector?
       {
         semantic = DOT_PRODUCT;
-        v2 = get(L, 2);
+        v2 = LuaStrictStack<VECTOR4<lua_Number>>::get(L, 2);
       }
       else
       {
@@ -256,7 +246,7 @@ private:
         scalar = lua_tonumber(L, 1);
         if (isOurType(L, 2))
         {
-          v1 = get(L, 2);
+          v1 = LuaStrictStack<VECTOR4<lua_Number>>::get(L, 2);
         }
         else
         {
@@ -276,7 +266,8 @@ private:
     switch (semantic)
     {
       case SCALAR_PRODUCT:
-        push(L, static_cast<T>(scalar) * v1);
+        LuaStrictStack<VECTOR4<lua_Number>>::push(
+            L, static_cast<lua_Number>(scalar) * v1);
         break;
 
       case DOT_PRODUCT:
@@ -291,17 +282,19 @@ private:
   {
     // There is only one possible way to implement addition.
     if (isOurType(L, 1) == false) 
-      throw LuaError("Unable to perform multiplication. Incompatible "
-                     "arguments for addition (expecting two vectors 1).");
+      throw LuaError("Unable to perform addition. Incompatible "
+                     "arguments (expecting two vectors 1).");
 
     if (isOurType(L, 2) == false)
-      throw LuaError("Unable to perform multiplication. Incompatible "
-                     "arguments for addition (expecting two vectors 2).");
+      throw LuaError("Unable to perform addition. Incompatible "
+                     "arguments (expecting two vectors 2).");
     
-    Type v1 = get(L, 1);
-    Type v2 = get(L, 2);
+    LuaStrictStack<VECTOR4<lua_Number>>::Type v1 = 
+        LuaStrictStack<VECTOR4<lua_Number>>::get(L, 1);
+    LuaStrictStack<VECTOR4<lua_Number>>::Type v2 = 
+        LuaStrictStack<VECTOR4<lua_Number>>::get(L, 2);
 
-    push(L, v1 + v2);
+    LuaStrictStack<VECTOR4<lua_Number>>::push(L, v1 + v2);
 
     return 1;
   }
@@ -309,12 +302,35 @@ private:
   static int subtractionMetamethod(lua_State* L)
   {
     // This really is just addition with a unary negation...
+    if (isOurType(L, 1) == false)
+      throw LuaError("Unable to perform subtraction. Incompatible "
+                     "arguments (expecting two vectors 1).");
+
+    if (isOurType(L, 2) == false)
+      throw LuaError("Unable to perform subtraction. Incompatible "
+                     "arguments (expecting two vectors 1).");
+
+    LuaStrictStack<VECTOR4<lua_Number>>::Type v1 = 
+        LuaStrictStack<VECTOR4<lua_Number>>::get(L, 1);
+    LuaStrictStack<VECTOR4<lua_Number>>::Type v2 = 
+        LuaStrictStack<VECTOR4<lua_Number>>::get(L, 2);
+
+    LuaStrictStack<VECTOR4<lua_Number>>::push(L, v1 - v2);
 
     return 1;
   }
 
   static int unaryNegationMetamethod(lua_State* L)
   {
+    // This really is just addition with a unary negation...
+    if (isOurType(L, 1) == false)
+      throw LuaError("Unable to perform subtraction. Incompatible "
+                     "arguments (expecting two vectors 1).");
+
+    LuaStrictStack<VECTOR4<lua_Number>>::Type v1 = 
+        LuaStrictStack<VECTOR4<lua_Number>>::get(L, 1);
+
+    LuaStrictStack<VECTOR4<lua_Number>>::push(L, -v1);
 
     return 1;
   }
@@ -340,6 +356,12 @@ private:
 
       lua_pushcfunction(L, &LuaStrictStack<Type>::additionMetamethod);
       lua_setfield(L, mt, "__add");
+
+      lua_pushcfunction(L, &LuaStrictStack<Type>::subtractionMetamethod);
+      lua_setfield(L, mt, "__sub");
+      
+      lua_pushcfunction(L, &LuaStrictStack<Type>::unaryNegationMetamethod);
+      lua_setfield(L, mt, "__unm");
     }
     // If luaL_newmetatable returns 0, then there already exists a MT with this
     // type name: http://www.lua.org/manual/5.2/manual.html#luaL_newmetatable.
@@ -817,13 +839,6 @@ public:
   static Type        getDefault() { return Type(); }
 };
 
-/// Utility lua math registration class.
-/// (For v4s and m16s)
-class LuaMathFunctions
-{
-public:
-  static void registerMathFunctions(std::shared_ptr<LuaScripting> ss); 
-};
 
 } // namespace tuvok
 

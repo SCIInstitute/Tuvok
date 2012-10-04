@@ -43,5 +43,34 @@ void LuaMathFunctions::registerMathFunctions(std::shared_ptr<LuaScripting> ss)
                        false);
 }
 
+bool LuaMathFunctions::isOfType(lua_State* L, int object, int mt)
+{
+    LuaStackRAII _a(L, 0, 0);
+
+    // Push our metatable onto the top of the stack.
+    int ourMT = mt;
+
+    // Grab the metatable of the object at 'index'.
+    if (lua_getmetatable(L, object) == 0)
+    {
+      return false;
+    }
+    int theirMT = lua_gettop(L);
+
+    // Test to see if the metatable of the type given at index is identical
+    // to our types metatable (they will only be identical if they are the
+    // same type).
+    if (lua_rawequal(L, ourMT, theirMT) == 1)
+    {
+      lua_pop(L, 1);
+      return true;
+    }
+    else
+    {
+      lua_pop(L, 1);
+      return false;
+    }
+}
+
 } // tuvok namespace
 
