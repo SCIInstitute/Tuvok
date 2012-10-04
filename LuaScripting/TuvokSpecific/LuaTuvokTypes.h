@@ -65,7 +65,7 @@ class LuaStrictStack<VECTOR4<T>>
 public:
   typedef VECTOR4<T> Type;
 
-  static VECTOR4<T> get(lua_State* L, int pos)
+  static Type get(lua_State* L, int pos)
   {
     Type ret;
 
@@ -95,7 +95,7 @@ public:
     return ret;
   }
 
-  static void push(lua_State* L, VECTOR4<T> in)
+  static void push(lua_State* L, const Type& in)
   {
     lua_newtable(L);
     int tbl = lua_gettop(L);
@@ -117,14 +117,14 @@ public:
     lua_settable(L, tbl);
   }
 
-  static std::string getValStr(VECTOR4<T> in)
+  static std::string getValStr(const Type& in)
   {
     std::ostringstream os;
     os << "{" << in.x << ", " << in.y << ", " << in.z << ", " << in.w << "}";
     return os.str();
   }
   static std::string getTypeStr() { return "Vector4"; }
-  static VECTOR4<T>  getDefault() { return VECTOR4<T>(); }
+  static Type        getDefault() { return Type(); }
 };
 
 template<typename T>
@@ -135,10 +135,10 @@ public:
 
   static Type get(lua_State* L, int pos)
   { return LuaStrictStack<Type>::get(L, pos); }
-  static void push(lua_State* L, Type in)
+  static void push(lua_State* L, const Type& in)
   { LuaStrictStack<Type>::push(L, in); }
 
-  static std::string getValStr(Type in)
+  static std::string getValStr(const Type& in)
   { return LuaStrictStack<Type>::getValStr(in); }
   static std::string getTypeStr()
   { return LuaStrictStack<Type>::getTypeStr(); }
@@ -152,9 +152,9 @@ class LuaStrictStack<VECTOR3<T>>
 public:
   typedef VECTOR3<T> Type;
 
-  static VECTOR3<T> get(lua_State* L, int pos)
+  static Type get(lua_State* L, int pos)
   {
-    VECTOR3<T> ret;
+    Type ret;
 
     // There should be a table at 'pos', containing four numerical elements.
     luaL_checktype(L, pos, LUA_TTABLE);
@@ -177,7 +177,7 @@ public:
     return ret;
   }
 
-  static void push(lua_State* L, VECTOR3<T> in)
+  static void push(lua_State* L, const Type& in)
   {
     lua_newtable(L);
     int tbl = lua_gettop(L);
@@ -195,14 +195,14 @@ public:
     lua_settable(L, tbl);
   }
 
-  static std::string getValStr(VECTOR3<T> in)
+  static std::string getValStr(const Type& in)
   {
     std::ostringstream os;
     os << "{" << in.x << ", " << in.y << ", " << in.z << "}";
     return os.str();
   }
   static std::string getTypeStr() { return "Vector3"; }
-  static VECTOR3<T>  getDefault() { return VECTOR3<T>(); }
+  static Type        getDefault() { return Type(); }
 };
 
 template<typename T>
@@ -214,10 +214,10 @@ public:
   static Type get(lua_State* L, int pos)
   { return LuaStrictStack<Type>::get(L, pos); }
 
-  static void push(lua_State* L, Type in)
+  static void push(lua_State* L, const Type& in)
   { LuaStrictStack<Type>::push(L, in); }
 
-  static std::string getValStr(Type in)
+  static std::string getValStr(const Type& in)
   { return LuaStrictStack<Type>::getValStr(in); }
   static std::string getTypeStr()
   { return LuaStrictStack<Type>::getTypeStr(); }
@@ -233,7 +233,7 @@ public:
 
   static Type get(lua_State* L, int pos)
   {
-    VECTOR2<T> ret;
+    Type ret;
 
     // There should be a table at 'pos', containing four numerical elements.
     luaL_checktype(L, pos, LUA_TTABLE);
@@ -272,7 +272,7 @@ public:
     return os.str();
   }
   static std::string getTypeStr() { return "Vector2"; }
-  static VECTOR2<T>  getDefault() { return VECTOR2<T>(); }
+  static Type        getDefault() { return Type(); }
 };
 
 template<typename T>
@@ -313,7 +313,7 @@ class LuaStrictStack<MATRIX2<T>>
 public:
   typedef MATRIX2<T> Type;
 
-  static MATRIX2<T> get(lua_State* L, int pos)
+  static Type get(lua_State* L, int pos)
   {
     VECTOR2<T> rows[2];
 
@@ -332,7 +332,7 @@ public:
     return MATRIX2<T>(rows);
   }
 
-  static void push(lua_State* L, MATRIX2<T> in)
+  static void push(lua_State* L, const Type& in)
   {
     lua_newtable(L);
     int tbl = lua_gettop(L);
@@ -347,7 +347,7 @@ public:
     lua_settable(L, tbl);
   }
 
-  static std::string getValStr(MATRIX2<T> in)
+  static std::string getValStr(const Type& in)
   {
     std::ostringstream os;
     os << "{ \n  ";
@@ -359,7 +359,7 @@ public:
     return os.str();
   }
   static std::string getTypeStr() { return "Matrix22"; }
-  static MATRIX2<T>  getDefault() { return MATRIX2<T>(); }
+  static Type        getDefault() { return Type(); }
 };
 
 template<typename T>
@@ -368,7 +368,7 @@ class LuaStrictStack<MATRIX3<T>>
 public:
   typedef MATRIX3<T> Type;
 
-  static MATRIX3<T> get(lua_State* L, int pos)
+  static Type get(lua_State* L, int pos)
   {
     VECTOR3<T> rows[3];
 
@@ -392,7 +392,7 @@ public:
     return MATRIX3<T>(rows);
   }
 
-  static void push(lua_State* L, MATRIX3<T> in)
+  static void push(lua_State* L, const Type& in)
   {
     lua_newtable(L);
     int tbl = lua_gettop(L);
@@ -411,7 +411,7 @@ public:
     lua_settable(L, tbl);
   }
 
-  static std::string getValStr(MATRIX3<T> in)
+  static std::string getValStr(const Type& in)
   {
     std::ostringstream os;
     os << "{ \n  ";
@@ -426,7 +426,7 @@ public:
     return os.str();
   }
   static std::string getTypeStr() { return "Matrix33"; }
-  static MATRIX3<T>  getDefault() { return MATRIX3<T>(); }
+  static Type        getDefault() { return Type(); }
 };
 
 
@@ -436,7 +436,7 @@ class LuaStrictStack<MATRIX4<T>>
 public:
   typedef MATRIX4<T> Type;
 
-  static MATRIX4<T> get(lua_State* L, int pos)
+  static Type get(lua_State* L, int pos)
   {
     VECTOR4<T> rows[4];
 
@@ -465,7 +465,7 @@ public:
     return MATRIX4<T>(rows);
   }
 
-  static void push(lua_State* L, MATRIX4<T> in)
+  static void push(lua_State* L, const Type& in)
   {
     lua_newtable(L);
     int tbl = lua_gettop(L);
@@ -488,7 +488,7 @@ public:
     lua_settable(L, tbl);
   }
 
-  static std::string getValStr(MATRIX4<T> in)
+  static std::string getValStr(const Type& in)
   {
     std::ostringstream os;
     os << "{ \n  ";
@@ -506,7 +506,7 @@ public:
     return os.str();
   }
   static std::string getTypeStr() { return "Matrix44"; }
-  static MATRIX4<T>  getDefault() { return MATRIX4<T>(); }
+  static Type        getDefault() { return Type(); }
 };
 
 template<typename T>
@@ -517,10 +517,10 @@ public:
 
   static Type get(lua_State* L, int pos)
   { return LuaStrictStack<Type>::get(L, pos); }
-  static void push(lua_State* L, Type in)
+  static void push(lua_State* L, const Type& in)
   { LuaStrictStack<Type>::push(L, in); }
 
-  static std::string getValStr(Type in)
+  static std::string getValStr(const Type& in)
   { return LuaStrictStack<Type>::getValStr(in); }
   static std::string getTypeStr()
   { return LuaStrictStack<Type>::getTypeStr(); }
@@ -538,7 +538,7 @@ class LuaStrictStack<ExtendedPlane>
 public:
   typedef ExtendedPlane Type;
 
-  static ExtendedPlane get(lua_State* L, int pos)
+  static Type get(lua_State* L, int pos)
   {
     luaL_checktype(L, pos, LUA_TTABLE);
 
@@ -562,7 +562,7 @@ public:
     return ExtendedPlane(m1, m2, plane);
   }
 
-  static void push(lua_State* L, ExtendedPlane in)
+  static void push(lua_State* L, const Type& in)
   {
     lua_newtable(L);
     int tbl = lua_gettop(L);
@@ -584,7 +584,7 @@ public:
     lua_settable(L, tbl);
   }
 
-  static std::string getValStr(ExtendedPlane in)
+  static std::string getValStr(const Type& in)
   {
     std::ostringstream os;
     os << "{ ";
@@ -594,7 +594,7 @@ public:
     return os.str();
   }
   static std::string getTypeStr() { return "ExtendedPlane"; }
-  static ExtendedPlane  getDefault() { return ExtendedPlane(); }
+  static Type        getDefault() { return Type(); }
 };
 
 

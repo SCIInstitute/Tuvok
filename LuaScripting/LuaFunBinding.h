@@ -82,8 +82,8 @@ public:
   : mStackLocation(INVALID_STACK_LOC)
   {}
 
-  bool isTableValid()     {return mStackLocation != INVALID_STACK_LOC;}
-  int getStackLocation()  {return mStackLocation;}
+  bool isTableValid() const    {return mStackLocation != INVALID_STACK_LOC;}
+  int getStackLocation() const {return mStackLocation;}
 
 private:
   static const int INVALID_STACK_LOC = 0;
@@ -104,7 +104,6 @@ template<typename T>
 class LuaStrictStack
 {
 public:
-
   typedef void Type;  // This type will be used to store the data.
 
   // Intentionally left unimplemented to generate compiler errors if this
@@ -122,7 +121,6 @@ template<>
 class LuaStrictStack<void>
 {
 public:
-
   typedef void Type;
 
   // All functions except getTypeStr and push don't do anything since none of
@@ -142,54 +140,52 @@ template<>
 class LuaStrictStack<LuaTable>
 {
 public:
-
   typedef LuaTable Type;
 
-  static LuaTable get(lua_State*, int pos)
+  static Type get(lua_State*, int pos)
   {
     return LuaTable(pos);
   }
 
-  static void push(lua_State* L, LuaTable in)
+  static void push(lua_State* L, const Type& in)
   {
     lua_pushvalue(L, in.getStackLocation());
   }
 
-  static std::string getValStr(LuaTable in)
+  static std::string getValStr(const Type& in)
   {
     std::ostringstream os;
     os << "Table at stack pos: " << in.getStackLocation();
     return os.str();
   }
   static std::string getTypeStr() { return "LuaTable"; }
-  static LuaTable    getDefault() { return LuaTable(); }
+  static Type        getDefault() { return Type(); }
 };
 
 template<>
 class LuaStrictStack<int>
 {
 public:
-
   typedef int Type;
 
-  static int get(lua_State* L, int pos)
+  static Type get(lua_State* L, int pos)
   {
     return luaL_checkint(L, pos);
   }
 
-  static void push(lua_State* L, int in)
+  static void push(lua_State* L, Type in)
   {
     lua_pushinteger(L, in);
   }
 
-  static std::string getValStr(int in)
+  static std::string getValStr(Type in)
   {
     std::ostringstream os;
     os << in;
     return os.str();
   }
   static std::string getTypeStr() { return "int"; }
-  static int         getDefault() { return 0; }
+  static Type        getDefault() { return 0; }
 };
 
 template<>
@@ -198,24 +194,24 @@ class LuaStrictStack<long>
 public:
   typedef long Type;
 
-  static long get(lua_State* L, int pos)
+  static Type get(lua_State* L, int pos)
   {
-    return static_cast<long>(luaL_checknumber(L, pos));
+    return static_cast<Type>(luaL_checknumber(L, pos));
   }
 
-  static void push(lua_State* L, long in)
+  static void push(lua_State* L, Type in)
   {
     lua_pushnumber(L, static_cast<lua_Number>(in));
   }
 
-  static std::string getValStr(long in)
+  static std::string getValStr(Type in)
   {
     std::ostringstream os;
     os << in;
     return os.str();
   }
   static std::string    getTypeStr()  { return "long"; }
-  static long           getDefault()  { return 0; }
+  static Type           getDefault()  { return 0; }
 };
 
 template<>
@@ -224,58 +220,56 @@ class LuaStrictStack<unsigned long>
 public:
   typedef unsigned long Type;
 
-  static unsigned long get(lua_State* L, int pos)
+  static Type get(lua_State* L, int pos)
   {
-    return static_cast<unsigned long>(luaL_checknumber(L, pos));
+    return static_cast<Type>(luaL_checknumber(L, pos));
   }
 
-  static void push(lua_State* L, unsigned long in)
+  static void push(lua_State* L, Type in)
   {
     lua_pushnumber(L, static_cast<lua_Number>(in));
   }
 
-  static std::string getValStr(unsigned long in)
+  static std::string getValStr(Type in)
   {
     std::ostringstream os;
     os << in;
     return os.str();
   }
   static std::string    getTypeStr()  { return "unsigned long"; }
-  static unsigned long  getDefault()  { return 0; }
+  static Type           getDefault()  { return 0; }
 };
 
 template <>
 class LuaStrictStack<unsigned long long>
 {
 public:
-
   typedef unsigned long long Type;
 
-  static unsigned long long get(lua_State* L, int pos)
+  static Type get(lua_State* L, int pos)
   {
-    return static_cast<unsigned long long>(luaL_checknumber(L, pos));
+    return static_cast<Type>(luaL_checknumber(L, pos));
   }
 
-  static void push(lua_State* L, unsigned long long in)
+  static void push(lua_State* L, Type in)
   {
     lua_pushnumber(L, static_cast<lua_Number>(in));
   }
 
-  static std::string getValStr(unsigned long long in)
+  static std::string getValStr(Type in)
   {
     std::ostringstream os;
     os << in;
     return os.str();
   }
   static std::string getTypeStr() { return "unsigned long long"; }
-  static unsigned long long getDefault(){ return 0; }
+  static Type        getDefault() { return 0; }
 };
 
 template <>
 class LuaStrictStack<long long>
 {
 public:
-
   typedef long long Type;
 
   static long long get(lua_State* L, int pos)
@@ -302,110 +296,106 @@ template<>
 class LuaStrictStack<unsigned int>
 {
 public:
-
   typedef unsigned int Type;
 
-  static unsigned int get(lua_State* L, int pos)
+  static Type get(lua_State* L, int pos)
   {
-    return static_cast<unsigned int>(luaL_checknumber(L, pos));
+    return static_cast<Type>(luaL_checknumber(L, pos));
   }
 
-  static void push(lua_State* L, unsigned int in)
+  static void push(lua_State* L, Type in)
   {
     lua_pushnumber(L, static_cast<double>(in));
   }
 
-  static std::string getValStr(unsigned int in)
+  static std::string getValStr(Type in)
   {
     std::ostringstream os;
     os << in;
     return os.str();
   }
   static std::string getTypeStr() { return "unsigned int"; }
-  static unsigned int getDefault(){ return 0; }
+  static Type        getDefault() { return 0; }
 };
 
 template<>
 class LuaStrictStack<bool>
 {
 public:
-
   typedef bool Type;
 
-  static bool get(lua_State* L, int pos)
+  static Type get(lua_State* L, int pos)
   {
     luaL_checktype(L, pos, LUA_TBOOLEAN);
     int retVal = lua_toboolean(L, pos);
     return (retVal != 0) ? true : false;
   }
 
-  static void push(lua_State* L, bool in)
+  static void push(lua_State* L, Type in)
   {
     lua_pushboolean(L, in ? 1 : 0);
   }
 
-  static std::string getValStr(bool in)
+  static std::string getValStr(Type in)
   {
     std::ostringstream os;
     os << std::boolalpha << in;
     return os.str();
   }
   static std::string getTypeStr() { return "bool"; }
-  static bool        getDefault() { return false; }
+  static Type        getDefault() { return false; }
 };
 
 template<>
 class LuaStrictStack<float>
 {
 public:
-
   typedef float Type;
 
-  static float get(lua_State* L, int pos)
+  static Type get(lua_State* L, int pos)
   {
-    return static_cast<float>(luaL_checknumber(L, pos));
+    return static_cast<Type>(luaL_checknumber(L, pos));
   }
 
-  static void push(lua_State* L, float in)
+  static void push(lua_State* L, Type in)
   {
     lua_pushnumber(L, static_cast<lua_Number>(in));
   }
 
-  static std::string getValStr(float in)
+  static std::string getValStr(Type in)
   {
     std::ostringstream os;
     os << std::setprecision(2) << in;
     return os.str();
   }
   static std::string getTypeStr() { return "float"; }
-  static float       getDefault() { return 0.0f; }
+  static Type        getDefault() { return 0.0f; }
 };
 
 template<>
 class LuaStrictStack<double>
 {
 public:
-
   typedef double Type;
 
-  static double get(lua_State* L, int pos)
+  static Type get(lua_State* L, int pos)
   {
-    return static_cast<double>(luaL_checknumber(L, pos));
+    return static_cast<Type>(luaL_checknumber(L, pos));
   }
 
-  static void push(lua_State* L, double in)
+  static void push(lua_State* L, Type in)
   {
     lua_pushnumber(L, static_cast<lua_Number>(in));
   }
 
-  static std::string getValStr(double in)
+  static std::string getValStr(Type in)
   {
     std::ostringstream os;
     os << std::setprecision(4) << in;
     return os.str();
   }
   static std::string getTypeStr() { return "double"; }
-  static double      getDefault() { return 0.0; }
+  static Type        getDefault() { return 0.0; }
 };
 
 template<>
@@ -684,7 +674,7 @@ public:
     return ret;
   }
 
-  static void push(lua_State* L, Type in)
+  static void push(lua_State* L, const Type& in)
   {
     LuaStackRAII _a(L, 0, 1);
 
@@ -701,7 +691,7 @@ public:
     lua_settable(L, tblPos);
   }
 
-  static std::string getValStr(Type in)
+  static std::string getValStr(const Type& in)
   {
     std::ostringstream os;
     os << "{";
@@ -886,7 +876,7 @@ public:
     return os.str();
   }
   static std::string getTypeStr() { return "GenericList"; }
-  static Type getDefault() {return Type();}
+  static Type        getDefault() { return Type(); }
 };
 
 // Same implementation as above
@@ -943,7 +933,7 @@ public:
     return ret;
   }
 
-  static void push(lua_State* L, Type in)
+  static void push(lua_State* L, const Type& in)
   {
     LuaStackRAII _a(L, 0, 1);
 
@@ -960,12 +950,12 @@ public:
     lua_settable(L, tblPos);
   }
 
-  static std::string getValStr(Type)
+  static std::string getValStr(const Type&)
   {
     return std::string("Not implemented for tuples on windows.");
   }
   static std::string getTypeStr() { return "2-tuple"; }
-  static Type getDefault() {return Type();}
+  static Type        getDefault() { return Type(); }
 };
 
 /// Handles tConverterFormat (in IOManager)
@@ -1007,7 +997,7 @@ public:
     return ret;
   }
 
-  static void push(lua_State* L, Type in)
+  static void push(lua_State* L, const Type& in)
   {
     LuaStackRAII _a(L, 0, 1);
 
@@ -1032,12 +1022,12 @@ public:
     lua_settable(L, tblPos);
   }
 
-  static std::string getValStr(Type)
+  static std::string getValStr(const Type& )
   {
     return std::string("Not implemented for tuples on windows.");
   }
   static std::string getTypeStr() { return "4-tuple"; }
-  static Type getDefault() {return Type();}
+  static Type        getDefault() { return Type(); }
 };
 
 template <typename T1, typename T2, typename T3, typename T4, typename T5, 
@@ -1091,7 +1081,7 @@ public:
     return ret;
   }
 
-  static void push(lua_State* L, Type in)
+  static void push(lua_State* L, const Type& in)
   {
     LuaStackRAII _a(L, 0, 1);
 
@@ -1128,12 +1118,12 @@ public:
     lua_settable(L, tblPos);
   }
 
-  static std::string getValStr(Type)
+  static std::string getValStr(const Type&)
   {
     return std::string("Not implemented for tuples on windows.");
   }
   static std::string getTypeStr() { return "7-tuple"; }
-  static Type getDefault() {return Type();}
+  static Type        getDefault() { return Type(); }
 };
 
 
@@ -1266,7 +1256,7 @@ public:
     return luaPullTupleValuesFromTable<Values...>(L, pos);
   }
 
-  static void push(lua_State* L, Type in)
+  static void push(lua_State* L, const Type& in)
   {
     LuaStackRAII _a(L, 0, 1);
 
@@ -1277,7 +1267,7 @@ public:
     luaPushTupleValuesToTable(L, tblPos, in);
   }
 
-  static std::string getValStr(Type in)
+  static std::string getValStr(const Type& in)
   {
     std::ostringstream os;
     os << "{";
@@ -1286,7 +1276,7 @@ public:
     return os.str();
   }
   static std::string getTypeStr() { return "Tuple"; }
-  static Type getDefault() {return Type();}
+  static Type        getDefault() { return Type(); }
 };
 
 #endif
