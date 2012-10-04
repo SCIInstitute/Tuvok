@@ -996,6 +996,9 @@
     <ClCompile Include="Renderer\GL\GLGridLeaper.cpp">
       <Filter>Renderer\GL</Filter>
     </ClCompile>
+    <ClCompile Include="LuaScripting\TuvokSpecific\LuaTuvokTypes.cpp">
+      <Filter>LuaScripting\TuvokSpecific</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Basics\Appendix.h">
