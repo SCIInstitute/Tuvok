@@ -282,6 +282,13 @@ void LuaScripting::registerScriptFunctions()
                                false);
   setProvenanceExempt("help");
 
+  mMemberReg->registerFunction(this, &LuaScripting::getInfoHelp,
+                               "helpStr",
+                               "Returns detailed help regarding a function or "
+                               "class.",
+                               false);
+  setProvenanceExempt("helpStr");
+
   mMemberReg->registerFunction(this, &LuaScripting::deleteLuaClassInstance,
                                "deleteClass",
                                "Deletes a Lua class instance.",
@@ -435,8 +442,9 @@ bool IsParenthesesOrSpacePred(char c)
 }
 
 //-----------------------------------------------------------------------------
-void LuaScripting::printClassHelp(int tableIndex)
+string LuaScripting::getClassHelp(int tableIndex)
 {
+  ostringstream ret;
   vector<LuaScripting::FunctionDesc> funcDescs;
 
   lua_pushvalue(mL, tableIndex);
@@ -452,31 +460,37 @@ void LuaScripting::printClassHelp(int tableIndex)
   string header = "Function listing follows for class created from '";
   header += factoryName;
   header += "'";
-  cexec("log.info", "");
-  cexec("log.info", header);
-  cexec("log.info", "");
+  ret << std::endl << header << std::endl;
 
   for (vector<FunctionDesc>::iterator it = funcDescs.begin();
       it != funcDescs.end(); ++it)
   {
     FunctionDesc d = *it;
-    ostringstream os;
-    os << "'" << getUnqualifiedName(d.funcFQName) << "' -- " << d.funcDesc;
-    cexec("log.info", os.str());
+    ret << "'" << getUnqualifiedName(d.funcFQName) << "' -- " << d.funcDesc 
+        << std::endl;
   }
+
+  return ret.str();
 }
 
 //-----------------------------------------------------------------------------
 void LuaScripting::infoHelp(LuaTable table)
 {
+  cexec("log.info", getInfoHelp(table));
+}
+
+//-----------------------------------------------------------------------------
+string LuaScripting::getInfoHelp(LuaTable table)
+{
+  ostringstream ret;
+
   LuaStackRAII _a(mL, 0, 0);
 
   int funTable = table.getStackLocation();
 
   if (isLuaClassInstance(funTable))
   {
-    printClassHelp(funTable);
-    return;
+    return getClassHelp(funTable);
   }
 
   // Check to see if this is a value with a metatable and something set for
@@ -498,13 +512,12 @@ void LuaScripting::infoHelp(LuaTable table)
       lua_call(mL, 1, 1);
 
       // We should now have a string describing the variable on the stack.
-      std::string varDesc = lua_tostring(mL, lua_gettop(mL));
-      cexec("log.info", varDesc.c_str());
+      ret << lua_tostring(mL, lua_gettop(mL));
 
       // Pop metatable and the variable description string.
       lua_pop(mL, 2);
 
-      return;
+      return ret.str();
     }
 
     // Pop metatable and nil
@@ -514,23 +527,15 @@ void LuaScripting::infoHelp(LuaTable table)
   if (isRegisteredFunction(funTable) == false)
   {
     cexec("log.warn", "Value given is not recognized as a function.");
-    return;
+    return ret.str();
   }
 
   // Obtain basic descriptions from the table.
   FunctionDesc desc = getFunctionDescFromTable(lua_gettop(mL));
 
   // Obtain extra information about the function's parameters.
-  cexec("log.info", "");
-  cexec("log.info", desc.funcFQName);
-
-  string str = "  ";
-  str += desc.funcDesc;
-  cexec("log.info", str);
-
-//  ostringstream osUsage;
-//  osUsage << "  Usage: '"<< desc.funcFQName << desc.paramSig << "'";
-//  cexec("log.info", osUsage.str());
+  ret << std::endl << desc.funcFQName << std::endl;
+  ret << "  " << desc.funcDesc << std::endl;
 
   // Parse the function's parameters
   string commaDelimitedParams = desc.paramSig;
@@ -634,12 +639,12 @@ void LuaScripting::infoHelp(LuaTable table)
   }
 
   osUsage << ")'";
-  cexec("log.info", osUsage.str());
+  ret << osUsage.str() << std::endl;
 
   for (vector<string>::iterator it = paramOutput.begin();
       it != paramOutput.end(); ++it)
   {
-    cexec("log.info", *it);
+    ret << *it << std::endl;
   }
 
   // Add return value information (stored at index 0 in the parameter table).
@@ -648,13 +653,11 @@ void LuaScripting::infoHelp(LuaTable table)
 
   // Extract first keyword
   string retType = sig.substr(0, found);  // found is the # of characters
-  ostringstream retOut;
 
   if (retType.compare("void") != 0)
   {
-    cexec("log.info", "");
-    cexec("log.info", "  Return Value:");
-    retOut << "   " << retType;
+    ret << std::endl << "  Return Value:" << std::endl;
+    ret << "   " << retType;
 
     string paramInfo = "";
     string paramName = "";
@@ -678,15 +681,15 @@ void LuaScripting::infoHelp(LuaTable table)
 
     if (paramName.size() > 0)
     {
-      retOut << " " << paramName;
+      ret << " " << paramName;
     }
 
     if (paramInfo.size() > 0)
     {
-      retOut << " -- " << paramInfo;
+      ret << " -- " << paramInfo;
     }
 
-    cexec("log.info", retOut.str());
+    ret << std::endl;
   }
 
 
@@ -695,6 +698,8 @@ void LuaScripting::infoHelp(LuaTable table)
 
   // Pop the function table off the stack
   lua_pop(mL, 1);
+
+  return ret.str();
 }
 
 //-----------------------------------------------------------------------------

@@ -613,10 +613,13 @@ private:
   void printHelp();
 
   /// Prints help for the given class instance table.
-  void printClassHelp(int tableIndex);
+  std::string getClassHelp(int tableIndex);
 
   /// Prints help about a specific function given by func.
   void infoHelp(LuaTable table);
+
+  /// Retrieves info about the given table as a string.
+  std::string getInfoHelp(LuaTable table);
 
   /// Delete's a lua class instance. Does not delete a class definition.
   /// Class definitions are permanent.
