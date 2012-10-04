@@ -3,7 +3,7 @@
 
 header = 'Metamethods test: '
 
--- Testing vector metamethods
+-- Test vector metamethods
 v1 = math.v4(1.0, 1.0, 1.0, 1.0)
 v2 = math.v4(0.0, 1.0, 2.0, 4.0)
 a = 10
@@ -26,7 +26,9 @@ for i,v in ipairs(getmetatable(v1)) do print(i .. ': ' .. v) end
 print('Contents of v2.')
 for i,v in ipairs(v1) do print(i .. ': ' .. v) end
 
--- Test scalar * vector multiplication
+-----------------------------------------
+-- Test scalar * vector multiplication --
+-----------------------------------------
 v = a * v1
 if v[1] ~= 10.0 or v[2] ~= 10.0 or v[3] ~= 10.0 or v[4] ~= 10.0 then
   error(header .. 'Failed scalar/vector multiplication.')
@@ -51,7 +53,9 @@ if v[1] ~= 0.0 or v[2] ~= 100.0 or v[3] ~= 200.0 or v[4] ~= 400.0 then
 end
 print('Passed scalar multiplication: ')
 
--- Test vector dot product
+-----------------------------
+-- Test vector dot product --
+-----------------------------
 r = v1 * v2
 if r < 6.999 or r > 7.001 then
   error(header .. 'Failed vector dot product.')
@@ -63,6 +67,33 @@ if r < 6.999 or r > 7.001 then
   error(header .. 'Failed vector dot product.')
 end
 print('Passed dot product: ' .. r)
+
+--------------------------
+-- Test vector addition --
+--------------------------
+v = v1 + v2
+if v[1] ~= 1.0 or v[2] ~= 2.0 or v[3] ~= 3.0 or v[4] ~= 5.0 then
+  error(header .. 'Failed vector addition.')
+end
+print('Passed vector addition: ')
+
+v = v2 + v1
+if v[1] ~= 1.0 or v[2] ~= 2.0 or v[3] ~= 3.0 or v[4] ~= 5.0 then
+  error(header .. 'Failed vector addition.')
+end
+print('Passed vector addition: ')
+
+-----------------------------
+-- Test vector subtraction --
+-----------------------------
+
+
+
+-------------------------
+-- Test unary negation --
+-------------------------
+
+
 
 -- Test scalar * matrix multiplication
 --m1 = math.matrix([[2.0 0.0 0.0 0.0],

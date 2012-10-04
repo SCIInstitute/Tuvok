@@ -306,6 +306,19 @@ private:
     return 1;
   }
 
+  static int subtractionMetamethod(lua_State* L)
+  {
+    // This really is just addition with a unary negation...
+
+    return 1;
+  }
+
+  static int unaryNegationMetamethod(lua_State* L)
+  {
+
+    return 1;
+  }
+
   // Retrieves the metatable for this type.
   // The metatable is stored in the Lua registry and only one metatable is
   // generated for this type, reducing the overhead of the type.

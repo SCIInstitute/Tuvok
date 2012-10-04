@@ -275,18 +275,12 @@ void LuaScripting::registerScriptFunctions()
   lua_pushnil(mL);
   lua_setglobal(mL, "print");
 
-  mMemberReg->registerFunction(this, &LuaScripting::printHelp,
+  mMemberReg->registerFunction(this, &LuaScripting::infoHelp,
                                "help",
-                               "Same as log.printFunctions with an additional "
-                               "header.",
+                               "Prints detailed help regarding a function or "
+                               "class.",
                                false);
   setProvenanceExempt("help");
-
-  mMemberReg->registerFunction(this, &LuaScripting::infoHelp,
-                               "info",
-                               "Prints detailed help regarding a function.",
-                               false);
-  setProvenanceExempt("info");
 
   mMemberReg->registerFunction(this, &LuaScripting::deleteLuaClassInstance,
                                "deleteClass",
@@ -344,6 +338,13 @@ void LuaScripting::registerScriptFunctions()
                                "(verbose mode).",
                                false);
   setProvenanceExempt("luaVerboseMode");
+
+  mMemberReg->registerFunction(this, &LuaScripting::printHelp,
+                               "helpAllFunctions",
+                               "Same as log.printFunctions with an additional "
+                               "header.",
+                               false);
+  setProvenanceExempt("helpAllFunctions");
 
   registerFunction(&nopFun, SYSTEM_NOP_COMMAND, "No-op "
       "function that helps to logically group commands in the provenance "
@@ -415,8 +416,8 @@ void LuaScripting::printHelp()
   printFunctions();
 
   cexec("log.info", "");
-  cexec("log.info", "Use the 'info' function to get additional information on "
-      "classes and functions. E.G. info(print)");
+  cexec("log.info", "Use the 'help' function to get additional information on "
+      "classes and functions. E.G. help(print)");
 }
 
 //-----------------------------------------------------------------------------
