@@ -48,11 +48,13 @@
 
 #include <iomanip>
 #include <sstream>
+#include <vector>
 #include <list>
 #include <tuple>
 
 #include "LuaClassInstance.h"
 #include "LuaStackRAII.h"
+#include "LuaError.h"
 
 // Uncomment TUVOK_DEBUG_LUA_USE_RTTI_CHECKS to check types of function calls
 // made through lua at run time.

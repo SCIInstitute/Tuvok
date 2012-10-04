@@ -522,6 +522,7 @@ SOURCES += \
            LuaScripting/TuvokSpecific/LuaIOManagerProxy.cpp \
            LuaScripting/TuvokSpecific/LuaTransferFun1DProxy.cpp \
            LuaScripting/TuvokSpecific/LuaTransferFun2DProxy.cpp \
+           LuaScripting/TuvokSpecific/LuaTuvokTypes.cpp \
            Renderer/AbstrRenderer.cpp \
            Renderer/Context.cpp \
            Renderer/CullingLOD.cpp \

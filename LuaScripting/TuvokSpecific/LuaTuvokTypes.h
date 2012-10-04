@@ -126,7 +126,7 @@ public:
     lua_pushnumber(L, static_cast<lua_Number>(in.w));
     lua_settable(L, tbl);
 
-    // Associate metatable.
+    // Associate metatable. lua_setmetatable will pop off the metatable.
     getMT(L);
     lua_setmetatable(L, tbl);
   }
@@ -143,20 +143,31 @@ public:
   // Used to determine if the value at stack location 'index' is of 'our type'.
   static bool isOurType(lua_State* L, int index)
   {
+    LuaStackRAII _a(L, 0, 0);
+
     // Push our metatable onto the top of the stack.
     getMT(L);
+    int ourMT = lua_gettop(L);
+
+    // Grab the metatable of the object at 'index'.
+    if (lua_getmetatable(L, index) == 0)
+    {
+      lua_pop(L, 1);
+      return false;
+    }
+    int theirMT = lua_gettop(L);
 
     // Test to see if the metatable of the type given at index is identical
     // to our types metatable (they will only be identical if they are the
     // same type).
-    if (lua_rawequal(L, index, lua_gettop(L)) == 1)
+    if (lua_rawequal(L, ourMT, theirMT) == 1)
     {
-      lua_pop(L, 1);
+      lua_pop(L, 2);
       return true;
     }
     else
     {
-      lua_pop(L, 1);
+      lua_pop(L, 2);
       return false;
     }
   }
@@ -204,6 +215,7 @@ private:
 
   static int multiplyMetamethod(lua_State* L)
   {
+    LuaStackRAII _a(L, 0, 1);
     // Should only have two values on the stack, one at stack position 1 and
     // the other at stack position 2.
     MUL_SEMANTIC semantic = SCALAR_PRODUCT;
@@ -223,12 +235,13 @@ private:
       }
       else if (isOurType(L, 2)) // Is the second parameter another vector?
       {
+        semantic = DOT_PRODUCT;
         v2 = get(L, 2);
       }
       else
       {
         throw LuaError("Unable to perform multiplication. Incompatible "
-                       "arguments (vector handler)");
+                       "arguments (vector handler 1)");
       }
     }
     else
@@ -238,7 +251,7 @@ private:
       // the Matrix's metatable.
 
       // Check to make sure the value is a scalar...
-      if (lua_isnumber(L, 1))   // Is the second parameter a scalar?
+      if (lua_isnumber(L, 1))   // Is the first parameter a scalar?
       {
         scalar = lua_tonumber(L, 1);
         if (isOurType(L, 2))
@@ -248,13 +261,13 @@ private:
         else
         {
           throw LuaError("Unable to perform multiplication. Incompatible "
-                         "arguments (vector handler).");
+                         "arguments (vector handler 2).");
         }
       }
       else
       {
         throw LuaError("Unable to perform multiplication. Incompatible "
-                       "arguments (vector handler).");
+                       "arguments (vector handler 3).");
       }
     }
 
@@ -279,11 +292,11 @@ private:
     // There is only one possible way to implement addition.
     if (isOurType(L, 1) == false) 
       throw LuaError("Unable to perform multiplication. Incompatible "
-                     "arguments for addition (expecting two vectors).");
+                     "arguments for addition (expecting two vectors 1).");
 
     if (isOurType(L, 2) == false)
       throw LuaError("Unable to perform multiplication. Incompatible "
-                     "arguments for addition (expecting two vectors).");
+                     "arguments for addition (expecting two vectors 2).");
     
     Type v1 = get(L, 1);
     Type v2 = get(L, 2);
@@ -298,6 +311,8 @@ private:
   // generated for this type, reducing the overhead of the type.
   static void getMT(lua_State* L)
   {
+    LuaStackRAII _a(L, 0, 1);
+
     if (luaL_newmetatable(L, getTypeStr().c_str()) == 1)
     {
       // Metatable does not already exist in the registry -- populate it.
@@ -789,6 +804,13 @@ public:
   static Type        getDefault() { return Type(); }
 };
 
+/// Utility lua math registration class.
+/// (For v4s and m16s)
+class LuaMathFunctions
+{
+public:
+  static void registerMathFunctions(std::shared_ptr<LuaScripting> ss); 
+};
 
 } // namespace tuvok
 

@@ -3,7 +3,9 @@
 
 -- This regression test is currently broken (provenance has been disabled)
 -- @todo Need a way of testing to see if the provenance system is enabled.
-return
+
+-- Hack to terminate early
+if true then return end
 
 -- Available variables:
 -- regress_c60Dir
