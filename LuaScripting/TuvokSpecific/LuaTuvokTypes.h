@@ -169,29 +169,21 @@ private:
   static int getLuaValStr(lua_State* L)
   {
     LuaStackRAII _a(L, 0, 1);
+
     // The user should have handed us a Lua value of this type.
     // Check the metatable of the type the user handed us to ensure we are
     // dealing with the same types.
-
-    if (lua_getmetatable(L, lua_gettop(L)) != 0)
+    if (isOurType(L, lua_gettop(L)))
     {
-      if (isOurType(L, lua_gettop(L)))
-      {
-        lua_pop(L, 1);    // Pop the metatable.
-        Type val = get(L, lua_gettop(L));
-        lua_pushstring(L, getValStr(val).c_str());
-      }
-      else
-      {
-        lua_pop(L, 1);    // Pop the metatable
-        lua_pushstring(L, "Cannot describe type; invalid type passed into "
-                          "getLuaValStr.");
-      }
+      LuaStrictStack<VECTOR4<lua_Number>>::Type val = 
+          LuaStrictStack<VECTOR4<lua_Number>>::get(L, lua_gettop(L));
+      lua_pushstring(L, LuaStrictStack<VECTOR4<lua_Number>>::
+                     getValStr(val).c_str());
     }
     else
     {
-      // lua_getmetatable does NOT push the metatable if a failure occurrs.
-      lua_pushstring(L, "Unable to find type's metatable");
+      lua_pushstring(L, "Cannot describe type; invalid type passed into "
+                     "getLuaValStr.");
     }
 
     return 1; // Returning 1 result, the textual description of this object.

@@ -479,6 +479,38 @@ void LuaScripting::infoHelp(LuaTable table)
     return;
   }
 
+  // Check to see if this is a value with a metatable and something set for
+  // TUVOK_LUA_MT_TYPE_TO_STR_FUN.
+  if (lua_getmetatable(mL, funTable) != 0)
+  {
+    // Check to see if the metatable contains TUVOK_LUA_MT_TYPE_TO_STR_FUN.
+    int mt = lua_gettop(mL);
+
+
+    lua_pushstring(mL, TUVOK_LUA_MT_TYPE_TO_STR_FUN);
+    lua_rawget(mL, mt);
+    if (lua_isnil(mL, -1) == 0)
+    {
+      // This is a type that can be described through the function now on the
+      // stack.
+      // Push first function argument.
+      lua_pushvalue(mL, funTable);
+      lua_call(mL, 1, 1);
+
+      // We should now have a string describing the variable on the stack.
+      std::string varDesc = lua_tostring(mL, lua_gettop(mL));
+      cexec("log.info", varDesc.c_str());
+
+      // Pop metatable and the variable description string.
+      lua_pop(mL, 2);
+
+      return;
+    }
+
+    // Pop metatable and nil
+    lua_pop(mL, 2);
+  }
+
   if (isRegisteredFunction(funTable) == false)
   {
     cexec("log.warn", "Value given is not recognized as a function.");
