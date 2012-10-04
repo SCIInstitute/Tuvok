@@ -202,7 +202,7 @@ private:
     // the other at stack position 2.
     MUL_SEMANTIC semantic = SCALAR_PRODUCT;
 
-    lua_Number scalar;
+    lua_Number scalar = 0.0;
     LuaStrictStack<VECTOR4<lua_Number>>::Type v1;
     LuaStrictStack<VECTOR4<lua_Number>>::Type v2;
 
