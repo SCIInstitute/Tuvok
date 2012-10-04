@@ -1,6 +1,10 @@
 -- The following regression test expects regress_c60Dir to be a global
 -- variable that contains a valid path to the c60 dataset.
 
+-- This regression test is currently broken (provenance has been disabled)
+-- @todo Need a way of testing to see if the provenance system is enabled.
+return
+
 -- Available variables:
 -- regress_c60Dir
 

@@ -55,7 +55,12 @@ namespace tuvok
 
 // TODO: Add metatable to vector types in order to get basic vector operations
 //       to function inside of Lua (add, subtract, and multiply metamethods).
-
+//       ALSO: Metatable could specify type (template specialization type)
+//       so we can use something like 'info <var>' to get in-depth information
+//       on a variable.
+//       Another possibility is just storing a light user data pointer to the
+//       appropriate 'getValStr', and 'get' functions. Then call:
+//       getValStr(get(L, pos)).
 
 // All numeric types are converted to doubles inside Lua. Therefore there is
 // no need to specialize on the type of vector.
@@ -71,6 +76,11 @@ public:
 
     // There should be a table at 'pos', containing four numerical elements.
     luaL_checktype(L, pos, LUA_TTABLE);
+
+    // Check the metatable.
+    if (isOurType(L, pos) == false)
+      throw LuaError("Attempting to convert a vector type that is missing its "
+                     "metatable.");
 
     lua_pushinteger(L, 1);
     lua_gettable(L, pos);
@@ -115,6 +125,10 @@ public:
     lua_pushinteger(L, 4);
     lua_pushnumber(L, static_cast<lua_Number>(in.w));
     lua_settable(L, tbl);
+
+    // Associate metatable.
+    getMT(L);
+    lua_setmetatable(L, tbl);
   }
 
   static std::string getValStr(const Type& in)
@@ -125,6 +139,184 @@ public:
   }
   static std::string getTypeStr() { return "Vector4"; }
   static Type        getDefault() { return Type(); }
+
+  // Used to determine if the value at stack location 'index' is of 'our type'.
+  static bool isOurType(lua_State* L, int index)
+  {
+    // Push our metatable onto the top of the stack.
+    getMT(L);
+
+    // Test to see if the metatable of the type given at index is identical
+    // to our types metatable (they will only be identical if they are the
+    // same type).
+    if (lua_rawequal(L, index, lua_gettop(L)) == 1)
+    {
+      lua_pop(L, 1);
+      return true;
+    }
+    else
+    {
+      lua_pop(L, 1);
+      return false;
+    }
+  }
+
+private:
+
+  /// C function called from Lua to obtain a textual description of the data
+  /// in this object.
+  static int getLuaValStr(lua_State* L)
+  {
+    LuaStackRAII _a(L, 0, 1);
+    // The user should have handed us a Lua value of this type.
+    // Check the metatable of the type the user handed us to ensure we are
+    // dealing with the same types.
+
+    if (lua_getmetatable(L, lua_gettop(L)) != 0)
+    {
+      if (isOurType(L, lua_gettop(L)))
+      {
+        lua_pop(L, 1);    // Pop the metatable.
+        Type val = get(L, lua_gettop(L));
+        lua_pushstring(L, getValStr(val).c_str());
+      }
+      else
+      {
+        lua_pop(L, 1);    // Pop the metatable
+        lua_pushstring(L, "Cannot describe type; invalid type passed into "
+                          "getLuaValStr.");
+      }
+    }
+    else
+    {
+      // lua_getmetatable does NOT push the metatable if a failure occurrs.
+      lua_pushstring(L, "Unable to find type's metatable");
+    }
+
+    return 1; // Returning 1 result, the textual description of this object.
+  }
+
+  enum MUL_SEMANTIC
+  {
+    SCALAR_PRODUCT,
+    DOT_PRODUCT,
+  };
+
+  static int multiplyMetamethod(lua_State* L)
+  {
+    // Should only have two values on the stack, one at stack position 1 and
+    // the other at stack position 2.
+    MUL_SEMANTIC semantic = SCALAR_PRODUCT;
+
+    lua_Number scalar;
+    Type v1;
+    Type v2;
+
+    // The first thing we need to do is determine the types of the parameters.
+    if (isOurType(L, 1))
+    {
+      v1 = get(L, 1);
+      if (lua_isnumber(L, 2))   // Is the second parameter a scalar?
+      {
+        // Perform a scalar multiplication.
+        scalar = lua_tonumber(L, 2);
+      }
+      else if (isOurType(L, 2)) // Is the second parameter another vector?
+      {
+        v2 = get(L, 2);
+      }
+      else
+      {
+        throw LuaError("Unable to perform multiplication. Incompatible "
+                       "arguments (vector handler)");
+      }
+    }
+    else
+    {
+      // Must be scalar * vector multiplication. 
+      // However, Matrix * vector multiplication would have gotten caught by 
+      // the Matrix's metatable.
+
+      // Check to make sure the value is a scalar...
+      if (lua_isnumber(L, 1))   // Is the second parameter a scalar?
+      {
+        scalar = lua_tonumber(L, 1);
+        if (isOurType(L, 2))
+        {
+          v1 = get(L, 2);
+        }
+        else
+        {
+          throw LuaError("Unable to perform multiplication. Incompatible "
+                         "arguments (vector handler).");
+        }
+      }
+      else
+      {
+        throw LuaError("Unable to perform multiplication. Incompatible "
+                       "arguments (vector handler).");
+      }
+    }
+
+    // We don't cover matrix * vector multiplication, since that will be covered
+    // by the matrice's meta methods.
+    switch (semantic)
+    {
+      case SCALAR_PRODUCT:
+        push(L, static_cast<T>(scalar) * v1);
+        break;
+
+      case DOT_PRODUCT:
+        lua_pushnumber(L, v1 ^ v2);
+        break;
+    }
+
+    return 1; // Return the result of the multiplication.
+  }
+
+  static int additionMetamethod(lua_State* L)
+  {
+    // There is only one possible way to implement addition.
+    if (isOurType(L, 1) == false) 
+      throw LuaError("Unable to perform multiplication. Incompatible "
+                     "arguments for addition (expecting two vectors).");
+
+    if (isOurType(L, 2) == false)
+      throw LuaError("Unable to perform multiplication. Incompatible "
+                     "arguments for addition (expecting two vectors).");
+    
+    Type v1 = get(L, 1);
+    Type v2 = get(L, 2);
+
+    push(L, v1 + v2);
+
+    return 1;
+  }
+
+  // Retrieves the metatable for this type.
+  // The metatable is stored in the Lua registry and only one metatable is
+  // generated for this type, reducing the overhead of the type.
+  static void getMT(lua_State* L)
+  {
+    if (luaL_newmetatable(L, getTypeStr().c_str()) == 1)
+    {
+      // Metatable does not already exist in the registry -- populate it.
+      int mt = lua_gettop(L);
+      
+      // Push the getLuaValStr luaCFunction.
+      lua_pushcfunction(L, &LuaStrictStack<Type>::getLuaValStr);
+      lua_setfield(L, mt, TUVOK_LUA_MT_TYPE_TO_STR_FUN);
+
+      lua_pushcfunction(L, &LuaStrictStack<Type>::multiplyMetamethod);
+      lua_setfield(L, mt, "__mul");
+
+      lua_pushcfunction(L, &LuaStrictStack<Type>::additionMetamethod);
+      lua_setfield(L, mt, "__add");
+    }
+    // If luaL_newmetatable returns 0, then there already exists a MT with this
+    // type name: http://www.lua.org/manual/5.2/manual.html#luaL_newmetatable.
+    // Leave it on the top of the stack.
+  }
 };
 
 template<typename T>

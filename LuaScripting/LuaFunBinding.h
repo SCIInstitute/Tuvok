@@ -67,6 +67,7 @@
 #include <typeinfo>
 #endif
 
+#define TUVOK_LUA_MT_TYPE_TO_STR_FUN "typeToStr"
 
 namespace tuvok
 {
