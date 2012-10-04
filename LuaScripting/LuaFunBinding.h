@@ -51,6 +51,7 @@
 #include <vector>
 #include <list>
 #include <tuple>
+#include <memory>
 
 #include "LuaClassInstance.h"
 #include "LuaStackRAII.h"
