@@ -57,7 +57,7 @@ vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient, vec3 vLightDiffu
 }
 
 
-void main(void){
+void main(void) {
   // compute the coordinates to look up the previous pass
   vec2 vFragCoords = vec2(gl_FragCoord.x / vScreensize.x , gl_FragCoord.y / vScreensize.y);
 
@@ -81,7 +81,8 @@ void main(void){
 
   vNormal.z = abs(vNormal.z);
 
-  vec3 vLightColor = vec4(Lighting(vPosition.xyz, vNormal, vLightAmbient, vColor.rgb*vLightDiffuse, vLightSpecular),1.0);
+  vec3 vLightColor = Lighting(vPosition.xyz, vNormal, vLightAmbient,
+                              vColor.rgb*vLightDiffuse, vLightSpecular);
 
   /// write result to fragment color
   gl_FragColor = vec4(vLightColor.x, vLightColor.y, vLightColor.z, 1.0);
