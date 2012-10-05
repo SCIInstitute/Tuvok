@@ -3,6 +3,7 @@
 
 header = 'Metamethods test: '
 
+-- Trivial edit to force CI.
 -- Test vector metamethods
 v1 = math.v4(1.0, 1.0, 1.0, 1.0)
 v2 = math.v4(0.0, 1.0, 2.0, 4.0)
