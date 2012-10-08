@@ -233,7 +233,7 @@ bool AbstrRenderer::LoadDataset(const string& strFilename) {
   MESSAGE("Load successful, initializing renderer!");
 
   // find the maximum LOD index
-  m_iMaxLODIndex = m_pDataset->GetLODLevelCount()-1;
+  m_iMaxLODIndex = m_pDataset->GetLargestSingleBrickLod(0);
 
   // now that we know the range of the dataset, we can set the default
   // isoval to half the range.  For CV, we'll set the isovals to a bit above
@@ -302,6 +302,7 @@ void AbstrRenderer::SetDataset(Dataset *vds) {
     delete m_pDataset;
   }
   m_pDataset = vds;
+  m_iMaxLODIndex = m_pDataset->GetLargestSingleBrickLod(0);
   Controller::Instance().MemMan()->AddDataset(m_pDataset, this);
   ScheduleCompleteRedraw();
 }
@@ -676,7 +677,7 @@ void AbstrRenderer::ComputeMaxLODForCurrentView() {
     // if rendering is too slow use a lower resolution during interaction
     if (this->msecPassed[0] > m_fMaxMSPerFrame) {
       // wait for 3 frames before switching to lower lod (3 here is
-      // chosen more or less arbitrary, can be changed if needed)
+      // chosen more or less arbitrarily, can be changed if needed)
       if (m_iLODNotOKCounter < 3) {
         MESSAGE("Would increase start LOD but will give the renderer %u "
                 "more frame(s) time to become faster", 3 - m_iLODNotOKCounter);
