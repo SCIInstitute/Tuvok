@@ -26,9 +26,10 @@
    DEALINGS IN THE SOFTWARE.
 */
 
-#include "MRCConverter.h"
+#include <cctype>
 #include <fstream>
 #include <iterator>
+#include "MRCConverter.h"
 
 enum DataType
 {
