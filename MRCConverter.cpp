@@ -3,7 +3,7 @@
 
    The MIT License
 
-   Copyright (c) 2011 Scientific Computing and Imaging Institute,
+   Copyright (c) 2012 Scientific Computing and Imaging Institute,
    University of Utah.
 
 
@@ -115,8 +115,8 @@ private:
  
 MRCConverter::MRCConverter()
 {
-  assert(sizeof(MRCHeader) == 1024);
-  m_vConverterDesc = "MRC - Medical Research Council's electron density format.";
+  static_assert(sizeof(MRCHeader) == 1024, "structure must be 1024 bytes.");
+  m_vConverterDesc = "Medical Research Council's electron density format.";
   m_vSupportedExt.push_back("MRC");
 }
 
