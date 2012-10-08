@@ -30,16 +30,26 @@
 
 namespace tuvok {
 
-FLOATVECTOR4 luaMakeV4(float x, float y, float z, float w)
+VECTOR4<lua_Number> luaMakeV4(float x, float y, float z, float w)
 {
   // Create the vector 4 and push it onto the lua stack.
-  FLOATVECTOR4 v(x,y,z,w);
+  VECTOR4<lua_Number> v(x,y,z,w);
   return v;
+}
+
+MATRIX4<lua_Number> luaMakeM44()
+{
+  // Default constructor constructs an identity (see Tuvok/Basics/Vectors.h...)
+  // matrix.
+  MATRIX4<lua_Number> m;
+  return m;
 }
 
 void LuaMathFunctions::registerMathFunctions(std::shared_ptr<LuaScripting> ss)
 {
   ss->registerFunction(luaMakeV4, "math.v4", "Generates a numeric vector4.", 
+                       false);
+  ss->registerFunction(luaMakeM44, "math.m4x4", "Generates a numeric matrix4.",
                        false);
 }
 

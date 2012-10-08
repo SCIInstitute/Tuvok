@@ -162,8 +162,6 @@ public:
     return ret;
   }
 
-private:
-
   /// C function called from Lua to obtain a textual description of the data
   /// in this object.
   static int getLuaValStr(lua_State* L)
@@ -314,10 +312,9 @@ private:
 
   static int unaryNegationMetamethod(lua_State* L)
   {
-    // This really is just addition with a unary negation...
     if (isOurType(L, 1) == false)
-      throw LuaError("Unable to perform subtraction. Incompatible "
-                     "arguments (expecting two vectors 1).");
+      throw LuaError("Unable to perform unary negation. Incompatible "
+                     "argument (expecting a single vector).");
 
     LuaStrictStack<VECTOR4<lua_Number>>::Type v1 = 
         LuaStrictStack<VECTOR4<lua_Number>>::get(L, 1);
@@ -340,19 +337,19 @@ private:
       int mt = lua_gettop(L);
       
       // Push the getLuaValStr luaCFunction.
-      lua_pushcfunction(L, &LuaStrictStack<Type>::getLuaValStr);
+      lua_pushcfunction(L, &LuaStrictStack<VECTOR4<lua_Number>>::getLuaValStr);
       lua_setfield(L, mt, TUVOK_LUA_MT_TYPE_TO_STR_FUN);
 
-      lua_pushcfunction(L, &LuaStrictStack<Type>::multiplyMetamethod);
+      lua_pushcfunction(L, &LuaStrictStack<VECTOR4<lua_Number>>::multiplyMetamethod);
       lua_setfield(L, mt, "__mul");
 
-      lua_pushcfunction(L, &LuaStrictStack<Type>::additionMetamethod);
+      lua_pushcfunction(L, &LuaStrictStack<VECTOR4<lua_Number>>::additionMetamethod);
       lua_setfield(L, mt, "__add");
 
-      lua_pushcfunction(L, &LuaStrictStack<Type>::subtractionMetamethod);
+      lua_pushcfunction(L, &LuaStrictStack<VECTOR4<lua_Number>>::subtractionMetamethod);
       lua_setfield(L, mt, "__sub");
       
-      lua_pushcfunction(L, &LuaStrictStack<Type>::unaryNegationMetamethod);
+      lua_pushcfunction(L, &LuaStrictStack<VECTOR4<lua_Number>>::unaryNegationMetamethod);
       lua_setfield(L, mt, "__unm");
     }
     // If luaL_newmetatable returns 0, then there already exists a MT with this
@@ -676,6 +673,11 @@ public:
 
     luaL_checktype(L, pos, LUA_TTABLE);
 
+    // Check the metatable.
+    if (isOurType(L, pos) == false)
+      throw LuaError("Attempting to convert a vector type that is missing its "
+                     "metatable.");
+
     lua_pushinteger(L, 1);
     lua_gettable(L, pos);
     rows[0] = LuaStrictStack<VECTOR4<T>>::get(L, lua_gettop(L));
@@ -720,6 +722,10 @@ public:
     lua_pushinteger(L, 4);
     LuaStrictStack<VECTOR4<T>>::push(L, VECTOR4<T>(in.m41, in.m42, in.m43, in.m44));
     lua_settable(L, tbl);
+
+    // Associate metatable. lua_setmetatable will pop off the metatable.
+    getMT(L);
+    lua_setmetatable(L, tbl);
   }
 
   static std::string getValStr(const Type& in)
@@ -741,6 +747,159 @@ public:
   }
   static std::string getTypeStr() { return "Matrix44"; }
   static Type        getDefault() { return Type(); }
+
+  // Used to determine if the value at stack location 'index' is of 'our type'.
+  static bool isOurType(lua_State* L, int index)
+  {
+    LuaStackRAII _a(L, 0, 0);
+
+    getMT(L);
+    bool ret = LuaMathFunctions::isOfType(L, index, lua_gettop(L));
+    lua_pop(L, 1);
+    return ret;
+  }
+
+  /// C function called from Lua to obtain a textual description of the data
+  /// in this object.
+  static int getLuaValStr(lua_State* L)
+  {
+    LuaStackRAII _a(L, 0, 1);
+
+    // The user should have handed us a Lua value of this type.
+    // Check the metatable of the type the user handed us to ensure we are
+    // dealing with the same types.
+    if (isOurType(L, lua_gettop(L)))
+    {
+      LuaStrictStack<MATRIX4<lua_Number>>::Type val = 
+          LuaStrictStack<MATRIX4<lua_Number>>::get(L, lua_gettop(L));
+      lua_pushstring(L, LuaStrictStack<MATRIX4<lua_Number>>::
+                     getValStr(val).c_str());
+    }
+    else
+    {
+      lua_pushstring(L, "Cannot describe type; invalid type passed into "
+                     "getLuaValStr.");
+    }
+
+    return 1; // Returning 1 result, the textual description of this object.
+  }
+
+  enum MUL_SEMANTIC
+  {
+    SCALAR_PRODUCT,
+    VECTOR_PRODUCT,
+    MATRIX_PRODUCT,
+  };
+
+  static int multiplyMetamethod(lua_State* L)
+  {
+    LuaStackRAII _a(L, 0, 1);
+    // Should only have two values on the stack, one at stack position 1 and
+    // the other at stack position 2.
+    MUL_SEMANTIC semantic = SCALAR_PRODUCT;
+
+    lua_Number scalar = 0.0;
+    LuaStrictStack<VECTOR4<lua_Number>>::Type v;
+    LuaStrictStack<MATRIX4<lua_Number>>::Type m1;
+    LuaStrictStack<MATRIX4<lua_Number>>::Type m2;
+
+    // The first thing we need to do is determine the types of the parameters.
+    if (isOurType(L, 1))
+    {
+      m1 = LuaStrictStack<MATRIX4<lua_Number>>::get(L, 1);
+      if (lua_isnumber(L, 2))   // Is the second parameter a scalar?
+      {
+        // Perform a scalar multiplication.
+        scalar = lua_tonumber(L, 2);
+      }
+      else if (LuaStrictStack<VECTOR4<lua_Number>>::isOurType(L, 2)) // Is the second parameter a vector?
+      {
+        semantic = VECTOR_PRODUCT;
+        v = LuaStrictStack<VECTOR4<lua_Number>>::get(L, 2);
+      }
+      else if (isOurType(L, 2)) // Is the third parameter a matrix?
+      {
+        semantic = MATRIX_PRODUCT;
+        m2 = LuaStrictStack<MATRIX4<lua_Number>>::get(L, 2);
+      }
+      else
+      {
+        throw LuaError("Unable to perform matrix multiplication. Incompatible "
+                       "arguments (1)");
+      }
+    }
+    else
+    {
+      // MUST be a scalar. The first parameter cannot be a valid matrix, which
+      // is the only other valid multiplication type.
+      if (lua_isnumber(L, 1))   // Is the first parameter a scalar?
+      {
+        scalar = lua_tonumber(L, 1);
+        if (isOurType(L, 2))
+        {
+          m1 = LuaStrictStack<MATRIX4<lua_Number>>::get(L, 2);
+        }
+        else if (LuaStrictStack<VECTOR4<lua_Number>>::isOurType(L, 2)) // Is the second parameter a vector?
+        {
+          throw LuaError("Attempting to multiply 4x1 * 4x4. Multiplication not "
+                         "defined.");
+        }
+        else
+        {
+          throw LuaError("Unable to perform multiplication. Incompatible "
+                         "arguments (2).");
+        }
+      }
+      else
+      {
+        throw LuaError("Unable to perform multiplication. Incompatible "
+                       "arguments (3).");
+      }
+    }
+
+    // We don't cover matrix * vector multiplication, since that will be covered
+    // by the matrice's meta methods.
+    switch (semantic)
+    {
+      case SCALAR_PRODUCT:
+        LuaStrictStack<MATRIX4<lua_Number>>::push(L, m1 * scalar);
+        break;
+
+      case VECTOR_PRODUCT:
+        LuaStrictStack<VECTOR4<lua_Number>>::push(L, m1 * v);
+        break;
+
+      case MATRIX_PRODUCT:
+        LuaStrictStack<MATRIX4<lua_Number>>::push(L, m1 * m2);
+        break;
+    }
+
+    return 1; // Return the result of the multiplication.
+  }
+
+  // Retrieves the metatable for this type.
+  // The metatable is stored in the Lua registry and only one metatable is
+  // generated for this type, reducing the overhead of the type.
+  static void getMT(lua_State* L)
+  {
+    LuaStackRAII _a(L, 0, 1);
+
+    if (luaL_newmetatable(L, getTypeStr().c_str()) == 1)
+    {
+      // Metatable does not already exist in the registry -- populate it.
+      int mt = lua_gettop(L);
+      
+      // Push the getLuaValStr luaCFunction.
+      lua_pushcfunction(L, &LuaStrictStack<MATRIX4<lua_Number>>::getLuaValStr);
+      lua_setfield(L, mt, TUVOK_LUA_MT_TYPE_TO_STR_FUN);
+
+      lua_pushcfunction(L, &LuaStrictStack<MATRIX4<lua_Number>>::multiplyMetamethod);
+      lua_setfield(L, mt, "__mul");
+    }
+    // If luaL_newmetatable returns 0, then there already exists a MT with this
+    // type name: http://www.lua.org/manual/5.2/manual.html#luaL_newmetatable.
+    // Leave it on the top of the stack.
+  }
 };
 
 template<typename T>
