@@ -204,11 +204,11 @@ bool MRCConverter::ConvertToRAW(
 
 
 bool MRCConverter::CanRead(const std::string&,
-                             const std::vector<int8_t>&) const
+                           const std::vector<int8_t>& bytes) const
 {
   /// @todo Read header and ensure 'map' corresponds to the character string
   ///       "MAP" (assuming last byte is a null terminator).
-
-  return true;
+  return static_cast<char>(std::toupper(bytes[0])) == 'M' &&
+         static_cast<char>(std::toupper(bytes[0])) == 'A' &&
+         static_cast<char>(std::toupper(bytes[0])) == 'P';
 }
-
