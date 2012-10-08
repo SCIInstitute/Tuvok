@@ -93,16 +93,26 @@ bool QVISConverter::ConvertToRAW(const std::string& strSourceFilename,
         iComponentSize = 16;
         iComponentCount = 1;
         bIsFloat = false;
-      } else if (format->strValueUpper == "UCHAR4") {
-        bSigned = false;
-        iComponentSize = 8;
-        iComponentCount = 4;
-        bIsFloat = false;
       } else if (format->strValueUpper == "FLOAT") {
         bSigned = true;
         iComponentSize = 32;
         iComponentCount = 1;
         bIsFloat = true;
+      } else if (format->strValueUpper == "UCHAR4") {
+        bSigned = false;
+        iComponentSize = 8;
+        iComponentCount = 4;
+        bIsFloat = false;
+      } else if(format->strValueUpper == "USHORT3") {
+        bSigned = false;
+        iComponentSize = 16;
+        iComponentCount = 3;
+        bIsFloat = false;
+      } else if(format->strValueUpper == "USHORT4") {
+        bSigned = false;
+        iComponentSize = 16;
+        iComponentCount = 4;
+        bIsFloat = false;
       }
     }
 
@@ -139,11 +149,16 @@ bool QVISConverter::ConvertToRAW(const std::string& strSourceFilename,
   return true;
 }
 
-bool QVISConverter::ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, uint64_t iHeaderSkip,
-                             uint64_t iComponentSize, uint64_t iComponentCount, bool bSigned, bool bFloatingPoint,
-                             UINT64VECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, bool bNoUserInteraction,
-                             const bool bQuantizeTo8Bit) {
-
+bool QVISConverter::ConvertToNative(const std::string& strRawFilename,
+                                    const std::string& strTargetFilename,
+                                    uint64_t iHeaderSkip,
+                                    uint64_t iComponentSize,
+                                    uint64_t iComponentCount, bool bSigned,
+                                    bool bFloatingPoint,
+                                    UINT64VECTOR3 vVolumeSize,
+                                    FLOATVECTOR3 vVolumeAspect,
+                                    bool bNoUserInteraction,
+                                    const bool bQuantizeTo8Bit) {
   // compute fromat string
   string strFormat;
 
