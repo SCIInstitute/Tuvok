@@ -1045,7 +1045,7 @@ void GLGridLeaper::SetInterpolant(Interpolant eInterpolant) {
 }
 
 void GLGridLeaper::PH_ClearWorkingSet() {
-  m_pVolumePool->Reset();
+  m_pVolumePool->PH_Reset(m_VisibilityState, m_iTimestep);
 }
 void GLGridLeaper::PH_SetPagedBricks(size_t bricks) {
   m_iPagedBricks = bricks;

@@ -225,7 +225,7 @@ GLVolumePool::GLVolumePool(const UINTVECTOR3& poolSize, UVFDataset* pDataset, GL
     m_pUpdater = new AsyncVisibilityUpdater(*this);
 }
 
-void GLVolumePool::Reset() {
+void GLVolumePool::PH_Reset(const VisibilityState& visibility, size_t iTimestep) {
   // remember largest single brick parameters
   uint32_t const iLastBrickIndex = *(m_vLoDOffsetTable.end()-1);
   uint32_t const iLastBrickFlag = m_vBrickMetadata[iLastBrickIndex];
@@ -245,8 +245,7 @@ void GLVolumePool::Reset() {
   // restore largest single brick flag
   m_vBrickMetadata[iLastBrickIndex] = iLastBrickFlag;
 
-  // tell the GPU
-  UploadMetadataTexture();  
+  RecomputeVisibility(visibility, iTimestep, true);
 }
 
 uint32_t GLVolumePool::GetLoDCount() const {
