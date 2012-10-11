@@ -193,7 +193,13 @@ public:
   enum MUL_SEMANTIC
   {
     SCALAR_PRODUCT,
-    DOT_PRODUCT,
+    VECTOR_SCALE_PRODUCT, // I'm not sure what this product should be named.
+                          // It is essentially taking the first vector and 
+                          // constructing a 4x4 matrix whose diagonal entries
+                          // are the entries from the vector, then multiplying
+                          // the second vector by this matrix. So the first
+                          // vector could be seen as scaling the second (or
+                          // vice versa).
   };
 
   static int multiplyMetamethod(lua_State* L)
@@ -218,7 +224,7 @@ public:
       }
       else if (isOurType(L, 2)) // Is the second parameter another vector?
       {
-        semantic = DOT_PRODUCT;
+        semantic = VECTOR_SCALE_PRODUCT;
         v2 = LuaStrictStack<VECTOR4<lua_Number>>::get(L, 2);
       }
       else
@@ -263,8 +269,8 @@ public:
             L, static_cast<lua_Number>(scalar) * v1);
         break;
 
-      case DOT_PRODUCT:
-        lua_pushnumber(L, v1 ^ v2);
+      case VECTOR_SCALE_PRODUCT:
+        LuaStrictStack<VECTOR4<lua_Number>>::push(L, v1 * v2);
         break;
     }
 
