@@ -71,6 +71,9 @@ public:
   // Returns true if the metatable of the object at stack position 'object'
   // matches the metatable given by the stack position 'mt'.
   static bool isOfType(lua_State* L, int object, int mt);
+
+  // Called from getMT in LuaStrictStack<Matrix4<T>>
+  static void buildMatrix4Metatable(lua_State* L, int mtPos);
 };
 
 // All numeric types are converted to doubles inside Lua. Therefore there is
@@ -351,6 +354,8 @@ public:
       
       lua_pushcfunction(L, &LuaStrictStack<VECTOR4<lua_Number>>::unaryNegationMetamethod);
       lua_setfield(L, mt, "__unm");
+
+      // Add __index metamethod to add various vector functions.
     }
     // If luaL_newmetatable returns 0, then there already exists a MT with this
     // type name: http://www.lua.org/manual/5.2/manual.html#luaL_newmetatable.
@@ -884,21 +889,12 @@ public:
   {
     LuaStackRAII _a(L, 0, 1);
 
-    if (luaL_newmetatable(L, getTypeStr().c_str()) == 1)
+    if (luaL_newmetatable(
+            L, LuaStrictStack<MATRIX4<lua_Number>>::getTypeStr().c_str()) == 1)
     {
-      // Metatable does not already exist in the registry -- populate it.
-      int mt = lua_gettop(L);
-      
-      // Push the getLuaValStr luaCFunction.
-      lua_pushcfunction(L, &LuaStrictStack<MATRIX4<lua_Number>>::getLuaValStr);
-      lua_setfield(L, mt, TUVOK_LUA_MT_TYPE_TO_STR_FUN);
-
-      lua_pushcfunction(L, &LuaStrictStack<MATRIX4<lua_Number>>::multiplyMetamethod);
-      lua_setfield(L, mt, "__mul");
+      // Build the metatable
+      LuaMathFunctions::buildMatrix4Metatable(L, lua_gettop(L));
     }
-    // If luaL_newmetatable returns 0, then there already exists a MT with this
-    // type name: http://www.lua.org/manual/5.2/manual.html#luaL_newmetatable.
-    // Leave it on the top of the stack.
   }
 };
 
