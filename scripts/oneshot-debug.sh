@@ -35,7 +35,7 @@ ${qm} \
   QMAKE_CONFIG+="debug" \
   QMAKE_CFLAGS+="${VIS} ${CF}" \
   QMAKE_CXXFLAGS+="${VIS} ${INL} ${CF} ${CXF}" \
-  QMAKE_LFLAGS+="${VIS} ${COVERAGE}" \
+  QMAKE_LFLAGS+="${VIS} ${LDFLAGS}" \
   -recursive Tuvok.pro || exit 1
 
 pushd IO/test &> /dev/null || exit 1
@@ -44,7 +44,7 @@ pushd IO/test &> /dev/null || exit 1
     QMAKE_CONFIG+="debug" \
     QMAKE_CFLAGS+="${VIS} ${CF}" \
     QMAKE_CXXFLAGS+="${VIS} ${INL} ${CF} ${CXF}" \
-    QMAKE_LFLAGS+="${VIS} ${COVERAGE}" \
+    QMAKE_LFLAGS+="${VIS} ${LDFLAGS}" \
     -recursive test.pro || exit 1
 popd &>/dev/null
 
