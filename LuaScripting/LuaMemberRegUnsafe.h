@@ -139,7 +139,7 @@ private:
       T* bClass = reinterpret_cast<T*>(lua_touserdata(L, lua_upvalueindex(2)));
       typename LuaCFunExec<FunPtr>::classType* C =
           dynamic_cast<typename LuaCFunExec<FunPtr>::classType*>(bClass);
-      Ret r;
+      typename LuaStrictStack<Ret>::Type r;
       if (lua_toboolean(L, lua_upvalueindex(3)) == 0)
       {
         LuaScripting* ss = static_cast<LuaScripting*>(

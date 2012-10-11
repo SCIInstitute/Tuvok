@@ -135,6 +135,7 @@ template <typename T> class LuaClassRegistration;
     void luaEnableClipPlane(bool enable);
     bool luaIsClipPlaneEnabled();
     void luaShowClipPlane(bool enable);
+    FLOATMATRIX4 luaGetModelView(int stereoIndex);
   };
 
   class RenderRegion2D : public RenderRegion {

@@ -419,6 +419,11 @@ public:
     lua_pushstring(L, in);
   }
 
+  static void push(lua_State* L, const std::string& in)
+  {
+    lua_pushstring(L, in.c_str());
+  }
+
   static std::string getValStr(const char* in)
   {
     std::ostringstream os;

@@ -2076,6 +2076,8 @@ void AbstrRenderer::RegisterLuaFunctions(
                     "getWorkingBrick", "", false);
   id = reg.function(&AbstrRenderer::GetMinLODIndex,
                     "getMinLODIndex", "", false);
+  id = reg.function(&AbstrRenderer::GetMaxLODIndex,
+                    "getMaxLODIndex", "", false);
 
   id = reg.function(&AbstrRenderer::SetConsiderPreviousDepthbuffer,
                     "setConsiderPrevDepthBuffer", "", true);
@@ -2203,6 +2205,13 @@ void AbstrRenderer::RegisterLuaFunctions(
                "reset # of bytes read", false);
   reg.function(&AbstrRenderer::PH_RenderingTime, "renderingTime",
                "rendering time for last paint", false);
+
+  id = reg.function(&AbstrRenderer::GetSubFrameProgress, "getSubFrameProgress",
+                    "", false);
+  id = reg.function(&AbstrRenderer::GetFrameProgress, "getFrameProgress",
+                    "", false);
+  id = reg.function(&AbstrRenderer::GetProjectionMatrix, "getProjectionMatrix",
+                    "", false);
 
   /// Register renderer specific functions.
   me->RegisterDerivedClassLuaFunctions(reg, ss);

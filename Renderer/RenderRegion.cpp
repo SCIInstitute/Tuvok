@@ -123,6 +123,10 @@ void RenderRegion::defineLuaInterface(LuaClassRegistration<RenderRegion>& reg,
                     "showClipPlane",
                     "Enable/Disables clip plane visibility.",
                     true);
+  id = reg.function(&RenderRegion::luaGetModelView,
+                    "getModelView",
+                    "Retrieves model view matrix.",
+                    false);
 }
 
 //-----------------------------------------------------------------------------
@@ -226,6 +230,12 @@ bool RenderRegion::luaIsClipPlaneEnabled()
 void RenderRegion::luaShowClipPlane(bool enable)
 {
   mRen->ShowClipPlane(enable, this);
+}
+
+//-----------------------------------------------------------------------------
+FLOATMATRIX4 RenderRegion::luaGetModelView(int stereoIndex)
+{
+  return modelView[stereoIndex];
 }
 
 }

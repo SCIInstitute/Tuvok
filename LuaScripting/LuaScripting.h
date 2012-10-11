@@ -715,7 +715,7 @@ private:
       FunPtr fp = reinterpret_cast<FunPtr>(
           lua_touserdata(L, lua_upvalueindex(1)));
 
-      Ret r;
+      typename LuaStrictStack<Ret>::Type r;
       if (lua_toboolean(L, lua_upvalueindex(2)) == 0)
       {
         LuaScripting* ss = static_cast<LuaScripting*>(
