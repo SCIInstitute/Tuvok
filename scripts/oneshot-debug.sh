@@ -15,7 +15,8 @@ LDFLAGS="${COVERAGE}"
 MKSPEC=""
 # Darwin's debug STL support is broken.
 if test `uname -s` != "Darwin"; then
-  CXF="${CXF} -D_GLIBCXX_DEBUG -D_GLIBCXX_CONCEPT_CHECK -Werror"
+  CXF="${CXF} -D_GLIBCXX_DEBUG -D_GLIBCXX_CONCEPT_CHECK -Werror -fopenmp"
+  LDFLAGS="${LDFLAGS} -fopenmp"
 else
   MKSPEC="-spec unsupported/macx-clang"
 fi
