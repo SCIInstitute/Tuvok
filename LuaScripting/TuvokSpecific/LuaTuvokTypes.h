@@ -355,6 +355,11 @@ public:
       lua_pushcfunction(L, &LuaStrictStack<VECTOR4<lua_Number>>::unaryNegationMetamethod);
       lua_setfield(L, mt, "__unm");
 
+      /// @todo Move to cpp file and add (%) as cross product, and (^) as dot
+      ///       product.
+      /// Multiply operator should not perform a dot product, but a component
+      /// wise product, to keep in-line with current vector4 operation.
+
       // Add __index metamethod to add various vector functions.
     }
     // If luaL_newmetatable returns 0, then there already exists a MT with this

@@ -28,13 +28,15 @@
 
 #include "LuaTuvokTypes.h"
 
-static const char* gLuaOpTableName = "opTable";
-
 namespace tuvok {
 
 //-----------------------------------------------------------------------------
 VECTOR4<lua_Number> luaMakeV4(float x, float y, float z, float w)
 {
+  /// @todo Convert these into non-register function calls. Use lua directly.
+  ///       The reason is so that we can overload the call and have it used for
+  ///       multiple different input parameter types.
+
   // Create the vector 4 and push it onto the lua stack.
   VECTOR4<lua_Number> v(x,y,z,w);
   return v;
@@ -43,6 +45,10 @@ VECTOR4<lua_Number> luaMakeV4(float x, float y, float z, float w)
 //-----------------------------------------------------------------------------
 MATRIX4<lua_Number> luaMakeM44()
 {
+  /// @todo Convert these into non-register function calls. Use lua directly.
+  ///       The reason is so that we can overload the call and have it used for
+  ///       multiple different input parameter types.
+
   // Default constructor constructs an identity (see Tuvok/Basics/Vectors.h...)
   // matrix.
   MATRIX4<lua_Number> m;
@@ -102,29 +108,6 @@ bool LuaMathFunctions::isOfType(lua_State* L, int object, int mt)
 }
 
 //-----------------------------------------------------------------------------
-int luaGenericIndexMetamethod(lua_State* L)
-{
-  // Grab the metatable for table at (1), grab 'opTable' from metatable,
-  // return opTable[key] where key is at stack position (2).
-  lua_getmetatable(L, 1);
-  int mt = lua_gettop(L);
-  lua_getfield(L, lua_gettop(L), gLuaOpTableName);
-  int opTable = lua_gettop(L);
-  
-  // Push key onto stack.
-  lua_pushvalue(L, 2);
-  lua_gettable(L, opTable);
-
-  // Clean up stack.
-  lua_remove(L, opTable);
-  lua_remove(L, mt);
-
-  // Now function to call (or nil) is at the top of the stack.
-
-  return 1;
-}
-
-//-----------------------------------------------------------------------------
 int luaMatrix4Inverse(lua_State* L)
 {
   // The table containing the matrix 4 is at the top of the stack.
@@ -162,13 +145,6 @@ void LuaMathFunctions::buildMatrix4Metatable(lua_State* L, int mt)
   lua_pushcfunction(L, &luaMatrix4Transpose);
   lua_setfield(L, opTable, "transpose");
 
-  lua_setfield(L, mt, gLuaOpTableName);
-
-  // Now setup index metamethod.
-  // We chose to use a function instead of a table because we need to know
-  // who the calling table is (in this case, the Lua table that represents
-  // a matrix4).
-  lua_pushcfunction(L, &luaGenericIndexMetamethod);
   lua_setfield(L, mt, "__index");
 }
 
