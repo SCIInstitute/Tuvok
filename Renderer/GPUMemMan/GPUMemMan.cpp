@@ -35,6 +35,7 @@
 */
 
 #include <cassert>
+#include <cstddef>
 #include <algorithm>
 #include <functional>
 #include <numeric>
@@ -976,7 +977,9 @@ void GPUMemMan::Release3DTexture(GLVolume* pGLVolume) {
   for (size_t i = 0;i<m_vpTex3DList.size();i++) {
     if (m_vpTex3DList[i]->volume == pGLVolume) {
       if (m_vpTex3DList[i]->iUserCount > 0) {
-          m_vpTex3DList[i]->iUserCount--;
+        m_vpTex3DList[i]->iUserCount--;
+        MESSAGE("Decreased 3D texture use count to %u",
+                m_vpTex3DList[i]->iUserCount);
       } else {
         WARNING("Attempting to release a 3D volume that is not in use.");
       }
@@ -985,13 +988,15 @@ void GPUMemMan::Release3DTexture(GLVolume* pGLVolume) {
 }
 
 
-void GPUMemMan::Delete3DTexture(const GLVolumeListIter &tex) {
+void GPUMemMan::Delete3DTexture(const GLVolumeListIter& tex) {
   m_iAllocatedGPUMemory -= (*tex)->GetGPUSize();
   m_iAllocatedCPUMemory -= (*tex)->GetCPUSize();
 
   if((*tex)->iUserCount != 0) {
     WARNING("Freeing used GL volume!");
   }
+  MESSAGE("Deleting GL texture with use count %u",
+          static_cast<unsigned>((*tex)->iUserCount));
   delete *tex;
   m_vpTex3DList.erase(tex);
 }
@@ -1009,8 +1014,14 @@ struct DatasetTexture: std::binary_function<Dataset, GLVolumeListElem, bool> {
 
 void GPUMemMan::FreeAssociatedTextures(Dataset* pDataset, int iShareGroupID) {
   // Don't use singleton; see destructor comments.
-  AbstrDebugOut &dbg = *(m_MasterController->DebugOut());
+  AbstrDebugOut& dbg = *(m_MasterController->DebugOut());
 
+  try {
+    const FileBackedDataset& fbd = dynamic_cast<const
+      FileBackedDataset&>(*pDataset);
+    dbg.Message(_func_, "Deleting textures associated with '%s' dataset.",
+                fbd.Filename().c_str());
+  } catch(const std::bad_cast&) {}
   while(1) { // exit condition is checked for and `break'd in the loop.
     const GLVolumeListIter& iter =
       std::find_if(m_vpTex3DList.begin(), m_vpTex3DList.end(),
@@ -1018,11 +1029,9 @@ void GPUMemMan::FreeAssociatedTextures(Dataset* pDataset, int iShareGroupID) {
     if(iter == m_vpTex3DList.end()) {
       break;
     }
-    dbg.Message(_func_, "Deleting a gl volume");
     Delete3DTexture(iter);
   }
 }
-
 
 void GPUMemMan::MemSizesChanged() {
   if (m_iAllocatedCPUMemory > m_SystemInfo->GetMaxUsableCPUMem()) {
@@ -1170,7 +1179,8 @@ void GPUMemMan::FreeGLSLProgram(GLSLProgram* pGLSLProgram) {
     if (m_vpGLSLList[i]->pGLSLProgram == pGLSLProgram) {
       m_vpGLSLList[i]->iAccessCounter--;
       if (m_vpGLSLList[i]->iAccessCounter == 0) {
-        MESSAGE("Freeing GLSL program");
+        MESSAGE("Freeing GLSL program %u",
+                static_cast<unsigned>(GLuint(*pGLSLProgram)));
         m_iAllocatedGPUMemory -= m_vpGLSLList[i]->pGLSLProgram->GetGPUSize();
         m_iAllocatedCPUMemory -= m_vpGLSLList[i]->pGLSLProgram->GetCPUSize();
 
