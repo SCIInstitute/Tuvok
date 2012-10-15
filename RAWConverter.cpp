@@ -203,6 +203,15 @@ quantize(std::shared_ptr<LargeRAWFile> sourceData,
 {
   bool target = false;
 
+  BStreamDescriptor bsd;
+  bsd.elements = volumeSize;
+  bsd.components = iComponentCount;
+  bsd.width = iComponentSize / 8;
+  bsd.is_signed = bSigned;
+  bsd.fp = bIsFloat;
+  bsd.big_endian = EndianConvert::IsBigEndian(); // should be native, now.
+  bsd.timesteps = timesteps;
+
   if (bQuantizeTo8Bit && iComponentSize > 8) {
     target = AbstrConverter::QuantizeTo8Bit(
         *sourceData, tmpQuantizedFile,
@@ -235,16 +244,14 @@ quantize(std::shared_ptr<LargeRAWFile> sourceData,
         if(bSigned) {
           target =
             Quantize<short, unsigned short>(
-              *sourceData, tmpQuantizedFile,
-              iComponentCount*volumeSize*timesteps,
+              *sourceData, bsd, tmpQuantizedFile,
               Histogram1D
             );
         } else {
           size_t iBinCount = 0;
           target =
             Quantize<unsigned short, unsigned short>(
-              *sourceData, tmpQuantizedFile,
-              iComponentCount*volumeSize*timesteps,
+              *sourceData, bsd, tmpQuantizedFile,
               Histogram1D, &iBinCount
             );
           if (iBinCount > 0 && iBinCount <= 256) {
@@ -272,16 +279,14 @@ quantize(std::shared_ptr<LargeRAWFile> sourceData,
           if(bSigned) {
             target =
               Quantize<int32_t, unsigned short>(
-                *sourceData, tmpQuantizedFile,
-                iComponentCount*volumeSize*timesteps,
+                *sourceData, bsd, tmpQuantizedFile,
                 Histogram1D
               );
           } else {
             size_t iBinCount = 0;
             target =
               Quantize<uint32_t, unsigned short>(
-                *sourceData, tmpQuantizedFile,
-                iComponentCount*volumeSize*timesteps,
+                *sourceData, bsd, tmpQuantizedFile,
                 Histogram1D, &iBinCount
               );
             if (iBinCount > 0 && iBinCount <= 256) {
@@ -311,16 +316,14 @@ quantize(std::shared_ptr<LargeRAWFile> sourceData,
           if(bSigned) {
             target =
               Quantize<int64_t, unsigned short>(
-                *sourceData, tmpQuantizedFile,
-                iComponentCount*volumeSize*timesteps,
+                *sourceData, bsd, tmpQuantizedFile,
                 Histogram1D
               );
           } else {
             size_t iBinCount = 0;
             target =
               Quantize<uint64_t, unsigned short>(
-                *sourceData, tmpQuantizedFile,
-                iComponentCount*volumeSize*timesteps,
+                *sourceData, bsd, tmpQuantizedFile,
                 Histogram1D, &iBinCount
               );
             if (iBinCount > 0 && iBinCount <= 256) {

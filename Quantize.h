@@ -25,14 +25,6 @@
    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
    DEALINGS IN THE SOFTWARE.
 */
-
-/**
-  \file    Quantize.h
-  \author  Tom Fogal
-           SCI Institute
-           University of Utah
-  \brief   Quantization routines.
-*/
 #pragma once
 
 #ifndef SCIO_QUANTIZE_H
@@ -44,6 +36,7 @@
 #include <functional>
 #include <limits>
 #include <type_traits>
+#include "Basics/BStream.h"
 #include "Basics/LargeRAWFile.h"
 #include "Basics/ctti.h"
 #include "UVF/Histogram1DDataBlock.h"
@@ -421,8 +414,8 @@ static bool ApplyMapping(const uint64_t iSize,
 /// can just use 'InputData' as-is or on error.
 template <typename T, typename U>
 static bool Quantize(LargeRAWFile& InputData,
+                     const BStreamDescriptor& Input,
                      const std::string& strTargetFilename,
-                     uint64_t iSize,
                      Histogram1DDataBlock* Histogram1D=0,
                      size_t* iBinCount=0)
 {
@@ -442,6 +435,11 @@ static bool Quantize(LargeRAWFile& InputData,
     T_ERROR("Open the file before you call this.");
     return false;
   }
+  InputData.SeekStart();
+
+  assert(Input.width == sizeof(T));
+  const uint64_t iSize = Input.elements * Input.components * Input.timesteps *
+                         Input.width;
 
   // figure out min/max
   std::vector<uint64_t> aHist(hist_size, 0);
@@ -582,6 +580,7 @@ static bool BinningQuantize(LargeRAWFile& InputData,
     T_ERROR("'%s' is not open.", InputData.GetFilename().c_str());
     return false;
   }
+  InputData.SeekStart();
 
   MESSAGE("Counting number of unique values in the data");
 
@@ -627,7 +626,15 @@ static bool BinningQuantize(LargeRAWFile& InputData,
   // too many values, need to actually quantize the data
   if (!bBinningPossible) {
     InputData.SeekStart();
-    return Quantize<T,U>(InputData, strTargetFilename, iSize, Histogram1D);
+    BStreamDescriptor bsd;
+    bsd.elements = iSize / sizeof(T);
+    bsd.components = 1;
+    bsd.width = sizeof(T);
+    bsd.is_signed = ctti<T>::is_signed;
+    bsd.fp = std::is_floating_point<T>::value;
+    bsd.big_endian = EndianConvert::IsBigEndian();
+    bsd.timesteps = 1;
+    return Quantize<T,U>(InputData, bsd, strTargetFilename, Histogram1D);
   }
 
   // now compute the mapping from values to bins

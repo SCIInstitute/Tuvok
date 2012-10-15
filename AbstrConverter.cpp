@@ -178,6 +178,17 @@ AbstrConverter::QuantizeTo8Bit(LargeRAWFile& rawfile,
     return false;
   }
 
+  BStreamDescriptor bsd;
+  bsd.components = 1;
+  bsd.width = iComponentSize / 8;
+  bsd.elements = iSize / iComponentSize;
+  bsd.is_signed = bSigned;
+  bsd.fp = bIsFloat;
+  // at this point the stream should be in whatever the native form of the
+  // system is.
+  bsd.big_endian = EndianConvert::IsBigEndian();
+  bsd.timesteps = 1;
+
   switch (iComponentSize) {
     case 8:
       generated_target = Process8Bits(rawfile, strTargetFilename, iSize,
@@ -186,27 +197,28 @@ AbstrConverter::QuantizeTo8Bit(LargeRAWFile& rawfile,
     case 16 :
       if(bSigned) {
         generated_target =
-          Quantize<short, unsigned char>(rawfile, strTargetFilename, iSize,
+          Quantize<short, unsigned char>(rawfile, bsd, strTargetFilename,
                                          Histogram1D);
       } else {
         generated_target =
-          Quantize<unsigned short, unsigned char>(rawfile, strTargetFilename,
-                                                  iSize, Histogram1D);
+          Quantize<unsigned short, unsigned char>(
+            rawfile, bsd, strTargetFilename, Histogram1D
+          );
       }
       break;
     case 32 :
       if (bIsFloat) {
         generated_target =
-          Quantize<float, unsigned char>(rawfile, strTargetFilename, iSize,
+          Quantize<float, unsigned char>(rawfile, bsd, strTargetFilename,
                                          Histogram1D);
       } else {
         if(bSigned) {
           generated_target =
-            Quantize<int, unsigned char>(rawfile, strTargetFilename, iSize,
+            Quantize<int, unsigned char>(rawfile, bsd, strTargetFilename,
                                          Histogram1D);
         } else {
           generated_target =
-            Quantize<unsigned, unsigned char>(rawfile, strTargetFilename, iSize,
+            Quantize<unsigned, unsigned char>(rawfile, bsd, strTargetFilename,
                                               Histogram1D);
         }
       }
@@ -214,16 +226,16 @@ AbstrConverter::QuantizeTo8Bit(LargeRAWFile& rawfile,
     case 64 :
       if (bIsFloat) {
         generated_target =
-          Quantize<double, unsigned char>(rawfile, strTargetFilename, iSize,
+          Quantize<double, unsigned char>(rawfile, bsd, strTargetFilename,
                                           Histogram1D);
       } else {
         if(bSigned) {
           generated_target = Quantize<int64_t, unsigned char>(
-            rawfile, strTargetFilename, iSize, Histogram1D
+            rawfile, bsd, strTargetFilename, Histogram1D
           );
         } else {
           generated_target =
-            Quantize<uint64_t, unsigned char>(rawfile, strTargetFilename, iSize,
+            Quantize<uint64_t, unsigned char>(rawfile, bsd, strTargetFilename,
                                               Histogram1D);
         }
       }
