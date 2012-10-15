@@ -1989,6 +1989,9 @@
     <ClInclude Include="Renderer\GL\GLGridLeaper.h">
       <Filter>Renderer\GL</Filter>
     </ClInclude>
+    <ClInclude Include="Basics\BStream.h">
+      <Filter>Basics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Basics\MC.inl">
