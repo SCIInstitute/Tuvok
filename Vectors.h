@@ -85,10 +85,10 @@
 #ifdef WIN32
   #pragma warning( disable : 4201 )  // Disable warning messages about nameless union
   #ifdef USEDX
-    #pragma message("    [vectors.h] Using DX extensions.\n")
+    #pragma message("    [vectors.h] Using DX extensions.")
   #endif
   #ifdef USEGL
-    #pragma message("    [vectors.h] Using GL extensions.\n")
+    #pragma message("    [vectors.h] Using GL extensions.")
   #endif
 #endif
 
