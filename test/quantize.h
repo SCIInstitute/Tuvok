@@ -22,7 +22,15 @@ bool quantize(LargeRAWFile& input,
               const std::string& outfn, uint64_t values,
               Histogram1DDataBlock* hist, T)
 {
-  return Quantize<T, unsigned short>(input, outfn, values, hist);
+  BStreamDescriptor bsd;
+  bsd.elements = values;
+  bsd.components = 1;
+  bsd.width = sizeof(T);
+  bsd.is_signed = ctti<T>::is_signed;
+  bsd.fp = std::is_floating_point<T>::value;
+  bsd.big_endian = EndianConvert::IsBigEndian();
+  bsd.timesteps = 1;
+  return Quantize<T, unsigned short>(input, bsd, outfn, hist);
 }
 
 template <>
@@ -47,7 +55,15 @@ bool quantize8(LargeRAWFile& input,
                const std::string& outfn, uint64_t values,
                Histogram1DDataBlock* hist, T)
 {
-  return Quantize<T, unsigned char>(input, outfn, values, hist);
+  BStreamDescriptor bsd;
+  bsd.elements = values;
+  bsd.components = 1;
+  bsd.width = sizeof(T);
+  bsd.is_signed = ctti<T>::is_signed;
+  bsd.fp = std::is_floating_point<T>::value;
+  bsd.big_endian = EndianConvert::IsBigEndian();
+  bsd.timesteps = 1;
+  return Quantize<T, unsigned char>(input, bsd, outfn, hist);
 }
 
 template <>
