@@ -323,12 +323,12 @@ void MasterController::RegisterLuaCommands() {
   AddLuaRendererType(renderer, "OpenGL_SVBR", OPENGL_SBVR);
   AddLuaRendererType(renderer, "OpenGL_2DSBVR", OPENGL_2DSBVR);
   AddLuaRendererType(renderer, "OpenGL_Raycaster", OPENGL_RAYCASTER);
-  AddLuaRendererType(renderer, "OpenGL_TRaycaster", OPENGL_GRIDLEAPER);
+  AddLuaRendererType(renderer, "OpenGL_GridLeaper", OPENGL_GRIDLEAPER);
 
   AddLuaRendererType(renderer, "DirectX_SVBR", DIRECTX_SBVR);
   AddLuaRendererType(renderer, "DirectX_2DSBVR", DIRECTX_2DSBVR);
   AddLuaRendererType(renderer, "DirectX_Raycaster", DIRECTX_RAYCASTER);
-  AddLuaRendererType(renderer, "DirectX_TRaycaster", DIRECTX_GRIDLEAPER);
+  AddLuaRendererType(renderer, "DirectX_GridLeaper", DIRECTX_GRIDLEAPER);
 
   // Register RenderRegion3D.
   ss->registerClass<RenderRegion>(this,
