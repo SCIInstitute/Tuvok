@@ -87,33 +87,6 @@ struct MRCHeader
 };
 #pragma pack(pop)
 
-// Your standard ostream_iterator will essentially do "stream << *iter".  That
-// doesn't work well for binary files, however, in which case we need to use
-// "stream.write(&*iter, sizeof(T))".  Hence this implements a binary
-// ostream_iterator.
-template <typename T>
-class binary_ostream_iterator 
-: public std::iterator<std::output_iterator_tag, T>
-{
-public:
-  binary_ostream_iterator(std::ostream& os) : stream(&os) {}
-  binary_ostream_iterator(const binary_ostream_iterator& boi) :
-    stream(boi.stream) { }
-
-  binary_ostream_iterator& operator=(const T& value) 
-  {
-    this->stream->write(reinterpret_cast<const char*>(&value), sizeof(T));
-    return *this;
-  }
-
-  binary_ostream_iterator& operator*() { return *this; }
-  binary_ostream_iterator& operator++() { return *this; }
-  binary_ostream_iterator operator++(int) { return *this; }
-
-private:
-  std::ostream* stream;
-};
- 
 MRCConverter::MRCConverter()
 {
   static_assert(sizeof(MRCHeader) == 1024, "structure must be 1024 bytes.");
