@@ -95,6 +95,7 @@ public:
     DIRECTX_2DSBVR,
     OPENGL_GRIDLEAPER,
     DIRECTX_GRIDLEAPER,
+    OPENGL_CHOOSE, ///< let the system choose for the user
     RENDERER_LAST,
   };
 

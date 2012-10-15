@@ -160,7 +160,8 @@ MasterController::RequestNewVolumeRenderer(EVolumeRendererType eRendererType,
                         bDisableBorder);
     break;
 
-  case OPENGL_2DSBVR :
+  case OPENGL_CHOOSE: // we just need to make something up, will fix later
+  case OPENGL_2DSBVR:
     api = "OpenGL";
     method = "Axis-Aligned 2D Slice-Based Volume Renderer";
     retval = new GLSBVR2D(this,
