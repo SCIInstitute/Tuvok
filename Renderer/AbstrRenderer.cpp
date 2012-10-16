@@ -2168,7 +2168,7 @@ void AbstrRenderer::RegisterLuaFunctions(
   id = reg.function(&AbstrRenderer::FixedFunctionality,
                     "fixedFunctionality", "", false);
   id = reg.function(&AbstrRenderer::SyncStateManager,
-                    "SyncStateManager", "", false);
+                    "syncStateManager", "", false);
 
   id = reg.function(&AbstrRenderer::PH_ClearWorkingSet,
                     "clearWorkingSet", "clears pool data", false);
