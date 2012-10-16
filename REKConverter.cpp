@@ -57,7 +57,6 @@ REKConverter::ConvertToRAW(const std::string& strSourceFilename,
                            bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
                            FLOATVECTOR3& vVolumeAspect,
                            std::string& strTitle,
-                           UVFTables::ElementSemanticTable& eType,
                            std::string& strIntermediateFile,
                            bool& bDeleteIntermediateFile)
 {
@@ -86,7 +85,6 @@ REKConverter::ConvertToRAW(const std::string& strSourceFilename,
 
   // Standard values which are always true (I guess)
   strTitle = "Fraunhofer EZRT";
-  eType = UVFTables::ES_UNDEFINED;
   vVolumeAspect = FLOATVECTOR3(1,1,1);
   bSigned = false;
   bIsFloat = false;

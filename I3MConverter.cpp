@@ -62,16 +62,14 @@ bool I3MConverter::ConvertToRAW(const std::string& strSourceFilename,
                                 bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
                                 FLOATVECTOR3& vVolumeAspect,
                                 std::string& strTitle,
-                                UVFTables::ElementSemanticTable& eType,
                                 std::string& strIntermediateFile,
                                 bool& bDeleteIntermediateFile)
 {
   MESSAGE("Attempting to convert an ImageVis3D mobile dataset %s", strSourceFilename.c_str());
 
   bDeleteIntermediateFile = true;
-  eType             = UVFTables::ES_UNDEFINED;
-  strTitle          = "ImageVis3D Mobile data";
-  iHeaderSkip       = 0;
+  strTitle    = "ImageVis3D Mobile data";
+  iHeaderSkip = 0;
 
   // I3M files are always four component 8bit little endian
   // unsigned, whereas the first 3 component of the vector

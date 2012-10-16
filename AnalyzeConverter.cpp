@@ -96,12 +96,10 @@ bool AnalyzeConverter::ConvertToRAW(const std::string& strSourceFilename,
                                     UINT64VECTOR3& vVolumeSize,
                                     FLOATVECTOR3& vVolumeAspect,
                                     std::string& strTitle,
-                                    UVFTables::ElementSemanticTable& eType,
                                     std::string& strIntermediateFile,
                                     bool& bDeleteIntermediateFile)
 {
   strTitle = "from analyze converter";
-  eType = UVFTables::ES_UNDEFINED;
 
   std::ifstream analyze(strSourceFilename.c_str(), std::ios::binary);
   if(!analyze) {

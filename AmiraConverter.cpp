@@ -105,12 +105,10 @@ bool AmiraConverter::ConvertToRAW(const std::string& strSourceFilename,
                                     UINT64VECTOR3& vVolumeSize,
                                     FLOATVECTOR3& vVolumeAspect,
                                     std::string& strTitle,
-                                    UVFTables::ElementSemanticTable& eType,
                                     std::string& strIntermediateFile,
                                     bool& bDeleteIntermediateFile)
 {
   strTitle = "from Amira converter";
-  eType = UVFTables::ES_UNDEFINED;
 
   std::ifstream amira(strSourceFilename.c_str());
   if(!amira) {

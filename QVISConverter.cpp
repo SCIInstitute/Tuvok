@@ -49,18 +49,17 @@ QVISConverter::QVISConverter()
   m_vSupportedExt.push_back("DAT");
 }
 
-bool QVISConverter::ConvertToRAW(const std::string& strSourceFilename,
-                            const std::string&, bool,
-                            uint64_t& iHeaderSkip, uint64_t& iComponentSize, uint64_t& iComponentCount,
-                            bool& bConvertEndianess, bool& bSigned, bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
-                            FLOATVECTOR3& vVolumeAspect, std::string& strTitle,
-                            UVFTables::ElementSemanticTable& eType, std::string& strIntermediateFile,
-                            bool& bDeleteIntermediateFile) {
-
+bool QVISConverter::ConvertToRAW(
+  const std::string& strSourceFilename, const std::string&, bool,
+  uint64_t& iHeaderSkip, uint64_t& iComponentSize, uint64_t& iComponentCount,
+  bool& bConvertEndianess, bool& bSigned, bool& bIsFloat,
+  UINT64VECTOR3& vVolumeSize, FLOATVECTOR3& vVolumeAspect,
+  std::string& strTitle, std::string& strIntermediateFile,
+  bool& bDeleteIntermediateFile
+) {
   MESSAGE("Attempting to convert QVIS dataset %s", strSourceFilename.c_str());
 
   bDeleteIntermediateFile = false;
-  eType             = UVFTables::ES_UNDEFINED;
   strTitle          = "Qvis data";
   iHeaderSkip       = 0;
   iComponentSize    = 8;

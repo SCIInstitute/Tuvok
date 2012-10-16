@@ -50,17 +50,16 @@ KitwareConverter::KitwareConverter()
   m_vSupportedExt.push_back("MHD");
 }
 
-bool KitwareConverter::ConvertToRAW(const std::string& strSourceFilename,
-                            const std::string&, bool,
-                            uint64_t& iHeaderSkip, uint64_t& iComponentSize, uint64_t& iComponentCount,
-                            bool& bConvertEndianess, bool& bSigned, bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
-                            FLOATVECTOR3& vVolumeAspect, std::string& strTitle,
-                            UVFTables::ElementSemanticTable& eType, std::string& strIntermediateFile,
-                            bool& bDeleteIntermediateFile) {
-
+bool KitwareConverter::ConvertToRAW(
+  const std::string& strSourceFilename, const std::string&, bool,
+  uint64_t& iHeaderSkip, uint64_t& iComponentSize, uint64_t& iComponentCount,
+  bool& bConvertEndianess, bool& bSigned, bool& bIsFloat,
+  UINT64VECTOR3& vVolumeSize, FLOATVECTOR3& vVolumeAspect,
+  std::string& strTitle, std::string& strIntermediateFile,
+  bool& bDeleteIntermediateFile
+) {
   MESSAGE("Attempting to convert Kitware MHD dataset %s", strSourceFilename.c_str());
 
-  eType             = UVFTables::ES_UNDEFINED;
   strTitle          = "Kitware MHD data";
 
   KeyValueFileParser parser(strSourceFilename,false,"=");

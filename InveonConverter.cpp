@@ -97,18 +97,17 @@ namespace {
 }
 
 bool InveonConverter::ConvertToRAW(const std::string& strSourceFilename,
-                                    const std::string&,
-                                    bool /* bNoUserInteraction */,
-                                    uint64_t& iHeaderSkip,
-                                    uint64_t& iComponentSize,
-                                    uint64_t& iComponentCount,
-                                    bool& bConvertEndianess, bool& bSigned,
-                                    bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
-                                    FLOATVECTOR3& vVolumeAspect,
-                                    std::string& strTitle,
-                                    UVFTables::ElementSemanticTable& eType,
-                                    std::string& strIntermediateFile,
-                                    bool& bDeleteIntermediateFile)
+                                   const std::string&,
+                                   bool /* bNoUserInteraction */,
+                                   uint64_t& iHeaderSkip,
+                                   uint64_t& iComponentSize,
+                                   uint64_t& iComponentCount,
+                                   bool& bConvertEndianess, bool& bSigned,
+                                   bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
+                                   FLOATVECTOR3& vVolumeAspect,
+                                   std::string& strTitle,
+                                   std::string& strIntermediateFile,
+                                   bool& bDeleteIntermediateFile)
 {
   std::ifstream infn(strSourceFilename.c_str(), std::ios::in);
   if(!infn.is_open()) {
@@ -118,7 +117,6 @@ bool InveonConverter::ConvertToRAW(const std::string& strSourceFilename,
 
   iHeaderSkip = 0;
   iComponentCount = 1;
-  eType = UVFTables::ES_UNDEFINED;
   bDeleteIntermediateFile = false;
   bSigned = true; // format does not distinguish
   strTitle = "Inveon";

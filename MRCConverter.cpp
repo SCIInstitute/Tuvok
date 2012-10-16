@@ -109,7 +109,7 @@ bool MRCConverter::ConvertToRAW(
      bool, uint64_t& iHeaderSkip, uint64_t& iComponentSize,
      uint64_t& iComponentCount, bool& bConvertEndianess, bool& bSigned, 
      bool& bIsFloat, UINT64VECTOR3& vVolumeSize, FLOATVECTOR3& vVolumeAspect,
-     std::string&, UVFTables::ElementSemanticTable&,
+     std::string&,
      std::string& strIntermediateFile, bool& bDeleteIntermediateFile)
 {
   // Input file

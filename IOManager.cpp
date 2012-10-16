@@ -496,7 +496,6 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
                                       m_bUseMedianFilter,
                                       m_bClampToEdge,
                                       m_iCompression,
-                                      UVFTables::ES_UNDEFINED,
                                       0, bQuantizeTo8Bit
                                      );
 
@@ -835,7 +834,6 @@ bool IOManager::MergeDatasets(const vector <string>& strFilenames,
       FLOATVECTOR3  vVolumeAspect(0,0,0);
       string        strTitle = "";
       string        strSource = "";
-      UVFTables::ElementSemanticTable eType = UVFTables::ES_UNDEFINED;
 
       std::set<AbstrConverter*> converters =
         identify_converters(strFilenames[iInputData], m_vpConverters.begin(),
@@ -846,7 +844,7 @@ bool IOManager::MergeDatasets(const vector <string>& strFilenames,
           strFilenames[iInputData], strTempDir, bNoUserInteraction,
           IntermediateFile.iHeaderSkip, iComponentSize, iComponentCount,
           bConvertEndianess, bSigned, bIsFloat, vVolumeSize, vVolumeAspect,
-          strTitle, eType, IntermediateFile.strFilename,
+          strTitle, IntermediateFile.strFilename,
           IntermediateFile.bDelete
         );
         strSource = SysTools::GetFilename(strFilenames[iInputData]);
@@ -862,7 +860,7 @@ bool IOManager::MergeDatasets(const vector <string>& strFilenames,
           strFilenames[iInputData], strTempDir, bNoUserInteraction,
           IntermediateFile.iHeaderSkip, iComponentSize, iComponentCount,
           bConvertEndianess, bSigned, bIsFloat, vVolumeSize, vVolumeAspect,
-          strTitle, eType, IntermediateFile.strFilename,
+          strTitle, IntermediateFile.strFilename,
           IntermediateFile.bDelete
         );
         strSource = SysTools::GetFilename(strFilenames[iInputData]);
@@ -1156,7 +1154,6 @@ bool IOManager::ConvertDataset(const list<string>& files,
   FLOATVECTOR3  vVolumeAspect(0,0,0);
   string        strTitle = "";
   string        strSource = "";
-  UVFTables::ElementSemanticTable eType = UVFTables::ES_UNDEFINED;
   string        strIntermediateFile = "";
   bool          bDeleteIntermediateFile = false;
 
@@ -1178,7 +1175,6 @@ bool IOManager::ConvertDataset(const list<string>& files,
     bIsFloat = v.GetIsFloat();
     vVolumeSize = v.GetDomainSize(static_cast<size_t>(iLODLevel));
     vVolumeAspect = FLOATVECTOR3(v.GetScale());
-    eType             = UVFTables::ES_UNDEFINED;  /// \todo grab this data from the UVF file
     strTitle          = "UVF data";               /// \todo grab this data from the UVF file
     strSource         = SysTools::GetFilename(strFilename);
 
@@ -1206,7 +1202,7 @@ bool IOManager::ConvertDataset(const list<string>& files,
                                iComponentSize, iComponentCount,
                                bConvertEndianess, bSigned,
                                bIsFloat, vVolumeSize,
-                               vVolumeAspect, strTitle, eType,
+                               vVolumeAspect, strTitle,
                                strIntermediateFile,
                                bDeleteIntermediateFile)) {
         bRAWCreated = true;
@@ -1224,7 +1220,7 @@ bool IOManager::ConvertDataset(const list<string>& files,
                                                     bConvertEndianess, bSigned,
                                                     bIsFloat, vVolumeSize,
                                                     vVolumeAspect,
-                                                    strTitle, eType,
+                                                    strTitle,
                                                     strIntermediateFile,
                                                     bDeleteIntermediateFile);
     }

@@ -57,18 +57,17 @@ IASSConverter::IASSConverter()
 
 bool
 IASSConverter::ConvertToRAW(const std::string& strSourceFilename,
-                           const std::string& strTempDir,
-                           bool, uint64_t& iHeaderSkip,
-                           uint64_t& iComponentSize,
-                           uint64_t& iComponentCount,
-                           bool& bConvertEndianess, bool& bSigned,
-                           bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
-                           FLOATVECTOR3& vVolumeAspect,
-                           std::string& strTitle,
-                           UVFTables::ElementSemanticTable& eType,
-                           std::string& strIntermediateFile,
-                           bool& bDeleteIntermediateFile)
-{
+                            const std::string& strTempDir,
+                            bool, uint64_t& iHeaderSkip,
+                            uint64_t& iComponentSize,
+                            uint64_t& iComponentCount,
+                            bool& bConvertEndianess, bool& bSigned,
+                            bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
+                            FLOATVECTOR3& vVolumeAspect,
+                            std::string& strTitle,
+                            std::string& strIntermediateFile,
+                            bool& bDeleteIntermediateFile)
+ {
   MESSAGE("Attempting to convert IASS dataset %s", strSourceFilename.c_str());
 
   // Find out machine endianess
@@ -106,7 +105,6 @@ IASSConverter::ConvertToRAW(const std::string& strSourceFilename,
 
   // Init data
   strTitle = "Fraunhofer MAVI Volume";
-  eType = UVFTables::ES_UNDEFINED;
   vVolumeAspect = FLOATVECTOR3(1,1,1);
   iComponentCount = 1;
   vVolumeSize[0] = header.size.x;

@@ -49,13 +49,14 @@ public:
   KitwareConverter();
   virtual ~KitwareConverter() {}
 
-  virtual bool ConvertToRAW(const std::string& strSourceFilename,
-                            const std::string& strTempDir, bool bNoUserInteraction,
-                            uint64_t& iHeaderSkip, uint64_t& iComponentSize, uint64_t& iComponentCount,
-                            bool& bConvertEndianess, bool& bSigned, bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
-                            FLOATVECTOR3& vVolumeAspect, std::string& strTitle,
-                            UVFTables::ElementSemanticTable& eType, std::string& strIntermediateFile,
-                            bool& bDeleteIntermediateFile);
+  virtual bool ConvertToRAW(
+    const std::string& strSourceFilename, const std::string& strTempDir,
+    bool bNoUserInteraction, uint64_t& iHeaderSkip, uint64_t& iComponentSize,
+    uint64_t& iComponentCount, bool& bConvertEndianess, bool& bSigned,
+    bool& bIsFloat, UINT64VECTOR3& vVolumeSize, FLOATVECTOR3& vVolumeAspect,
+    std::string& strTitle, std::string& strIntermediateFile,
+    bool& bDeleteIntermediateFile
+  );
 
   virtual bool ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, uint64_t iHeaderSkip,
                                uint64_t iComponentSize, uint64_t iComponentCount, bool bSigned, bool bFloatingPoint,

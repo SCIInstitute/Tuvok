@@ -68,7 +68,6 @@ bool BOVConverter::ConvertToRAW(
                             bool& bSigned, bool& bIsFloat,
                             UINT64VECTOR3& vVolumeSize,
                             FLOATVECTOR3& vVolumeAspect, std::string& strTitle,
-                            UVFTables::ElementSemanticTable& eType,
                             std::string& strIntermediateFile,
                             bool& bDeleteIntermediateFile)
 {
@@ -85,7 +84,6 @@ bool BOVConverter::ConvertToRAW(
   KeyValPair *aspect_y = hdr.GetData("BRICK Y_AXIS");
   KeyValPair *aspect_z = hdr.GetData("BRICK Z_AXIS");
   strTitle = "BOV Volume";
-  eType = UVFTables::ES_UNDEFINED;
 
   {
     iHeaderSkip = 0;

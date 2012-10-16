@@ -52,7 +52,8 @@ typedef std::vector<std::pair<std::string, std::string>> KVPairs;
 template<class T> class MinMaxScanner {
 public:
   MinMaxScanner(LargeRAWFile* file, T& minValue, T& maxValue, uint64_t iElemCount) {
-    size_t iMaxElemCount = size_t(std::min<uint64_t>(BLOCK_COPY_SIZE, iElemCount) / sizeof(T));
+    size_t iMaxElemCount = size_t(std::min<uint64_t>(BLOCK_COPY_SIZE, iElemCount) /
+                           sizeof(T));
     T* pInData = new T[iMaxElemCount];
 
     uint64_t iPos = 0;
@@ -91,7 +92,6 @@ public:
                                 const bool bUseMedian,
                                 const bool bClampToEdge,
                                 uint32_t iBrickCompression,
-                                UVFTables::ElementSemanticTable eType=UVFTables::ES_UNDEFINED,
                                 KVPairs* pKVPairs = NULL,
                                 const bool bQuantizeTo8Bit=false);
 

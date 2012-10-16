@@ -54,7 +54,6 @@ public:
                             bool& bSigned, bool& bIsFloat,
                             UINT64VECTOR3& vVolumeSize,
                             FLOATVECTOR3& vVolumeAspect, std::string& strTitle,
-                            UVFTables::ElementSemanticTable& eType,
                             std::string& strIntermediateFile,
                             bool& bDeleteIntermediateFile);
 

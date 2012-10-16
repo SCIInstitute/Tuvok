@@ -388,7 +388,7 @@ make_raw(std::shared_ptr<LargeRAWFile> source, uint64_t n_components,
   source->SeekStart();
 
   std::shared_ptr<unsigned char> data(new unsigned char[csize],
-                                           nonstd::DeleteArray<unsigned char>());
+                                      nonstd::DeleteArray<unsigned char>());
   size_t bytes=1;
   do {
     for(size_t c=0; c < nc; ++c) {
@@ -426,7 +426,6 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
                                      const bool bUseMedian,
                                      const bool bClampToEdge,
                                      uint32_t iBrickCompression,
-                                     UVFTables::ElementSemanticTable eType,
                                      KVPairs* pKVPairs,
                                      const bool bQuantizeTo8Bit)
 {
@@ -684,10 +683,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
                  vSem.push_back(UVFTables::ES_BLUE);
                  vSem.push_back(UVFTables::ES_ALPHA);
                  break;
-        default : for (uint64_t i = 0;i<iComponentCount;i++) {
-                    vSem.push_back(eType);
-                  }
-                  break;
+        default : /* skip it. */ break;
       }
 
       {
@@ -1369,7 +1365,6 @@ bool RAWConverter::ConvertToUVF(const std::list<std::string>& files,
   UINT64VECTOR3 vVolumeSize;
   FLOATVECTOR3  vVolumeAspect;
   string        strTitle;
-  UVFTables::ElementSemanticTable eType;
   std::list<string> strIntermediateFile;
   std::list<bool>   bDeleteIntermediateFile;
   std::list<uint64_t> header_skip;
@@ -1388,7 +1383,7 @@ bool RAWConverter::ConvertToUVF(const std::list<std::string>& files,
                             iHeaderSkip, iComponentSize, iComponentCount,
                             bConvertEndianess, bSigned, bIsFloat,
                             vVolumeSize, vVolumeAspect, strTitle,
-                            eType, intermediate, bDelete);
+                            intermediate, bDelete);
     if(!success) { break; }
     strIntermediateFile.push_front(intermediate);
     bDeleteIntermediateFile.push_front(bDelete);
@@ -1468,7 +1463,7 @@ bool RAWConverter::ConvertToUVF(const std::list<std::string>& files,
                                        bUseMedian, 
                                        bClampToEdge,
                                        iBrickCompression,
-                                       UVFTables::ES_UNDEFINED, 0,
+                                       0,
                                        bQuantizeTo8Bit);
 
   if (*bDeleteIntermediateFile.begin()) {
@@ -1491,7 +1486,6 @@ bool RAWConverter::Analyze(const std::string& strSourceFilename,
   FLOATVECTOR3  vVolumeAspect(0,0,0);
   string        strTitle = "";
   string        strSource = "";
-  UVFTables::ElementSemanticTable eType = UVFTables::ES_UNDEFINED;
 
   string        strRAWFilename = "";
   bool          bRAWDelete = false;
@@ -1502,7 +1496,7 @@ bool RAWConverter::Analyze(const std::string& strSourceFilename,
                                  iHeaderSkip, iComponentSize, iComponentCount,
                                  bConvertEndianess, bSigned, bIsFloat,
                                  vVolumeSize, vVolumeAspect, strTitle,
-                                 eType, strRAWFilename,
+                                 strRAWFilename,
                                  bRAWDelete);
   strSource = SysTools::GetFilename(strSourceFilename);
 

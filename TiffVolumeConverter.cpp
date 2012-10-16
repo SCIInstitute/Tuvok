@@ -75,7 +75,6 @@ TiffVolumeConverter::ConvertToRAW(const std::string& strSourceFilename,
                                   bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
                                   FLOATVECTOR3& vVolumeAspect,
                                   std::string& strTitle,
-                                  UVFTables::ElementSemanticTable& eType,
                                   std::string& strIntermediateFile,
                                   bool& bDeleteIntermediateFile)
 {
@@ -147,7 +146,6 @@ TiffVolumeConverter::ConvertToRAW(const std::string& strSourceFilename,
   vVolumeAspect[2] = 1;
 
   strTitle = "TIFF Volume";
-  eType = UVFTables::ES_UNDEFINED;
 
   // Create an intermediate file to hold the data.
   strIntermediateFile = strTempDir +

@@ -60,7 +60,6 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
                                  bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
                                  FLOATVECTOR3& vVolumeAspect,
                                  std::string& strTitle,
-                                 UVFTables::ElementSemanticTable& eType,
                                  std::string& strIntermediateFile,
                                  bool& bDeleteIntermediateFile)
 {
@@ -84,7 +83,6 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
   fileData.close();
 
   // init data
-  eType    = UVFTables::ES_UNDEFINED;
   strTitle = "NRRD data";
   iComponentSize=8;
   iComponentCount=1;
