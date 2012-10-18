@@ -3286,6 +3286,11 @@ SUITE(TestLuaScriptingSystem)
     sc->registerFunction(&testParamReturn, "tpr", "", true);
     CHECK_EQUAL("Out: 65 1 4.3 str!",
                 sc->cexecRet<string>("tpr", 65, true, 4.3f, "str!").c_str());
+    // Testing automatic type conversion. We should not got an argument
+    // exception on either the integer parameter, or the floating point param.
+    CHECK_EQUAL("Out: 65 1 4.3 str!",
+                sc->cexecRet<string>("tpr", static_cast<unsigned int>(65),
+                                     true, 4.3, "str!"));
 
     sc->setExpectedExceptionFlag(true);
     CHECK_THROW(sc->cexec("tpr", 12, true),               LuaUnequalNumParams);

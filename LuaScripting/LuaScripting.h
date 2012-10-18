@@ -991,6 +991,19 @@ void Tuvok_luaCheckParam(lua_State* L, const std::string& name,
       }
     }
 
+    if (     LSS_compareToTypeOnStack<int>(L, -1)
+        ||   LSS_compareToTypeOnStack<unsigned int>(L, -1)
+        )
+    {
+      if (   LSS_compareTypes<int, T>()
+          || LSS_compareTypes<unsigned, int>()
+          )
+      {
+        lua_pop(L, 1);
+        return;
+      }
+    }
+
     std::ostringstream os;
     os << "Invalid argument at position " << check_pos;
     os << " for call to function " << name;
