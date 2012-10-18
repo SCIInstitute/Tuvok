@@ -996,7 +996,7 @@ void Tuvok_luaCheckParam(lua_State* L, const std::string& name,
         )
     {
       if (   LSS_compareTypes<int, T>()
-          || LSS_compareTypes<unsigned, int>()
+          || LSS_compareTypes<unsigned int, T>()
           )
       {
         lua_pop(L, 1);
