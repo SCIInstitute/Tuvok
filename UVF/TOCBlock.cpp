@@ -1,3 +1,4 @@
+#include <ios>
 #include "TOCBlock.h"
 
 #include "MaxMinDataBlock.h"
@@ -47,7 +48,9 @@ uint64_t TOCBlock::GetHeaderFromFile(LargeRAWFile_ptr pStreamFile,
   m_iOffsetToOctree = iOffset +
                       DataBlock::GetHeaderFromFile(pStreamFile, iOffset,
                                                    bIsBigEndian);
-  m_ExtendedOctree.Open(pStreamFile, m_iOffsetToOctree);
+  if(m_ExtendedOctree.Open(pStreamFile, m_iOffsetToOctree) == false) {
+    throw std::ios_base::failure("opening octree failed.");
+  }
   return pStreamFile->GetPos() - iOffset;
 }
 
