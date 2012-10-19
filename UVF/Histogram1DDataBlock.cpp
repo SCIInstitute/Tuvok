@@ -124,7 +124,7 @@ void Histogram1DDataBlock::ComputeTemplate(const TOCBlock* source,
   UINT64VECTOR3 bricksInSourceLevel = source->GetBrickCount(iLevel);
 
   size_t iCompcount = size_t(source->GetComponentCount());
-  T* pTempBrickData = new T[size_t(source->GetMaxBricksize().volume())
+  T* pTempBrickData = new T[size_t(source->GetMaxBrickSize().volume())
                             *iCompcount];
 
   uint32_t iOverlap =source->GetOverlap();

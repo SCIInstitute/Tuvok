@@ -19,7 +19,9 @@ public:
   virtual uint64_t ComputeDataSize() const;
 
   uint32_t GetOverlap() const {return m_ExtendedOctree.GetOverlap();}
-  UINT64VECTOR3 GetMaxBricksize() const {return m_ExtendedOctree.GetMaxBricksize();}
+  UINT64VECTOR3 GetMaxBrickSize() const {
+    return m_ExtendedOctree.GetMaxBrickSize();
+  }
 
   bool FlatDataToBrickedLOD(const std::string& strSourceFile,
                             const std::string& strTempFile,

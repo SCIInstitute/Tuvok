@@ -233,8 +233,9 @@ private:
       ts->GetDB()->GetData(pData,coords);
       if (ts->GetDB()->GetAtlasSize(coords).area() != 0) {
         VolumeTools::DeAtalasify(targetSize, ts->GetDB()->GetAtlasSize(coords), 
-                                              ts->GetDB()->GetMaxBricksize(),
-                                              ts->GetDB()->GetBrickSize(coords), pData,pData);
+                                 ts->GetDB()->GetMaxBrickSize(),
+                                 ts->GetDB()->GetBrickSize(coords), pData,
+                                 pData);
       }
       return true;
     } else {

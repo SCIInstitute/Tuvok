@@ -353,7 +353,8 @@ void Histogram2DDataBlock::ComputeTemplate(const TOCBlock* source, double normal
   UINT64VECTOR3 bricksInSourceLevel = source->GetBrickCount(iLevel);
 
   size_t iCompcount = size_t(source->GetComponentCount());
-  T* pTempBrickData = new T[size_t(source->GetMaxBricksize().volume())*iCompcount];
+  T* pTempBrickData = new T[size_t(source->GetMaxBrickSize().volume()) *
+                            iCompcount];
 
   uint32_t iOverlap =source->GetOverlap();
   double fMaxGradMagnitude = 0;

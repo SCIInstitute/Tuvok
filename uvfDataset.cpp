@@ -272,7 +272,7 @@ void UVFDataset::ComputeMetaData(size_t timestep) {
         vBrickCorner.x += bmd.extents.x;
       }
     }
-    m_aMaxBrickSize = UINTVECTOR3(pVolumeDataBlock->GetMaxBricksize());
+    m_aMaxBrickSize = UINTVECTOR3(pVolumeDataBlock->GetMaxBrickSize());
   } else {
     std::vector<double> vfScale;
     RDTimestep* ts = static_cast<RDTimestep*>(m_timesteps[timestep]);
@@ -655,7 +655,7 @@ void UVFDataset::FindSuitableDataBlocks() {
             WARNING("A TOCBlock failed verification; skipping it");
             continue;
           }
-          UINT64VECTOR3 bsize = pVolumeDataBlock->GetMaxBricksize();
+          UINT64VECTOR3 bsize = pVolumeDataBlock->GetMaxBrickSize();
           for(size_t i=0; i < 3; ++i) {
             if(bsize[i] > m_iMaxAcceptableBricksize) {
               std::stringstream large;
