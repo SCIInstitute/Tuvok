@@ -1442,15 +1442,16 @@ void GLRenderer::PreSubframe(const RenderRegion& renderRegion)
 
   size_t iStereoBufferCount = (m_bDoStereoRendering) ? 2 : 1;
   for (size_t i = 0;i<iStereoBufferCount;i++) {
-    // Render the coordinate cross (three arrows in upper right corner)
-    if (m_bRenderCoordArrows) {
-      m_TargetBinder.Bind(m_pFBO3DImageNext[i]);
-      RenderCoordArrows(renderRegion);
-    }
-
     // write the bounding boxes into the depth buffer 
     // and the colorbuffer for isosurfacing.
     m_TargetBinder.Bind(m_pFBO3DImageNext[i]);
+    
+    // Render the coordinate cross (three arrows in upper right corner)
+    // Should probably be in GeometryPreRender...
+    if (m_bRenderCoordArrows) {
+      RenderCoordArrows(renderRegion);
+    }
+
     m_mProjection[i].setProjection();
     renderRegion.modelView[i].setModelview();
     GeometryPreRender();
@@ -2085,6 +2086,7 @@ void GLRenderer::CheckMeshStatus() {
 
 void GLRenderer::GeometryPreRender() {
   CheckMeshStatus();
+
   // for rendering modes other than isosurface render the bbox in the first
   // pass once, to init the depth buffer.  for isosurface rendering we can go
   // ahead and render the bbox directly as isosurfacing writes out correct
@@ -2620,6 +2622,13 @@ void GLRenderer::Recompose3DView(const RenderRegion3D& renderRegion) {
   size_t iStereoBufferCount = (m_bDoStereoRendering) ? 2 : 1;
   for (size_t i = 0;i<iStereoBufferCount;i++) {
     m_TargetBinder.Bind(m_pFBO3DImageNext[i]);
+
+    // Render the coordinate cross (three arrows in upper right corner)
+    // Should probably be in GeometryPreRender...
+    if (m_bRenderCoordArrows) {
+      RenderCoordArrows(renderRegion);
+    }
+
     m_mProjection[i].setProjection();
     renderRegion.modelView[i].setModelview();
     GeometryPreRender();
