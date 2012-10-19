@@ -649,12 +649,24 @@ void UVFDataset::FindSuitableDataBlocks() {
       case UVFTables::BS_TOC_BLOCK:
         if (m_bToCBlock) {
           const TOCBlock* pVolumeDataBlock =
-                                        static_cast<const TOCBlock*>
-                                        (m_pDatasetFile->GetDataBlock(iBlocks));
+            static_cast<const TOCBlock*>(m_pDatasetFile->GetDataBlock(iBlocks));
 
           if(!VerifyTOCBlock(pVolumeDataBlock)) {
             WARNING("A TOCBlock failed verification; skipping it");
             continue;
+          }
+          UINT64VECTOR3 bsize = pVolumeDataBlock->GetMaxBricksize();
+          for(size_t i=0; i < 3; ++i) {
+            if(bsize[i] > m_iMaxAcceptableBricksize) {
+              std::stringstream large;
+              large << "Brick size used in UVF file is too large ("
+                    << bsize[i] << " > " << m_iMaxAcceptableBricksize
+                    << "); rebricking necessary.";
+              throw tuvok::io::DSBricksOversized(
+                large.str().c_str(),
+                static_cast<size_t>(m_iMaxAcceptableBricksize), _func_, __LINE__
+              );
+            }
           }
 
           m_timesteps[data]->block_number = iBlocks;
