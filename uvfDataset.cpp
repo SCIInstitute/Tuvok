@@ -674,15 +674,19 @@ void UVFDataset::FindSuitableDataBlocks() {
 
           // check if the data's biggest brick dimensions are
           // smaller than m_iMaxAcceptableBricksize
-          std::vector<uint64_t> vMaxBrickSizes = pVolumeDataBlock->GetLargestBrickSizes();
-          for (size_t i=0; i < 3; i++) {  // currently we only care about the first 3 dimensions
+          std::vector<uint64_t> vMaxBrickSizes =
+            pVolumeDataBlock->GetLargestBrickSizes();
+          // currently we only care about the first 3 dimensions
+          for (size_t i=0; i < 3; i++) {
             if (vMaxBrickSizes[i] > m_iMaxAcceptableBricksize) {
               std::stringstream large;
-              large << "Brick size used in UVF file is too large (" << vMaxBrickSizes[i]
-                    << " > " << m_iMaxAcceptableBricksize << "); rebricking necessary.";
+              large << "Brick size used in UVF file is too large ("
+                    << vMaxBrickSizes[i] << " > " << m_iMaxAcceptableBricksize
+                    << "); rebricking necessary.";
               WARNING("%s", large.str().c_str());
               throw tuvok::io::DSBricksOversized(
-                large.str().c_str(),static_cast<size_t>(m_iMaxAcceptableBricksize), _func_, __LINE__
+                large.str().c_str(),
+                static_cast<size_t>(m_iMaxAcceptableBricksize), _func_, __LINE__
               );
             }
           }
