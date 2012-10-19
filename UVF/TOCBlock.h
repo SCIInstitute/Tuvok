@@ -19,7 +19,7 @@ public:
   virtual uint64_t ComputeDataSize() const;
 
   uint32_t GetOverlap() const {return m_ExtendedOctree.GetOverlap();}
-  UINT64VECTOR3 GetMaxBrickSize() const {
+  UINTVECTOR3 GetMaxBrickSize() const {
     return m_ExtendedOctree.GetMaxBrickSize();
   }
 

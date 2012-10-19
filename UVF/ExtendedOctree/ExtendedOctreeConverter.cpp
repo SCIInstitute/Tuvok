@@ -1185,7 +1185,7 @@ void ExtendedOctreeConverter::Atalasify(const ExtendedOctree &tree,
 
 
   const TOCEntry& metaData = tree.GetBrickToCData(index);
-  const UINT64VECTOR3 maxBrickSize  = tree.GetMaxBrickSize();
+  const UINTVECTOR3 maxBrickSize  = tree.GetMaxBrickSize();
   const UINT64VECTOR3 currBrickSize = tree.ComputeBrickSize(tree.IndexToBrickCoords(index));
 
   tree.GetBrickData(pData, index);
@@ -1302,7 +1302,7 @@ void ExtendedOctreeConverter::DeAtalasify(const ExtendedOctree &tree,
 
 
   const TOCEntry& metaData = tree.GetBrickToCData(index);
-  const UINT64VECTOR3 maxBrickSize  = tree.GetMaxBrickSize();
+  const UINTVECTOR3 maxBrickSize  = tree.GetMaxBrickSize();
   const UINT64VECTOR3 currBrickSize = tree.ComputeBrickSize(tree.IndexToBrickCoords(index));
   tree.GetBrickData(pData, index);
 

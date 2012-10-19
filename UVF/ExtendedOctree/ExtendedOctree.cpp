@@ -141,7 +141,7 @@ void ExtendedOctree::ComputeMetadata() {
   UINT64VECTOR3 vVolumeSize = m_vVolumeSize;
   DOUBLEVECTOR3 vAspect(1.0,1.0,1.0);
 
-  const UINT64VECTOR3 vUsableBrickSize= m_iBrickSize - 2*m_iOverlap;
+  const UINTVECTOR3 vUsableBrickSize = this->GetMaxBrickSize() - 2*m_iOverlap;
   do { 
     LODInfo l;
     l.m_iLODPixelSize = vVolumeSize;
@@ -167,9 +167,12 @@ void ExtendedOctree::ComputeMetadata() {
     }
 
     l.m_vAspect = vAspect;
-    l.m_iLODBrickCount.x = uint64_t(ceil( vVolumeSize.x / double(vUsableBrickSize.x)));
-    l.m_iLODBrickCount.y = uint64_t(ceil( vVolumeSize.y / double(vUsableBrickSize.y)));
-    l.m_iLODBrickCount.z = uint64_t(ceil( vVolumeSize.z / double(vUsableBrickSize.z)));
+    l.m_iLODBrickCount.x = uint64_t(ceil(vVolumeSize.x /
+                                         double(vUsableBrickSize.x)));
+    l.m_iLODBrickCount.y = uint64_t(ceil(vVolumeSize.y /
+                                         double(vUsableBrickSize.y)));
+    l.m_iLODBrickCount.z = uint64_t(ceil(vVolumeSize.z /
+                                         double(vUsableBrickSize.z)));
 
     l.m_iLoDOffset = 0; // don't know it yet, but for now quiet a warning.
     m_vLODTable.push_back(l);
@@ -219,7 +222,7 @@ UINT64VECTOR3 ExtendedOctree::ComputeBrickSize(const UINT64VECTOR4& vBrickCoords
   const VECTOR3<bool> bIsLast = IsLastBrick(vBrickCoords);
   const UINT64VECTOR3 iPixelSize = m_vLODTable[size_t(vBrickCoords.w)].m_iLODPixelSize;
   const uint32_t i2Overlap = 2*m_iOverlap;
-  const UINT64VECTOR3 iBrickCore = m_iBrickSize-i2Overlap;
+  const UINTVECTOR3 iBrickCore = this->GetMaxBrickSize() - i2Overlap;
 
   return UINT64VECTOR3(bIsLast.x && (iPixelSize.x % iBrickCore.x) ? (i2Overlap + (iPixelSize.x % iBrickCore.x)) : m_iBrickSize.x,
                        bIsLast.y && (iPixelSize.y % iBrickCore.y) ? (i2Overlap + (iPixelSize.y % iBrickCore.y)) : m_iBrickSize.y,

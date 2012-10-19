@@ -191,7 +191,7 @@ public:
     Returns the brick size limit
     @return the brick size limit
   */
-  UINT64VECTOR3 GetMaxBrickSize() const { return m_iBrickSize; }
+  UINTVECTOR3 GetMaxBrickSize() const { return UINTVECTOR3(m_iBrickSize); }
 
   /**
     Returns the number of bricks in a given LoD level. The result of this

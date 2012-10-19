@@ -357,7 +357,8 @@ private:
   /// to complete the conversion
   ProgressTimer* m_pProgressTimer;
 
-  /// the maximum brick size allowed (including overlap) e.g. the usable size is in x is m_vBrickSize.x-2*m_iOverlap
+  /// the maximum brick size allowed (including overlap) e.g. the
+  /// usable size is in x is m_vBrickSize.x-2*m_iOverlap
   UINT64VECTOR3 m_vBrickSize;
 
   /// the brick overlap

@@ -273,7 +273,7 @@ void UVFDataset::ComputeMetaData(size_t timestep) {
         vBrickCorner.x += bmd.extents.x;
       }
     }
-    m_aMaxBrickSize = UINTVECTOR3(pVolumeDataBlock->GetMaxBrickSize());
+    m_aMaxBrickSize = pVolumeDataBlock->GetMaxBrickSize();
   } else {
     std::vector<double> vfScale;
     RDTimestep* ts = static_cast<RDTimestep*>(m_timesteps[timestep]);
@@ -516,10 +516,12 @@ bool UVFDataset::VerifyTOCBlock(const TOCBlock* tb) const
   /// \todo: change this if we want to support vector data
   // check if we have anything other than scalars or color
   if (tb->GetComponentCount() == 1 || tb->GetComponentCount() == 4) {
+    assert(tb->GetLoDCount() > 0); // we should have some data..
     // check if the data's coarsest LOD level contains only one brick
     // this should always be true by design of the TOC-Block but
     // we check it here in case we allow exceptionsto this in the future
-    const uint64_t vSmallestLODBrickCount = tb->GetBrickCount(tb->GetLoDCount()-1).volume();
+    const uint64_t vSmallestLODBrickCount =
+      tb->GetBrickCount(tb->GetLoDCount()-1).volume();
     return vSmallestLODBrickCount == 1;
   } else {
     return false;
@@ -656,7 +658,7 @@ void UVFDataset::FindSuitableDataBlocks() {
             WARNING("A TOCBlock failed verification; skipping it");
             continue;
           }
-          UINT64VECTOR3 bsize = pVolumeDataBlock->GetMaxBrickSize();
+          UINTVECTOR3 bsize = pVolumeDataBlock->GetMaxBrickSize();
           for(size_t i=0; i < 3; ++i) {
             if(bsize[i] > m_iMaxAcceptableBricksize) {
               std::stringstream large;

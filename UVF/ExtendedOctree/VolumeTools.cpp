@@ -54,11 +54,11 @@ void VolumeTools::RemoveBoundary(uint8_t *pBrickData,
 }
 
 void VolumeTools::Atalasify(size_t iSizeInBytes,
-                             const UINT64VECTOR3& vMaxBrickSize,
-                             const UINT64VECTOR3& vCurrBrickSize,
-                             const UINTVECTOR2& atlasSize,
-                             uint8_t* pDataSource,
-                             uint8_t* pDataTarget) {
+                            const UINTVECTOR3& vMaxBrickSize,
+                            const UINT64VECTOR3& vCurrBrickSize,
+                            const UINTVECTOR2& atlasSize,
+                            uint8_t* pDataSource,
+                            uint8_t* pDataTarget) {
   
   // can't do in-place conversion 
   if (pDataSource == pDataTarget) {
@@ -90,11 +90,11 @@ void VolumeTools::Atalasify(size_t iSizeInBytes,
 
 
 void VolumeTools::DeAtalasify(size_t iSizeInBytes,
-                               const UINTVECTOR2& vCurrentAtlasSize,
-                               const UINT64VECTOR3& vMaxBrickSize,
-                               const UINT64VECTOR3& vCurrBrickSize,
-                               uint8_t* pDataSource,
-                               uint8_t* pDataTarget) {
+                              const UINTVECTOR2& vCurrentAtlasSize,
+                              const UINTVECTOR3& vMaxBrickSize,
+                              const UINT64VECTOR3& vCurrBrickSize,
+                              uint8_t* pDataSource,
+                              uint8_t* pDataTarget) {
   
   // can't do in-place conversion 
   if (pDataSource == pDataTarget) {

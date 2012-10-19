@@ -32,11 +32,11 @@ namespace VolumeTools {
     @param pDataTarget pointer to mem to hold atlantified data
     */
   void Atalasify(size_t iSizeInBytes,
-                         const UINT64VECTOR3& vMaxBrickSize,
-                         const UINT64VECTOR3& vCurrBrickSize,
-                         const UINTVECTOR2& atlasSize,
-                         uint8_t* pDataSource,
-                         uint8_t* pDataTarget);
+                 const UINTVECTOR3& vMaxBrickSize,
+                 const UINT64VECTOR3& vCurrBrickSize,
+                 const UINTVECTOR2& atlasSize,
+                 uint8_t* pDataSource,
+                 uint8_t* pDataTarget);
 
   /**
     Converts a brick into simple 3D representation
@@ -48,11 +48,11 @@ namespace VolumeTools {
     @param pDataTarget pointer to mem to hold non-atlantified data
     */
   void DeAtalasify(size_t iSizeInBytes,
-                           const UINTVECTOR2& vCurrentAtlasSize,
-                           const UINT64VECTOR3& vMaxBrickSize,
-                           const UINT64VECTOR3& vCurrBrickSize,
-                           uint8_t* pDataSource,
-                           uint8_t* pDataTarget);
+                   const UINTVECTOR2& vCurrentAtlasSize,
+                   const UINTVECTOR3& vMaxBrickSize,
+                   const UINT64VECTOR3& vCurrBrickSize,
+                   uint8_t* pDataSource,
+                   uint8_t* pDataTarget);
 
   /**
     This function takes a brick in 3D format and removes iRemove
