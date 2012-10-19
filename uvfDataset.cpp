@@ -449,7 +449,9 @@ size_t UVFDataset::DetermineNumberOfTimesteps()
                        (m_pDatasetFile->GetDataBlock(block));
           if(VerifyTOCBlock(tb)) {
             ++toc;
-            if (tb->GetComponentCount() == 4) { is_color = true; }
+            if (tb->GetComponentCount() == 4 || tb->GetComponentCount() == 3) {
+              is_color = true;
+            }
           }
         }
         break;
