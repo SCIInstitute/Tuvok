@@ -100,14 +100,15 @@ bool UVFDataset::Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion)
             unsigned(m_pDatasetFile->ms_ulReaderVersion));
     if (m_pDatasetFile->ms_ulReaderVersion < 4)
       WARNING("Opening UVF file with a version"
-              "older then 4 without TOCBlock support, "
+              " older than 4 without TOCBlock support, "
               "some features may not be available.");
   }
 
   m_timesteps.clear();
   size_t n_timesteps = DetermineNumberOfTimesteps();
   if (n_timesteps == 0) {
-    T_ERROR("No suitable volume block found in UVF file.  Check previous messages for rejected blocks.");
+    T_ERROR("No suitable volume block found in UVF file.  Check previous "
+            "messages for rejected blocks.");
     Close();
     m_bIsOpen = false;
     return false;
