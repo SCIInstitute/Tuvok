@@ -79,7 +79,7 @@
 #define TUVOK_MINOR 2
 #define TUVOK_PATCH 0
 #define TUVOK_VERSION "2.2.0"
-#define TUVOK_VERSION_TYPE "Developer Build"
+#define TUVOK_VERSION_TYPE "Release"
 
 #ifdef _MSC_VER
 # define _func_ __FUNCTION__
