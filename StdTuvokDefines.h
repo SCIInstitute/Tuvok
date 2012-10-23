@@ -75,10 +75,10 @@
 # include <limits.h>
 #endif
 
-#define TUVOK_MAJOR 2
-#define TUVOK_MINOR 2
+#define TUVOK_MAJOR 3
+#define TUVOK_MINOR 0
 #define TUVOK_PATCH 0
-#define TUVOK_VERSION "2.2.0"
+#define TUVOK_VERSION "3.0.0"
 #define TUVOK_VERSION_TYPE "Release"
 
 #ifdef _MSC_VER
