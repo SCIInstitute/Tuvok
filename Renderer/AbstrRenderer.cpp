@@ -2212,6 +2212,11 @@ void AbstrRenderer::RegisterLuaFunctions(
                     "", false);
   id = reg.function(&AbstrRenderer::GetProjectionMatrix, "getProjectionMatrix",
                     "", false);
+  
+  id = reg.function(&AbstrRenderer::SetUserMatrices, "setUserMatrices",
+                    "", true);
+  id = reg.function(&AbstrRenderer::UnsetUserMatrices, "unsetUserMatrices",
+                    "", true);
 
   /// Register renderer specific functions.
   me->RegisterDerivedClassLuaFunctions(reg, ss);
