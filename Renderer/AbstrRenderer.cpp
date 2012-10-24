@@ -1110,7 +1110,7 @@ FLOATVECTOR3 AbstrRenderer::LuaGetVolumeAABBExtents() const {
   FLOATVECTOR3 vCenter;
   FLOATVECTOR3 vExtend;
   GetVolumeAABB(vCenter, vExtend);
-  return vCenter;
+  return vExtend;
 }
 
 void AbstrRenderer::PlanFrame(RenderRegion3D& region) {
