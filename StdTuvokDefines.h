@@ -76,10 +76,10 @@
 #endif
 
 #define TUVOK_MAJOR 3
-#define TUVOK_MINOR 0
+#define TUVOK_MINOR 1
 #define TUVOK_PATCH 0
-#define TUVOK_VERSION "3.0.0"
-#define TUVOK_VERSION_TYPE "Release"
+#define TUVOK_VERSION "3.1.0"
+#define TUVOK_VERSION_TYPE "Developer Build"
 
 #ifdef _MSC_VER
 # define _func_ __FUNCTION__
