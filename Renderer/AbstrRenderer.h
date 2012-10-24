@@ -419,8 +419,8 @@ class AbstrRenderer {
     /// percentage of the available isovalues.
     virtual void SetIsoValueRelative(float fIsovalue);
 
-    virtual void SetIsosufaceColor(const FLOATVECTOR3& vColor);
-    virtual FLOATVECTOR3 GetIsosufaceColor() const { return m_vIsoColor; }
+    virtual void SetIsosurfaceColor(const FLOATVECTOR3& vColor);
+    virtual FLOATVECTOR3 GetIsosurfaceColor() const { return m_vIsoColor; }
 
     UINTVECTOR2 GetSize() const {return m_vWinSize;}
 

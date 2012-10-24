@@ -1246,7 +1246,7 @@ void AbstrRenderer::SetCV(bool bEnable) {
   }
 }
 
-void AbstrRenderer::SetIsosufaceColor(const FLOATVECTOR3& vColor) {
+void AbstrRenderer::SetIsosurfaceColor(const FLOATVECTOR3& vColor) {
   m_vIsoColor = vColor;
   if (m_eRenderMode == RM_ISOSURFACE)
     ScheduleRecompose();
@@ -1716,7 +1716,7 @@ void AbstrRenderer::LuaCloneRenderMode(LuaClassInstance inst) {
   else
     this->DisableClipPlane();
 
-  this->SetIsosufaceColor(other->GetIsosufaceColor());
+  this->SetIsosurfaceColor(other->GetIsosurfaceColor());
   this->SetIsoValue(other->GetIsoValue());
   this->SetCVIsoValue(other->GetCVIsoValue());
   this->SetCVSize(other->GetCVSize());
@@ -2020,10 +2020,10 @@ void AbstrRenderer::RegisterLuaFunctions(
                     "setIsoValue", "changes the current isovalue", true);
   id = reg.function(&AbstrRenderer::SetIsoValueRelative,
                     "setIsoValueRelative", "changes isovalue; [0,1] range", true);
-  id = reg.function(&AbstrRenderer::SetIsosufaceColor,
-                    "setIsosufaceColor", "", true);
-  id = reg.function(&AbstrRenderer::GetIsosufaceColor,
-                    "getIsosufaceColor", "", false);
+  id = reg.function(&AbstrRenderer::SetIsosurfaceColor,
+                    "setIsosurfaceColor", "", true);
+  id = reg.function(&AbstrRenderer::GetIsosurfaceColor,
+                    "getIsosurfaceColor", "", false);
 
   id = reg.function(&AbstrRenderer::SetCVIsoValue,
                     "setCVIsoValue", "", true);
