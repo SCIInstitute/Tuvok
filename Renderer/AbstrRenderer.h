@@ -376,6 +376,12 @@ class AbstrRenderer {
                                const INTVECTOR2& vPos);
     virtual FLOATVECTOR4 GetCVFocusPos() const {return m_vCVPos;}
 
+    // Modification/access of internal Frustum Culling class
+    void SetFrustumCullingModelMatrix(const FLOATMATRIX4& modelMatrix);
+    int GetFrustumCullingLODLevel(const FLOATVECTOR3& vfCenter, 
+                                  const FLOATVECTOR3& vfExtent, 
+                                  const UINTVECTOR3& viVoxelCount) const;
+
     RenderRegion3D* GetFirst3DRegion();
 
     virtual void SetRenderCoordArrows(bool bRenderCoordArrows);

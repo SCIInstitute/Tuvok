@@ -1701,6 +1701,17 @@ LuaClassInstance AbstrRenderer::LuaGet2DTrans() {
   return m_pLua2DTrans;
 }
 
+void 
+AbstrRenderer::SetFrustumCullingModelMatrix(const FLOATMATRIX4& modelMatrix) {
+  m_FrustumCullingLOD.SetModelMatrix(modelMatrix);
+}
+
+int AbstrRenderer::GetFrustumCullingLODLevel(
+    const FLOATVECTOR3& vfCenter, 
+    const FLOATVECTOR3& vfExtent, 
+    const UINTVECTOR3& viVoxelCount) const {
+  return m_FrustumCullingLOD.GetLODLevel(vfCenter, vfExtent, viVoxelCount);
+}
 
 void AbstrRenderer::LuaCloneRenderMode(LuaClassInstance inst) {
   shared_ptr<LuaScripting> ss(m_pMasterController->LuaScript());
@@ -2216,6 +2227,13 @@ void AbstrRenderer::RegisterLuaFunctions(
   id = reg.function(&AbstrRenderer::SetUserMatrices, "setUserMatrices",
                     "", true);
   id = reg.function(&AbstrRenderer::UnsetUserMatrices, "unsetUserMatrices",
+                    "", true);
+
+  id = reg.function(&AbstrRenderer::SetFrustumCullingModelMatrix,
+                    "setFrustumCullingModelMatrix",
+                    "", true);
+  id = reg.function(&AbstrRenderer::GetFrustumCullingLODLevel,
+                    "getFrustumCullingLODLevel",
                     "", true);
 
   /// Register renderer specific functions.
