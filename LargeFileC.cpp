@@ -43,7 +43,7 @@
 #else
 # define DEBUG(...) do { /* nothing, debug msg removed. */ } while(0)
 #endif
-#ifdef DETECTED_OS_APPLE
+#if defined(DETECTED_OS_APPLE) || defined(DETECTED_OS_LINUX)
 # include <unistd.h>
 #endif
 #include "LargeFileC.h"

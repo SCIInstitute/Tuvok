@@ -34,7 +34,7 @@
 # include <windows.h>
 #endif
 
-#ifdef DETECTED_OS_APPLE
+#if defined(DETECTED_OS_APPLE) || defined(DETECTED_OS_LINUX)
 # include <unistd.h>
 #endif
 
