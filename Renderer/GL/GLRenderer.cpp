@@ -457,6 +457,8 @@ void GLRenderer::Set1DTrans(const std::vector<unsigned char>& rgba) {
 
   m_p1DTrans = tf.first;
   m_p1DTransTex = tf.second;
+
+  LuaBindNew1DTrans();
 }
 
 void GLRenderer::Changed1DTrans() {
