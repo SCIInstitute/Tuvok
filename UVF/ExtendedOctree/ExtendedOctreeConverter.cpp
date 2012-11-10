@@ -991,8 +991,6 @@ void ExtendedOctreeConverter::FillOverlap(ExtendedOctree &tree, uint64_t iLoD, b
 }
 
 /*
-  PermuteInputData:
-
   This method reorders the large input raw file into smaller bricks
   of maximum size m_vBrickSize with an overlap of m_iOverlap i.e.
   it computes LoD level zero. Therefore, it iterates over all bricks
@@ -1011,11 +1009,16 @@ void ExtendedOctreeConverter::PermuteInputData(ExtendedOctree &tree, LargeRAWFil
     for (uint64_t y = 0;y<baseBricks.y;y++) {
       for (uint64_t x = 0;x<baseBricks.x;x++) {
         UINT64VECTOR4 coords(x,y,z,0);
-        uint64_t iUncompressedBrickSize = tree.ComputeBrickSize(UINT64VECTOR4(x,y,z,0)).volume() * tree.GetComponentTypeSize() * tree.GetComponentCount();
-        TOCEntry t = {iCurrentOutOffset, iUncompressedBrickSize, CT_NONE, iUncompressedBrickSize, UINTVECTOR2(0,0)};
+        uint64_t iUncompressedBrickSize =
+          tree.ComputeBrickSize(UINT64VECTOR4(x,y,z,0)).volume() *
+          tree.GetComponentTypeSize() *
+          tree.GetComponentCount();
+        TOCEntry t = {iCurrentOutOffset, iUncompressedBrickSize, CT_NONE,
+                      iUncompressedBrickSize, UINTVECTOR2(0,0)};
         tree.m_vTOC.push_back(t);
 
-        GetInputBrick(vData, tree, pLargeRAWFileIn, iInOffset, coords, bClampToEdge);
+        GetInputBrick(vData, tree, pLargeRAWFileIn, iInOffset, coords,
+                      bClampToEdge);
         SetBrick(&(vData[0]), tree, coords);
 
         iCurrentOutOffset += iUncompressedBrickSize;
