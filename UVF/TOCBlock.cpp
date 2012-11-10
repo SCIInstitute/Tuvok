@@ -142,6 +142,10 @@ bool TOCBlock::FlatDataToBrickedLOD(
   m_vMaxBrickSize = vMaxBrickSize;
   m_iOverlap = iOverlap;
 
+  assert(m_vMaxBrickSize[0] > 2*m_iOverlap);
+  assert(m_vMaxBrickSize[1] > 2*m_iOverlap);
+  assert(m_vMaxBrickSize[2] > 2*m_iOverlap);
+
   if(debugOut == NULL) {
     return false;
   }

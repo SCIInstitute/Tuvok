@@ -141,6 +141,9 @@ void ExtendedOctree::ComputeMetadata() {
   UINT64VECTOR3 vVolumeSize = m_vVolumeSize;
   DOUBLEVECTOR3 vAspect(1.0,1.0,1.0);
 
+  assert(this->GetMaxBrickSize()[0] > (2*m_iOverlap));
+  assert(this->GetMaxBrickSize()[1] > (2*m_iOverlap));
+  assert(this->GetMaxBrickSize()[2] > (2*m_iOverlap));
   const UINTVECTOR3 vUsableBrickSize = this->GetMaxBrickSize() - 2*m_iOverlap;
   do { 
     LODInfo l;
