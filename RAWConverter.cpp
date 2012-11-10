@@ -454,6 +454,13 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
     bConvertEndianness = false;
   }
 
+  if(iTargetBrickSize <= (2*iTargetBrickOverlap)) {
+    T_ERROR("Bricks would contain only ghost data or occupy negative space"
+            " (brick size: %llu, brick overlap: %llu)", iTargetBrickSize,
+            iTargetBrickOverlap);
+    return false;
+  }
+
   MESSAGE("Converting RAW dataset %s to %s", strFilename.c_str(),
           strTargetFilename.c_str());
 
