@@ -2457,8 +2457,8 @@ IOManager::EvaluateExpression(const std::string& expr,
   //       load brick into 'involumes'
   //       evaluate(tree, input-bricks-in-a-vector, output)
   //       write output somewhere
-  /// @todo FIXME: we should query bit_width, is_float, is_signed to create different
-  /// 'involumes' based on the type we need...
+  /// @todo FIXME: we should query bit_width, is_float, is_signed to create
+  /// different 'involumes' based on the type we need...
   size_t brick = 0;
   while(viters[0] != uvf[0]->BricksEnd()) {
     for(size_t i=0; i < uvf.size(); ++i) {
