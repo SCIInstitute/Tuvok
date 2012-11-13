@@ -112,11 +112,12 @@ std::vector<FLOATVECTOR3> Clipper::TriPlane(std::vector<FLOATVECTOR3>& posData, 
   return newVertices;
 }
 
-struct {
-  bool operator() (const FLOATVECTOR3& i, const FLOATVECTOR3& j) { 
-    return i.x < j.x || (i.x == j.x && i.y < j.y) || (i.x == j.x && i.y == j.y && i.z < j.z);
+struct CompSorter {
+  bool operator() (const FLOATVECTOR3& i, const FLOATVECTOR3& j) const {
+    return i.x < j.x || (i.x == j.x && i.y < j.y) ||
+           (i.x == j.x && i.y == j.y && i.z < j.z);
   }
-} CompSorter;
+};
 
 static bool AngleSorter(const FLOATVECTOR3& i, const FLOATVECTOR3& j, const FLOATVECTOR3& center, const FLOATVECTOR3& refVec, const FLOATVECTOR3& normal) { 
   FLOATVECTOR3 vecI = (i-center).normalized();
@@ -140,8 +141,9 @@ void Clipper::BoxPlane(std::vector<FLOATVECTOR3>& posData, const FLOATVECTOR3 &n
   if (newVertices.size() < 3) return;
   
   // remove duplicate vertices
-  std::sort(newVertices.begin(), newVertices.end(), CompSorter);
-  newVertices.erase(std::unique(newVertices.begin(), newVertices.end()), newVertices.end());
+  std::sort(newVertices.begin(), newVertices.end(), CompSorter());
+  newVertices.erase(std::unique(newVertices.begin(), newVertices.end()),
+                    newVertices.end());
 
   // sort counter clockwise
   using namespace std::placeholders;
