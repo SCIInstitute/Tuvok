@@ -1,8 +1,9 @@
 #include "KDTree.h"
-#include <list>
 #include <algorithm>
 #include <cassert>
+#include <fstream>
 #include <iostream>
+#include <list>
 
 using namespace tuvok;
 

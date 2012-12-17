@@ -2,7 +2,8 @@
 #define KDTREE_H
 
 #include "Mesh.h"
-#include <fstream>
+#include <istream>
+#include <ostream>
 
 namespace tuvok {
 
@@ -12,7 +13,7 @@ typedef std::vector<size_t> triVec;
 class KDTreeNode
 {
 public:
-  KDTreeNode(std::ifstream& kdfile) :     
+  KDTreeNode(std::istream& kdfile) :
     m_Axis(0),
     m_SplitPos(0),
     m_leftChild(0), 
@@ -44,7 +45,7 @@ public:
     delete m_rightChild;
   }
 
-  void Save(std::ofstream& kdfile) const {
+  void Save(std::ostream& kdfile) const {
     int iAxis = m_Axis;
     kdfile << iAxis << " " << m_SplitPos << " " << m_bIsLeaf 
            << " " << (unsigned int)(m_items.size()) << std::endl;
