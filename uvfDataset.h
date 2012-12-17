@@ -209,6 +209,8 @@ private:
   void Close();
   void FindSuitableDataBlocks();
   void ComputeMetaData(size_t ts);
+  void ComputeMetadataTOC(size_t ts);
+  void ComputeMetadataRDB(size_t ts);
   void GetHistograms(size_t ts);
 
   void FixOverlap(uint64_t& v, uint64_t brickIndex, uint64_t maxindex, uint64_t overlap) const;

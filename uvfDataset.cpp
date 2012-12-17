@@ -237,162 +237,169 @@ void UVFDataset::Close() {
 }
 
 void UVFDataset::ComputeMetaData(size_t timestep) {
-  if (m_bToCBlock) {
-    TOCTimestep* ts = static_cast<TOCTimestep*>(m_timesteps[timestep]);
-    const TOCBlock* pVolumeDataBlock = ts->GetDB();
-    m_DomainScale = pVolumeDataBlock->GetScale();
-
-    for (size_t j = 0;j<pVolumeDataBlock->GetLoDCount();j++) {
-      UINT64VECTOR3 bc = pVolumeDataBlock->GetBrickCount(j);
-
-      BrickMD bmd;
-      FLOATVECTOR3 vBrickCorner(0,0,0);
-
-      for (uint64_t x=0; x < bc.x; x++) {
-        vBrickCorner.y = 0;
-        for (uint64_t y=0; y < bc.y; y++) {
-          vBrickCorner.z = 0;
-          for (uint64_t z=0; z < bc.z; z++) {
-            const UINT64VECTOR4 coords(x,y,z,j);
-            const BrickKey k = BrickKey(timestep, j,
-              static_cast<size_t>(z*bc.x*bc.y+y*bc.x + x));
-
-            FLOATVECTOR3 vNormalizedDomainSize = FLOATVECTOR3(GetDomainSize(j, timestep)) * FLOATVECTOR3(pVolumeDataBlock->GetBrickAspect(coords));
-            float maxVal = vNormalizedDomainSize.maxVal();
-            vNormalizedDomainSize /= maxVal;
-
-            bmd.extents  = FLOATVECTOR3(GetEffectiveBrickSize(k)) * FLOATVECTOR3(pVolumeDataBlock->GetBrickAspect(coords)) / maxVal;
-            bmd.center   = FLOATVECTOR3(vBrickCorner + bmd.extents/2.0f) -
-                           vNormalizedDomainSize * 0.5f;
-            bmd.n_voxels = UINTVECTOR3(pVolumeDataBlock->GetBrickSize(coords));
-            AddBrick(k, bmd);
-            vBrickCorner.z += bmd.extents.z;
-          }
-          vBrickCorner.y += bmd.extents.y;
-        }
-        vBrickCorner.x += bmd.extents.x;
-      }
-    }
-    m_aMaxBrickSize = pVolumeDataBlock->GetMaxBrickSize();
+  if(m_bToCBlock) {
+    this->ComputeMetadataTOC(timestep);
   } else {
-    std::vector<double> vfScale;
-    RDTimestep* ts = static_cast<RDTimestep*>(m_timesteps[timestep]);
-    const RasterDataBlock* pVolumeDataBlock = ts->GetDB();
+    this->ComputeMetadataRDB(timestep);
+  }
+}
+void UVFDataset::ComputeMetadataTOC(size_t timestep) {
+  TOCTimestep* ts = static_cast<TOCTimestep*>(m_timesteps[timestep]);
+  const TOCBlock* pVolumeDataBlock = ts->GetDB();
+  m_DomainScale = pVolumeDataBlock->GetScale();
 
-    size_t iSize = pVolumeDataBlock->ulDomainSize.size();
+  for (size_t j = 0;j<pVolumeDataBlock->GetLoDCount();j++) {
+    UINT64VECTOR3 bc = pVolumeDataBlock->GetBrickCount(j);
 
-    // we require the data to be at least 3D
-    assert(iSize >= 3);
+    BrickMD bmd;
+    FLOATVECTOR3 vBrickCorner(0,0,0);
 
-    // we also assume that x,y,z are in the first 3 components and
-    // we have no anisotropy (i.e. ulLODLevelCount.size=1)
-    size_t iLODLevel = static_cast<size_t>(pVolumeDataBlock->ulLODLevelCount[0]);
-    for (size_t i=0; i < 3 ; i++) {
-      ts->m_aOverlap[i] = static_cast<uint32_t>(pVolumeDataBlock->ulBrickOverlap[i]);
-      /// @todo FIXME badness -- assume domain scaling information is the
-      /// same across all raster data blocks (across all timesteps)
-      m_DomainScale[i] = pVolumeDataBlock->dDomainTransformation[i+(iSize+1)*i];
+    for (uint64_t x=0; x < bc.x; x++) {
+      vBrickCorner.y = 0;
+      for (uint64_t y=0; y < bc.y; y++) {
+        vBrickCorner.z = 0;
+        for (uint64_t z=0; z < bc.z; z++) {
+          const UINT64VECTOR4 coords(x,y,z,j);
+          const BrickKey k = BrickKey(timestep, j,
+            static_cast<size_t>(z*bc.x*bc.y+y*bc.x + x));
+
+          FLOATVECTOR3 vNormalizedDomainSize = FLOATVECTOR3(GetDomainSize(j, timestep)) * FLOATVECTOR3(pVolumeDataBlock->GetBrickAspect(coords));
+          float maxVal = vNormalizedDomainSize.maxVal();
+          vNormalizedDomainSize /= maxVal;
+
+          bmd.extents  = FLOATVECTOR3(GetEffectiveBrickSize(k)) * FLOATVECTOR3(pVolumeDataBlock->GetBrickAspect(coords)) / maxVal;
+          bmd.center   = FLOATVECTOR3(vBrickCorner + bmd.extents/2.0f) -
+                         vNormalizedDomainSize * 0.5f;
+          bmd.n_voxels = UINTVECTOR3(pVolumeDataBlock->GetBrickSize(coords));
+          AddBrick(k, bmd);
+          vBrickCorner.z += bmd.extents.z;
+        }
+        vBrickCorner.y += bmd.extents.y;
+      }
+      vBrickCorner.x += bmd.extents.x;
     }
-    m_aMaxBrickSize.StoreMax(UINTVECTOR3(
-      static_cast<unsigned>(pVolumeDataBlock->ulBrickSize[0]),
-      static_cast<unsigned>(pVolumeDataBlock->ulBrickSize[1]),
-      static_cast<unsigned>(pVolumeDataBlock->ulBrickSize[2])
-    ));
+  }
+  m_aMaxBrickSize = pVolumeDataBlock->GetMaxBrickSize();
+}
 
-    ts->m_vvaBrickSize.resize(iLODLevel);
+void UVFDataset::ComputeMetadataRDB(size_t timestep) {
+  std::vector<double> vfScale;
+  RDTimestep* ts = static_cast<RDTimestep*>(m_timesteps[timestep]);
+  const RasterDataBlock* pVolumeDataBlock = ts->GetDB();
+
+  size_t iSize = pVolumeDataBlock->ulDomainSize.size();
+
+  // we require the data to be at least 3D
+  assert(iSize >= 3);
+
+  // we also assume that x,y,z are in the first 3 components and
+  // we have no anisotropy (i.e. ulLODLevelCount.size=1)
+  size_t iLODLevel = static_cast<size_t>(pVolumeDataBlock->ulLODLevelCount[0]);
+  for (size_t i=0; i < 3 ; i++) {
+    ts->m_aOverlap[i] = static_cast<uint32_t>(pVolumeDataBlock->ulBrickOverlap[i]);
+    /// @todo FIXME badness -- assume domain scaling information is the
+    /// same across all raster data blocks (across all timesteps)
+    m_DomainScale[i] = pVolumeDataBlock->dDomainTransformation[i+(iSize+1)*i];
+  }
+  m_aMaxBrickSize.StoreMax(UINTVECTOR3(
+    static_cast<unsigned>(pVolumeDataBlock->ulBrickSize[0]),
+    static_cast<unsigned>(pVolumeDataBlock->ulBrickSize[1]),
+    static_cast<unsigned>(pVolumeDataBlock->ulBrickSize[2])
+  ));
+
+  ts->m_vvaBrickSize.resize(iLODLevel);
+  if (ts->m_pMaxMinData) {
+    ts->m_vvaMaxMin.resize(iLODLevel);
+  }
+
+  for (size_t j = 0;j<iLODLevel;j++) {
+    std::vector<uint64_t> vLOD;  vLOD.push_back(j);
+    std::vector<uint64_t> vDomSize = pVolumeDataBlock->GetLODDomainSize(vLOD);
+    ts->m_aDomainSize.push_back(UINT64VECTOR3(vDomSize[0], vDomSize[1], vDomSize[2]));
+
+    std::vector<uint64_t> vBrickCount = pVolumeDataBlock->GetBrickCount(vLOD);
+    ts->m_vaBrickCount.push_back(UINT64VECTOR3(vBrickCount[0], vBrickCount[1], vBrickCount[2]));
+
+    ts->m_vvaBrickSize[j].resize(size_t(ts->m_vaBrickCount[j].x));
     if (ts->m_pMaxMinData) {
-      ts->m_vvaMaxMin.resize(iLODLevel);
+      ts->m_vvaMaxMin[j].resize(size_t(ts->m_vaBrickCount[j].x));
     }
 
-    for (size_t j = 0;j<iLODLevel;j++) {
-      std::vector<uint64_t> vLOD;  vLOD.push_back(j);
-      std::vector<uint64_t> vDomSize = pVolumeDataBlock->GetLODDomainSize(vLOD);
-      ts->m_aDomainSize.push_back(UINT64VECTOR3(vDomSize[0], vDomSize[1], vDomSize[2]));
+    FLOATVECTOR3 vBrickCorner;
 
-      std::vector<uint64_t> vBrickCount = pVolumeDataBlock->GetBrickCount(vLOD);
-      ts->m_vaBrickCount.push_back(UINT64VECTOR3(vBrickCount[0], vBrickCount[1], vBrickCount[2]));
+    FLOATVECTOR3 vNormalizedDomainSize = FLOATVECTOR3(GetDomainSize(j, timestep));
+    vNormalizedDomainSize /= vNormalizedDomainSize.maxVal();
 
-      ts->m_vvaBrickSize[j].resize(size_t(ts->m_vaBrickCount[j].x));
+    BrickMD bmd;
+    for (uint64_t x=0; x < ts->m_vaBrickCount[j].x; x++) {
+      ts->m_vvaBrickSize[j][size_t(x)].resize(size_t(ts->m_vaBrickCount[j].y));
       if (ts->m_pMaxMinData) {
-        ts->m_vvaMaxMin[j].resize(size_t(ts->m_vaBrickCount[j].x));
+        ts->m_vvaMaxMin[j][size_t(x)].resize(size_t(ts->m_vaBrickCount[j].y));
       }
 
-      FLOATVECTOR3 vBrickCorner;
-
-      FLOATVECTOR3 vNormalizedDomainSize = FLOATVECTOR3(GetDomainSize(j, timestep));
-      vNormalizedDomainSize /= vNormalizedDomainSize.maxVal();
-
-      BrickMD bmd;
-      for (uint64_t x=0; x < ts->m_vaBrickCount[j].x; x++) {
-        ts->m_vvaBrickSize[j][size_t(x)].resize(size_t(ts->m_vaBrickCount[j].y));
+      vBrickCorner.y = 0;
+      for (uint64_t y=0; y < ts->m_vaBrickCount[j].y; y++) {
         if (ts->m_pMaxMinData) {
-          ts->m_vvaMaxMin[j][size_t(x)].resize(size_t(ts->m_vaBrickCount[j].y));
+          ts->m_vvaMaxMin[j][size_t(x)][size_t(y)].resize(size_t(ts->m_vaBrickCount[j].z));
         }
 
-        vBrickCorner.y = 0;
-        for (uint64_t y=0; y < ts->m_vaBrickCount[j].y; y++) {
-          if (ts->m_pMaxMinData) {
-            ts->m_vvaMaxMin[j][size_t(x)][size_t(y)].resize(size_t(ts->m_vaBrickCount[j].z));
-          }
+        vBrickCorner.z = 0;
+        for (uint64_t z=0; z < ts->m_vaBrickCount[j].z; z++) {
+          std::vector<uint64_t> vBrick;
+          vBrick.push_back(x);
+          vBrick.push_back(y);
+          vBrick.push_back(z);
+          std::vector<uint64_t> vBrickSize =
+            pVolumeDataBlock->GetBrickSize(vLOD, vBrick);
 
-          vBrickCorner.z = 0;
-          for (uint64_t z=0; z < ts->m_vaBrickCount[j].z; z++) {
-            std::vector<uint64_t> vBrick;
-            vBrick.push_back(x);
-            vBrick.push_back(y);
-            vBrick.push_back(z);
-            std::vector<uint64_t> vBrickSize =
-              pVolumeDataBlock->GetBrickSize(vLOD, vBrick);
+          ts->m_vvaBrickSize[j][size_t(x)][size_t(y)].push_back(
+            UINT64VECTOR3(vBrickSize[0], vBrickSize[1], vBrickSize[2]));
 
-            ts->m_vvaBrickSize[j][size_t(x)][size_t(y)].push_back(
-              UINT64VECTOR3(vBrickSize[0], vBrickSize[1], vBrickSize[2]));
+          const BrickKey k = BrickKey(timestep, j,
+            static_cast<size_t>(z*ts->m_vaBrickCount[j].x*ts->m_vaBrickCount[j].y+
+                                y*ts->m_vaBrickCount[j].x + x));
 
-            const BrickKey k = BrickKey(timestep, j,
-              static_cast<size_t>(z*ts->m_vaBrickCount[j].x*ts->m_vaBrickCount[j].y+
-                                  y*ts->m_vaBrickCount[j].x + x));
-
-            bmd.extents  = FLOATVECTOR3(GetEffectiveBrickSize(k)) /
-                           float(GetDomainSize(j, timestep).maxVal());
-            bmd.center   = FLOATVECTOR3(vBrickCorner + bmd.extents/2.0f) -
-                           vNormalizedDomainSize * 0.5f;
-            bmd.n_voxels = UINTVECTOR3(static_cast<unsigned>(vBrickSize[0]),
-                                       static_cast<unsigned>(vBrickSize[1]),
-                                       static_cast<unsigned>(vBrickSize[2]));
-            AddBrick(k, bmd);
-            vBrickCorner.z += bmd.extents.z;
-          }
-          vBrickCorner.y += bmd.extents.y;
+          bmd.extents  = FLOATVECTOR3(GetEffectiveBrickSize(k)) /
+                         float(GetDomainSize(j, timestep).maxVal());
+          bmd.center   = FLOATVECTOR3(vBrickCorner + bmd.extents/2.0f) -
+                         vNormalizedDomainSize * 0.5f;
+          bmd.n_voxels = UINTVECTOR3(static_cast<unsigned>(vBrickSize[0]),
+                                     static_cast<unsigned>(vBrickSize[1]),
+                                     static_cast<unsigned>(vBrickSize[2]));
+          AddBrick(k, bmd);
+          vBrickCorner.z += bmd.extents.z;
         }
-        vBrickCorner.x += bmd.extents.x;
+        vBrickCorner.y += bmd.extents.y;
       }
+      vBrickCorner.x += bmd.extents.x;
     }
+  }
 
-    size_t iSerializedIndex = 0;
-    if (ts->m_pMaxMinData) {
-      for (size_t lod=0; lod < iLODLevel; lod++) {
-        for (uint64_t z=0; z < ts->m_vaBrickCount[lod].z; z++) {
-          for (uint64_t y=0; y < ts->m_vaBrickCount[lod].y; y++) {
-            for (uint64_t x=0; x < ts->m_vaBrickCount[lod].x; x++) {
-              // for four-component data we use the fourth component
-              // (presumably the alpha channel); for all other data we use
-              // the first component
-              /// \todo we may have to change this if we add support for other
-              /// kinds of multicomponent data.
-              try {
-                ts->m_vvaMaxMin[lod][size_t(x)][size_t(y)][size_t(z)] =
-                  ts->m_pMaxMinData->GetValue(iSerializedIndex++,
-                     (pVolumeDataBlock->ulElementDimensionSize[0] == 4) ? 3 : 0
-                  );
-              } catch(const std::length_error&) {
-                InternalMaxMinComponent elem;
-                const std::pair<double,double> mm = std::make_pair(
-                  -std::numeric_limits<double>::max(),
-                   std::numeric_limits<double>::max()
+  size_t iSerializedIndex = 0;
+  if (ts->m_pMaxMinData) {
+    for (size_t lod=0; lod < iLODLevel; lod++) {
+      for (uint64_t z=0; z < ts->m_vaBrickCount[lod].z; z++) {
+        for (uint64_t y=0; y < ts->m_vaBrickCount[lod].y; y++) {
+          for (uint64_t x=0; x < ts->m_vaBrickCount[lod].x; x++) {
+            // for four-component data we use the fourth component
+            // (presumably the alpha channel); for all other data we use
+            // the first component
+            /// \todo we may have to change this if we add support for other
+            /// kinds of multicomponent data.
+            try {
+              ts->m_vvaMaxMin[lod][size_t(x)][size_t(y)][size_t(z)] =
+                ts->m_pMaxMinData->GetValue(iSerializedIndex++,
+                   (pVolumeDataBlock->ulElementDimensionSize[0] == 4) ? 3 : 0
                 );
-                elem.minScalar = elem.minGradient = mm.first;
-                elem.maxScalar = elem.maxGradient = mm.second;
-                ts->m_vvaMaxMin[lod][size_t(x)][size_t(y)][size_t(z)] = elem;
-              }
+            } catch(const std::length_error&) {
+              InternalMaxMinComponent elem;
+              const std::pair<double,double> mm = std::make_pair(
+                -std::numeric_limits<double>::max(),
+                 std::numeric_limits<double>::max()
+              );
+              elem.minScalar = elem.minGradient = mm.first;
+              elem.maxScalar = elem.maxGradient = mm.second;
+              ts->m_vvaMaxMin[lod][size_t(x)][size_t(y)][size_t(z)] = elem;
             }
           }
         }
@@ -400,7 +407,6 @@ void UVFDataset::ComputeMetaData(size_t timestep) {
     }
   }
 }
-
 
 // One dimensional brick shrinking for internal bricks that have some overlap
 // with neighboring bricks.  Assumes overlap is constant per dataset: this
