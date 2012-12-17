@@ -45,9 +45,6 @@ public:
   BrickedDataset();
   virtual ~BrickedDataset();
 
-  /// Adds a brick to the dataset.
-  virtual void AddBrick(const BrickKey&, const BrickMD&);
-
   /// Looks up the spatial range of a brick.
   virtual FLOATVECTOR3 GetBrickExtents(const BrickKey &) const;
 
@@ -79,6 +76,10 @@ public:
   /// @return true if the brick is the maximum brick in the given dimension.
   virtual bool BrickIsLastInDimension(size_t, const BrickKey&) const;
   ///@}
+
+protected:
+  /// Adds a brick to the dataset.
+  virtual void AddBrick(const BrickKey&, const BrickMD&);
 
 protected:
   BrickTable bricks;
