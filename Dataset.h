@@ -81,7 +81,6 @@ public:
   /// Remove all cached bricks / brick metadata.
   virtual void Clear() = 0;
 
-  virtual void AddBrick(const BrickKey&, const BrickMD&) = 0;
   /// Gets the number of voxels, per dimension.
   virtual UINTVECTOR3 GetBrickVoxelCounts(const BrickKey&) const = 0;
   /// World space extents.
