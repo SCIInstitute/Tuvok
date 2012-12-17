@@ -78,6 +78,9 @@ public:
   ///@}
 
 protected:
+  /// gives a hint to this object that we'll have 'n' bricks in the end.
+  virtual void NBricksHint(size_t n);
+
   /// Adds a brick to the dataset.
   virtual void AddBrick(const BrickKey&, const BrickMD&);
 

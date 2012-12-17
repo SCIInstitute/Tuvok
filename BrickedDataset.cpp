@@ -40,6 +40,10 @@ namespace tuvok {
 BrickedDataset::BrickedDataset() { }
 BrickedDataset::~BrickedDataset() { }
 
+void BrickedDataset::NBricksHint(size_t n) {
+  this->bricks.reserve(n);
+}
+
 /// Adds a brick to the dataset.
 void BrickedDataset::AddBrick(const BrickKey& bk,
                               const BrickMD& brick)

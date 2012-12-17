@@ -248,6 +248,12 @@ void UVFDataset::ComputeMetadataTOC(size_t timestep) {
   const TOCBlock* pVolumeDataBlock = ts->GetDB();
   m_DomainScale = pVolumeDataBlock->GetScale();
 
+  size_t n_bricks = 0;
+  for(size_t i=0; i < pVolumeDataBlock->GetLoDCount(); ++i) {
+    n_bricks += pVolumeDataBlock->GetBrickCount(i).volume();
+  }
+  this->NBricksHint(n_bricks);
+
   for (size_t j = 0;j<pVolumeDataBlock->GetLoDCount();j++) {
     UINT64VECTOR3 bc = pVolumeDataBlock->GetBrickCount(j);
 
