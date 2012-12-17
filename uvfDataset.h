@@ -104,7 +104,8 @@ namespace tuvok {
 
 class UVFDataset : public FileBackedDataset {
 public:
-  UVFDataset(const std::string& strFilename, uint64_t iMaxAcceptableBricksize, bool bVerify, bool bMustBeSameVersion = true);
+  UVFDataset(const std::string& strFilename, uint64_t iMaxAcceptableBricksize,
+             bool bVerify, bool bMustBeSameVersion = true);
   UVFDataset();
   virtual ~UVFDataset();
 
