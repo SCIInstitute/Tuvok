@@ -45,7 +45,6 @@
 #include <string>
 #include <vector>
 
-#include "Basics/CommandReturn.h"
 #include "Basics/TuvokException.h"
 #include "Basics/Vectors.h"
 #include "../DebugOut/MultiplexOut.h"
