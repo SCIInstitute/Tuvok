@@ -42,11 +42,6 @@ using namespace std;
 using namespace tuvok;
 
 CullingLOD::CullingLOD(float fScreenSpaceError) :
-    m_mModelViewProjectionMatrix(),
-    m_mModelViewMatrix(),
-    m_mProjectionMatrix(),
-    m_mViewMatrix(),
-    m_mModelMatrix(),
     m_fFOVY(1.0f),
     m_fAspect(1.0f),
     m_fNearPlane(0.1f),
