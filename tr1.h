@@ -41,11 +41,5 @@
 #if __GNUC__ && (__GNUC__ == 4 && __GNUC_MINOR__ == 0)
 # define TR1_NOT_CONST_CORRECT
 #endif
-// Apple ships the broken tr1 on both 10.4 and 10.5, *despite* using gcc 4.2
-// for 10.5.  Blacklist Apple as shipping broken libraries, regardless of the
-// compiler version.  We should revisit this at some point.
-#if defined(DETECTED_OS_APPLE) && defined(__GNUC__)
-# define TR1_NOT_CONST_CORRECT
-#endif
 
 #endif /* BASICS_TR1_H */
