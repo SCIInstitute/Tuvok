@@ -31,7 +31,6 @@
   \author  Jens Krueger
            SCI Institute
            University of Utah
-  \version 1.0
   \date    August 2008
 */
 #pragma once
@@ -123,16 +122,18 @@ public:
                       const std::string& strTargetFilename,
                       const std::string& strTempDir,
                       const bool bQuantizeTo8Bit=false) const{
-    return ConvertDataset(pStack, strTargetFilename, strTempDir, m_iBuilderBrickSize,
-                          m_iBrickOverlap, bQuantizeTo8Bit);
+    return ConvertDataset(pStack, strTargetFilename, strTempDir,
+                          m_iBuilderBrickSize, m_iBrickOverlap,
+                          bQuantizeTo8Bit);
   }
   bool ConvertDataset(const std::list<std::string>& files,
                       const std::string& strTargetFilename,
                       const std::string& strTempDir,
                       const bool bNoUserInteraction=false,
                       const bool bQuantizeTo8Bit=false) const {
-    return ConvertDataset(files, strTargetFilename, strTempDir, bNoUserInteraction,
-                          m_iBuilderBrickSize,m_iBrickOverlap, bQuantizeTo8Bit);
+    return ConvertDataset(files, strTargetFilename, strTempDir,
+                          bNoUserInteraction, m_iBuilderBrickSize,
+                          m_iBrickOverlap, bQuantizeTo8Bit);
   }
 
   std::shared_ptr<tuvok::Mesh> LoadMesh(const std::string& meshfile) const;
