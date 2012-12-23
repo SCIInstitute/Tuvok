@@ -203,7 +203,7 @@ Dataset* GPUMemMan::LoadDataset(const string& strFilename,
   // not just ImageVis3D.
   for (VolDataListIter i = m_vpVolumeDatasets.begin();
        i < m_vpVolumeDatasets.end(); ++i) {
-    // Given the above, this cast is guaranteed to succeed.
+    // Given the above explanation, this cast is guaranteed to succeed.
     FileBackedDataset *dataset = dynamic_cast<FileBackedDataset*>
                                              (i->pVolumeDataset);
     assert(dataset != NULL);
@@ -219,8 +219,8 @@ Dataset* GPUMemMan::LoadDataset(const string& strFilename,
   const IOManager& mgr = *(m_MasterController->IOMan());
   /// @todo fixme: just use `Dataset's here; instead of explicitly doing the
   /// IsOpen check, below, just rely on an exception being thrown.
-  // false: assume the file has already been verified
   FileBackedDataset* dataset = dynamic_cast<FileBackedDataset*>(
+    // false: assume the file has already been verified
     mgr.CreateDataset(strFilename, mgr.GetMaxBrickSize(), false)
   );
 
