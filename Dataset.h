@@ -46,7 +46,6 @@
 #include "Basics/Grids.h"
 #include "Basics/Vectors.h"
 #include "Brick.h"
-#include "Basics/tr1.h"
 
 #define MAX_TRANSFERFUNCTION_SIZE 4096
 

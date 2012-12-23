@@ -67,12 +67,7 @@ void BrickedDataset::AddBrick(const BrickKey& bk,
 /// Looks up the spatial range of a brick.
 FLOATVECTOR3 BrickedDataset::GetBrickExtents(const BrickKey &bk) const
 {
-#ifdef TR1_NOT_CONST_CORRECT
-  BrickedDataset* cthis = const_cast<BrickedDataset*>(this);
-  BrickTable::const_iterator iter = cthis->bricks.find(bk);
-#else
   BrickTable::const_iterator iter = this->bricks.find(bk);
-#endif
   if(iter == this->bricks.end()) {
     T_ERROR("Unknown brick (%u, %u, %u)",
             static_cast<unsigned>(std::get<0>(bk)),
@@ -121,23 +116,13 @@ size_t BrickedDataset::GetLargestSingleBrickLod(size_t ts) const {
 
 const BrickMD& BrickedDataset::GetBrickMetadata(const BrickKey& k) const
 {
-#ifdef TR1_NOT_CONST_CORRECT
-  BrickedDataset* cthis = const_cast<BrickedDataset*>(this);
-  return cthis->bricks.find(k)->second;
-#else
   return this->bricks.find(k)->second;
-#endif
 }
 
 bool
 BrickedDataset::BrickIsFirstInDimension(size_t dim, const BrickKey& k) const
 {
-#ifdef TR1_NOT_CONST_CORRECT
-  BrickedDataset* cthis = const_cast<BrickedDataset*>(this);
-  const BrickMD& md = cthis->bricks.find(k)->second;
-#else
   const BrickMD& md = this->bricks.find(k)->second;
-#endif
   for(BrickTable::const_iterator iter = this->BricksBegin();
       iter != this->BricksEnd(); ++iter) {
     if(iter->second.center[dim] < md.center[dim]) {
@@ -150,12 +135,7 @@ BrickedDataset::BrickIsFirstInDimension(size_t dim, const BrickKey& k) const
 bool
 BrickedDataset::BrickIsLastInDimension(size_t dim, const BrickKey& k) const
 {
-#ifdef TR1_NOT_CONST_CORRECT
-  BrickedDataset* cthis = const_cast<BrickedDataset*>(this);
-  const BrickMD& md = cthis->bricks.find(k)->second;
-#else
   const BrickMD& md = this->bricks.find(k)->second;
-#endif
   for(BrickTable::const_iterator iter = this->BricksBegin();
       iter != this->BricksEnd(); ++iter) {
     if(iter->second.center[dim] > md.center[dim]) {
