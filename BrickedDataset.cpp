@@ -122,6 +122,7 @@ const BrickMD& BrickedDataset::GetBrickMetadata(const BrickKey& k) const
 bool
 BrickedDataset::BrickIsFirstInDimension(size_t dim, const BrickKey& k) const
 {
+  assert(dim <= 3);
   const BrickMD& md = this->bricks.find(k)->second;
   for(BrickTable::const_iterator iter = this->BricksBegin();
       iter != this->BricksEnd(); ++iter) {
@@ -135,6 +136,7 @@ BrickedDataset::BrickIsFirstInDimension(size_t dim, const BrickKey& k) const
 bool
 BrickedDataset::BrickIsLastInDimension(size_t dim, const BrickKey& k) const
 {
+  assert(dim <= 3);
   const BrickMD& md = this->bricks.find(k)->second;
   for(BrickTable::const_iterator iter = this->BricksBegin();
       iter != this->BricksEnd(); ++iter) {
