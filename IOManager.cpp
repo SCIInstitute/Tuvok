@@ -2378,7 +2378,7 @@ IOManager::EvaluateExpression(const std::string& expr,
 {
   parser_set_string(expr.c_str());
   int parse_err = yyparse();
-  std::auto_ptr<cleanup_parser> p(new cleanup_parser());
+  std::unique_ptr<cleanup_parser> p(new cleanup_parser());
   assert(!volumes.empty());
 
   if(parse_err == 1) {
