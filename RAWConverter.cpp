@@ -312,14 +312,15 @@ quantize(std::shared_ptr<LargeRAWFile> sourceData,
               iComponentSize, Histogram1D
             );
         } else {
-          MESSAGE("Dataset is 64bit integers.");
           if(bSigned) {
+            MESSAGE("Dataset is 64bit integers.");
             target =
               Quantize<int64_t, unsigned short>(
                 *sourceData, bsd, tmpQuantizedFile,
                 Histogram1D
               );
           } else {
+            MESSAGE("Dataset is 64bit unsigned integers.");
             size_t iBinCount = 0;
             target =
               Quantize<uint64_t, unsigned short>(
