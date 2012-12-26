@@ -57,7 +57,7 @@ static std::string mk_tmpfile(std::ofstream& ofs, std::ios_base::openmode mode)
   ofs.open(templ, mode);
 #else
   char templ[64];
-  strcpy(templ, "iotest.XXXXXX");
+  strcpy(templ, ".iotest.XXXXXX");
   int fd = mkstemp(templ);
   close(fd);
   ofs.open(templ, mode);
@@ -100,5 +100,33 @@ namespace {
     return minmax;
   }
 }
+
+/// Wrapper to help make sure temporary files get cleaned up.
+/// Usage:
+///   clean blah = cleanup("file1").add("another_file").add("etc.");
+class cleanup {
+public:
+  cleanup(const char* fn) { this->files.push_back(std::string(fn)); }
+  cleanup(std::string fn) { this->files.push_back(fn); }
+  cleanup& add(const char* fn) {
+    this->files.push_back(std::string(fn)); return *this;
+  }
+  cleanup& add(std::string fn) { this->files.push_back(fn); return *this; }
+
+private:
+  friend class clean;
+  std::vector<std::string> files;
+};
+
+class clean {
+public:
+  clean(const cleanup& c) { this->files = c.files; }
+  ~clean() {
+    std::for_each(files.begin(), files.end(),
+                  [](const std::string& f) { std::remove(f.c_str()); });
+  }
+private:
+  std::vector<std::string> files;
+};
 
 #endif // SCIO_TEST_UTIL_H
