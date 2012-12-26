@@ -2,6 +2,7 @@
 #ifndef UVF_H
 #define UVF_H
 
+#include <memory>
 #include "UVFBasic.h"
 
 #include "UVFTables.h"
@@ -54,14 +55,12 @@ public:
 
   const GlobalHeader& GetGlobalHeader() const {return m_GlobalHeader;}
   uint64_t GetDataBlockCount() const {return uint64_t(m_DataBlocks.size());}
-  const DataBlock* GetDataBlock(uint64_t index) const {
-    return m_DataBlocks[size_t(index)]->m_block.get();
-  }
+  const std::shared_ptr<DataBlock> GetDataBlock(uint64_t index) const;
   DataBlock* GetDataBlockRW(uint64_t index, bool bOnlyChangeHeader);
 
   // file creation routines
   bool SetGlobalHeader(const GlobalHeader& GlobalHeader);
-  bool AddConstDataBlock(const DataBlock* dataBlock);
+  bool AddConstDataBlock(std::shared_ptr<const DataBlock> dataBlock);
   bool AddDataBlock(std::shared_ptr<DataBlock> dataBlock);
   bool Create();
 

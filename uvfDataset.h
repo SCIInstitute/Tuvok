@@ -249,17 +249,17 @@ private:
   }
 
 private:
-  bool                         m_bToCBlock;
-  std::vector< Timestep* >     m_timesteps;
-  std::vector<GeometryDataBlock*> m_TriSoupBlocks;
-  const KeyValuePairDataBlock* m_pKVDataBlock;
-  UINTVECTOR3                  m_aMaxBrickSize;
-  bool                         m_bIsSameEndianness;
+  bool                                  m_bToCBlock;
+  std::vector<Timestep*>                m_timesteps;
+  std::vector<const GeometryDataBlock*> m_TriSoupBlocks;
+  const KeyValuePairDataBlock*          m_pKVDataBlock;
+  UINTVECTOR3                           m_aMaxBrickSize;
+  bool                                  m_bIsSameEndianness;
 
-  UVF*                         m_pDatasetFile;
-  std::pair<double,double>     m_CachedRange;
+  UVF*                                  m_pDatasetFile;
+  std::pair<double,double>              m_CachedRange;
 
-  uint64_t                     m_iMaxAcceptableBricksize;
+  uint64_t                              m_iMaxAcceptableBricksize;
 
   FLOATVECTOR3 GetVolCoord(uint64_t pos, const UINT64VECTOR3& domSize) {
     UINT64VECTOR3 domCoords;

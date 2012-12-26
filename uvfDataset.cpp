@@ -195,9 +195,8 @@ bool UVFDataset::Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion)
 
   if (m_TriSoupBlocks.size()) {
     MESSAGE("Extracting Meshes.");
-    for (vector<GeometryDataBlock*>::iterator tsb = m_TriSoupBlocks.begin();
-         tsb != m_TriSoupBlocks.end();
-         tsb++) {
+    for(auto tsb = m_TriSoupBlocks.begin(); tsb != m_TriSoupBlocks.end();
+        tsb++) {
       shared_ptr<uvfMesh> m(new uvfMesh(**tsb));
       m_vpMeshList.push_back(m);
 /*
@@ -444,7 +443,7 @@ size_t UVFDataset::DetermineNumberOfTimesteps()
         {
           const RasterDataBlock *rdb =
             static_cast<const RasterDataBlock*>
-                       (m_pDatasetFile->GetDataBlock(block));
+                       (m_pDatasetFile->GetDataBlock(block).get());
           if(VerifyRasterDataBlock(rdb)) {
             ++raster;
             if (rdb->ulElementDimensionSize[0] == 4 ||
@@ -458,7 +457,7 @@ size_t UVFDataset::DetermineNumberOfTimesteps()
         {
           const TOCBlock *tb =
             static_cast<const TOCBlock*>
-                       (m_pDatasetFile->GetDataBlock(block));
+                       (m_pDatasetFile->GetDataBlock(block).get());
           if(VerifyTOCBlock(tb)) {
             ++toc;
             if (tb->GetComponentCount() == 4 || tb->GetComponentCount() == 3) {
@@ -646,27 +645,30 @@ void UVFDataset::FindSuitableDataBlocks() {
       case UVFTables::BS_1D_HISTOGRAM:
         m_timesteps[hist1d++]->m_pHist1DDataBlock =
           static_cast<const Histogram1DDataBlock*>
-                     (m_pDatasetFile->GetDataBlock(iBlocks));
+                     (m_pDatasetFile->GetDataBlock(iBlocks).get());
         break;
       case UVFTables::BS_2D_HISTOGRAM:
         m_timesteps[hist2d++]->m_pHist2DDataBlock =
           static_cast<const Histogram2DDataBlock*>
-                     (m_pDatasetFile->GetDataBlock(iBlocks));
+                     (m_pDatasetFile->GetDataBlock(iBlocks).get());
         break;
       case UVFTables::BS_KEY_VALUE_PAIRS:
         if(m_pKVDataBlock != NULL) {
           WARNING("Multiple Key-Value pair blocks; using first!");
           continue;
         }
-        m_pKVDataBlock = (KeyValuePairDataBlock*)m_pDatasetFile->GetDataBlock(iBlocks);
+        m_pKVDataBlock = static_cast<const KeyValuePairDataBlock*>
+                                 (m_pDatasetFile->GetDataBlock(iBlocks).get());
         break;
       case UVFTables::BS_MAXMIN_VALUES:
-        m_timesteps[accel++]->m_pMaxMinData = (MaxMinDataBlock*)m_pDatasetFile->GetDataBlock(iBlocks);
+        m_timesteps[accel++]->m_pMaxMinData = static_cast<MaxMinDataBlock*>
+                                 (m_pDatasetFile->GetDataBlock(iBlocks).get());
         break;
       case UVFTables::BS_TOC_BLOCK:
         if (m_bToCBlock) {
           const TOCBlock* pVolumeDataBlock =
-            static_cast<const TOCBlock*>(m_pDatasetFile->GetDataBlock(iBlocks));
+            static_cast<const TOCBlock*>
+                       (m_pDatasetFile->GetDataBlock(iBlocks).get());
 
           if(!VerifyTOCBlock(pVolumeDataBlock)) {
             WARNING("A TOCBlock failed verification; skipping it");
@@ -693,8 +695,8 @@ void UVFDataset::FindSuitableDataBlocks() {
       case UVFTables::BS_REG_NDIM_GRID:
         if (!m_bToCBlock) {
           const RasterDataBlock* pVolumeDataBlock =
-                             static_cast<const RasterDataBlock*>
-                                        (m_pDatasetFile->GetDataBlock(iBlocks));
+            static_cast<const RasterDataBlock*>
+                       (m_pDatasetFile->GetDataBlock(iBlocks).get());
 
           if(!VerifyRasterDataBlock(pVolumeDataBlock)) {
             WARNING("A RasterDataBlock failed verification; skipping it");
@@ -726,7 +728,10 @@ void UVFDataset::FindSuitableDataBlocks() {
         break;
       case UVFTables::BS_GEOMETRY: {
         MESSAGE("Found triangle mesh.");
-        m_TriSoupBlocks.push_back((GeometryDataBlock*)m_pDatasetFile->GetDataBlock(iBlocks));
+        m_TriSoupBlocks.push_back(
+          static_cast<const GeometryDataBlock*>
+                     (m_pDatasetFile->GetDataBlock(iBlocks).get())
+        );
       }
       default:
         MESSAGE("Non-volume block found in UVF file, skipping.");

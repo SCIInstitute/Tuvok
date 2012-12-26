@@ -2009,12 +2009,13 @@ namespace {
   }
 }
 
-const RasterDataBlock* GetFirstRDB(const UVF& uvf)
+const std::shared_ptr<const RasterDataBlock> GetFirstRDB(const UVF& uvf)
 {
   for(uint64_t i=0; i < uvf.GetDataBlockCount(); ++i) {
     if(uvf.GetDataBlock(i)->GetBlockSemantic() == UVFTables::BS_REG_NDIM_GRID)
     {
-      return dynamic_cast<const RasterDataBlock*>(uvf.GetDataBlock(i));
+      return std::dynamic_pointer_cast<const RasterDataBlock>
+                                      (uvf.GetDataBlock(i));
     }
   }
   return NULL;
@@ -2167,7 +2168,7 @@ MaxMin(const RasterDataBlock* rdb)
 
 void
 CreateUVFFromRDB(const std::string& filename,
-                 const RasterDataBlock* rdb)
+                 const std::shared_ptr<const RasterDataBlock>& rdb)
 {
   std::wstring wide_fn(filename.begin(), filename.end());
   UVF outuvf(wide_fn);
@@ -2186,7 +2187,7 @@ CreateUVFFromRDB(const std::string& filename,
   {
     const size_t components = static_cast<size_t>(rdb->ulElementDimensionSize[0]);
     std::shared_ptr<MaxMinDataBlock> mmdb(new MaxMinDataBlock(components));
-    std::vector<DOUBLEVECTOR4> minmax = MaxMin(rdb);
+    std::vector<DOUBLEVECTOR4> minmax = MaxMin(rdb.get());
     MESSAGE("found %u brick min/maxes...",
             static_cast<unsigned>(minmax.size()));
     for(std::vector<DOUBLEVECTOR4>::const_iterator i = minmax.begin();
@@ -2208,13 +2209,13 @@ CreateUVFFromRDB(const std::string& filename,
     std::shared_ptr<Histogram1DDataBlock> hist1d(
       new Histogram1DDataBlock()
     );
-    hist1d->Compute(rdb);
+    hist1d->Compute(rdb.get());
     outuvf.AddDataBlock(hist1d);
     {
       std::shared_ptr<Histogram2DDataBlock> hist2d(
         new Histogram2DDataBlock()
       );
-      hist2d->Compute(rdb, hist1d->GetHistogram().size(), max_val);
+      hist2d->Compute(rdb.get(), hist1d->GetHistogram().size(), max_val);
       outuvf.AddDataBlock(hist2d);
     }
   }
@@ -2431,7 +2432,7 @@ IOManager::EvaluateExpression(const std::string& expr,
     std::wstring wide_vol(volumes[0].begin(), volumes[0].end());
     UVF firstvol(wide_vol);
     firstvol.Open(false, false, false);
-    const RasterDataBlock* rdb1 = GetFirstRDB(firstvol);
+    const std::shared_ptr<const RasterDataBlock> rdb1 = GetFirstRDB(firstvol);
     // Received this exception when using datasets that were converted to the
     // octree based UVF format (happens with experimental features enabled in
     // settings -- see RAWConverter::ConvertRAWDataset(...) ).
@@ -2513,7 +2514,7 @@ IOManager::EvaluateExpression(const std::string& expr,
 #endif
   }
 
-  CreateUVFFromRDB(out_fn, rdb.get());
+  CreateUVFFromRDB(out_fn, rdb);
 }
 
 bool IOManager::ReBrickDataset(const string& strSourceFilename,

@@ -313,7 +313,7 @@ bool UVF::SetGlobalHeader(const GlobalHeader& globalHeader) {
   return true;
 }
 
-bool UVF::AddConstDataBlock(const DataBlock* dataBlock) {
+bool UVF::AddConstDataBlock(std::shared_ptr<const DataBlock> dataBlock) {
   const uint64_t iSizeofData = dataBlock->ComputeDataSize();
   if (!dataBlock->Verify(iSizeofData)) return false;
 
@@ -388,6 +388,10 @@ bool UVF::Create() {
   }
 }
 
+const std::shared_ptr<DataBlock> UVF::GetDataBlock(uint64_t index) const {
+  return std::shared_ptr<DataBlock>(m_DataBlocks[size_t(index)]->m_block.get(),
+                                    nonstd::null_deleter() /* we own it. */);
+}
 
 DataBlock* UVF::GetDataBlockRW(uint64_t index, bool bOnlyChangeHeader) {
   if (bOnlyChangeHeader)
