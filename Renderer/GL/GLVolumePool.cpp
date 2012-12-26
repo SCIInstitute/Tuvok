@@ -119,7 +119,7 @@ GLVolumePool::GLVolumePool(const UINTVECTOR3& poolSize, UVFDataset* pDataset, GL
     m_maxInnerBrickSize(UINTVECTOR3(pDataset->GetMaxUsedBrickSizes())-UINTVECTOR3(pDataset->GetBrickOverlapSize())*2),
     m_maxTotalBrickSize(pDataset->GetMaxUsedBrickSizes()),
     m_volumeSize(pDataset->GetDomainSize()),
-    m_iLoDCount(uint32_t(pDataset->GetLargestSingleBrickLod(0)+1)),
+    m_iLoDCount(uint32_t(pDataset->GetLargestSingleBrickLOD(0)+1)),
     m_filter(filter),
     m_iTimeOfCreation(2),
     m_iMetaTextureUnit(0),

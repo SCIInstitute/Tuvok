@@ -98,7 +98,7 @@ bool GLGridLeaper::CreateVolumePool() {
   // find lowest LoD with only a single brick
   const BrickKey bkey = m_pToCDataset->TOCVectorToKey(
     UINTVECTOR4(0,0,0,
-        uint32_t(m_pToCDataset->GetLargestSingleBrickLod(m_iTimestep))),
+        uint32_t(m_pToCDataset->GetLargestSingleBrickLOD(m_iTimestep))),
     m_iTimestep
   );
 
@@ -250,7 +250,7 @@ bool GLGridLeaper::Initialize(std::shared_ptr<Context> ctx) {
 #ifdef GLGRIDLEAPER_WORKINGSET
   m_pWorkingSetTable = new GLHashTable(
     finestBrickLayout, finestBrickLayout.volume() *
-                       uint32_t(m_pToCDataset->GetLargestSingleBrickLod(0)),
+                       uint32_t(m_pToCDataset->GetLargestSingleBrickLOD(0)),
     Controller::ConstInstance().PHState.RehashCount, true, "workingSet"
   );
   m_pWorkingSetTable->InitGL();

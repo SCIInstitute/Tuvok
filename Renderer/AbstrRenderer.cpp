@@ -233,7 +233,7 @@ bool AbstrRenderer::LoadDataset(const string& strFilename) {
   MESSAGE("Load successful, initializing renderer!");
 
   // find the maximum LOD index
-  m_iMaxLODIndex = m_pDataset->GetLargestSingleBrickLod(0);
+  m_iMaxLODIndex = m_pDataset->GetLargestSingleBrickLOD(0);
 
   // now that we know the range of the dataset, we can set the default
   // isoval to half the range.  For CV, we'll set the isovals to a bit above
@@ -302,7 +302,7 @@ void AbstrRenderer::SetDataset(Dataset *vds) {
     delete m_pDataset;
   }
   m_pDataset = vds;
-  m_iMaxLODIndex = m_pDataset->GetLargestSingleBrickLod(0);
+  m_iMaxLODIndex = m_pDataset->GetLargestSingleBrickLOD(0);
   Controller::Instance().MemMan()->AddDataset(m_pDataset, this);
   ScheduleCompleteRedraw();
 }
