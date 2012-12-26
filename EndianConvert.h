@@ -120,7 +120,7 @@ namespace EndianConvert {
       int i;
       char c[sizeof(int)];
     } tmp;
-    assert (sizeof(int)>1);
+    static_assert(sizeof(int) > 1, "else we won't test the right thing.");
     tmp.i=0x1020;
     return tmp.c[0]!=0x20;
   }
