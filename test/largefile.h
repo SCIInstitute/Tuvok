@@ -72,6 +72,7 @@ namespace {
   template<class T> void lf_generic_write() {
     std::ofstream ofs;
     const std::string tmpf = mk_tmpfile(ofs, std::ios::out | std::ios::binary);
+    clean f = cleanup(tmpf);
     ofs.close();
 
     const size_t N = 64;
@@ -93,7 +94,6 @@ namespace {
         TS_ASSERT_EQUALS(data[i], VALUE);
       }
     }
-    remove(tmpf.c_str());
   }
 }
 
@@ -103,6 +103,7 @@ namespace {
   template<class T> void lf_generic_write_only() {
     std::ofstream ofs;
     const std::string tmpf = mk_tmpfile(ofs, std::ios::out | std::ios::binary);
+    clean f = cleanup(tmpf);
     ofs.close();
 
     const size_t N = 64;
@@ -120,7 +121,6 @@ namespace {
       ifs.exceptions(std::fstream::failbit | std::fstream::badbit);
       if(!ifs.is_open()) {
         TS_FAIL("Could not open the file we just wrote!");
-        goto end;
       }
       int64_t elem;
       for(size_t i=0; i < N; ++i) {
@@ -129,7 +129,6 @@ namespace {
         TS_ASSERT_EQUALS(elem, VALUE);
       }
     }
-    end: remove(tmpf.c_str());
   }
 }
 
@@ -139,6 +138,7 @@ namespace {
     EnableDebugMessages dbg;
     std::ofstream ofs;
     const std::string tmpf = mk_tmpfile(ofs, std::ios::out | std::ios::binary);
+    clean f = cleanup(tmpf);
     ofs.close();
 
     // we'll write N elements of VALUE[0], then N of VALUE[1].  Then we'll use
@@ -167,7 +167,6 @@ namespace {
         TS_ASSERT_EQUALS(data[i], VALUE[1]);
       }
     }
-    remove(tmpf.c_str());
   }
 }
 
@@ -179,6 +178,7 @@ namespace {
   template<class T> void lf_generic_large_header() {
     std::ofstream ofs;
     const std::string tmpf = mk_tmpfile(ofs, std::ios::out | std::ios::binary);
+    clean f = cleanup(tmpf);
     ofs.close();
 
     const size_t N = 64;
@@ -210,7 +210,6 @@ namespace {
         TS_ASSERT_EQUALS(data[i], VALUE[1]);
       }
     }
-    remove(tmpf.c_str());
   }
 }
 
@@ -218,6 +217,7 @@ namespace {
 void lf_aio_nocopy() {
   std::ofstream ofs;
   const std::string tmpf = mk_tmpfile(ofs, std::ios::out | std::ios::binary);
+  clean f = cleanup(tmpf);
   ofs.close();
 
   const size_t N = 64;
@@ -242,7 +242,6 @@ void lf_aio_nocopy() {
     ifs.exceptions(std::fstream::failbit | std::fstream::badbit);
     if(!ifs.is_open()) {
       TS_FAIL("Could not open the file we just wrote!");
-      goto end;
     }
     ifs.seekg(offset); // jump past the offset we should have skipped above
     int64_t elem;
@@ -254,7 +253,6 @@ void lf_aio_nocopy() {
       }
     }
   }
-  end: remove(tmpf.c_str());
 }
 
 // does a bunch of writes followed by a read.  Hints that we'll need the read
@@ -263,6 +261,7 @@ namespace {
   template<typename T> void lf_generic_enqueue() {
     std::ofstream ofs;
     const std::string tmpf = mk_tmpfile(ofs, std::ios::out | std::ios::binary);
+    clean f = cleanup(tmpf);
     ofs.close();
 
     const size_t N = 64;
@@ -286,7 +285,6 @@ namespace {
     for(size_t i=0; i < N; ++i) {
       TS_ASSERT_EQUALS(data[i], VALUE[0]);
     }
-    remove(tmpf.c_str());
   }
 }
 
@@ -295,6 +293,7 @@ namespace {
   template<class T> void lf_generic_reopen() {
     std::ofstream ofs;
     const std::string tmpf = mk_tmpfile(ofs, std::ios::out | std::ios::binary);
+    clean f = cleanup(tmpf);
     ofs.close();
 
     const size_t N = 64;
@@ -314,8 +313,6 @@ namespace {
     std::shared_ptr<const void> mem = lfread.rd(0, sizeof(int64_t)*N);
     const int64_t* data = static_cast<const int64_t*>(mem.get());
     for(size_t i=0; i < N; ++i) { TS_ASSERT_EQUALS(data[i], VALUE); }
-
-    remove(tmpf.c_str());
   }
 }
 
@@ -323,6 +320,7 @@ namespace {
 static void lf_truncate() {
   std::ofstream ofs;
   const std::string tmpf = mk_tmpfile(ofs, std::ios::out | std::ios::binary);
+  clean f = cleanup(tmpf);
 
   const size_t N = 64;
   const int64_t VALUE = -42;
@@ -342,8 +340,6 @@ static void lf_truncate() {
     ifs.read(reinterpret_cast<char*>(&test), sizeof(int64_t));
     TS_ASSERT(ifs.fail()); // ... but that read should have broken it.
   }
-
-  remove(tmpf.c_str());
 }
 
 // tests convenience read/write of a single value calls
@@ -351,6 +347,7 @@ namespace {
   template<class T> void lf_generic_rw_single() {
     std::ofstream ofs;
     const std::string tmpf = mk_tmpfile(ofs, std::ios::out | std::ios::binary);
+    clean fclean = cleanup(tmpf);
     ofs.close();
 
     int8_t s8 = -7;
@@ -399,7 +396,6 @@ namespace {
       TS_ASSERT_DELTA(f, 9.81, 0.0001);
       TS_ASSERT_DELTA(d, 4.242, 0.0001);
     }
-    remove(tmpf.c_str());
   }
 }
 
@@ -408,6 +404,7 @@ namespace {
   template<class T> void lf_generic_truncate() {
     std::ofstream ofs;
     const std::string tmpf = mk_tmpfile(ofs, std::ios::out | std::ios::binary);
+    clean f = cleanup(tmpf);
     ofs.close();
 
     const size_t N = 64;
@@ -449,7 +446,6 @@ namespace {
         TS_ASSERT_EQUALS(data[i], VALUE[2]);
       }
     }
-    remove(tmpf.c_str());
   }
 }
 
@@ -458,6 +454,7 @@ namespace {
   template<class T> void lf_generic_wroffset() {
     std::ofstream ofs;
     const std::string tmpf = mk_tmpfile(ofs, std::ios::out | std::ios::binary);
+    clean f = cleanup(tmpf);
     ofs.close();
     const size_t N = 64;
     const int64_t VALUE[] = { -42, 96, 67 };
@@ -475,7 +472,6 @@ namespace {
       lf.seek(0);
       TS_ASSERT_EQUALS(lf.offset(), static_cast<uint64_t>(0));
     }
-    remove(tmpf.c_str());
   }
 }
 
@@ -484,6 +480,7 @@ namespace {
   template<class T> void lf_generic_rdoffset() {
     std::ofstream ofs;
     const std::string tmpf = mk_tmpfile(ofs, std::ios::out | std::ios::binary);
+    clean f = cleanup(tmpf);
     const size_t N = 64;
     const int64_t VALUE[] = { -42 };
     {
@@ -504,8 +501,6 @@ namespace {
       TS_ASSERT_EQUALS(lf.offset(), sizeof(int64_t)*((N/4)+1));
       TS_ASSERT_EQUALS(data[0], VALUE[0]);
     }
-
-    remove(tmpf.c_str());
   }
 }
 

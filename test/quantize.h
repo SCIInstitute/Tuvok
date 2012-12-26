@@ -105,6 +105,7 @@ void verify_type() {
     outfn = mk_tmpfile(dataf, std::ios::out | std::ios::binary);
     dataf.close();
   }
+  clean fclean = cleanup(fn).add(outfn);
 
   Histogram1DDataBlock hist1d;
   {
@@ -147,8 +148,6 @@ void verify_type() {
     }
   }
   outdata.close();
-  remove(fn.c_str());
-  remove(outfn.c_str());
 
   // now verify 1D histogram
   const std::vector<uint64_t>& histo = hist1d.GetHistogram();
@@ -199,6 +198,7 @@ void verify_8b_type() {
     outfn = mk_tmpfile(dataf, std::ios::out | std::ios::binary);
     dataf.close();
   }
+  clean fclean = cleanup(fn).add(outfn);
 
   Histogram1DDataBlock hist1d;
   {
@@ -234,8 +234,6 @@ void verify_8b_type() {
     }
   }
   outdata.close();
-  remove(fn.c_str());
-  remove(outfn.c_str());
 
   // now verify 1D histogram
   const std::vector<uint64_t>& histo = hist1d.GetHistogram();
