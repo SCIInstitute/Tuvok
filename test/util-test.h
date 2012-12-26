@@ -1,5 +1,6 @@
 #ifndef SCIO_TEST_UTIL_H
 #define SCIO_TEST_UTIL_H
+#include <algorithm>
 #include <cstring>
 #include <fstream>
 #include <random>
