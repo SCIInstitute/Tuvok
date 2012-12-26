@@ -588,7 +588,7 @@ BrickTable::size_type UVFDataset::GetBrickCount(size_t lod, size_t iTs) const
   }
 }
 
-size_t UVFDataset::GetLargestSingleBrickLod(size_t ts) const {
+size_t UVFDataset::GetLargestSingleBrickLOD(size_t ts) const {
   for (size_t iLoD = 0;iLoD<GetLODLevelCount();++iLoD) {
     if (GetBrickCount(iLoD, ts) == 1) return iLoD;
   }

@@ -100,7 +100,7 @@ public:
   /// @return the number of bricks in a given LoD + timestep.
   virtual BrickTable::size_type GetBrickCount(size_t lod, size_t ts) const = 0;
   /// @return the LOD idx for a large 1-brick LOD.
-  virtual size_t GetLargestSingleBrickLod(size_t ts) const=0;
+  virtual size_t GetLargestSingleBrickLOD(size_t ts) const=0;
 
   virtual bool BrickIsFirstInDimension(size_t, const BrickKey&) const = 0;
   virtual bool BrickIsLastInDimension(size_t, const BrickKey&) const = 0;

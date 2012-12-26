@@ -103,7 +103,7 @@ BrickTable::size_type BrickedDataset::GetBrickCount(size_t lod, size_t ts) const
   return count;
 }
 
-size_t BrickedDataset::GetLargestSingleBrickLod(size_t ts) const {
+size_t BrickedDataset::GetLargestSingleBrickLOD(size_t ts) const {
   const size_t n_lods = this->GetLODLevelCount();
   for(size_t lod=0; lod < n_lods; ++lod) {
     if(this->GetBrickCount(lod, ts) == 1) {
