@@ -389,7 +389,7 @@ static bool ApplyMapping(const uint64_t iSize,
   // now compute histogram
   size_t hist_size = binAssignments.size();
   if(sizeof(U) == 1) { hist_size = 256; }
-  assert(sizeof(U) <= 2);
+  static_assert(sizeof(U) <= 2, "we assume histo sizes");
 
   std::vector<uint64_t> aHist(hist_size, 0);
   std::pair<T,T> minmax;
@@ -427,7 +427,7 @@ static bool Quantize(LargeRAWFile& InputData,
   // types.  Make sure we only deal with 8 and 16 bit outputs.
   size_t hist_size = 4096;
   if(sizeof(U) == 1) { hist_size = 256; }
-  assert(sizeof(U) <= 2);
+  static_assert(sizeof(U) <= 2, "we assume histogram sizes");
 
   const size_t iCurrentInCoreSizeBytes = AbstrConverter::GetIncoreSize();
   const size_t iCurrentInCoreElems = iCurrentInCoreSizeBytes / sizeof(T);

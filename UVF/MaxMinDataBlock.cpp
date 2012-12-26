@@ -132,11 +132,11 @@ uint64_t MaxMinDataBlock::ComputeDataSize() const {
   // add a write for it in CopyToFile, but you also need to come here and
   // increment the size by 8.  Hopefully this assert will clue you in if you
   // forget to do that.
-  assert(sizeof(InternalMaxMinComponent) == 32 &&
-         "assuming there are 4 values per element/component!");
-  return sizeof(uint64_t) +                                       // length of the vector
-         sizeof(uint64_t) +                                       // component count
-         32 * m_vfMaxMinData.size() * m_iComponentCount;        // vector of data
+  static_assert(sizeof(InternalMaxMinComponent) == 32,
+                "assuming there are 4 values per element/component!");
+  return sizeof(uint64_t) +                              // length of the vector
+         sizeof(uint64_t) +                              // component count
+         32 * m_vfMaxMinData.size() * m_iComponentCount; // vector of data
 }
 
 const InternalMaxMinComponent& MaxMinDataBlock::GetValue(size_t iIndex, size_t iComponent) const {

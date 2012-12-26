@@ -28,7 +28,6 @@
 %{
 #define YYPARSE_PARAM scanner
 #define YYLEX_PARAM   scanner
-#include <cassert>
 #include <cstdio>
 #include <iostream>
 
