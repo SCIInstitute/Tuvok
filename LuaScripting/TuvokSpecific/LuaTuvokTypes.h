@@ -91,10 +91,8 @@ public:
     // There should be a table at 'pos', containing four numerical elements.
     luaL_checktype(L, pos, LUA_TTABLE);
 
-    // Check the metatable.
-    if (isOurType(L, pos) == false)
-      throw LuaError("Attempting to convert a vector type that is missing its "
-                     "metatable.");
+    // We don't check the metatable here anymore. It is valid to take a table
+    // containing 4 numerical elements, and convert that into a vector.
 
     lua_pushinteger(L, 1);
     lua_gettable(L, pos);
@@ -403,7 +401,7 @@ public:
   {
     Type ret;
 
-    // There should be a table at 'pos', containing four numerical elements.
+    // There should be a table at 'pos', containing three numerical elements.
     luaL_checktype(L, pos, LUA_TTABLE);
 
     lua_pushinteger(L, 1);

@@ -330,6 +330,10 @@ void MasterController::RegisterLuaCommands() {
   AddLuaRendererType(renderer, "DirectX_Raycaster", DIRECTX_RAYCASTER);
   AddLuaRendererType(renderer, "DirectX_GridLeaper", DIRECTX_GRIDLEAPER);
 
+  AddLuaRendererType(renderer, "RT_Interactive", AbstrRenderer::RT_INTERACTIVE);
+  AddLuaRendererType(renderer, "RT_Capture", AbstrRenderer::RT_CAPTURE);
+  AddLuaRendererType(renderer, "RT_Headless", AbstrRenderer::RT_HEADLESS);
+
   // Register RenderRegion3D.
   ss->registerClass<RenderRegion>(this,
       &MasterController::LuaCreateRenderRegion3D,
