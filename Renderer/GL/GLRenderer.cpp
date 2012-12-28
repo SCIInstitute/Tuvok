@@ -1666,6 +1666,13 @@ void GLRenderer::DrawBackGradient() const {
   glPopMatrix();
 }
 
+bool GLRenderer::CaptureSingleFrame(const std::string& strFilename,
+                                    bool bPreserveTransparency) const {
+  return m_FrameCapture.CaptureSingleFrame(strFilename, 
+                                           GetLastFBO(),
+                                           bPreserveTransparency);
+}
+
 void GLRenderer::Cleanup() {
   m_TargetBinder.Unbind(); // make sure nothing is bound before we delete the buffers
 

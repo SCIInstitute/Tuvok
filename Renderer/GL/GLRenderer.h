@@ -45,6 +45,7 @@
 #include "Renderer/AbstrRenderer.h"
 #include "GLTargetBinder.h"
 #include "GLStateManager.h"
+#include "GLFrameCapture.h"
 #include "RenderMeshGL.h"
 
 namespace tuvok {
@@ -102,7 +103,7 @@ class GLRenderer : public AbstrRenderer {
                      DOUBLEVECTOR3 vAspectRatio, DOUBLEVECTOR2 vWinAspectRatio);
     virtual void NewFrameClear(const RenderRegion& renderRegion);
 
-    GLFBOTex* GetLastFBO() { return m_pFBO3DImageLast; }
+    GLFBOTex* GetLastFBO() const { return m_pFBO3DImageLast; }
     
     virtual void ScanForNewMeshes();
 
@@ -129,6 +130,7 @@ class GLRenderer : public AbstrRenderer {
     GLSLProgram*    m_pProgramHQMIPRot;
     Timer           m_Timer;
     GPUState        m_BaseState;
+    GLFrameCapture  m_FrameCapture;
 
     void MaxMinBoxToVector(const FLOATVECTOR3& vMinPoint,
                            const FLOATVECTOR3& vMaxPoint,
@@ -151,6 +153,8 @@ class GLRenderer : public AbstrRenderer {
                         bool& completedJob);
     void DrawLogo() const;
     void DrawBackGradient() const;
+    bool CaptureSingleFrame(const std::string& strFilename,
+                            bool bPreserveTransparency) const;
 
     virtual bool Continue3DDraw();
 

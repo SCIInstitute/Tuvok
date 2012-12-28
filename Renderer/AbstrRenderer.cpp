@@ -1743,6 +1743,11 @@ void AbstrRenderer::ClearRendererMeshes() {
   m_Meshes.clear();
 }
 
+bool AbstrRenderer::CaptureSingleFrame(const std::string& strFilename,
+                                       bool bPreserveTransparency) const {
+  return false;
+}
+
 /// Hacks!  These just do nothing.
 void AbstrRenderer::PH_ClearWorkingSet() { }
 void AbstrRenderer::PH_SetPagedBricks(size_t) { }
@@ -2235,6 +2240,9 @@ void AbstrRenderer::RegisterLuaFunctions(
   id = reg.function(&AbstrRenderer::GetFrustumCullingLODLevel,
                     "getFrustumCullingLODLevel",
                     "", true);
+
+  id = reg.function(&AbstrRenderer::CaptureSingleFrame,
+                    "captureSingleFrame", "Captures current FBO state.", true);
 
   /// Register renderer specific functions.
   me->RegisterDerivedClassLuaFunctions(reg, ss);

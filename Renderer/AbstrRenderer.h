@@ -403,6 +403,8 @@ class AbstrRenderer {
     virtual bool  GetStereoEyeSwap() const {return m_bStereoEyeSwap;}
     virtual void InitStereoFrame();
     virtual void ToggleStereoFrame();
+    virtual bool CaptureSingleFrame(const std::string& strFilename,
+                                    bool bPreserveTransparency) const;
 
     virtual void ScheduleCompleteRedraw();
     /** Query whether or not we should redraw the next frame, else we should
