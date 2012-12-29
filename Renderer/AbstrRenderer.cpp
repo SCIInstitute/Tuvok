@@ -1743,8 +1743,8 @@ void AbstrRenderer::ClearRendererMeshes() {
   m_Meshes.clear();
 }
 
-bool AbstrRenderer::CaptureSingleFrame(const std::string& strFilename,
-                                       bool bPreserveTransparency) const {
+bool AbstrRenderer::CaptureSingleFrame(const std::string&,
+                                       bool) const {
   return false;
 }
 
