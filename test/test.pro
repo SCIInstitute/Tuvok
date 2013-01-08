@@ -25,15 +25,6 @@ macx:QMAKE_CXXFLAGS += -stdlib=libc++ -mmacosx-version-min=10.7
 macx:QMAKE_CFLAGS += -mmacosx-version-min=10.7
 macx:LIBS        += -stdlib=libc++ -mmacosx-version-min=10.7 -framework CoreFoundation
 
-# If this is a 10.5 machine, build for both x86 and x86_64.  Not
-# the best idea (there's no guarantee the machine will have a
-# 64bit compiler), but the best we can do via qmake.
-macx {
-    exists(/Developer/SDKs/MacOSX10.5.sdk/) {
-        CONFIG += x86 x86_64
-    }
-}
-
 ### Should we link Qt statically or as a shared lib?
 # Find the location of QtGui's prl file, and include it here so we can look at
 # the QMAKE_PRL_CONFIG variable.
