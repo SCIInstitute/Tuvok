@@ -1,18 +1,20 @@
 TEMPLATE          = app
 win32:TEMPLATE    = vcapp
-CONFIG           += exceptions largefile link_prl rtti static stl warn_on
+CONFIG           += exceptions largefile link_prl qt rtti static stl warn_on
 TARGET            = cxxtester
 DEFINES          += _FILE_OFFSET_BITS=64
 DEPENDPATH       += . ../
 INCLUDEPATH      += ../ ../../ ../3rdParty/boost ../3rdParty/cxxtest
 INCLUDEPATH      += ../../Basics
-QT               += opengl
+QT               += core gui opengl
 QMAKE_LIBDIR     += ../../Build ../expressions
 LIBS             += -lTuvok -ltuvokexpr
-unix:LIBS        += -lz
+unix:LIBS        += -lz -lGLU -lGL
 unix:!macx:LIBS  += -lrt
 win32:LIBS       += shlwapi.lib
 unix:QMAKE_CXXFLAGS += -std=c++0x
+unix:QMAKE_CXXFLAGS += -fopenmp
+unix:QMAKE_LFLAGS += -fopenmp
 unix:QMAKE_CXXFLAGS += -fno-strict-aliasing
 unix:QMAKE_CFLAGS += -fno-strict-aliasing
 unix:CONFIG(debug, debug|release) {
