@@ -10,7 +10,7 @@ QT               += core gui opengl
 QMAKE_LIBDIR     += ../../Build ../expressions
 LIBS             += -lTuvok -ltuvokexpr
 unix:LIBS        += -lz
-unix:!macx:LIBS  += -lrt -lGLU -GL
+unix:!macx:LIBS  += -lrt -lGLU -lGL
 win32:LIBS       += shlwapi.lib
 unix:QMAKE_CXXFLAGS += -std=c++0x
 unix:!macx:QMAKE_CXXFLAGS += -fopenmp
