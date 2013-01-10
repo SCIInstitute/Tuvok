@@ -9,12 +9,12 @@ INCLUDEPATH      += ../../Basics
 QT               += core gui opengl
 QMAKE_LIBDIR     += ../../Build ../expressions
 LIBS             += -lTuvok -ltuvokexpr
-unix:LIBS        += -lz -lGLU -lGL
-unix:!macx:LIBS  += -lrt
+unix:LIBS        += -lz
+unix:!macx:LIBS  += -lrt -lGLU -GL
 win32:LIBS       += shlwapi.lib
 unix:QMAKE_CXXFLAGS += -std=c++0x
-unix:QMAKE_CXXFLAGS += -fopenmp
-unix:QMAKE_LFLAGS += -fopenmp
+unix:!macx:QMAKE_CXXFLAGS += -fopenmp
+unix:!macx:QMAKE_LFLAGS += -fopenmp
 unix:QMAKE_CXXFLAGS += -fno-strict-aliasing
 unix:QMAKE_CFLAGS += -fno-strict-aliasing
 unix:CONFIG(debug, debug|release) {
