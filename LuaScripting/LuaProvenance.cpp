@@ -291,7 +291,7 @@ void LuaProvenance::logExecution(const string& fname,
   }
   else
   {
-    assert(mUndoRedoStack.size() > 0);
+    assert(!mUndoRedoStack.empty());
     // Push a child (child on the top of the stack -- we know there must be an
     // entry on the top of the stack because our depth is greater than 0).
     mUndoRedoStack.back().addChildItem(
@@ -952,7 +952,7 @@ bool LuaProvenance::testLastURItemHasCreatedItems(const vector<int>&
 //-----------------------------------------------------------------------------
 void LuaProvenance::setLastURItemAlsoRedoChildren()
 {
-  if (mUndoRedoStack.size() > 0)
+  if (!mUndoRedoStack.empty())
   {
     mUndoRedoStack.back().alsoRedoChildren = true;
   }

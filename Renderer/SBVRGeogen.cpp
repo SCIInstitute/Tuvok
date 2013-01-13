@@ -345,15 +345,14 @@ void SBVRGeogen::MeshEntryToVertexFormat(std::vector<VERTEX_FORMAT>& list,
 
 
 void SBVRGeogen::SortMeshWithoutVolume(std::vector<VERTEX_FORMAT>& list) {
-  if (m_mesh.size() > 0) {
-
+  if (!m_mesh.empty()) {
     std::sort(m_mesh.begin(), m_mesh.end(), DistanceSortUnder);
 
     for (SortIndexPVec::const_iterator index = m_mesh.begin();
          index != m_mesh.end();
          index++) {
-      
-      MeshEntryToVertexFormat(list, (*index)->m_mesh, (*index)->m_index, m_bClipMesh);
+      MeshEntryToVertexFormat(list, (*index)->m_mesh, (*index)->m_index,
+                              m_bClipMesh);
     }
   }
 }

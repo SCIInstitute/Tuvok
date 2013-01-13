@@ -1056,7 +1056,7 @@ GLFBOTex* GPUMemMan::GetFBO(GLenum minfilter, GLenum magfilter,
 
   // if we are running out of mem, kick out bricks to create room for the FBO
   while (m_iAllocatedCPUMemory + m_iCPUMemEstimate >
-         m_SystemInfo->GetMaxUsableCPUMem() && m_vpTex3DList.size() > 0) {
+         m_SystemInfo->GetMaxUsableCPUMem() && !m_vpTex3DList.empty()) {
     MESSAGE("Not enough memory for FBO %i x %i x %i, "
             "paging out bricks ...", int(width), int(height), iNumBuffers);
 

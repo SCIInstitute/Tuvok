@@ -575,7 +575,7 @@ string LuaScripting::getInfoHelp(LuaTable table)
     if (end != string::npos)
     {
       tmpStr = commaDelimitedParams.substr(beg, end - beg);
-      if (tmpStr.size() > 0)
+      if (!tmpStr.empty())
         tokens.push_back(tmpStr);
       beg = end + 1;
       if (beg == commaDelimitedParams.size())
@@ -585,7 +585,7 @@ string LuaScripting::getInfoHelp(LuaTable table)
     else
     {
       tmpStr = commaDelimitedParams.substr(beg, string::npos);
-      if (tmpStr.size() > 0)
+      if (!tmpStr.empty())
         tokens.push_back(tmpStr);
     }
   }
@@ -638,12 +638,12 @@ string LuaScripting::getInfoHelp(LuaTable table)
       ostringstream infoStream;
       infoStream << "   " << *it;
 
-      if (paramName.size() > 0)
+      if (!paramName.empty())
       {
         infoStream << " " << paramName;
       }
 
-      if (paramInfo.size() > 0)
+      if (!paramInfo.empty())
       {
         infoStream << " -- " << paramInfo;
       }
@@ -695,12 +695,12 @@ string LuaScripting::getInfoHelp(LuaTable table)
       lua_pop(mL, 1);
     }
 
-    if (paramName.size() > 0)
+    if (!paramName.empty())
     {
       ret << " " << paramName;
     }
 
-    if (paramInfo.size() > 0)
+    if (!paramInfo.empty())
     {
       ret << " -- " << paramInfo;
     }
@@ -2267,7 +2267,7 @@ void LuaScripting::logExecFailure(const std::string& failure)
 {
   ostringstream os;
   os << " -- FAILED";
-  if (failure.size() > 0)
+  if (!failure.empty())
   {
     os << ": " << failure;
   }
