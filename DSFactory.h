@@ -61,7 +61,7 @@ public:
   /// @param maximum brick size allowed by the caller
   /// @param whether the dataset should do expensive work to verify that the
   ///        file is valid/correct.
-  Dataset* Create(const std::string&, uint64_t, bool) const throw(DSOpenFailed);
+  Dataset* Create(const std::string&, uint64_t, bool) const;
 
   /// Identify the reader which can read the given file.
   /// @return The dataset if we find a match, or NULL if not.
