@@ -220,21 +220,21 @@ int LuaScripting::luaPanic(lua_State* L)
   ostringstream os;
   os << "Error description from Lua: '" << lua_tostring(L, -1) << "'.";
 
-  // Obtain extra debugging information.
-  lua_Debug ar;
-  if (lua_getstack(L, 1, &ar) == 1)
-  {
-    lua_getinfo(L, "nSl", &ar); // name, namewhat, source, short_src, 
-                                // linedefined, lastlinedefined, what,
-                                // currentline
+  //// Obtain extra debugging information.
+  //lua_Debug ar;
+  //if (lua_getstack(L, 1, &ar) == 1)
+  //{
+  //  lua_getinfo(L, "nSl", &ar); // name, namewhat, source, short_src, 
+  //                              // linedefined, lastlinedefined, what,
+  //                              // currentline
 
-    os << "Lua state info -- name: '" << ar.name << "' "
-       << "namewhat: '" << ar.namewhat << "'" << " source: '"
-       << ar.source << "' short_src: '" << ar.short_src << "' linedefined: '"
-       << ar.linedefined << "' lastlinedefined: '" << ar.lastlinedefined
-       << "' what: '" << ar.what << "' currentline: '" << ar.currentline << "'"
-       << std::endl;
-  }
+  //  os << "Lua state info -- name: '" << ar.name << "' "
+  //     << "namewhat: '" << ar.namewhat << "'" << " source: '"
+  //     << ar.source << "' short_src: '" << ar.short_src << "' linedefined: '"
+  //     << ar.linedefined << "' lastlinedefined: '" << ar.lastlinedefined
+  //     << "' what: '" << ar.what << "' currentline: '" << ar.currentline << "'"
+  //     << std::endl;
+  //}
 
   lua_getfield(L, LUA_REGISTRYINDEX,
                  LuaScripting::REG_EXPECTED_EXCEPTION_FLAG);
