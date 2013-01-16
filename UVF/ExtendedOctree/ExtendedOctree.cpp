@@ -365,8 +365,11 @@ bool ExtendedOctree::SetGlobalAspect(const DOUBLEVECTOR3& vVolumeAspect) {
 
   // change aspect ratio entries
   m_vVolumeAspect = vVolumeAspect;
-  m_pLargeRAWFile->SeekPos(m_iOffset+sizeof(ExtendedOctree::COMPONENT_TYPE) 
-                            + sizeof(uint64_t) + 3 * sizeof(uint64_t));        
+  m_pLargeRAWFile->SeekPos(m_iOffset
+                           + sizeof(ExtendedOctree::COMPONENT_TYPE) 
+                           + sizeof(uint64_t)    // Component count
+                           + sizeof(bool)        // Precomputed normals
+                           + 3 * sizeof(uint64_t));// volume size
   m_pLargeRAWFile->WriteData(m_vVolumeAspect.x, isBE);
   m_pLargeRAWFile->WriteData(m_vVolumeAspect.y, isBE);
   m_pLargeRAWFile->WriteData(m_vVolumeAspect.z, isBE);
