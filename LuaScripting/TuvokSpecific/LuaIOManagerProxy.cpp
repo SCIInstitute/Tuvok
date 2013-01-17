@@ -135,6 +135,9 @@ void LuaIOManagerProxy::bind()
                                nm + "setClampToEdge", "", false);
     id = mReg.registerFunction(mIO, &IOManager::SetCompression,
                                nm + "setUVFCompression", "", false);
+    id = mReg.registerFunction(mIO, &IOManager::SetLayout,
+                               nm + "setUVFLayout", "Select brick ordering"
+                               " on disk", false);
     id = mReg.registerFunction(mIO, &IOManager::ScanDirectory,
                                nm + "scanDirectory", "", false);
     id = mReg.registerFunction(mIO, &IOManager::RegisterFinalConverter,

@@ -1992,6 +1992,12 @@
     <ClInclude Include="Basics\BStream.h">
       <Filter>Basics</Filter>
     </ClInclude>
+    <ClInclude Include="IO\UVF\ExtendedOctree\Hilbert.h">
+      <Filter>IO\UVF\ExtendedOctree</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\UVF\ExtendedOctree\Hilbert.inc">
+      <Filter>IO\UVF\ExtendedOctree</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Basics\MC.inl">

@@ -207,6 +207,7 @@ HEADERS += \
            IO/UVF/ExtendedOctree/ExtendedOctree.h \
            IO/UVF/ExtendedOctree/ExtendedOctreeConverter.h \
            IO/UVF/ExtendedOctree/VolumeTools.h \
+           IO/UVF/ExtendedOctree/Hilbert.h \
            IO/UVF/ExtendedOctree/zlib-compression.h \
            IO/TTIFFWriter/TTIFFWriter.h \
            IO/VariantArray.h \

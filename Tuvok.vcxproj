@@ -1336,6 +1336,8 @@
     <ClInclude Include="IO\TTIFFWriter\TTIFFWriter.h" />
     <ClInclude Include="IO\UVF\ExtendedOctree\ExtendedOctree.h" />
     <ClInclude Include="IO\UVF\ExtendedOctree\ExtendedOctreeConverter.h" />
+    <ClInclude Include="IO\UVF\ExtendedOctree\Hilbert.h" />
+    <ClInclude Include="IO\UVF\ExtendedOctree\Hilbert.inc" />
     <ClInclude Include="IO\UVF\ExtendedOctree\VolumeTools.h" />
     <ClInclude Include="IO\UVF\ExtendedOctree\zlib-compression.h" />
     <ClInclude Include="IO\UVF\TOCBlock.h" />
