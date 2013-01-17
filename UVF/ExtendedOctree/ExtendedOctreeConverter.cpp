@@ -587,7 +587,18 @@ void ExtendedOctreeConverter::ComputeStatsCompressAndPermuteAll(ExtendedOctree& 
 
   // build occupied space table, should be very efficient if ToC is ordered
   for (size_t i = 0; i < tree.m_vTOC.size(); ++i)
+    // NOTICE: We would like to use the map::emplace_hint method here in order
+    //         guarantee the right behavior but that's currently not supported
+    //         by gcc 4.6 on our open suse test machine.
+    //         We use map::insert instead with a insertion position hint that
+    //         SHOULD be C++11 conform otherwise this part will be VERY SLOW
+    //         because the semantic of the position iterator argument changed
+    //         from C++98 to C++11!
+#ifdef DETECTED_OS_WINDOWS
     occupiedSpace.emplace_hint(occupiedSpace.cend(), Uint64Map::value_type(tree.m_vTOC[i].m_iOffset, i));
+#else
+    occupiedSpace.insert(occupiedSpace.cend(), Uint64Map::value_type(tree.m_vTOC[i].m_iOffset, i));
+#endif
 
   uint64_t iProgress = 0; // global brick progress counter
   for (uint64_t lod = 0; lod < tree.GetLODCount(); ++lod)
@@ -633,7 +644,11 @@ void ExtendedOctreeConverter::ComputeStatsCompressAndPermuteAll(ExtendedOctree& 
           uint64_t const iLength = thisRecord.m_iLength; // disk length before fetch
           thisData = Fetch(tree, thisIndex, pUncompressed);
           if (occupiedSpace.begin()->second != thisIndex) {
+#ifdef DETECTED_OS_WINDOWS
             emptySpace.emplace(Uint64Map::value_type(thisRecord.m_iOffset, iLength));
+#else
+            emptySpace.insert(Uint64Map::value_type(thisRecord.m_iOffset, iLength));
+#endif
           } else {
             emptyLength += iLength; // we just fetched the next brick in file
           }

@@ -21,7 +21,7 @@ namespace Hilbert {
 template<size_t nDims, size_t nBits, class Bitmask, class Halfmask = Bitmask>
 class Curve {
 public:
-  typedef typename Bitmask Index;
+  typedef Bitmask Index;
   typedef typename std::array<Bitmask, nDims> Point;
 
   /**
@@ -43,33 +43,29 @@ private:
   static Bitmask BitTranspose(Bitmask inCoords);
 };
 
-namespace {
+// Convenient 2D decode wrapper that takes the number of bits as an argument
+template<class T>
+void Decode(size_t nBits, T index, typename std::array<T, 2>& point) {
+  static_assert(sizeof(T) != sizeof(T), "template specialization required");
+}
 
-  // Convenient 2D decode wrapper that takes the number of bits as an argument
-  template<class T>
-  void Decode(size_t nBits, T index, typename std::array<T, 2>& point) {
-    static_assert(sizeof(T) != sizeof(T), "template specialization required");
-  }
+// Convenient 2D encode wrapper that takes the number of bits as an argument
+template<class T>
+T Encode(size_t nBits, typename std::array<T, 2> const& point) {
+  static_assert(sizeof(T) != sizeof(T), "template specialization required");
+}
 
-  // Convenient 2D encode wrapper that takes the number of bits as an argument
-  template<class T>
-  T Encode(size_t nBits, typename std::array<T, 2> const& point) {
-    static_assert(sizeof(T) != sizeof(T), "template specialization required");
-  }
+// Convenient 3D decode wrapper that takes the number of bits as an argument
+template<class T>
+void Decode(size_t nBits, T index, typename std::array<T, 3>& point) {
+  static_assert(sizeof(T) != sizeof(T), "template specialization required");
+}
 
-  // Convenient 3D decode wrapper that takes the number of bits as an argument
-  template<class T>
-  void Decode(size_t nBits, T index, typename std::array<T, 3>& point) {
-    static_assert(sizeof(T) != sizeof(T), "template specialization required");
-  }
-
-  // Convenient 3D encode wrapper that takes the number of bits as an argument
-  template<class T>
-  T Encode(size_t nBits, typename std::array<T, 3> const& point) {
-    static_assert(sizeof(T) != sizeof(T), "template specialization required");
-  }
-
-} // anonymous namespace
+// Convenient 3D encode wrapper that takes the number of bits as an argument
+template<class T>
+T Encode(size_t nBits, typename std::array<T, 3> const& point) {
+  static_assert(sizeof(T) != sizeof(T), "template specialization required");
+}
 
 #include "Hilbert.inc"
 

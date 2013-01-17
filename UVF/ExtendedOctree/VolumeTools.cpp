@@ -109,17 +109,17 @@ uint64_t HilbertLayout::GetLinearIndex(UINT64VECTOR3 const& vSpatialPosition)
   if (ExceedsDomain(vSpatialPosition))
     throw std::runtime_error("spatial position out of domain bounds");
 
-  std::array<uint64_t, 3> v = {
+  std::array<uint64_t, 3> v = {{
     vSpatialPosition.x,
     vSpatialPosition.y,
     vSpatialPosition.z
-  };
+  }};
   return Hilbert::Encode(m_iBits, v);
 }
 
 UINT64VECTOR3 HilbertLayout::GetSpatialPosition(uint64_t iLinearIndex)
 {
-  std::array<uint64_t, 3> v = {0, 0, 0};
+  std::array<uint64_t, 3> v = {{0, 0, 0}};
   Hilbert::Decode(m_iBits, iLinearIndex, v);
   return UINT64VECTOR3(v[0], v[1], v[2]);
 }
