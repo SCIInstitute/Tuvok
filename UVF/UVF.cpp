@@ -87,7 +87,7 @@ bool UVF::Open(bool bMustBeSameVersion, bool bVerify, bool bReadWrite, std::stri
       if (pstrProblem) (*pstrProblem) = "wrong UVF file version";
       return false;
     }
-    ParseDataBlocks();    
+    ParseDataBlocks();
     return true;
   } else {
     Close(); // file is not a UVF file or checksum is invalid
@@ -276,9 +276,10 @@ void UVF::ParseDataBlocks() {
     if (d->ulBlockSemantics > BS_EMPTY && d->ulBlockSemantics < BS_UNKNOWN) {
       BlockSemanticTable eTableID = d->ulBlockSemantics;
       d = CreateBlockFromSemanticEntry(eTableID, m_streamFile, iOffset,
-                                       m_GlobalHeader.bIsBigEndian);
+                                       m_GlobalHeader.bIsBigEndian,
+                                       m_GlobalHeader.ulFileVersion);
     }
-
+    
     m_DataBlocks.push_back(std::shared_ptr<DataBlockListElem>(
       new DataBlockListElem(d, false, iOffset-m_GlobalHeader.GetDataPos(),
                             d->ulOffsetToNextDataBlock)

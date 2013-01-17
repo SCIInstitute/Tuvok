@@ -243,6 +243,10 @@ public:
     m_iCompression = iCompression;
   }
 
+  void SetLayout(uint32_t iLayout) {
+    m_iLayout = iLayout;
+  }
+
   bool GetClampToEdge() const {
     return m_bClampToEdge;
   }
@@ -260,6 +264,7 @@ private:
   bool m_bUseMedianFilter;
   bool m_bClampToEdge;
   uint32_t m_iCompression;
+  uint32_t m_iLayout;
   std::function<tuvok::Dataset* (const std::string&,
                                  tuvok::AbstrRenderer*)> m_LoadDS;
 

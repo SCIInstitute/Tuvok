@@ -92,6 +92,7 @@ public:
                                 const bool bUseMedian,
                                 const bool bClampToEdge,
                                 uint32_t iBrickCompression,
+                                uint32_t iBrickLayout,
                                 KVPairs* pKVPairs = NULL,
                                 const bool bQuantizeTo8Bit=false);
 
@@ -134,6 +135,7 @@ public:
                             const bool bUseMedian,
                             const bool bClampToEdge,
                             uint32_t iBrickCompression,
+                            uint32_t iBrickLayout,
                             const bool bQuantizeTo8Bit);
 
   virtual bool ConvertToUVF(const std::list<std::string>& files,
@@ -145,6 +147,7 @@ public:
                             const bool bUseMedian,
                             const bool bClampToEdge,
                             uint32_t iBrickCompression,
+                            uint32_t iBrickLayout,
                             const bool bQuantizeTo8Bit);
 
   virtual bool Analyze(const std::string& strSourceFilename,

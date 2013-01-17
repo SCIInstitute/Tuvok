@@ -12,6 +12,90 @@
 
 namespace VolumeTools {
 
+  class Layout {
+  public:
+    /**
+      Abstract layout that maps a 3D domain to a linear 1D index
+      @param vDomainSize spatial 3D domain size where a linear 1D index
+      @                  should be defined in
+      */
+    Layout(UINT64VECTOR3 const& vDomainSize);
+
+    /**
+      Convert spatial 3D brick position to linear index (position)
+      @param vSpatialPosition spatial 3D position
+      @return linear index
+      @throws std::runtime_error if vSpatialPosition exceeds domain boundaries
+      */
+    virtual uint64_t GetLinearIndex(UINT64VECTOR3 const& vSpatialPosition) = 0;
+
+    /**
+      Convert linear index (position) to spatial 3D brick position
+      @param iLinearIndex linear index
+      @return spatial 3D position
+      */
+    virtual UINT64VECTOR3 GetSpatialPosition(uint64_t iLinearIndex) = 0;
+
+  protected:
+    /**
+      Test if spatial 3D brick position is not part of the domain
+      @param vSpatialPosition spatial 3D position
+      @return true if given spatial position is not part of the domain
+      */
+    inline bool ExceedsDomain(UINT64VECTOR3 const& vSpatialPosition);
+
+    UINT64VECTOR3 m_vDomainSize;
+  };
+
+  class ScanlineLayout : public Layout {
+  public:
+    ScanlineLayout(UINT64VECTOR3 const& vDomainSize);
+    uint64_t GetLinearIndex(UINT64VECTOR3 const& vSpatialPosition);
+    UINT64VECTOR3 GetSpatialPosition(uint64_t iLinearIndex);
+  };
+
+  // NOTICE: The current implementation works for cubic power of two domains.
+  //         Using a non cubic domain with non power of two axes will generate
+  //         some undefined indices. The host code needs to take care of this!
+  //
+  // TODO:   Morton numbers can be applied to non-square domains by simply not
+  //         interleaving bits from an axis when they have been exhausted.
+  // SEE:    http://blog.gmane.org/gmane.games.devel.algorithms/month=20080801/page=10
+  //         http://comments.gmane.org/gmane.games.devel.algorithms/20013
+  class MortonLayout : public Layout {
+  public:
+    MortonLayout(UINT64VECTOR3 const& vDomainSize);
+    uint64_t GetLinearIndex(UINT64VECTOR3 const& vSpatialPosition);
+    UINT64VECTOR3 GetSpatialPosition(uint64_t iLinearIndex);
+  };
+
+  // NOTICE: The current implementation works for cubic power of two domains.
+  //         Using a non cubic domain with non power of two axes will generate
+  //         some undefined indices. The host code needs to take care of this!
+  //
+  // TODO:   C.H. Hamilton, A. Rau-Chaplin "Compact Hilbert Indices:
+  //         Space-filling curves for domains with unequal side lengths."
+  //         Information Processing Letters, 105(5), 155--163, February 2008.
+  // SEE:    http://web.cs.dal.ca/~chamilto/hilbert/ipl.pdf
+  //         http://web.cs.dal.ca/~chamilto/hilbert/index.html
+  class HilbertLayout : public Layout {
+  public:
+    HilbertLayout(UINT64VECTOR3 const& vDomainSize);
+    uint64_t GetLinearIndex(UINT64VECTOR3 const& vSpatialPosition);
+    UINT64VECTOR3 GetSpatialPosition(uint64_t iLinearIndex);
+  private:
+    size_t m_iBits;
+  };
+
+  class RandomLayout : public ScanlineLayout {
+  public:
+    RandomLayout(UINT64VECTOR3 const& vDomainSize);
+    uint64_t GetLinearIndex(UINT64VECTOR3 const& vSpatialPosition);
+    UINT64VECTOR3 GetSpatialPosition(uint64_t iLinearIndex);
+  private:
+    std::vector<uint64_t> m_vLookUp;
+  };
+
   /**
     Compute the necessary 2D array size to fit a linear index minimizing wasted indices
     @param iMax1DIndex number of elements we want to fit into a 2d array
@@ -66,9 +150,9 @@ namespace VolumeTools {
     @param iRemove the number of voxels to be removed
   */
   void RemoveBoundary(uint8_t *pBrickData, 
-                            const UINT64VECTOR3& vBrickSize,
-                            size_t iVoxelSize, 
-                            uint32_t iRemove);
+                      const UINT64VECTOR3& vBrickSize,
+                      size_t iVoxelSize, 
+                      uint32_t iRemove);
 
 
   /**
@@ -81,7 +165,7 @@ namespace VolumeTools {
    @param b value to be filtered
    @return the Filter/mean of values a and b
    */
-   template<typename T, typename F, bool bComputeMedian> T Filter(T a, T b) {
+  template<typename T, typename F, bool bComputeMedian> T Filter(T a, T b) {
     if (bComputeMedian) 
       return a;
     else
@@ -104,7 +188,7 @@ namespace VolumeTools {
    @param d value to be filtered
    @return the Filter/mean of values a to d
   */
-   template<typename T, typename F, bool bComputeMedian> T Filter(T a, T b, T c, T d) {
+  template<typename T, typename F, bool bComputeMedian> T Filter(T a, T b, T c, T d) {
     if (bComputeMedian) {
       // here we compute the median of a,b,c (ignoring d) which means
       // that we will either get the second or third smallest value
@@ -150,8 +234,8 @@ namespace VolumeTools {
    @param h value to be filtered
    @return the Filter/mean of values a to h
    */
-   template<typename T, typename F, bool bComputeMedian> T Filter(T a, T b, T c, T d, 
-                                                                  T e, T f, T g, T h) {
+  template<typename T, typename F, bool bComputeMedian> T Filter(T a, T b, T c, T d, 
+                                                                 T e, T f, T g, T h) {
     if (bComputeMedian) {
       /* the std solution should be equivalent to the optimized version below
       T elems[8] = {a,b,c,d,e,f,g,h};
@@ -284,7 +368,7 @@ namespace VolumeTools {
           if (z > 0)          {iFront  = iCenter-size_t(vVolumeSize[0])*size_t(vVolumeSize[1]);vScale.z++;}
           if (z < vVolumeSize[2]-1) {iBack   = iCenter+size_t(vVolumeSize[0])*size_t(vVolumeSize[1]);vScale.z++;}
 
-          // compte central differences in double
+          // compute central differences in double
           DOUBLEVECTOR3 vGradient((double(pSourceData[iLeft]) -double(pSourceData[iRight]) )/(vScale.x),
                                   (double(pSourceData[iTop])  -double(pSourceData[iBottom]))/(vScale.y),
                                   (double(pSourceData[iFront])-double(pSourceData[iBack])  )/(vScale.z));

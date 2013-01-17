@@ -25,6 +25,8 @@
 // for find_if
 #include <algorithm>
 #include <memory>
+#include <map>
+#include <unordered_map>
 #include "Basics/MathTools.h"
 #include "Basics/nonstd.h"
 #include "DebugOut/AbstrDebugOut.h"
@@ -80,7 +82,8 @@ bool ExtendedOctreeConverter::Convert(const std::string& filename,
               BrickStatVec* stats,
               COMPRESSION_TYPE compression,
               bool bComputeMedian,
-              bool bClampToEdge) {
+              bool bClampToEdge,
+              LAYOUT_TYPE layout) {
   LargeRAWFile_ptr inFile(new LargeRAWFile(filename));
   LargeRAWFile_ptr outFile(new LargeRAWFile(targetFilename));
 
@@ -94,7 +97,7 @@ bool ExtendedOctreeConverter::Convert(const std::string& filename,
 
   return Convert(inFile, iOffset, eComponentType, iComponentCount, vVolumeSize,
                  vVolumeAspect, outFile, iOutOffset, stats, compression,
-                 bComputeMedian, bClampToEdge);
+                 bComputeMedian, bClampToEdge, layout);
 }
 
 /*
@@ -122,7 +125,8 @@ bool ExtendedOctreeConverter::Convert(LargeRAWFile_ptr pLargeRAWFileIn,
                       BrickStatVec* stats,
                       COMPRESSION_TYPE compression,
                       bool bComputeMedian,
-                      bool bClampToEdge) {
+                      bool bClampToEdge,
+                      LAYOUT_TYPE layout) {
   m_pBrickStatVec = stats;
   m_fProgress = 0.0f;
   PROGRESS;
@@ -142,6 +146,7 @@ bool ExtendedOctreeConverter::Convert(LargeRAWFile_ptr pLargeRAWFileIn,
   m_fProgress = 0.0f;
 
   m_eCompression = compression;
+  m_eLayout = layout;
 
   SetupCache(e);
 
@@ -223,16 +228,32 @@ bool ExtendedOctreeConverter::Convert(LargeRAWFile_ptr pLargeRAWFileIn,
   }
   // write bricks in the cache to disk
   FlushCache(e);
+  {
+    // we store the total octree size including header length
+    // we know that the last brick in ToC must be at the end of the octree data
+    // this assumption won't be valid anymore after permuting the brick ordering
+    // that's why we store the total length explicitly
+    TOCEntry const& lastBrickInFile = e.m_vTOC.back();
+    e.m_iSize = lastBrickInFile.m_iOffset + lastBrickInFile.m_iLength;
+  }
 
-  ComputeStatsAndCompressAll(e);
+  if (m_eLayout >= LT_UNKNOWN) {
+    m_Progress.Warning(_func_, "Unknown brick layout requested (%d), resetting "
+                       "to default scanline order", m_eLayout);
+    m_eLayout = LT_SCANLINE;
+  }
+
+  if (m_eLayout != LT_SCANLINE)
+    ComputeStatsCompressAndPermuteAll(e);
+  else
+    ComputeStatsAndCompressAll(e);
 
   // add header to file
   e.WriteHeader(pLargeRAWFileOut, iOutOffset);
   PROGRESS;
 
   // remove part of the file used only for temp calculations
-  TOCEntry lastBrickInFile = *(e.m_vTOC.end()-1);
-  pLargeRAWFileOut->Truncate(iOutOffset+lastBrickInFile.m_iOffset+lastBrickInFile.m_iLength);
+  pLargeRAWFileOut->Truncate(iOutOffset + e.m_iSize);
 
   m_fProgress = 1.0f;
   PROGRESS;
@@ -422,7 +443,7 @@ void ExtendedOctreeConverter::ClampToEdge(std::vector<uint8_t>& vData,
   }
 }
 
-/// Computes max min stastistcs for each brick and rewrites 
+/// Computes max min statistics for each brick and rewrites 
 /// it using compression, if desired.
 void ExtendedOctreeConverter::ComputeStatsAndCompressAll(ExtendedOctree& tree)
 {
@@ -493,29 +514,273 @@ void ExtendedOctreeConverter::ComputeStatsAndCompressAll(ExtendedOctree& tree)
       }
     }
   }
+
+  // do not forget to set new octree size
+  tree.m_iSize = tree.m_vTOC.back().m_iOffset + tree.m_vTOC.back().m_iLength;
 }
 
-/*
-  Compress:
+std::shared_ptr<uint8_t>
+ExtendedOctreeConverter::Fetch(ExtendedOctree& tree,
+                               uint64_t iIndex,
+                               std::shared_ptr<uint8_t> const pBuffer)
+{
+  TOCEntry& record = tree.m_vTOC[(size_t)iIndex];
+  std::shared_ptr<uint8_t> pData = pBuffer;
+  if (!pData)
+    pData.reset(new uint8_t[record.m_iLength], nonstd::DeleteArray<uint8_t>());
+  tree.m_pLargeRAWFile->SeekPos(tree.m_iOffset + record.m_iOffset);
+  tree.m_pLargeRAWFile->ReadRAW(pData.get(), record.m_iLength);
 
-  Apply compression requests and fill holes between compressed
-  bricks by shifting bricks to the front.
-*/
-void ExtendedOctreeConverter::Compress(ExtendedOctree &tree, size_t iBrickSkip) {
-  if (m_eCompression != CT_NONE) {
-    const size_t iVoxelSize = tree.GetComponentTypeSize() *
-                              size_t(tree.m_iComponentCount);
-    uint8_t *pBrickData = new uint8_t[size_t(tree.m_iBrickSize.volume() * iVoxelSize)];
+  // if we are touching the brick the first time compute statistics and compress
+  if ((m_pBrickStatVec->size() < (iIndex+1) * tree.m_iComponentCount) ||
+      !m_pBrickStatVec->at(iIndex * tree.m_iComponentCount).IsValid())
+  {
+    assert(record.m_eCompression == CT_NONE);
+    assert(record.m_iLength == BrickSize(tree, iIndex));
 
-    for (size_t i=iBrickSkip; i < tree.m_vTOC.size(); ++i) {
-      GetBrick(pBrickData, tree, i);
-      if (i>0)
-        tree.m_vTOC[i].m_iOffset = tree.m_vTOC[i-1].m_iOffset+tree.m_vTOC[i-1].m_iLength;
-      SetBrick(pBrickData, tree, i, true);
+    BrickStat(m_pBrickStatVec, iIndex, pData.get(), record.m_iLength,
+              tree.m_iComponentCount, tree.m_eComponentType);
+
+    // compress if desired
+    if (m_eCompression != CT_NONE) {
+      std::shared_ptr<uint8_t> pCompressed;
+      // zcompress will always create a buffer sized like the input data
+      uint64_t iCompressed = zcompress(pData, record.m_iLength, pCompressed);
+      if (iCompressed < record.m_iLength) {
+        if (!pBuffer) {
+          pData.reset(new uint8_t[iCompressed], nonstd::DeleteArray<uint8_t>());
+          memcpy(pData.get(), pCompressed.get(), iCompressed);
+        } else
+          pData = pCompressed;
+        record.m_iLength = iCompressed;
+        record.m_eCompression = CT_ZLIB;
+      }
+    }
+  }
+  return pData;
+}
+
+void ExtendedOctreeConverter::ComputeStatsCompressAndPermuteAll(ExtendedOctree& tree)
+{
+  FlushCache(tree); // be sure we've got everything on disk.
+  m_vBrickCache.clear(); // be double sure we don't use the cache anymore.
+
+  size_t const iVoxelSize = tree.GetComponentTypeSize() * size_t(tree.m_iComponentCount);
+  size_t const iMaxBrickSize = static_cast<size_t>(tree.m_iBrickSize.volume() * iVoxelSize);
+  std::shared_ptr<uint8_t> const pUncompressed(new uint8_t[iMaxBrickSize], nonstd::DeleteArray<uint8_t>());
+  size_t const iReportInterval = std::max<size_t>(1, tree.m_vTOC.size()/2000);
+
+  uint64_t const IN_CORE = std::numeric_limits<uint64_t>::max();
+
+  uint64_t const treeOffset = tree.ComputeHeaderSize();
+  uint64_t tempOffset = tree.GetSize();
+  uint64_t writeOffset = treeOffset;
+  uint64_t emptyLength = 0;
+
+  typedef std::map<uint64_t, uint64_t> Uint64Map;
+  Uint64Map occupiedSpace; // maps offset to brick index
+  Uint64Map emptySpace;    // maps offset to empty length
+
+  typedef std::unordered_map<uint64_t, std::shared_ptr<uint8_t>> SimpleCache;
+  SimpleCache cache;
+  uint64_t cacheSize = 0;
+
+  // build occupied space table, should be very efficient if ToC is ordered
+  for (size_t i = 0; i < tree.m_vTOC.size(); ++i)
+    occupiedSpace.emplace_hint(occupiedSpace.cend(), Uint64Map::value_type(tree.m_vTOC[i].m_iOffset, i));
+
+  uint64_t iProgress = 0; // global brick progress counter
+  for (uint64_t lod = 0; lod < tree.GetLODCount(); ++lod)
+  {
+    UINT64VECTOR3 const domain = tree.GetBrickCount(lod);
+    uint64_t const brickCount = domain.volume();
+
+    // instantiate the layout we want to use for the current level of detail
+    std::shared_ptr<VolumeTools::Layout> pLayout;
+    switch (m_eLayout) {
+    default:
+    case LT_SCANLINE: pLayout.reset(new VolumeTools::ScanlineLayout(domain)); break;
+    case LT_MORTON:   pLayout.reset(new VolumeTools::MortonLayout(domain));   break;
+    case LT_HILBERT:  pLayout.reset(new VolumeTools::HilbertLayout(domain));  break;
+    case LT_RANDOM:   pLayout.reset(new VolumeTools::RandomLayout(domain));   break;
     }
 
-    delete [] pBrickData;
-  }
+    // follow the layout and permute bricks until we completely filled
+    // the domain of the current level (brickCounter == brickCount)
+    uint64_t brickCounter = 0;
+    uint64_t layoutIndex  = 0;
+    while (brickCounter < brickCount)
+    {
+      UINT64VECTOR3 const position = pLayout->GetSpatialPosition(layoutIndex++);
+      if (position.x < domain.x &&
+          position.y < domain.y &&
+          position.z < domain.z)
+      {
+        // convert valid spatial position to our internal brick index
+        uint64_t const thisIndex = tree.BrickCoordsToIndex(UINT64VECTOR4(position, lod));
+        TOCEntry& thisRecord = tree.m_vTOC[(size_t)thisIndex];
+        std::shared_ptr<uint8_t> thisData;
+
+        // retrieve next brick in layout order
+        auto c = cache.find(thisIndex);
+        if (c != cache.cend()) {
+          // found cached (compressed) brick
+          thisData = c->second;
+          assert(thisData && thisData.get());
+          cache.erase(c);
+        } else {
+          // load (compressed) brick from disk
+          uint64_t const iLength = thisRecord.m_iLength; // disk length before fetch
+          thisData = Fetch(tree, thisIndex, pUncompressed);
+          if (occupiedSpace.begin()->second != thisIndex) {
+            emptySpace.emplace(Uint64Map::value_type(thisRecord.m_iOffset, iLength));
+          } else {
+            emptyLength += iLength; // we just fetched the next brick in file
+          }
+          size_t iSuccess = occupiedSpace.erase(thisRecord.m_iOffset);
+          assert(iSuccess);
+          if (iSuccess) {} // suppress local variable is initialized but not referenced warning
+          thisRecord.m_iOffset = IN_CORE;
+        }
+
+        // eat empty space that might have opened up by removing some last occupier
+        {
+          uint64_t emptyOffset = writeOffset + emptyLength;
+          while (!emptySpace.empty() &&
+                 emptySpace.begin()->first <= emptyOffset)
+          {
+            auto e = emptySpace.begin();
+            assert(e->first == emptyOffset); // just check to know if e->first < emptyOffset occurs sometimes
+            //emptyLength += e->second - (emptyOffset - e->first); // see above
+            emptyLength += e->second;
+            emptySpace.erase(e);
+            emptyOffset = writeOffset + emptyLength;
+          }
+        }
+
+        // free up occupied space until the current brick fits
+        while (thisRecord.m_iLength > emptyLength)
+        {
+          // fetch next occupier
+          auto o = occupiedSpace.begin();
+          uint64_t const pageInIndex = o->second;
+          TOCEntry& pageInRecord = tree.m_vTOC[(size_t)pageInIndex];
+          assert(pageInRecord.m_iOffset != IN_CORE);
+          assert(o->first == pageInRecord.m_iOffset);
+          assert(writeOffset + emptyLength == pageInRecord.m_iOffset);
+          uint64_t const iLength = pageInRecord.m_iLength; // disk length before fetch
+          std::shared_ptr<uint8_t> pageInData = Fetch(tree, pageInIndex);
+          emptyLength += iLength; // we just fetched the next brick in file
+          pageInRecord.m_iOffset = IN_CORE;
+          occupiedSpace.erase(o);
+
+          // eat empty space that might have opened up by removing the last occupier
+          uint64_t emptyOffset = writeOffset + emptyLength;
+          while (!emptySpace.empty() &&
+                  emptySpace.begin()->first <= emptyOffset)
+          {
+            auto e = emptySpace.begin();
+            assert(e->first == emptyOffset); // just check to know if e->first < emptyOffset occurs sometimes
+            //emptyLength += e->second - (emptyOffset - e->first); // see above
+            emptyLength += e->second;
+            emptySpace.erase(e);
+            emptyOffset = writeOffset + emptyLength;
+          }
+
+          // push paged in brick to cache
+          cacheSize += pageInRecord.m_iLength;
+          bool bSuccess = cache.insert(SimpleCache::value_type(pageInIndex, pageInData)).second;
+          if (bSuccess) {} // suppress local variable is initialized but not referenced warning
+          assert(bSuccess);
+
+          // check cache limit and page out as much bricks as necessary
+          while (!cache.empty() && cacheSize > m_iMemLimit)
+          {
+            // pop random brick from cache to be paged out
+            auto c = cache.begin();
+            uint64_t const pageOutIndex = c->first;
+            TOCEntry& pageOutRecord = tree.m_vTOC[(size_t)pageOutIndex];
+            assert(pageOutRecord.m_iOffset == IN_CORE);
+            std::shared_ptr<uint8_t> pageOutData = c->second;
+            assert(pageOutData && pageOutData.get());
+            cacheSize -= pageOutRecord.m_iLength;
+            cache.erase(c);
+
+            // 1) try to find next suitable empty space location from the back of the file
+            for (auto e = emptySpace.rbegin(); e != emptySpace.rend(); ++e) {
+              if (pageOutRecord.m_iLength > e->second) {
+                continue;
+              } else if (pageOutRecord.m_iLength < e->second) {
+                // Yay! we found suitable empty space but we need to split empty
+                // space from behind to not change the EST entry
+                e->second -= pageOutRecord.m_iLength;
+                pageOutRecord.m_iOffset = e->first + e->second;
+              } else {
+                // Yay! we found suitable empty space that fits perfectly
+                pageOutRecord.m_iOffset = e->first;
+                emptySpace.erase(--e.base()); // erasing a reverse iterator
+              }
+              break;
+            }
+            // 2) try to use 1st order empty space until we barely fit thisRecord in there
+            if (pageOutRecord.m_iOffset == IN_CORE) {
+              if (emptyLength > thisRecord.m_iLength &&
+                  emptyLength - thisRecord.m_iLength >= pageOutRecord.m_iLength)
+              {
+                pageOutRecord.m_iOffset = emptyOffset - pageOutRecord.m_iLength;
+                emptyOffset -= pageOutRecord.m_iLength;
+                emptyLength -= pageOutRecord.m_iLength;
+              }
+            }
+            // 3) final chance use tempOffset at the end of the file to page out memory
+            if (pageOutRecord.m_iOffset == IN_CORE) {
+              pageOutRecord.m_iOffset = tempOffset;
+              tempOffset += pageOutRecord.m_iLength;
+            }
+            // add new occupier even if we page out to the temp region at the end of file
+            bool bSuccess = occupiedSpace.insert(Uint64Map::value_type(pageOutRecord.m_iOffset, pageOutIndex)).second;
+            if (bSuccess) {} // suppress local variable is initialized but not referenced warning
+            assert(bSuccess);
+
+            // write brick to temporary position
+            tree.m_pLargeRAWFile->SeekPos(tree.m_iOffset + pageOutRecord.m_iOffset);
+            tree.m_pLargeRAWFile->WriteRAW(pageOutData.get(), pageOutRecord.m_iLength);
+
+          } // free up some cache
+        } // free up occupied space
+
+        // write brick to the correct layout position
+        thisRecord.m_iOffset = writeOffset;
+        tree.m_pLargeRAWFile->SeekPos(tree.m_iOffset + thisRecord.m_iOffset);
+        tree.m_pLargeRAWFile->WriteRAW(thisData.get(), thisRecord.m_iLength);
+        writeOffset += thisRecord.m_iLength;
+        emptyLength -= thisRecord.m_iLength;
+
+        // increment brick counter for the termination criterion
+        ++brickCounter;
+
+        // report progress
+        if (iProgress % iReportInterval == 0) {
+          m_fProgress = MathTools::lerp(float(iProgress) / tree.m_vTOC.size(), 0.0f,1.0f, 0.8f,1.0f);
+          PROGRESS;
+        }
+        ++iProgress;
+
+      } // valid spatial position check
+    } // reordering per level loop
+  } // level loop
+
+  uint64_t const temporarySpace = tempOffset - tree.m_iSize;
+  uint64_t const compressionGain = tree.m_iSize - writeOffset;
+
+  m_Progress.Other(_func_, "Temporary disk space required during brick reordering: %.3f MB", (float)temporarySpace / (1024.f*1024.f));
+  m_Progress.Other(_func_, "Space savings due to data compression: %.2f%%", (100.f - ((float)compressionGain / tree.m_iSize) * 100.f));
+
+  // do not forget to set new octree size
+  tree.m_iSize = writeOffset;
+  assert(cache.empty());
+  assert(occupiedSpace.empty());
+  assert(emptySpace.empty()); // may be not true
 }
 
 /*

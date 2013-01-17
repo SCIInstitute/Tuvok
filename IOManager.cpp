@@ -146,6 +146,7 @@ IOManager::IOManager() :
   m_bUseMedianFilter(false),
   m_bClampToEdge(false),
   m_iCompression(1),
+  m_iLayout(0),
   m_LoadDS(NULL)
 {
   m_vpGeoConverters.push_back(new GeomViewConverter());
@@ -496,6 +497,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
                                       m_bUseMedianFilter,
                                       m_bClampToEdge,
                                       m_iCompression,
+                                      m_iLayout,
                                       0, bQuantizeTo8Bit
                                      );
 
@@ -564,7 +566,8 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
                                       iMaxBrickSize, iBrickOverlap, 
                                       m_bUseMedianFilter,
                                       m_bClampToEdge,
-                                      m_iCompression);
+                                      m_iCompression,
+                                      m_iLayout);
 
     if(remove(strTempMergeFilename.c_str()) != 0) {
       WARNING("Unable to remove temp file %s", strTempMergeFilename.c_str());
@@ -1022,7 +1025,8 @@ bool IOManager::MergeDatasets(const vector <string>& strFilenames,
         size_t(iComponentSizeG), iComponentCountG, timesteps, bConvertEndianessG,
         bSignedG, bIsFloatG, vVolumeSizeG, vVolumeAspectG, strTitleG,
         SysTools::GetFilename(strMergedFile), m_iMaxBrickSize,
-        m_iBrickOverlap, m_bUseMedianFilter, m_bClampToEdge, m_iCompression);
+        m_iBrickOverlap, m_bUseMedianFilter, m_bClampToEdge, m_iCompression,
+        m_iLayout);
   } else {
     for (size_t k = 0;k<m_vpConverters.size();k++) {
       const vector<string>& vStrSupportedExtTarget =
@@ -1114,7 +1118,7 @@ bool IOManager::ConvertDataset(const list<string>& files,
       if((*conv)->ConvertToUVF(files, strTargetFilename, strTempDir,
                                bNoUserInteraction, iMaxBrickSize, iBrickOverlap,
                                m_bUseMedianFilter, m_bClampToEdge, 
-                               m_iCompression, bQuantizeTo8Bit)) {
+                               m_iCompression, m_iLayout, bQuantizeTo8Bit)) {
         return true;
       } else {
         WARNING("Converter %s can read files, but conversion failed!",
@@ -1130,7 +1134,7 @@ bool IOManager::ConvertDataset(const list<string>& files,
                                              strTempDir, bNoUserInteraction,
                                              iMaxBrickSize, iBrickOverlap,
                                              m_bUseMedianFilter, m_bClampToEdge,
-                                             m_iCompression,
+                                             m_iCompression, m_iLayout,
                                              bQuantizeTo8Bit);
     } else {
       return false;

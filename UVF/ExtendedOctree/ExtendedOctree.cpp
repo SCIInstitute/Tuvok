@@ -34,6 +34,8 @@ ExtendedOctree::ExtendedOctree() :
   m_vVolumeAspect(0,0,0), 
   m_iBrickSize(0,0,0), 
   m_iOverlap(0), 
+  m_iVersion(1), // increment version number here if something changes...
+  m_iSize(0),
   m_iOffset(0), 
   m_pLargeRAWFile()
 {
@@ -42,15 +44,16 @@ ExtendedOctree::ExtendedOctree() :
 /*
  Open (string):
  
- Convenience function that calls the open below with a largeraw file 
+ Convenience function that calls the open below with a large raw file 
  constructed from the given string
  */
-bool ExtendedOctree::Open(std::string filename, uint64_t iOffset) {
+bool ExtendedOctree::Open(std::string filename, uint64_t iOffset,
+                          uint64_t iUVFFileVersion) {
   LargeRAWFile_ptr inFile(new LargeRAWFile(filename));
   if (!inFile->Open()) {
     return false;
   }
-  return Open(inFile, iOffset);
+  return Open(inFile, iOffset, iUVFFileVersion);
 }
 
 /*
@@ -65,7 +68,8 @@ bool ExtendedOctree::Open(std::string filename, uint64_t iOffset) {
  about the level of detail is can be computed.
  
 */
-bool ExtendedOctree::Open(LargeRAWFile_ptr pLargeRAWFile, uint64_t iOffset) {
+bool ExtendedOctree::Open(LargeRAWFile_ptr pLargeRAWFile, uint64_t iOffset,
+                          uint64_t iUVFFileVersion) {
   if (!pLargeRAWFile->IsOpen()) return false;
   m_pLargeRAWFile = pLargeRAWFile;
   m_iOffset = iOffset;
@@ -74,7 +78,9 @@ bool ExtendedOctree::Open(LargeRAWFile_ptr pLargeRAWFile, uint64_t iOffset) {
 
   // load global header
   m_pLargeRAWFile->SeekPos(m_iOffset);
-  m_pLargeRAWFile->ReadData(m_eComponentType, isBE);
+  uint32_t comp;
+  m_pLargeRAWFile->ReadData(comp, isBE);
+  m_eComponentType = static_cast<COMPONENT_TYPE>(comp);
   m_pLargeRAWFile->ReadData(m_iComponentCount, isBE);
   m_pLargeRAWFile->ReadData(m_bPrecomputedNormals, isBE);
   m_pLargeRAWFile->ReadData(m_vVolumeSize.x, isBE);
@@ -87,6 +93,16 @@ bool ExtendedOctree::Open(LargeRAWFile_ptr pLargeRAWFile, uint64_t iOffset) {
   m_pLargeRAWFile->ReadData(m_iBrickSize.y, isBE);
   m_pLargeRAWFile->ReadData(m_iBrickSize.z, isBE);
   m_pLargeRAWFile->ReadData(m_iOverlap, isBE);
+
+  // UVF file version 5 introduced the version flag inside ExtendedOctree data
+  if (iUVFFileVersion > 4) {
+    m_pLargeRAWFile->ReadData(m_iVersion, isBE);
+    if (m_iVersion == 0) return false;
+  } else
+    m_iVersion = 0; // version is not stored
+
+  if (m_iVersion > 0)
+    m_pLargeRAWFile->ReadData(m_iSize, isBE);
 
   // if any of the above numbers (except for the overlap) 
   // is zero than there must have been an issue reading the file
@@ -103,12 +119,27 @@ bool ExtendedOctree::Open(LargeRAWFile_ptr pLargeRAWFile, uint64_t iOffset) {
 
   // read brick TOC
   m_vTOC.resize(size_t(iOverallBrickCount));
-  uint64_t iLoDOffset = ComputeHeaderSize();
-  for (size_t i = 0;i<iOverallBrickCount;i++) {
-    m_vTOC[i].m_iOffset = iLoDOffset;
-    m_pLargeRAWFile->ReadData(m_vTOC[i].m_iLength, isBE);
-    m_pLargeRAWFile->ReadData(m_vTOC[i].m_eCompression, isBE);
-    iLoDOffset += m_vTOC[i].m_iLength;
+  if (m_iVersion > 0) {
+    for (size_t i = 0;i<iOverallBrickCount;i++) {
+      m_pLargeRAWFile->ReadData(m_vTOC[i].m_iOffset, isBE);
+      m_pLargeRAWFile->ReadData(m_vTOC[i].m_iLength, isBE);
+      uint32_t comp;
+      m_pLargeRAWFile->ReadData(comp, isBE);
+      m_vTOC[i].m_eCompression = static_cast<COMPRESSION_TYPE>(comp);
+      m_pLargeRAWFile->ReadData(m_vTOC[i].m_iValidLength, isBE);
+      m_pLargeRAWFile->ReadData(m_vTOC[i].m_iAtlasSize.x, isBE);
+      m_pLargeRAWFile->ReadData(m_vTOC[i].m_iAtlasSize.y, isBE);
+    }
+  } else {
+    uint64_t iLoDOffset = ComputeHeaderSize();
+    for (size_t i = 0;i<iOverallBrickCount;i++) {
+      m_vTOC[i].m_iOffset = iLoDOffset;
+      m_pLargeRAWFile->ReadData(m_vTOC[i].m_iLength, isBE);
+      uint32_t comp;
+      m_pLargeRAWFile->ReadData(comp, isBE);
+      m_vTOC[i].m_eCompression = static_cast<COMPRESSION_TYPE>(comp);
+      iLoDOffset += m_vTOC[i].m_iLength;
+    }
   }
 
   return true;
@@ -365,11 +396,11 @@ bool ExtendedOctree::SetGlobalAspect(const DOUBLEVECTOR3& vVolumeAspect) {
 
   // change aspect ratio entries
   m_vVolumeAspect = vVolumeAspect;
-  m_pLargeRAWFile->SeekPos(m_iOffset
-                           + sizeof(ExtendedOctree::COMPONENT_TYPE) 
-                           + sizeof(uint64_t)    // Component count
-                           + sizeof(bool)        // Precomputed normals
-                           + 3 * sizeof(uint64_t));// volume size
+  m_pLargeRAWFile->SeekPos(m_iOffset +
+                           sizeof(uint32_t /*m_eComponentType*/) +
+                           sizeof(uint64_t /*m_iComponentCount*/) +
+                           sizeof(bool /*m_bPrecomputedNormals*/) +
+                           3 * sizeof(uint64_t /*m_vVolumeSize*/));
   m_pLargeRAWFile->WriteData(m_vVolumeAspect.x, isBE);
   m_pLargeRAWFile->WriteData(m_vVolumeAspect.y, isBE);
   m_pLargeRAWFile->WriteData(m_vVolumeAspect.z, isBE);
@@ -400,11 +431,17 @@ uint64_t ExtendedOctree::ComputeBrickCount() const {
  length in bytes and the compression method)
 */
 uint64_t ExtendedOctree::ComputeHeaderSize() const {
-  return     
-    sizeof(ExtendedOctree::COMPONENT_TYPE) + sizeof(uint64_t) +
-         3 * sizeof(uint64_t) +
-         3 * sizeof(double) +  3 * sizeof(uint32_t) + sizeof(uint32_t) +
-         ComputeBrickCount() * TOCEntry::SizeInFile();
+  return
+    sizeof(uint32_t /*m_eComponentType*/) +
+    sizeof(uint64_t /*m_iComponentCount*/) +
+    (m_iVersion > 0 ? sizeof(bool /*m_bPrecomputedNormals*/) : 0) +
+    3 * sizeof(uint64_t /*m_vVolumeSize*/) +
+    3 * sizeof(double /*m_vVolumeAspect*/) +
+    3 * (m_iVersion > 0 ? sizeof(uint64_t /*m_iBrickSize*/) : sizeof(uint32_t)) +
+    sizeof(uint32_t /*m_iOverlap*/) +
+    (m_iVersion > 0 ? sizeof(uint32_t /*m_iVersion*/) : 0) +
+    (m_iVersion > 0 ? sizeof(uint64_t /*m_iSize*/) : 0) +
+    ComputeBrickCount() * TOCEntry::SizeInFile(m_iVersion);
 }
 
 /*
@@ -422,7 +459,7 @@ void ExtendedOctree::WriteHeader(LargeRAWFile_ptr pLargeRAWFile,
   // write global header
   const bool isBE = EndianConvert::IsBigEndian();
   m_pLargeRAWFile->SeekPos(m_iOffset);
-  m_pLargeRAWFile->WriteData(m_eComponentType, isBE);
+  m_pLargeRAWFile->WriteData(uint32_t(m_eComponentType), isBE);
   m_pLargeRAWFile->WriteData(m_iComponentCount, isBE);
   m_pLargeRAWFile->WriteData(m_bPrecomputedNormals, isBE);
   m_pLargeRAWFile->WriteData(m_vVolumeSize.x, isBE);
@@ -435,11 +472,26 @@ void ExtendedOctree::WriteHeader(LargeRAWFile_ptr pLargeRAWFile,
   m_pLargeRAWFile->WriteData(m_iBrickSize.y, isBE);
   m_pLargeRAWFile->WriteData(m_iBrickSize.z, isBE);
   m_pLargeRAWFile->WriteData(m_iOverlap, isBE);
-  
+  if (m_iVersion > 0) {
+    m_pLargeRAWFile->WriteData(m_iVersion, isBE);
+    m_pLargeRAWFile->WriteData(m_iSize, isBE);
+  }
+
   // write ToC
-  for (size_t i = 0;i<m_vTOC.size();i++) {
-    m_pLargeRAWFile->WriteData(m_vTOC[i].m_iLength, isBE);
-    m_pLargeRAWFile->WriteData(m_vTOC[i].m_eCompression, isBE);
+  if (m_iVersion > 0) {
+    for (size_t i = 0;i<m_vTOC.size();i++) {
+      m_pLargeRAWFile->WriteData(m_vTOC[i].m_iOffset, isBE);
+      m_pLargeRAWFile->WriteData(m_vTOC[i].m_iLength, isBE);
+      m_pLargeRAWFile->WriteData(uint32_t(m_vTOC[i].m_eCompression), isBE);
+      m_pLargeRAWFile->WriteData(m_vTOC[i].m_iValidLength, isBE);
+      m_pLargeRAWFile->WriteData(m_vTOC[i].m_iAtlasSize.x, isBE);
+      m_pLargeRAWFile->WriteData(m_vTOC[i].m_iAtlasSize.y, isBE);
+    }
+  } else {
+    for (size_t i = 0;i<m_vTOC.size();i++) {
+      m_pLargeRAWFile->WriteData(m_vTOC[i].m_iLength, isBE);
+      m_pLargeRAWFile->WriteData(uint32_t(m_vTOC[i].m_eCompression), isBE);
+    }
   }
 }
 

@@ -74,6 +74,7 @@ public:
                             const bool bUseMedian,
                             const bool bClampToEdge,
                             uint32_t iBrickCompression,
+                            uint32_t iBrickLayout,
                             const bool bQuantizeTo8Bit) = 0;
 
   virtual bool ConvertToUVF(const std::list<std::string>& files,
@@ -85,6 +86,7 @@ public:
                             const bool bUseMedian,
                             const bool bClampToEdge,
                             uint32_t iBrickCompression,
+                            uint32_t iBrickLayout,
                             const bool bQuantizeTo8Bit) = 0;
 
   virtual bool ConvertToRAW(const std::string& strSourceFilename,

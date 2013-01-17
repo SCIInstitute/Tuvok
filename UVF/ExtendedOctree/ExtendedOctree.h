@@ -63,8 +63,17 @@ struct LODInfo {
 /// This enum lists the different compression techniques
 enum COMPRESSION_TYPE {
   CT_NONE = 0,    // brick is not compressed
-  CT_ZLIB,    // brick is compressed using zlib
-  CT_JPEG     // brick is (slice wise) compressed using JPG
+  CT_ZLIB,        // brick is compressed using zlib
+  CT_JPEG         // brick is (slice wise) compressed using JPG
+};
+
+/// This enum lists the different layouts how bricks are ordered on disk
+enum LAYOUT_TYPE {
+  LT_SCANLINE = 0,  // bricks are ordered in x, y, z scanline order where x is the fastest
+  LT_MORTON,        // bricks are laid out according to Morton order (Z-order)
+  LT_HILBERT,       // bricks are laid out according to Hilbert space-filling curve
+  LT_RANDOM,        // bricks are laid out randomly, just to check the worst case
+  LT_UNKNOWN
 };
 
 /*! \brief This structure holds information about a specific brick in the tree
@@ -86,24 +95,26 @@ struct TOCEntry {
   COMPRESSION_TYPE m_eCompression;
 
   /// valid bytes in this brick (used for streaming files)
-  /// for a complete brick m_iLength is euqal to m_iValidLength
+  /// for a complete brick m_iLength is equal to m_iValidLength
   uint64_t m_iValidLength;
 
   /// if this block is stored in "atlantified" format
   /// i.e. packed for 2D texture atlas representation
-  /// then this varialbe holds the size of a 2D texture
+  /// then this variable holds the size of a 2D texture
   /// to store the atlas, otherwise at least one component
   /// is equal to zero
   UINTVECTOR2 m_iAtlasSize;
 
-  // Returns the size of this struct it is basicallz the
+  // Returns the size of this struct it is basically the
   // the sum of sizeof calls to all members as that may
-  // be different from siyzeo(TOCEntry) due to compilers
+  // be different from sizeof(TOCEntry) due to compilers
   // padding this struct
-  static size_t SizeInFile() {
-    return // sizeof(uint64_t /*m_iOffset*/) +   // m_iOffset is not stored but computed at load
-           sizeof(uint64_t/*m_iLength*/) + sizeof(COMPRESSION_TYPE /*m_eCompression*/) +
-           sizeof(uint64_t /*m_iValidLength*/) + sizeof(UINTVECTOR2 /*m_iAtlasSize*/);
+  static size_t SizeInFile(uint64_t iVersion) {
+    return (iVersion > 0 ? sizeof(uint64_t /*m_iOffset*/) : 0) +
+           sizeof(uint64_t/*m_iLength*/) +
+           sizeof(uint32_t /*m_eCompression*/) +
+           sizeof(uint64_t /*m_iValidLength*/) +
+           sizeof(UINTVECTOR2 /*m_iAtlasSize*/);
   }
 };
 
@@ -138,17 +149,19 @@ public:
     Reads the header information from an already open large raw file skipping iOffset bytes at the beginning
     @param  pLargeRAWFile the file the header is read from, file must be open already
     @param  iOffset the bytes to be skipped from the beginning of the file to get to the octree header
+    @param  iUVFFileVersion UVF file version
     @return returns false if something went wrong trying to read from the file
   */
-  bool Open(LargeRAWFile_ptr pLargeRAWFile, uint64_t iOffset);
+  bool Open(LargeRAWFile_ptr pLargeRAWFile, uint64_t iOffset, uint64_t iUVFFileVersion);
 
   /**
     Reads the header information from an file skipping iOffset bytes at the beginning
     @param  filename the name of the input file
     @param  iOffset the bytes to be skipped from the beginning of the file to get to the octree header
+    @param  iUVFFileVersion UVF file version
     @return returns false if something went wrong trying to read from the file
   */
-  bool Open(std::string filename, uint64_t iOffset);
+  bool Open(std::string filename, uint64_t iOffset, uint64_t iUVFFileVersion);
 
 
   /**
@@ -271,9 +284,9 @@ public:
   */
   uint64_t GetSize() const {
     if (m_vTOC.empty())
-      return ComputeHeaderSize();
+      return ComputeHeaderSize(); // header only including ToC
     else
-      return (m_vTOC.end()-1)->m_iOffset+(m_vTOC.end()-1)->m_iLength;
+      return m_iSize; // header + brick data
   }
 
   /**
@@ -313,6 +326,12 @@ private:
 
   /// brick overlap
   uint32_t m_iOverlap;
+
+  /// extended octree file version
+  uint32_t m_iVersion;
+
+  /// total octree size including header, necessary to allow "random" brick locations
+  uint64_t m_iSize;
 
   /// offset of the header in the data file
   uint64_t m_iOffset;

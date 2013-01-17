@@ -427,6 +427,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
                                      const bool bUseMedian,
                                      const bool bClampToEdge,
                                      uint32_t iBrickCompression,
+                                     uint32_t iBrickLayout,
                                      KVPairs* pKVPairs,
                                      const bool bQuantizeTo8Bit)
 {
@@ -536,7 +537,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
     std::shared_ptr<MaxMinDataBlock> MaxMinData = blocks[ts].maxmin;
 
     blocks[ts].tocblock = std::shared_ptr<TOCBlock>(
-      new TOCBlock()
+      new TOCBlock(UVF::ms_ulReaderVersion)
     );
     std::shared_ptr<TOCBlock> dataVolume = blocks[ts].tocblock;
 
@@ -592,7 +593,8 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
       size_t(Controller::ConstInstance().SysInfo()->GetMaxUsableCPUMem()),
       MaxMinData,
       &Controller::Debug::Out(),
-      COMPRESSION_TYPE(iBrickCompression)
+      COMPRESSION_TYPE(iBrickCompression),
+      LAYOUT_TYPE(iBrickLayout)
     );
     MESSAGE("Hierarchy computation complete");
 
@@ -1114,13 +1116,15 @@ bool RAWConverter::ConvertToUVF(const std::string& strSourceFilename,
                                 const bool bUseMedian,
                                 const bool bClampToEdge,
                                 uint32_t iBrickCompression,
+                                uint32_t iBrickLayout,
                                 const bool bQuantizeTo8Bit)
 {
   std::list<std::string> files;
   files.push_front(strSourceFilename);
   return ConvertToUVF(files, strTargetFilename, strTempDir, bNoUserInteraction,
                       iTargetBrickSize, iTargetBrickOverlap, bUseMedian,
-                      bClampToEdge, iBrickCompression, bQuantizeTo8Bit);
+                      bClampToEdge, iBrickCompression,
+                      iBrickLayout, bQuantizeTo8Bit);
 }
 
 static void RemoveStdString(std::string s) { remove(s.c_str()); }
@@ -1133,7 +1137,8 @@ bool RAWConverter::ConvertToUVF(const std::list<std::string>& files,
                                 const uint64_t iTargetBrickOverlap,
                                 const bool bUseMedian,
                                 const bool bClampToEdge,
-                                uint32_t iBrickCompression, 
+                                uint32_t iBrickCompression,
+                                uint32_t iBrickLayout,
                                 const bool bQuantizeTo8Bit)
 {
   // all the parameters set here are just defaults, they should all be
@@ -1244,6 +1249,7 @@ bool RAWConverter::ConvertToUVF(const std::list<std::string>& files,
                                        bUseMedian, 
                                        bClampToEdge,
                                        iBrickCompression,
+                                       iBrickLayout,
                                        0,
                                        bQuantizeTo8Bit);
 

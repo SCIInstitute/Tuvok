@@ -115,8 +115,8 @@ typedef BrickCache::iterator BrickCacheIter;
 template<class T> class BrickStats {
 public:
   BrickStats() :
-    minScalar(0),
-    maxScalar(0)
+    minScalar( std::numeric_limits<T>::max()),
+    maxScalar(-std::numeric_limits<T>::max())
   {}
 
   BrickStats(T _minScalar, T _maxScalar) :
@@ -126,6 +126,9 @@ public:
 
   T minScalar;
   T maxScalar;
+
+  bool IsValid() const { return minScalar !=  std::numeric_limits<T>::max() &&
+                                maxScalar != -std::numeric_limits<T>::max(); }
 };
 
 class AbstrDebugOut;
@@ -168,8 +171,9 @@ public:
     @param iOutOffset bytes to precede the data in the target file
     @param stats pointer to a vector to store the statistics of each brick, can be set to NULL to disable statistics computation
     @param compression the desired compression method, defaults to none
-    @param use median as downsampling filter (uses average otherwise)
+    @param bComputeMedian use median as downsampling filter (uses average otherwise)
     @param bClampToEdge use outer values to fill border (uses zeroes otherwise)
+    @param layout brick ordering on disk
     @return true if the conversion succeeded, the main reason for failure would be a disk I/O issue
   */
   bool Convert(const std::string& filename, uint64_t iOffset,
@@ -180,7 +184,8 @@ public:
                BrickStatVec* stats,
                COMPRESSION_TYPE compression,
                bool bComputeMedian,
-               bool bClampToEdge);
+               bool bClampToEdge,
+               LAYOUT_TYPE layout);
 
   /**
     This call starts the conversion process of a simple linear file of raw volume
@@ -197,7 +202,8 @@ public:
     @param stats pointer to a vector to store the statistics of each brick, can be set to NULL to disable statistics computation
     @param compression the desired compression method, defaults to none
     @param bComputeMedian use median as downsampling filter (uses average otherwise)
-    @param bClampToEdge use outer values to fill border (uses zeroes otherwise)
+    @param bClampToEdge use outer values to fill border (uses zeros otherwise)
+    @param layout brick ordering on disk
     @return  true if the conversion succeeded, the main reason for failure would be a disk I/O issue
   */
   bool Convert(LargeRAWFile_ptr pLargeRAWFile, uint64_t iOffset,
@@ -208,7 +214,8 @@ public:
                BrickStatVec* stats,
                COMPRESSION_TYPE compression,
                bool bComputeMedian,
-               bool bClampToEdge);
+               bool bClampToEdge,
+               LAYOUT_TYPE layout);
   /**
     Call this method from a second thread during the conversion to check on the progress of the operation
   */
@@ -335,7 +342,7 @@ public:
  /**
    Exports a specific LoD Level brick by brick into a given function
 
-   @parame tree the octree to be processed
+   @param tree the octree to be processed
    @param iLODLevel the level to be exported
    @param brickFunc user function executed in the data
    @param pUserContext pointer to additional user data which is passed to the user function
@@ -371,6 +378,9 @@ private:
   /// e.g. when a compressed brick would be larger than the uncompressed
   COMPRESSION_TYPE m_eCompression;
 
+  /// desired layout method for bricks on disk
+  LAYOUT_TYPE m_eLayout;
+
   /// the brick cache collection
   BrickCache m_vBrickCache;
 
@@ -383,18 +393,21 @@ private:
   /// where to write progress information
   AbstrDebugOut& m_Progress;
 
-  /// Computes max min stastistcs for each brick and rewrites 
+  /// Computes max min statistics for each brick and rewrites 
   /// it using compression, if desired.
   void ComputeStatsAndCompressAll(ExtendedOctree& tree);
 
-  /**
-    Compresses the bricks using the method specified in m_eCompression
-    starting with index iBrickSkip
+  /// Computes max min statistics for each brick, rewrites it using compression
+  /// and permutes brick ordering on disk, if desired.
+  void ComputeStatsCompressAndPermuteAll(ExtendedOctree& tree);
 
-    @param tree the Extended Octree containing the bricks to be compressed
-    @param iBrickSkip the bricks to be skipped, i.e. iBrickSkip is the first index to be compressed
-  */
-  void Compress(ExtendedOctree &tree, size_t iBrickSkip);
+  // Could be also named like ComputeStatsAndCompressBrick().
+  // Is internally used by ComputeStatsCompressAndPermuteAll() to fetch bricks
+  // from disk, run the brick stats and compress it if desired.
+  //@return just the compressed or uncompressed bytes of the brick
+  std::shared_ptr<uint8_t> Fetch(
+    ExtendedOctree& tree, uint64_t iIndex,
+    std::shared_ptr<uint8_t> const pBuffer = nullptr);
 
   /**
     Copies the outer voxels into the border to implement clamp to border

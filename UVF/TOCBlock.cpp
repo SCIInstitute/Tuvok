@@ -7,12 +7,13 @@
 
 using namespace std;
 
-TOCBlock::TOCBlock() :
+TOCBlock::TOCBlock(uint64_t iUVFFileVersion) :
   m_iOffsetToOctree(0),
   m_bIsBigEndian(false),
   m_iOverlap(2),
   m_vMaxBrickSize(128,128,128),
-  m_strDeleteTempFile("")
+  m_strDeleteTempFile(""),
+  m_iUVFFileVersion(iUVFFileVersion)
 {
   ulBlockSemantics = UVFTables::BS_TOC_BLOCK;
   strBlockID       = "Table of Contents Raster Data Block";
@@ -20,7 +21,8 @@ TOCBlock::TOCBlock() :
 
 TOCBlock::TOCBlock(const TOCBlock &other) :
   DataBlock(other),
-  m_bIsBigEndian(other.m_bIsBigEndian)
+  m_bIsBigEndian(other.m_bIsBigEndian),
+  m_iUVFFileVersion(other.m_iUVFFileVersion)
 {
   if (!m_pStreamFile->IsOpen()) m_pStreamFile->Open();
   GetHeaderFromFile(m_pStreamFile, m_iOffset, m_bIsBigEndian);
@@ -37,7 +39,9 @@ TOCBlock::~TOCBlock(){
 }
 
 TOCBlock::TOCBlock(LargeRAWFile_ptr pStreamFile, uint64_t iOffset,
-                   bool bIsBigEndian) {
+                   bool bIsBigEndian, uint64_t iUVFFileVersion) :
+  m_iUVFFileVersion(iUVFFileVersion)
+{
   GetHeaderFromFile(pStreamFile, iOffset, bIsBigEndian);
 }
 
@@ -48,7 +52,7 @@ uint64_t TOCBlock::GetHeaderFromFile(LargeRAWFile_ptr pStreamFile,
   m_iOffsetToOctree = iOffset +
                       DataBlock::GetHeaderFromFile(pStreamFile, iOffset,
                                                    bIsBigEndian);
-  if(m_ExtendedOctree.Open(pStreamFile, m_iOffsetToOctree) == false) {
+  if(m_ExtendedOctree.Open(pStreamFile, m_iOffsetToOctree, m_iUVFFileVersion) == false) {
     throw std::ios_base::failure("opening octree failed.");
   }
   return pStreamFile->GetPos() - iOffset;
@@ -111,7 +115,8 @@ bool TOCBlock::FlatDataToBrickedLOD(
   size_t iCacheSize,
   std::shared_ptr<MaxMinDataBlock> pMaxMinDatBlock,
   AbstrDebugOut* debugOut,
-  COMPRESSION_TYPE ct
+  COMPRESSION_TYPE ct,
+  LAYOUT_TYPE lt
 ) {
 
   LargeRAWFile_ptr inFile(new LargeRAWFile(strSourceFile));
@@ -122,7 +127,7 @@ bool TOCBlock::FlatDataToBrickedLOD(
   return FlatDataToBrickedLOD(inFile, strTempFile, eType, iComponentCount,
                               vVolumeSize, vScale, vMaxBrickSize,
                               iOverlap, bUseMedian, bClampToEdge,
-                              iCacheSize, pMaxMinDatBlock, debugOut, ct);
+                              iCacheSize, pMaxMinDatBlock, debugOut, ct, lt);
 }
 
 bool TOCBlock::FlatDataToBrickedLOD(
@@ -137,7 +142,8 @@ bool TOCBlock::FlatDataToBrickedLOD(
   size_t iCacheSize,
   std::shared_ptr<MaxMinDataBlock> pMaxMinDatBlock,
   AbstrDebugOut* debugOut,
-  COMPRESSION_TYPE ct
+  COMPRESSION_TYPE ct,
+  LAYOUT_TYPE lt
 ) {
   m_vMaxBrickSize = vMaxBrickSize;
   m_iOverlap = iOverlap;
@@ -164,12 +170,12 @@ bool TOCBlock::FlatDataToBrickedLOD(
 
   bool bResult = c.Convert(pSourceData, 0, eType, iComponentCount, vVolumeSize,
                            vScale, outFile, 0, &statsVec, ct, bUseMedian,
-                           bClampToEdge);
+                           bClampToEdge, lt);
   outFile->Close();
 
   if (bResult) {
     pMaxMinDatBlock->SetDataFromFlatVector(statsVec, iComponentCount);
-    return m_ExtendedOctree.Open(m_strDeleteTempFile,0);
+    return m_ExtendedOctree.Open(m_strDeleteTempFile, 0, m_iUVFFileVersion);
   } else {
     return false;
   }

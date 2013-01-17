@@ -73,7 +73,8 @@ wstring UVFTables::BlockSemanticTableToString(BlockSemanticTable uiTable) {
 std::shared_ptr<DataBlock>
 UVFTables::CreateBlockFromSemanticEntry(BlockSemanticTable uiTable,
                                         LargeRAWFile_ptr pStreamFile,
-                                        uint64_t iOffset, bool bIsBigEndian) {
+                                        uint64_t iOffset, bool bIsBigEndian,
+                                        uint64_t iUVFFileVersion) {
   DataBlock* d;
   switch (uiTable) {
     case BS_EMPTY:
@@ -100,7 +101,7 @@ UVFTables::CreateBlockFromSemanticEntry(BlockSemanticTable uiTable,
       d = new GeometryDataBlock(pStreamFile, iOffset, bIsBigEndian);
       break;
     case BS_TOC_BLOCK:
-      d = new TOCBlock(pStreamFile, iOffset, bIsBigEndian);
+      d = new TOCBlock(pStreamFile, iOffset, bIsBigEndian, iUVFFileVersion);
       break;
     default: throw "CreateBlockFromSemanticEntry: Unknown block semantic";
   }

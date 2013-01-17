@@ -1,7 +1,161 @@
 #include <cstring>
 #include <sstream>
 #include <stdexcept>
+#include <algorithm>
 #include "VolumeTools.h"
+#include "Hilbert.h"
+
+using namespace VolumeTools;
+
+Layout::Layout(UINT64VECTOR3 const& vDomainSize)
+  : m_vDomainSize(vDomainSize)
+{}
+
+bool Layout::ExceedsDomain(UINT64VECTOR3 const& vSpatialPosition)
+{
+  assert(vSpatialPosition.x < m_vDomainSize.x);
+  assert(vSpatialPosition.y < m_vDomainSize.y);
+  assert(vSpatialPosition.z < m_vDomainSize.z);
+  if (vSpatialPosition.x <= m_vDomainSize.x)
+    return true;
+  if (vSpatialPosition.y <= m_vDomainSize.y)
+    return true;
+  if (vSpatialPosition.z <= m_vDomainSize.z)
+    return true;
+  return false;
+}
+
+ScanlineLayout::ScanlineLayout(UINT64VECTOR3 const& vDomainSize)
+  : Layout(vDomainSize)
+{}
+
+uint64_t ScanlineLayout::GetLinearIndex(UINT64VECTOR3 const& vSpatialPosition)
+{
+  return vSpatialPosition.x + 
+         vSpatialPosition.y * m_vDomainSize.x + 
+         vSpatialPosition.z * m_vDomainSize.x * m_vDomainSize.y;
+}
+
+UINT64VECTOR3 ScanlineLayout::GetSpatialPosition(uint64_t iLinearIndex)
+{
+  UINT64VECTOR3 vPosition(0, 0, 0);
+
+  vPosition.x = iLinearIndex % m_vDomainSize.x;
+  vPosition.y = (iLinearIndex / m_vDomainSize.x) % m_vDomainSize.y;
+  vPosition.z = iLinearIndex / (m_vDomainSize.x * m_vDomainSize.y);
+
+  return vPosition;
+}
+
+MortonLayout::MortonLayout(UINT64VECTOR3 const& vDomainSize)
+  : Layout(vDomainSize)
+{}
+
+uint64_t MortonLayout::GetLinearIndex(UINT64VECTOR3 const& vSpatialPosition)
+{
+  if (ExceedsDomain(vSpatialPosition))
+    throw std::runtime_error("spatial position out of domain bounds");
+
+  // TODO: check index overflow...
+
+  // we use the z-order curve, so we have to interlace the bits
+  // of the 3d spatial position to obtain a linear 1d index
+  uint64_t const iIterations = (sizeof(uint64_t) * 8) / 3;
+  uint64_t iIndex = 0;
+
+  for (uint64_t i = 0; i < iIterations; ++i)
+  {
+    uint64_t const bit = 1u << i;
+
+    iIndex |= (vSpatialPosition.x & bit) << ((i * 2) + 0);
+    iIndex |= (vSpatialPosition.y & bit) << ((i * 2) + 1);
+    iIndex |= (vSpatialPosition.z & bit) << ((i * 2) + 2);
+  }
+
+  return iIndex;
+}
+
+UINT64VECTOR3 MortonLayout::GetSpatialPosition(uint64_t iLinearIndex)
+{
+  // TODO: check if index is too large
+
+  // we use the z-order curve, so we have to deinterlace the bits
+  // of the 1d linear index to obtain the 3d spatial position
+  uint64_t const iIterations = (sizeof(uint64_t) * 8) / 3;
+  UINT64VECTOR3 vPosition(0, 0, 0);
+
+  for (uint64_t i = 0u; i < iIterations; ++i)
+  {
+    vPosition.x |= (iLinearIndex & 1u) << i;
+    vPosition.y |= (iLinearIndex & 2u) << i;
+    vPosition.z |= (iLinearIndex & 4u) << i;
+
+    iLinearIndex >>= 3u;
+  }
+
+  vPosition.y >>= 1u;
+  vPosition.z >>= 2u;
+
+  return vPosition;
+}
+
+HilbertLayout::HilbertLayout(UINT64VECTOR3 const& vDomainSize)
+  : Layout(vDomainSize)
+  , m_iBits(size_t(ceil(log(double(vDomainSize.maxVal()))/log(2.0))))
+{}
+
+uint64_t HilbertLayout::GetLinearIndex(UINT64VECTOR3 const& vSpatialPosition)
+{
+  if (ExceedsDomain(vSpatialPosition))
+    throw std::runtime_error("spatial position out of domain bounds");
+
+  std::array<uint64_t, 3> v = {
+    vSpatialPosition.x,
+    vSpatialPosition.y,
+    vSpatialPosition.z
+  };
+  return Hilbert::Encode(m_iBits, v);
+}
+
+UINT64VECTOR3 HilbertLayout::GetSpatialPosition(uint64_t iLinearIndex)
+{
+  std::array<uint64_t, 3> v = {0, 0, 0};
+  Hilbert::Decode(m_iBits, iLinearIndex, v);
+  return UINT64VECTOR3(v[0], v[1], v[2]);
+}
+
+namespace {
+
+  template<class T>
+  struct UniqueNumber {
+    T number;
+    UniqueNumber() : number(0) {}
+    T operator()() { return number++; }
+  };
+
+} // anonymous namespace
+
+RandomLayout::RandomLayout(UINT64VECTOR3 const& vDomainSize)
+  : ScanlineLayout(vDomainSize)
+  , m_vLookUp((size_t)vDomainSize.volume())
+{
+  std::generate(m_vLookUp.begin(), m_vLookUp.end(), UniqueNumber<uint64_t>());
+  std::random_shuffle(m_vLookUp.begin(), m_vLookUp.end());
+}
+
+uint64_t RandomLayout::GetLinearIndex(UINT64VECTOR3 const& vSpatialPosition)
+{
+  uint64_t const iIndex = ScanlineLayout::GetLinearIndex(vSpatialPosition);
+  assert(iIndex < (uint64_t)m_vLookUp.size());
+  return m_vLookUp[(size_t)iIndex];
+}
+
+UINT64VECTOR3 RandomLayout::GetSpatialPosition(uint64_t iLinearIndex)
+{
+  assert(iLinearIndex < (uint64_t)m_vLookUp.size());
+  uint64_t const iIndex = m_vLookUp[(size_t)iLinearIndex];
+  return ScanlineLayout::GetSpatialPosition(iIndex);
+}
 
 UINTVECTOR2 VolumeTools::Fit1DIndexTo2DArray(uint64_t iMax1DIndex,
                                              uint32_t iMax2DArraySize) {

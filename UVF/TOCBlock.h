@@ -12,10 +12,11 @@ class MaxMinDataBlock;
 class TOCBlock : public DataBlock
 {
 public:
-  TOCBlock();
+  TOCBlock(uint64_t iUVFFileVersion);
   virtual ~TOCBlock();
   TOCBlock(const TOCBlock &other);
-  TOCBlock(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian);
+  TOCBlock(LargeRAWFile_ptr pStreamFile, uint64_t iOffset,
+           bool bIsBigEndian, uint64_t iUVFFileVersion);
   virtual uint64_t ComputeDataSize() const;
 
   uint32_t GetOverlap() const {return m_ExtendedOctree.GetOverlap();}
@@ -38,7 +39,8 @@ public:
                               pMaxMinDatBlock =
                                 std::shared_ptr<MaxMinDataBlock>(),
                             AbstrDebugOut* pDebugOut=NULL,
-                            COMPRESSION_TYPE ct=CT_ZLIB);
+                            COMPRESSION_TYPE ct=CT_ZLIB,
+                            LAYOUT_TYPE lt=LT_SCANLINE);
   bool FlatDataToBrickedLOD(LargeRAWFile_ptr pSourceData,
                             const std::string& strTempFile,
                             ExtendedOctree::COMPONENT_TYPE eType,
@@ -54,7 +56,8 @@ public:
                               pMaxMinDatBlock =
                                 std::shared_ptr<MaxMinDataBlock>(),
                             AbstrDebugOut* pDebugOut=NULL,
-                            COMPRESSION_TYPE ct=CT_ZLIB);
+                            COMPRESSION_TYPE ct=CT_ZLIB,
+                            LAYOUT_TYPE lt=LT_SCANLINE);
 
   bool BrickedLODToFlatData(uint64_t iLoD,
                             const std::string& strTargetFile,
@@ -111,6 +114,7 @@ protected:
   uint32_t m_iOverlap;
   UINT64VECTOR3 m_vMaxBrickSize;
   std::string m_strDeleteTempFile;
+  uint64_t m_iUVFFileVersion;
 
   uint64_t ComputeHeaderSize() const;
   virtual uint64_t GetHeaderFromFile(LargeRAWFile_ptr pStreamFile,
