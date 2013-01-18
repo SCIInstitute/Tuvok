@@ -15,7 +15,7 @@ struct CleanupZlibInStream {
 
 
 void zdecompress(std::shared_ptr<uint8_t> in, std::shared_ptr<uint8_t>& out,
-                 uint64_t n)
+                 unsigned int n)
 {
   std::shared_ptr<z_stream> strm(new z_stream, CleanupZlibInStream());
   strm->zalloc = Z_NULL; strm->zfree = Z_NULL; strm->opaque = Z_NULL;
@@ -23,7 +23,7 @@ void zdecompress(std::shared_ptr<uint8_t> in, std::shared_ptr<uint8_t>& out,
   strm->avail_in = 0;
   strm->next_in = Z_NULL;
   if(inflateInit(strm.get()) != Z_OK) {
-    assert("zlib initialization failed" == 0);
+    assert("zlib initialization failed" && false);
     throw std::runtime_error("zlib initialization failed");
   }
   strm->avail_in = n;
@@ -32,14 +32,14 @@ void zdecompress(std::shared_ptr<uint8_t> in, std::shared_ptr<uint8_t>& out,
   strm->next_out = out.get();
 
   int ret;
-  uint64_t bytes = 0; // processed
+  unsigned int bytes = 0; // processed
   do { /* until stream ends */
     strm->avail_in = n - bytes;
     if(strm->avail_in == 0) { break; }
 
     strm->next_in = in.get() + bytes;
 
-    size_t save = n - bytes;
+    unsigned int save = n - bytes;
     strm->avail_out = n - bytes;
     strm->next_out = out.get() + bytes;
     ret = inflate(strm.get(), Z_FINISH);
@@ -71,15 +71,9 @@ struct CleanupZlibStream {
  * @parameter n  number of bytes in 'in'
  * @parameter out the output buffer created
  * @returns the number of bytes in the compressed data */
-uint64_t zcompress(std::shared_ptr<uint8_t> in, uint64_t bytes,
-                   std::shared_ptr<uint8_t>& out) {
-  const size_t n = static_cast<size_t>(bytes);
-  if(static_cast<uint64_t>(n) != bytes) {
-    /* we'd have to compress this data in chunks, this mem-based interface
-     * can't work.  Just bail for now. */
-    out = in;
-    return bytes;
-  }
+unsigned int zcompress(std::shared_ptr<uint8_t> in, unsigned int bytes,
+                       std::shared_ptr<uint8_t>& out) {
+  const unsigned int n = bytes;
   std::shared_ptr<z_stream> strm(new z_stream, CleanupZlibStream());
   strm->zalloc = Z_NULL;
   strm->zfree = Z_NULL;
