@@ -27,6 +27,7 @@
 #include <memory>
 #include <map>
 #include <unordered_map>
+#include <stdexcept>
 #include "Basics/MathTools.h"
 #include "Basics/nonstd.h"
 #include "DebugOut/AbstrDebugOut.h"
