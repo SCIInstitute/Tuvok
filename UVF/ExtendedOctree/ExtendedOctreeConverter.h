@@ -172,8 +172,9 @@ public:
     @param stats pointer to a vector to store the statistics of each brick, can be set to NULL to disable statistics computation
     @param compression the desired compression method, defaults to none
     @param bComputeMedian use median as downsampling filter (uses average otherwise)
-    @param bClampToEdge use outer values to fill border (uses zeroes otherwise)
+    @param bClampToEdge use outer values to fill border (uses zeros otherwise)
     @param layout brick ordering on disk
+    @param compressionLevel if compression is used the higher the level the more the compression (e.g. LZMA: 0..9)
     @return true if the conversion succeeded, the main reason for failure would be a disk I/O issue
   */
   bool Convert(const std::string& filename, uint64_t iOffset,
@@ -183,6 +184,7 @@ public:
                const std::string& targetFile, uint64_t iOutOffset,
                BrickStatVec* stats,
                COMPRESSION_TYPE compression,
+               uint32_t iCompressionLevel,
                bool bComputeMedian,
                bool bClampToEdge,
                LAYOUT_TYPE layout);
@@ -204,6 +206,7 @@ public:
     @param bComputeMedian use median as downsampling filter (uses average otherwise)
     @param bClampToEdge use outer values to fill border (uses zeros otherwise)
     @param layout brick ordering on disk
+    @param compressionLevel if compression is used the higher the level the more the compression (e.g. LZMA: 0..9)
     @return  true if the conversion succeeded, the main reason for failure would be a disk I/O issue
   */
   bool Convert(LargeRAWFile_ptr pLargeRAWFile, uint64_t iOffset,
@@ -213,6 +216,7 @@ public:
                LargeRAWFile_ptr pLargeRAWOutFile, uint64_t iOutOffset,
                BrickStatVec* stats,
                COMPRESSION_TYPE compression,
+               uint32_t iCompressionLevel,
                bool bComputeMedian,
                bool bClampToEdge,
                LAYOUT_TYPE layout);

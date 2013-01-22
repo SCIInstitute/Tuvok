@@ -31,7 +31,8 @@
 #include "Basics/nonstd.h"
 #include "DebugOut/AbstrDebugOut.h"
 #include "ExtendedOctreeConverter.h"
-#include "zlib-compression.h"
+#include "ZlibCompression.h"
+#include "LzmaCompression.h"
 #include "Basics/ProgressTimer.h"
 
 // simple/generic progress update message
@@ -81,6 +82,7 @@ bool ExtendedOctreeConverter::Convert(const std::string& filename,
               uint64_t iOutOffset,
               BrickStatVec* stats,
               COMPRESSION_TYPE compression,
+              uint32_t iCompressionLevel,
               bool bComputeMedian,
               bool bClampToEdge,
               LAYOUT_TYPE layout) {
@@ -97,7 +99,7 @@ bool ExtendedOctreeConverter::Convert(const std::string& filename,
 
   return Convert(inFile, iOffset, eComponentType, iComponentCount, vVolumeSize,
                  vVolumeAspect, outFile, iOutOffset, stats, compression,
-                 bComputeMedian, bClampToEdge, layout);
+                 iCompressionLevel, bComputeMedian, bClampToEdge, layout);
 }
 
 /*
@@ -124,6 +126,7 @@ bool ExtendedOctreeConverter::Convert(LargeRAWFile_ptr pLargeRAWFileIn,
                       uint64_t iOutOffset,
                       BrickStatVec* stats,
                       COMPRESSION_TYPE compression,
+                      uint32_t iCompressionLevel,
                       bool bComputeMedian,
                       bool bClampToEdge,
                       LAYOUT_TYPE layout) {
@@ -142,6 +145,7 @@ bool ExtendedOctreeConverter::Convert(LargeRAWFile_ptr pLargeRAWFileIn,
   e.m_iOverlap = m_iOverlap;
   e.m_iOffset = iOutOffset;
   e.m_pLargeRAWFile = pLargeRAWFileOut;
+  e.m_iCompressionLevel = iCompressionLevel;
   e.ComputeMetadata();
   m_fProgress = 0.0f;
 
@@ -237,6 +241,11 @@ bool ExtendedOctreeConverter::Convert(LargeRAWFile_ptr pLargeRAWFileIn,
     e.m_iSize = lastBrickInFile.m_iOffset + lastBrickInFile.m_iLength;
   }
 
+  if (m_eCompression >= CT_UNKNOWN) {
+    m_Progress.Warning(_func_, "Unknown compression method requested (%d), resetting "
+                       "to default zlib compression", m_eCompression);
+    m_eCompression = CT_ZLIB;
+  }
   if (m_eLayout >= LT_UNKNOWN) {
     m_Progress.Warning(_func_, "Unknown brick layout requested (%d), resetting "
                        "to default scanline order", m_eLayout);
@@ -477,6 +486,7 @@ void ExtendedOctreeConverter::ComputeStatsAndCompressAll(ExtendedOctree& tree)
       }
     }
   } else {
+    std::array<uint8_t, 5> lzmaProps;
 
     // foreach brick:
     //   load it up
@@ -488,12 +498,24 @@ void ExtendedOctreeConverter::ComputeStatsAndCompressAll(ExtendedOctree& tree)
       BrickStat(m_pBrickStatVec, i, BrickData.get(), BrickSize(tree, i),
                 tree.m_iComponentCount, tree.m_eComponentType);
 
-      uint64_t newlen = zcompress(BrickData, BrickSize(tree, i), compressed);
+      uint64_t newlen = 0;
+      switch (m_eCompression) {
+      case CT_ZLIB:
+        newlen = zCompress(BrickData, BrickSize(tree, i), compressed);
+        break;
+      case CT_LZMA:
+        newlen = lzmaCompress(BrickData, BrickSize(tree, i), compressed,
+                              lzmaProps, tree.m_iCompressionLevel);
+        assert(lzmaProps == tree.m_lzmaProps);
+        break;
+      default:
+        throw std::runtime_error("unknown compression format");
+      }
       std::shared_ptr<uint8_t> data;
 
       if(newlen < BrickSize(tree, i)) {
         tree.m_vTOC[i].m_iLength = newlen;
-        tree.m_vTOC[i].m_eCompression = CT_ZLIB;
+        tree.m_vTOC[i].m_eCompression = m_eCompression;
         data = compressed;
       } else {
         tree.m_vTOC[i].m_iLength = BrickSize(tree, i);
@@ -544,8 +566,23 @@ ExtendedOctreeConverter::Fetch(ExtendedOctree& tree,
     // compress if desired
     if (m_eCompression != CT_NONE) {
       std::shared_ptr<uint8_t> pCompressed;
-      // zcompress will always create a buffer sized like the input data
-      uint64_t iCompressed = zcompress(pData, record.m_iLength, pCompressed);
+      // *Compress will always create a buffer sized like the input data
+      uint64_t iCompressed = 0;
+      switch (m_eCompression) {
+      case CT_ZLIB:
+        iCompressed = zCompress(pData, record.m_iLength, pCompressed);
+        break;
+      case CT_LZMA: {
+        // we only use the encoded props for safety checks
+        // they should be identical for all bricks of the tree
+        std::array<uint8_t, 5> props;
+        iCompressed = lzmaCompress(pData, record.m_iLength, pCompressed,
+                                   props, tree.m_iCompressionLevel);
+        assert(props == tree.m_lzmaProps);
+        break; }
+      default:
+        throw std::runtime_error("unknown compression format");
+      }
       if (iCompressed < record.m_iLength) {
         if (!pBuffer) {
           pData.reset(new uint8_t[iCompressed], nonstd::DeleteArray<uint8_t>());
@@ -553,7 +590,7 @@ ExtendedOctreeConverter::Fetch(ExtendedOctree& tree,
         } else
           pData = pCompressed;
         record.m_iLength = iCompressed;
-        record.m_eCompression = CT_ZLIB;
+        record.m_eCompression = m_eCompression;
       }
     }
   }

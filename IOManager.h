@@ -243,6 +243,10 @@ public:
     m_iCompression = iCompression;
   }
 
+  void SetCompressionLevel(uint32_t iCompressionLevel) {
+    m_iCompressionLevel = iCompressionLevel;
+  }
+
   void SetLayout(uint32_t iLayout) {
     m_iLayout = iLayout;
   }
@@ -264,6 +268,7 @@ private:
   bool m_bUseMedianFilter;
   bool m_bClampToEdge;
   uint32_t m_iCompression;
+  uint32_t m_iCompressionLevel;
   uint32_t m_iLayout;
   std::function<tuvok::Dataset* (const std::string&,
                                  tuvok::AbstrRenderer*)> m_LoadDS;

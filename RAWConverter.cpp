@@ -427,6 +427,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
                                      const bool bUseMedian,
                                      const bool bClampToEdge,
                                      uint32_t iBrickCompression,
+                                     uint32_t iBrickCompressionLevel,
                                      uint32_t iBrickLayout,
                                      KVPairs* pKVPairs,
                                      const bool bQuantizeTo8Bit)
@@ -594,6 +595,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
       MaxMinData,
       &Controller::Debug::Out(),
       COMPRESSION_TYPE(iBrickCompression),
+      iBrickCompressionLevel,
       LAYOUT_TYPE(iBrickLayout)
     );
     MESSAGE("Hierarchy computation complete");
@@ -1116,6 +1118,7 @@ bool RAWConverter::ConvertToUVF(const std::string& strSourceFilename,
                                 const bool bUseMedian,
                                 const bool bClampToEdge,
                                 uint32_t iBrickCompression,
+                                uint32_t iBrickCompressionLevel,
                                 uint32_t iBrickLayout,
                                 const bool bQuantizeTo8Bit)
 {
@@ -1123,7 +1126,7 @@ bool RAWConverter::ConvertToUVF(const std::string& strSourceFilename,
   files.push_front(strSourceFilename);
   return ConvertToUVF(files, strTargetFilename, strTempDir, bNoUserInteraction,
                       iTargetBrickSize, iTargetBrickOverlap, bUseMedian,
-                      bClampToEdge, iBrickCompression,
+                      bClampToEdge, iBrickCompression, iBrickCompressionLevel,
                       iBrickLayout, bQuantizeTo8Bit);
 }
 
@@ -1138,6 +1141,7 @@ bool RAWConverter::ConvertToUVF(const std::list<std::string>& files,
                                 const bool bUseMedian,
                                 const bool bClampToEdge,
                                 uint32_t iBrickCompression,
+                                uint32_t iBrickCompressionLevel,
                                 uint32_t iBrickLayout,
                                 const bool bQuantizeTo8Bit)
 {
@@ -1249,6 +1253,7 @@ bool RAWConverter::ConvertToUVF(const std::list<std::string>& files,
                                        bUseMedian, 
                                        bClampToEdge,
                                        iBrickCompression,
+                                       iBrickCompressionLevel,
                                        iBrickLayout,
                                        0,
                                        bQuantizeTo8Bit);

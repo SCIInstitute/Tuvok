@@ -74,6 +74,7 @@ public:
                             const bool bUseMedian,
                             const bool bClampToEdge,
                             uint32_t iBrickCompression,
+                            uint32_t iBrickCompressionLevel,
                             uint32_t iBrickLayout,
                             const bool bQuantizeTo8Bit) = 0;
 
@@ -86,6 +87,7 @@ public:
                             const bool bUseMedian,
                             const bool bClampToEdge,
                             uint32_t iBrickCompression,
+                            uint32_t iBrickCompressionLevel,
                             uint32_t iBrickLayout,
                             const bool bQuantizeTo8Bit) = 0;
 

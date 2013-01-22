@@ -40,6 +40,7 @@ public:
                                 std::shared_ptr<MaxMinDataBlock>(),
                             AbstrDebugOut* pDebugOut=NULL,
                             COMPRESSION_TYPE ct=CT_ZLIB,
+                            uint32_t iCompressionLevel=4,
                             LAYOUT_TYPE lt=LT_SCANLINE);
   bool FlatDataToBrickedLOD(LargeRAWFile_ptr pSourceData,
                             const std::string& strTempFile,
@@ -57,6 +58,7 @@ public:
                                 std::shared_ptr<MaxMinDataBlock>(),
                             AbstrDebugOut* pDebugOut=NULL,
                             COMPRESSION_TYPE ct=CT_ZLIB,
+                            uint32_t iCompressionLevel=4,
                             LAYOUT_TYPE lt=LT_SCANLINE);
 
   bool BrickedLODToFlatData(uint64_t iLoD,

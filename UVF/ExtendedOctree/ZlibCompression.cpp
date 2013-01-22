@@ -2,7 +2,7 @@
 #include <stdexcept>
 #include "zlib.h"
 #include "Basics/nonstd.h"
-#include "zlib-compression.h"
+#include "ZlibCompression.h"
 
 /** if you call 'inflateInit' on a stream, you must cause inflateEnd (even if
  * inflation fails) to cleanup internal zlib memory allocations. */
@@ -14,9 +14,15 @@ struct CleanupZlibInStream {
 };
 
 
-void zdecompress(std::shared_ptr<uint8_t> in, std::shared_ptr<uint8_t>& out,
-                 unsigned int n)
+void zDecompress(std::shared_ptr<uint8_t> src, std::shared_ptr<uint8_t>& dst,
+                 size_t uncompressedBytes)
 {
+  if(static_cast<uint64_t>(uncompressedBytes) >
+     std::numeric_limits<uInt>::max()) {
+    /* we'd have to decompress this data in chunks, this mem-based interface
+     * can't work.  Just bail for now. */
+    throw std::runtime_error("expected uncompressed size too large");
+  }
   std::shared_ptr<z_stream> strm(new z_stream, CleanupZlibInStream());
   strm->zalloc = Z_NULL; strm->zfree = Z_NULL; strm->opaque = Z_NULL;
 
@@ -26,22 +32,22 @@ void zdecompress(std::shared_ptr<uint8_t> in, std::shared_ptr<uint8_t>& out,
     assert("zlib initialization failed" && false);
     throw std::runtime_error("zlib initialization failed");
   }
-  strm->avail_in = n;
-  strm->next_in = in.get();
-  strm->avail_out = n;
-  strm->next_out = out.get();
+  strm->avail_in = static_cast<uInt>(uncompressedBytes);
+  strm->next_in = src.get();
+  strm->avail_out = static_cast<uInt>(uncompressedBytes);
+  strm->next_out = dst.get();
 
   int ret;
-  unsigned int bytes = 0; // processed
+  uInt bytes = 0; // processed
   do { /* until stream ends */
-    strm->avail_in = n - bytes;
+    strm->avail_in = static_cast<uInt>(uncompressedBytes) - bytes;
     if(strm->avail_in == 0) { break; }
 
-    strm->next_in = in.get() + bytes;
+    strm->next_in = src.get() + bytes;
 
-    unsigned int save = n - bytes;
-    strm->avail_out = n - bytes;
-    strm->next_out = out.get() + bytes;
+    const uInt save = static_cast<uInt>(uncompressedBytes) - bytes;
+    strm->avail_out = static_cast<uInt>(uncompressedBytes) - bytes;
+    strm->next_out = dst.get() + bytes;
     ret = inflate(strm.get(), Z_FINISH);
     assert(ret != Z_STREAM_ERROR); // only happens w/ invalid params
     assert(ret != Z_MEM_ERROR); // only happens if 'out' is not big enough
@@ -71,23 +77,29 @@ struct CleanupZlibStream {
  * @parameter n  number of bytes in 'in'
  * @parameter out the output buffer created
  * @returns the number of bytes in the compressed data */
-unsigned int zcompress(std::shared_ptr<uint8_t> in, unsigned int bytes,
-                       std::shared_ptr<uint8_t>& out) {
-  const unsigned int n = bytes;
+size_t zCompress(std::shared_ptr<uint8_t> src, size_t uncompressedBytes,
+                 std::shared_ptr<uint8_t>& dst) {
+  if(static_cast<uint64_t>(uncompressedBytes) >
+     std::numeric_limits<uInt>::max()) {
+    /* we'd have to compress this data in chunks, this mem-based interface
+     * can't work.  Just bail for now. */
+    dst = src;
+    return uncompressedBytes;
+  }
   std::shared_ptr<z_stream> strm(new z_stream, CleanupZlibStream());
   strm->zalloc = Z_NULL;
   strm->zfree = Z_NULL;
   strm->opaque = Z_NULL;
   if(deflateInit(strm.get(), Z_BEST_SPEED) != Z_OK) {
     /* zlib initialization failed, just bail with no compression. */
-    out = in;
-    return bytes;
+    dst = src;
+    return uncompressedBytes;
   }
-  strm->avail_in = n;
-  strm->next_in = in.get();
-  out.reset(new uint8_t[n], nonstd::DeleteArray<uint8_t>());
-  strm->avail_out = n;
-  strm->next_out = out.get();
+  strm->avail_in = static_cast<uInt>(uncompressedBytes);
+  strm->next_in = src.get();
+  dst.reset(new uint8_t[uncompressedBytes], nonstd::DeleteArray<uint8_t>());
+  strm->avail_out = static_cast<uInt>(uncompressedBytes);
+  strm->next_out = dst.get();
 
   int ret;
   do {
@@ -95,10 +107,10 @@ unsigned int zcompress(std::shared_ptr<uint8_t> in, unsigned int bytes,
     assert(ret != Z_STREAM_ERROR);
     if(ret != Z_STREAM_END) {
       /* compression failed.  Bail out. */
-      out = in;
-      return bytes;
+      dst = src;
+      return uncompressedBytes;
     }
   } while(ret != Z_STREAM_END);
 
-  return n - strm->avail_out;
+  return uncompressedBytes - strm->avail_out;
 }

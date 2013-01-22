@@ -24,7 +24,8 @@
 
 #include "ExtendedOctree.h"
 #include "Basics/nonstd.h"
-#include "zlib-compression.h"
+#include "ZlibCompression.h"
+#include "LzmaCompression.h"
 
 ExtendedOctree::ExtendedOctree() :
   m_eComponentType(CT_UINT8), 
@@ -34,11 +35,25 @@ ExtendedOctree::ExtendedOctree() :
   m_vVolumeAspect(0,0,0), 
   m_iBrickSize(0,0,0), 
   m_iOverlap(0), 
-  m_iVersion(1), // increment version number here if something changes...
+  m_iVersion(2), // increment version number here if something changes...
   m_iSize(0),
+  m_iCompressionLevel(4), // our default level for LZMA, it's fast and still compresses well
   m_iOffset(0), 
   m_pLargeRAWFile()
+{}
+
+void ExtendedOctree::InitLzmaCompression()
 {
+  // fill LZMA properties for selected compression level
+  // this is mainly necessary for proper decompression
+  std::shared_ptr<uint8_t> src(new uint8_t[16], nonstd::DeleteArray<uint8_t>());
+  std::shared_ptr<uint8_t> dst;
+  try {
+    lzmaCompress(src, 16, dst, m_lzmaProps, m_iCompressionLevel);
+  } catch (std::exception const&) {
+    assert("could not init LZMA compression properties" && false);
+    throw;
+  }
 }
 
 /*
@@ -103,6 +118,8 @@ bool ExtendedOctree::Open(LargeRAWFile_ptr pLargeRAWFile, uint64_t iOffset,
 
   if (m_iVersion > 0)
     m_pLargeRAWFile->ReadData(m_iSize, isBE);
+  if (m_iVersion > 1)
+    m_pLargeRAWFile->ReadData(m_iCompressionLevel, isBE);
 
   // if any of the above numbers (except for the overlap) 
   // is zero than there must have been an issue reading the file
@@ -219,6 +236,8 @@ void ExtendedOctree::ComputeMetadata() {
   for (size_t i = 1;i<m_vLODTable.size();i++) {
     m_vLODTable[i].m_iLoDOffset = m_vLODTable[i-1].m_iLoDOffset + m_vLODTable[i-1].m_iLODBrickCount.volume();
   }
+
+  InitLzmaCompression();
 }
 
 /*
@@ -300,9 +319,7 @@ void ExtendedOctree::GetBrickData(uint8_t* pData, uint64_t index) const {
 
   // the data are compressed; read them into a temporary buffer and then expand
   // that buffer into 'pData'.
-  assert(m_vTOC[size_t(index)].m_eCompression == CT_ZLIB &&
-         "currently we only support one compression method.");
-  const uint64_t uncompressedSize =
+  const size_t uncompressedSize =
     this->ComputeBrickSize(this->IndexToBrickCoords(index)).volume() *
     this->GetComponentCount() *
     this->GetComponentTypeSize();
@@ -311,7 +328,16 @@ void ExtendedOctree::GetBrickData(uint8_t* pData, uint64_t index) const {
                                nonstd::DeleteArray<uint8_t>());
   std::shared_ptr<uint8_t> out(pData, nonstd::null_deleter());
   m_pLargeRAWFile->ReadRAW(buf.get(), m_vTOC[size_t(index)].m_iLength);
-  zdecompress(buf, out, uncompressedSize);
+  switch (m_vTOC[size_t(index)].m_eCompression) {
+  case CT_ZLIB:
+    zDecompress(buf, out, uncompressedSize);
+    break;
+  case CT_LZMA:
+    lzmaDecompress(buf, out, uncompressedSize, m_lzmaProps);
+    break;
+  default:
+    throw std::runtime_error("unknown compression format");
+  }
 }
 
 /*
@@ -441,6 +467,7 @@ uint64_t ExtendedOctree::ComputeHeaderSize() const {
     sizeof(uint32_t /*m_iOverlap*/) +
     (m_iVersion > 0 ? sizeof(uint32_t /*m_iVersion*/) : 0) +
     (m_iVersion > 0 ? sizeof(uint64_t /*m_iSize*/) : 0) +
+    (m_iVersion > 1 ? sizeof(uint32_t /*m_iCompressionLevel*/) : 0) +
     ComputeBrickCount() * TOCEntry::SizeInFile(m_iVersion);
 }
 
@@ -475,6 +502,9 @@ void ExtendedOctree::WriteHeader(LargeRAWFile_ptr pLargeRAWFile,
   if (m_iVersion > 0) {
     m_pLargeRAWFile->WriteData(m_iVersion, isBE);
     m_pLargeRAWFile->WriteData(m_iSize, isBE);
+  }
+  if (m_iVersion > 1) {
+    m_pLargeRAWFile->WriteData(m_iCompressionLevel, isBE);
   }
 
   // write ToC
