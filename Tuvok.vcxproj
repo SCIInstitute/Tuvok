@@ -225,7 +225,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;$(QTDIR32)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;IO/3rdParty/lzma;$(QTDIR32)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -244,7 +244,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug (No Qt)|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;$(QTDIR32)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;IO/3rdParty/lzma;$(QTDIR32)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;TUVOK_NO_QT;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -266,7 +266,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;$(QTDIR64)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;IO/3rdParty/lzma;$(QTDIR64)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -288,7 +288,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;$(QTDIR64)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;IO/3rdParty/lzma;$(QTDIR64)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;TUVOK_NO_QT;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -309,7 +309,7 @@
       <AdditionalOptions>/U"_SECURE_SCL" /D"_SECURE_SCL=0" %(AdditionalOptions)</AdditionalOptions>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;$(QTDIR32)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;IO/3rdParty/lzma;$(QTDIR32)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -329,7 +329,7 @@
       <AdditionalOptions>/U"_SECURE_SCL" /D"_SECURE_SCL=0" %(AdditionalOptions)</AdditionalOptions>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;$(QTDIR32)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;IO/3rdParty/lzma;$(QTDIR32)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;TUVOK_NO_QT;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -352,7 +352,7 @@
       <AdditionalOptions>/U"_SECURE_SCL" /D"_SECURE_SCL=0" %(AdditionalOptions)</AdditionalOptions>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;$(QTDIR64)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;IO/3rdParty/lzma;$(QTDIR64)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -375,7 +375,7 @@
       <AdditionalOptions>/U"_SECURE_SCL" /D"_SECURE_SCL=0" %(AdditionalOptions)</AdditionalOptions>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;$(QTDIR64)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;IO/3rdParty/lzma;$(QTDIR64)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;TUVOK_NO_QT;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -393,7 +393,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;$(QTDIR32)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;IO/3rdParty/lzma;$(QTDIR32)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_LIB;USE_DIRECTX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -415,7 +415,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;$(QTDIR64)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;IO/3rdParty/lzma;$(QTDIR64)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_LIB;USE_DIRECTX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -436,7 +436,7 @@
       <AdditionalOptions>/U"_SECURE_SCL" /D"_SECURE_SCL=0" %(AdditionalOptions)</AdditionalOptions>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;$(QTDIR32)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;IO/3rdParty/lzma;$(QTDIR32)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_LIB;USE_DIRECTX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -459,7 +459,7 @@
       <AdditionalOptions>/U"_SECURE_SCL" /D"_SECURE_SCL=0" %(AdditionalOptions)</AdditionalOptions>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;$(QTDIR64)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;IO/3rdParty/lzma;$(QTDIR64)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_LIB;USE_DIRECTX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -527,6 +527,9 @@
     <ClCompile Include="Basics\Checksums\MD5.cpp" />
     <ClCompile Include="Basics\KDTree.cpp" />
     <ClCompile Include="Basics\Mesh.cpp" />
+    <ClCompile Include="IO\3rdParty\lzma\LzFind.c" />
+    <ClCompile Include="IO\3rdParty\lzma\LzmaDec.c" />
+    <ClCompile Include="IO\3rdParty\lzma\LzmaEnc.c" />
     <ClCompile Include="IO\AmiraConverter.cpp" />
     <ClCompile Include="IO\GeomViewConverter.cpp" />
     <ClCompile Include="IO\Images\StackExporter.cpp" />
@@ -535,8 +538,9 @@
     <ClCompile Include="IO\TTIFFWriter\TTIFFWriter.cpp" />
     <ClCompile Include="IO\UVF\ExtendedOctree\ExtendedOctree.cpp" />
     <ClCompile Include="IO\UVF\ExtendedOctree\ExtendedOctreeConverter.cpp" />
+    <ClCompile Include="IO\UVF\ExtendedOctree\LzmaCompression.cpp" />
     <ClCompile Include="IO\UVF\ExtendedOctree\VolumeTools.cpp" />
-    <ClCompile Include="IO\UVF\ExtendedOctree\zlib-compression.cpp" />
+    <ClCompile Include="IO\UVF\ExtendedOctree\ZlibCompression.cpp" />
     <ClCompile Include="IO\UVF\TOCBlock.cpp" />
     <ClCompile Include="IO\XML3DGeoConverter.cpp" />
     <ClCompile Include="LUAScripting\LUAClassConstructor.cpp" />
@@ -1328,6 +1332,12 @@
     <ClInclude Include="Basics\3rdParty\tclap\Visitor.h" />
     <ClInclude Include="Basics\3rdParty\tclap\XorHandler.h" />
     <ClInclude Include="Basics\3rdParty\tclap\ZshCompletionOutput.h" />
+    <ClInclude Include="IO\3rdParty\lzma\7zVersion.h" />
+    <ClInclude Include="IO\3rdParty\lzma\LzFind.h" />
+    <ClInclude Include="IO\3rdParty\lzma\LzHash.h" />
+    <ClInclude Include="IO\3rdParty\lzma\LzmaDec.h" />
+    <ClInclude Include="IO\3rdParty\lzma\LzmaEnc.h" />
+    <ClInclude Include="IO\3rdParty\lzma\Types.h" />
     <ClInclude Include="IO\AmiraConverter.h" />
     <ClInclude Include="IO\GeomViewConverter.h" />
     <ClInclude Include="IO\Images\StackExporter.h" />
@@ -1338,8 +1348,9 @@
     <ClInclude Include="IO\UVF\ExtendedOctree\ExtendedOctreeConverter.h" />
     <ClInclude Include="IO\UVF\ExtendedOctree\Hilbert.h" />
     <ClInclude Include="IO\UVF\ExtendedOctree\Hilbert.inc" />
+    <ClInclude Include="IO\UVF\ExtendedOctree\LzmaCompression.h" />
     <ClInclude Include="IO\UVF\ExtendedOctree\VolumeTools.h" />
-    <ClInclude Include="IO\UVF\ExtendedOctree\zlib-compression.h" />
+    <ClInclude Include="IO\UVF\ExtendedOctree\ZlibCompression.h" />
     <ClInclude Include="IO\UVF\TOCBlock.h" />
     <ClInclude Include="IO\XML3DGeoConverter.h" />
     <ClInclude Include="LUAScripting\LUAClassConstructor.h" />

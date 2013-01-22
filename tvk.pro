@@ -145,6 +145,11 @@ HEADERS += \
            IO/3rdParty/tiff/tiffvers.h \
            IO/3rdParty/tiff/tif_predict.h \
            IO/3rdParty/tiff/uvcode.h \
+           IO/3rdParty/lzma/LzFind.h \
+           IO/3rdParty/lzma/LzHash.h \
+           IO/3rdParty/lzma/LzmaDec.h \
+           IO/3rdParty/lzma/LzmaEnc.h \
+           IO/3rdParty/lzma/Types.h \
            IO/AbstrConverter.h \
            IO/AmiraConverter.h \
            IO/AnalyzeConverter.h \
@@ -208,7 +213,8 @@ HEADERS += \
            IO/UVF/ExtendedOctree/ExtendedOctreeConverter.h \
            IO/UVF/ExtendedOctree/VolumeTools.h \
            IO/UVF/ExtendedOctree/Hilbert.h \
-           IO/UVF/ExtendedOctree/zlib-compression.h \
+           IO/UVF/ExtendedOctree/ZlibCompression.h \
+           IO/UVF/ExtendedOctree/LzmaCompression.h \
            IO/TTIFFWriter/TTIFFWriter.h \
            IO/VariantArray.h \
            IO/VFFConverter.h \
@@ -448,6 +454,9 @@ SOURCES += \
            IO/3rdParty/tiff/tif_jbig.c \
            IO/3rdParty/tiff/tif_jpeg.c \
            IO/3rdParty/tiff/tif_ojpeg.c \
+           IO/3rdParty/lzma/LzFind.c \
+           IO/3rdParty/lzma/LzmaDec.c \
+           IO/3rdParty/lzma/LzmaEnc.c \
            IO/AbstrConverter.cpp \
            IO/AmiraConverter.cpp \
            IO/AnalyzeConverter.cpp \
@@ -505,7 +514,8 @@ SOURCES += \
            IO/UVF/ExtendedOctree/ExtendedOctree.cpp \
            IO/UVF/ExtendedOctree/ExtendedOctreeConverter.cpp \
            IO/UVF/ExtendedOctree/VolumeTools.cpp \
-           IO/UVF/ExtendedOctree/zlib-compression.cpp \
+           IO/UVF/ExtendedOctree/ZlibCompression.cpp \
+           IO/UVF/ExtendedOctree/LzmaCompression.cpp \
            IO/TTIFFWriter/TTIFFWriter.cpp \
            IO/VariantArray.cpp \
            IO/VFFConverter.cpp \
