@@ -12,7 +12,7 @@ win32 {
 RCC_DIR           = Build/rcc
 OBJECTS_DIR       = Build/objects
 DEPENDPATH       += . Basics Controller DebugOut IO Renderer 
-INCLUDEPATH      += . 3rdParty/GLEW IO/3rdParty/boost IO/3rdParty/zlib
+INCLUDEPATH      += . 3rdParty/GLEW IO/3rdParty/boost IO/3rdParty/zlib IO/3rdParty/lzma
 INCLUDEPATH      += Basics IO/exception
 QT               += opengl
 QMAKE_LIBDIR     += IO/expressions
