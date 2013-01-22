@@ -67,10 +67,8 @@ size_t lzmaCompress(std::shared_ptr<uint8_t> src, size_t uncompressedBytes,
                     std::array<uint8_t, 5>& encodedProps,
                     uint32_t compressionLevel)
 {
-  assert(0 <= compressionLevel && compressionLevel <= 9);
-  if (compressionLevel < 0)
-    compressionLevel = 0;
-  else if (compressionLevel > 9)
+  assert(compressionLevel <= 9);
+  if (compressionLevel > 9)
     compressionLevel = 9;
   assert(encodedProps.size() == LZMA_PROPS_SIZE);
   SizeT encodedPropsSize = LZMA_PROPS_SIZE;
