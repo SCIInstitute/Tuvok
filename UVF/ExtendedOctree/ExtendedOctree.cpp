@@ -22,6 +22,7 @@
  DEALINGS IN THE SOFTWARE.
  */
 
+#include <stdexcept>
 #include "ExtendedOctree.h"
 #include "Basics/nonstd.h"
 #include "ZlibCompression.h"
