@@ -47,7 +47,7 @@ void ExtendedOctree::InitLzmaCompression()
 {
   // fill LZMA properties for selected compression level
   // this is mainly necessary for proper decompression
-  std::shared_ptr<uint8_t> src(new uint8_t[16], nonstd::DeleteArray<uint8_t>());
+  std::shared_ptr<uint8_t> src(new uint8_t[16](), nonstd::DeleteArray<uint8_t>());
   std::shared_ptr<uint8_t> dst;
   try {
     lzmaCompress(src, 16, dst, m_lzmaProps, m_iCompressionLevel);
