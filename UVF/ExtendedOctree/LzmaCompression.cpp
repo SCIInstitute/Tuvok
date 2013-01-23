@@ -62,21 +62,56 @@ LzmaError::LzmaError(std::string const& msg, ELzmaStatus status)
   : std::runtime_error(msg + std::string(StatusToStr(status)))
 {}
 
+namespace {
+
+  void initLzmaProperties(CLzmaEncProps& props,
+                          uint32_t compressionLevel)
+  {
+    assert(compressionLevel <= 9);
+    if (compressionLevel > 9)
+      compressionLevel = 9;
+
+    LzmaEncProps_Init(&props);
+    props.writeEndMark = 0;
+    props.level = compressionLevel;
+  }
+
+}
+
+void lzmaProperties(std::array<uint8_t, 5>& encodedProps,
+                    uint32_t compressionLevel)
+{
+  CLzmaEncProps props;
+  initLzmaProperties(props, compressionLevel);
+  assert(encodedProps.size() == LZMA_PROPS_SIZE);
+  SizeT encodedPropsSize = LZMA_PROPS_SIZE;
+
+  // taken from LzmaEncode() but just do not encode
+  CLzmaEncHandle p = LzmaEnc_Create(&g_AllocForLzma);
+  SRes res;
+  if (p == 0)
+    throw LzmaError("LzmaEnc_Create failed: ", SZ_ERROR_MEM);
+
+  res = LzmaEnc_SetProps(p, &props);
+  if (res != SZ_OK)
+    throw LzmaError("LzmaEnc_SetProps failed: ", res);
+
+  res = LzmaEnc_WriteProperties(p, &encodedProps[0], &encodedPropsSize);
+  if (res != SZ_OK)
+    throw LzmaError("LzmaEnc_WriteProperties failed: ", res);
+
+  LzmaEnc_Destroy(p, &g_AllocForLzma, &g_AllocForLzma);
+}
+
 size_t lzmaCompress(std::shared_ptr<uint8_t> src, size_t uncompressedBytes,
                     std::shared_ptr<uint8_t>& dst,
                     std::array<uint8_t, 5>& encodedProps,
                     uint32_t compressionLevel)
 {
-  assert(compressionLevel <= 9);
-  if (compressionLevel > 9)
-    compressionLevel = 9;
+  CLzmaEncProps props;
+  initLzmaProperties(props, compressionLevel);
   assert(encodedProps.size() == LZMA_PROPS_SIZE);
   SizeT encodedPropsSize = LZMA_PROPS_SIZE;
-
-  CLzmaEncProps props;
-  LzmaEncProps_Init(&props);
-  props.writeEndMark = 0;
-  props.level = compressionLevel;
 
   dst.reset(new uint8_t[uncompressedBytes], nonstd::DeleteArray<uint8_t>());
   SizeT compressedBytes = uncompressedBytes;
