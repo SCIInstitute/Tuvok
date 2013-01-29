@@ -34,7 +34,7 @@ size_t bzCompress(std::shared_ptr<uint8_t> src, size_t uncompressedBytes,
   // To guarantee that the compressed data will fit in its buffer, allocate an 
   // output buffer of size 1% larger than the uncompressed data, plus six 
   // hundred extra bytes.
-  unsigned int upperBound = unsigned int(uncompressedBytes * 1.01) + 600;
+  unsigned int upperBound = static_cast<unsigned int>(uncompressedBytes * 1.01) + 600;
   if (size_t(upperBound) < uncompressedBytes)
     std::runtime_error("Input data too big for bzip2");
   dst.reset(new uint8_t[size_t(upperBound)], nonstd::DeleteArray<uint8_t>());
@@ -49,7 +49,7 @@ size_t bzCompress(std::shared_ptr<uint8_t> src, size_t uncompressedBytes,
   int res = BZ2_bzBuffToBuffCompress((char*)dst.get(),
                                      &upperBound,
                                      (char*)src.get(),
-                                     unsigned int(uncompressedBytes),
+                                     static_cast<unsigned int>(uncompressedBytes),
                                      int(compressionLevel),
                                      0, 0);
   if (res != BZ_OK)
@@ -68,7 +68,7 @@ void bzDecompress(std::shared_ptr<uint8_t> src,
   int res = BZ2_bzBuffToBuffDecompress((char*)dst.get(),
                                        &outputSize,
                                        (char*)src.get(),
-                                       unsigned int(compressedBytes),
+                                       static_cast<unsigned int>(compressedBytes),
                                        0, 0);
   if (res != BZ_OK)
     throw std::runtime_error(std::string("BZ2_bzBuffToBuffDecompress failed. ")
