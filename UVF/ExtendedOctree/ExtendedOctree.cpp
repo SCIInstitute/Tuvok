@@ -28,6 +28,7 @@
 #include "ZlibCompression.h"
 #include "LzmaCompression.h"
 #include "Lz4Compression.h"
+#include "BzlibCompression.h"
 
 ExtendedOctree::ExtendedOctree() :
   m_eComponentType(CT_UINT8), 
@@ -335,6 +336,10 @@ void ExtendedOctree::GetBrickData(uint8_t* pData, uint64_t index) const {
     break;
   case CT_LZ4:
     lz4Decompress(buf, out, uncompressedSize);
+    break;
+  case CT_BZLIB:
+    bzDecompress(buf, size_t(m_vTOC[size_t(index)].m_iLength),
+                 out, uncompressedSize);
     break;
   default:
     throw std::runtime_error("unknown compression format");

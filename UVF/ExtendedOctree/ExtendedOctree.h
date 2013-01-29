@@ -64,9 +64,10 @@ struct LODInfo {
 /// This enum lists the different compression techniques
 enum COMPRESSION_TYPE {
   CT_NONE = 0,    // brick is not compressed
-  CT_ZLIB,        // brick is compressed using zlib
+  CT_ZLIB,        // brick is compressed using ZLIB
   CT_LZMA,        // brick is compressed using LZMA
   CT_LZ4,         // brick is compressed using LZ4
+  CT_BZLIB,       // brick is compressed using BZIP2
   CT_UNKNOWN
 };
 

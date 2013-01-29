@@ -35,6 +35,7 @@
 #include "ZlibCompression.h"
 #include "LzmaCompression.h"
 #include "Lz4Compression.h"
+#include "BzlibCompression.h"
 #include "Basics/ProgressTimer.h"
 
 // simple/generic progress update message
@@ -514,6 +515,10 @@ void ExtendedOctreeConverter::ComputeStatsAndCompressAll(ExtendedOctree& tree)
         newlen = lz4Compress(BrickData, BrickSize(tree, i), compressed,
                              tree.m_iCompressionLevel);
         break;
+      case CT_BZLIB:
+        newlen = bzCompress(BrickData, BrickSize(tree, i), compressed,
+                            tree.m_iCompressionLevel);
+        break;
       default:
         throw std::runtime_error("unknown compression format");
       }
@@ -589,6 +594,10 @@ ExtendedOctreeConverter::Fetch(ExtendedOctree& tree,
       case CT_LZ4:
         iCompressed = lz4Compress(pData, record.m_iLength, pCompressed,
                                   tree.m_iCompressionLevel);
+        break;
+      case CT_BZLIB:
+        iCompressed = bzCompress(pData, record.m_iLength, pCompressed,
+                                 tree.m_iCompressionLevel);
         break;
       default:
         throw std::runtime_error("unknown compression format");
