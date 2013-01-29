@@ -12,9 +12,9 @@ extern "C" {
 
 size_t lz4Compress(std::shared_ptr<uint8_t> src, size_t uncompressedBytes,
                    std::shared_ptr<uint8_t>& dst,
-                   uint32_t compressionLevel)
+                   uint32_t /*compressionLevel*/)
 {
-  if (uncompressedBytes > std::numeric_limits<int>::max())
+  if (uncompressedBytes > size_t(std::numeric_limits<int>::max()))
     throw std::runtime_error("Input data too big for LZ4 (max ~1.9GB)");
   int const inputSize = static_cast<int>(uncompressedBytes);
   int const upperBound = LZ4_compressBound(inputSize);
@@ -44,7 +44,7 @@ size_t lz4Compress(std::shared_ptr<uint8_t> src, size_t uncompressedBytes,
 void lz4Decompress(std::shared_ptr<uint8_t> src, std::shared_ptr<uint8_t>& dst,
                    size_t uncompressedBytes)
 {
-  if (uncompressedBytes > std::numeric_limits<int>::max())
+  if (uncompressedBytes > size_t(std::numeric_limits<int>::max()))
     throw std::runtime_error("Expected output data too big for LZ4 (max ~1.9GB)");
 
   int const outputSize = static_cast<int>(uncompressedBytes);
