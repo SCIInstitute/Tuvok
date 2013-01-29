@@ -1026,6 +1026,9 @@
     <ClCompile Include="IO\3rdParty\lz4\lz4hc.c">
       <Filter>IO\lz4</Filter>
     </ClCompile>
+    <ClCompile Include="IO\UVF\ExtendedOctree\BzlibCompression.cpp">
+      <Filter>IO\UVF\ExtendedOctree</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Basics\Appendix.h">
@@ -2054,6 +2057,9 @@
     </ClInclude>
     <ClInclude Include="IO\3rdParty\lz4\lz4hc.h">
       <Filter>IO\lz4</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\UVF\ExtendedOctree\BzlibCompression.h">
+      <Filter>IO\UVF\ExtendedOctree</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
