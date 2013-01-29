@@ -121,6 +121,9 @@
     <Filter Include="IO\lzma">
       <UniqueIdentifier>{0000d4dc-9766-44b7-9d82-9db287ca24b0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="IO\lz4">
+      <UniqueIdentifier>{b9f713b0-87f3-4ccf-96c7-fb4cc8035fd9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Basics\Appendix.cpp">
@@ -1013,6 +1016,15 @@
     </ClCompile>
     <ClCompile Include="IO\UVF\ExtendedOctree\LzmaCompression.cpp">
       <Filter>IO\UVF\ExtendedOctree</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\UVF\ExtendedOctree\Lz4Compression.cpp">
+      <Filter>IO\UVF\ExtendedOctree</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\lz4\lz4.c">
+      <Filter>IO\lz4</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\lz4\lz4hc.c">
+      <Filter>IO\lz4</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -2033,6 +2045,15 @@
     </ClInclude>
     <ClInclude Include="IO\UVF\ExtendedOctree\LzmaCompression.h">
       <Filter>IO\UVF\ExtendedOctree</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\UVF\ExtendedOctree\Lz4Compression.h">
+      <Filter>IO\UVF\ExtendedOctree</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\lz4\lz4.h">
+      <Filter>IO\lz4</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\lz4\lz4hc.h">
+      <Filter>IO\lz4</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -12,7 +12,7 @@ win32 {
 RCC_DIR           = Build/rcc
 OBJECTS_DIR       = Build/objects
 DEPENDPATH       += . Basics Controller DebugOut IO Renderer 
-INCLUDEPATH      += . 3rdParty/GLEW IO/3rdParty/boost IO/3rdParty/zlib IO/3rdParty/lzma
+INCLUDEPATH      += . 3rdParty/GLEW IO/3rdParty/boost IO/3rdParty/zlib IO/3rdParty/lzma IO/3rdParty/lz4
 INCLUDEPATH      += Basics IO/exception
 QT               += opengl
 QMAKE_LIBDIR     += IO/expressions
@@ -150,6 +150,8 @@ HEADERS += \
            IO/3rdParty/lzma/LzmaDec.h \
            IO/3rdParty/lzma/LzmaEnc.h \
            IO/3rdParty/lzma/Types.h \
+           IO/3rdParty/lz4/lz4.h \
+           IO/3rdParty/lz4/lz4hc.h \
            IO/AbstrConverter.h \
            IO/AmiraConverter.h \
            IO/AnalyzeConverter.h \
@@ -457,6 +459,8 @@ SOURCES += \
            IO/3rdParty/lzma/LzFind.c \
            IO/3rdParty/lzma/LzmaDec.c \
            IO/3rdParty/lzma/LzmaEnc.c \
+           IO/3rdParty/lz4/lz4.c \
+           IO/3rdParty/lz4/lz4hc.c \
            IO/AbstrConverter.cpp \
            IO/AmiraConverter.cpp \
            IO/AnalyzeConverter.cpp \
