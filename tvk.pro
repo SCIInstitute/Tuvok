@@ -217,6 +217,7 @@ HEADERS += \
            IO/UVF/ExtendedOctree/Hilbert.h \
            IO/UVF/ExtendedOctree/ZlibCompression.h \
            IO/UVF/ExtendedOctree/LzmaCompression.h \
+           IO/UVF/ExtendedOctree/Lz4Compression.h \
            IO/TTIFFWriter/TTIFFWriter.h \
            IO/VariantArray.h \
            IO/VFFConverter.h \
@@ -520,6 +521,7 @@ SOURCES += \
            IO/UVF/ExtendedOctree/VolumeTools.cpp \
            IO/UVF/ExtendedOctree/ZlibCompression.cpp \
            IO/UVF/ExtendedOctree/LzmaCompression.cpp \
+           IO/UVF/ExtendedOctree/Lz4Compression.cpp \
            IO/TTIFFWriter/TTIFFWriter.cpp \
            IO/VariantArray.cpp \
            IO/VFFConverter.cpp \
