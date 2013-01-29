@@ -66,6 +66,7 @@ enum COMPRESSION_TYPE {
   CT_NONE = 0,    // brick is not compressed
   CT_ZLIB,        // brick is compressed using zlib
   CT_LZMA,        // brick is compressed using LZMA
+  CT_LZ4,         // brick is compressed using LZ4
   CT_UNKNOWN
 };
 
