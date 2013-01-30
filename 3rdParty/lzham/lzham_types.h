@@ -2,6 +2,8 @@
 // See Copyright Notice and license at the end of include/lzham.h
 #pragma once
 
+#include <stdint.h>
+
 namespace lzham
 {
    typedef unsigned char      uint8;
@@ -12,14 +14,8 @@ namespace lzham
    typedef unsigned int       uint32;
    typedef uint32             uint;
    typedef signed int         int32;
-
-   #ifdef __GNUC__
-      typedef unsigned long long    uint64;
-      typedef long long             int64;
-   #else
-      typedef unsigned __int64      uint64;
-      typedef signed __int64        int64;
-   #endif
+   typedef uint64_t           uint64;
+   typedef int64_t            int64;
 
    const uint8  LZHAM_UINT8_MIN  = 0;
    const uint8  LZHAM_UINT8_MAX  = 0xFFU;
@@ -40,9 +36,9 @@ namespace lzham
    const int64 LZHAM_INT64_MAX = (int64)0x7FFFFFFFFFFFFFFFULL; //9223372036854775807i64;
 
 #if LZHAM_64BIT_POINTERS
-   typedef unsigned __int64 uint_ptr;
-   typedef unsigned __int64 uint32_ptr;
-   typedef signed __int64   signed_size_t;
+   typedef uint64_t uint_ptr;
+   typedef uint64_t uint32_ptr;
+   typedef int64_t  signed_size_t;
    typedef uint64 ptr_bits_t;
    const ptr_bits_t PTR_BITS_XOR = 0xDB0DD4415C87DCF7ULL;
 #else
