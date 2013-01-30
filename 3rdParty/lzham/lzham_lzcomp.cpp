@@ -308,7 +308,7 @@ namespace lzham
 
       if (sizeof(size_t) > sizeof(uint32))
       {
-         if (src_len > UINT32_MAX)
+         if (src_len > LZHAM_UINT32_MAX)
             return LZHAM_COMP_STATUS_INVALID_PARAMETER;
       }
 

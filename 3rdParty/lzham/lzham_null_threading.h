@@ -23,7 +23,7 @@ namespace lzham
          releaseCount, pPreviousCount;
       }
 
-      inline bool wait(uint32 milliseconds = UINT32_MAX)
+      inline bool wait(uint32 milliseconds = LZHAM_UINT32_MAX)
       {
          milliseconds;
          return true;
