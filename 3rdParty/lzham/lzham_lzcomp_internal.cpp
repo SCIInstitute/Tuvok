@@ -1867,7 +1867,7 @@ namespace lzham
       // Coded the entire block - now see if it makes more sense to just send a raw/uncompressed block.
 
       uint compressed_size = m_codec.get_encoding_buf().size();
-      /*compressed_size;*/
+      if (compressed_size) {}
 
       bool used_raw_block = false;
 

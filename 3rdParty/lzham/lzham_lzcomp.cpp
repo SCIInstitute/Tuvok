@@ -391,7 +391,7 @@ namespace lzham
 
    int lzham_lib_z_deflateInit2(lzham_z_streamp pStream, int level, int method, int window_bits, int mem_level, int strategy)
    {
-      /*strategy;*/
+      if (strategy) {}
 
       if (!pStream)
          return LZHAM_Z_STREAM_ERROR;
