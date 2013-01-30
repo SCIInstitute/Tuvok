@@ -552,7 +552,7 @@ namespace lzham
       return LZHAM_Z_OK;
    }
 
-   lzham_z_ulong lzham_lib_z_deflateBound(lzham_z_streamp pStream, lzham_z_ulong source_len)
+   lzham_z_ulong lzham_lib_z_deflateBound(lzham_z_streamp /*pStream*/, lzham_z_ulong source_len)
    {
       /*pStream;*/
       return 64 + source_len + ((source_len + 4095) / 4096) * 4;
