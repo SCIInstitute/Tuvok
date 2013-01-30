@@ -39,7 +39,7 @@ namespace lzham
       {
          LZHAM_ASSERT(releaseCount >= 1);
 
-         int status;
+         int status = 0;
 #ifdef WIN32
          if (1 == releaseCount)
             status = sem_post(&m_sem);

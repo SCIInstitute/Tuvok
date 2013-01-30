@@ -26,8 +26,7 @@ namespace lzham
 
       template<typename T> inline T clamp(T value, T low, T high) { return (value < low) ? low : ((value > high) ? high : value); }
 
-      inline bool is_power_of_2(uint32 x) { return x && ((x & (x - 1U)) == 0U); }
-      inline bool is_power_of_2(uint64 x) { return x && ((x & (x - 1U)) == 0U); }
+      template<typename T> inline bool is_power_of_2(T x) { return x && ((x & (x - 1U)) == 0U); }
 
       template<typename T> inline T align_up_pointer(T p, uint alignment)
       {
@@ -37,9 +36,14 @@ namespace lzham
          return reinterpret_cast<T>(q);
       }
 
+      template<typename T> T next_pow2(T val) {
+        static_assert(sizeof(val) != sizeof(val), "template requires specialization");
+        return 0;
+      }
+
       // From "Hackers Delight"
       // val remains unchanged if it is already a power of 2.
-      inline uint32 next_pow2(uint32 val)
+      template<> inline uint32 next_pow2<uint32>(uint32 val)
       {
          val--;
          val |= val >> 16;
@@ -51,7 +55,7 @@ namespace lzham
       }
 
       // val remains unchanged if it is already a power of 2.
-      inline uint64 next_pow2(uint64 val)
+      template<> inline uint64 next_pow2<uint64>(uint64 val)
       {
          val--;
          val |= val >> 32;
