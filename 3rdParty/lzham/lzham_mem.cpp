@@ -1,7 +1,8 @@
 // File: lzham_mem.cpp
 // See Copyright Notice and license at the end of include/lzham.h
 #include "lzham_core.h"
-#include <malloc.h>
+//#include <malloc.h>
+#include <stdlib.h> // for malloc
 
 using namespace lzham;
 
