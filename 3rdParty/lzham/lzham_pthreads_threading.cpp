@@ -205,6 +205,8 @@ namespace lzham
       return NULL;
    }
 
+   uint lzham_get_max_helper_threads() { return 0; }
+
 } // namespace lzham
 
 #endif // LZHAM_USE_PTHREADS_API
