@@ -1013,7 +1013,7 @@ namespace lzham
       return true;
    }
 
-   void lzcompressor::state::print(symbol_codec& codec, CLZBase& lzbase, const search_accelerator& dict, const lzdecision& lzdec)
+   void lzcompressor::state::print(symbol_codec& /*codec*/, CLZBase& lzbase, const search_accelerator& dict, const lzdecision& lzdec)
    {
       //codec, lzbase, dict;
 
@@ -1107,6 +1107,10 @@ namespace lzham
 
             LZHAM_ASSERT(match_slot >= CLZBase::cLZXLowestUsableMatchSlot && (match_slot < lzbase.m_num_lzx_slots));
             match_high_sym = match_slot - CLZBase::cLZXLowestUsableMatchSlot;
+
+            if (match_low_sym) {}
+            if (large_len_sym) {}
+            if (match_high_sym) {}
 
             //uint main_sym = match_low_sym | (match_high_sym << 3);
 
