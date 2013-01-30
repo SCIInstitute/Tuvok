@@ -61,7 +61,7 @@ void lzham_debug_break(void)
 
 void lzham_output_debug_string(const char* p)
 {
-   p;
+   if (p) {}
 #if LZHAM_USE_WIN32_API
    OutputDebugStringA(p);
 #endif   

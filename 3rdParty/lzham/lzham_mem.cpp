@@ -123,9 +123,9 @@ namespace lzham
       return p_new;
    }
 
-   static size_t lzham_default_msize(void* p, void* pUser_data)
+   static size_t lzham_default_msize(void* p, void* /*pUser_data*/)
    {
-      pUser_data;
+      //pUser_data;
       return p ? _msize(p) : 0;
    }
 
