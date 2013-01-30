@@ -225,7 +225,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;IO/3rdParty/lzma;IO/3rdParty/lz4;$(QTDIR32)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;IO/3rdParty/lzma;IO/3rdParty/lz4;IO/3rdParty/lzham;$(QTDIR32)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -244,7 +244,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug (No Qt)|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;IO/3rdParty/lzma;IO/3rdParty/lz4;$(QTDIR32)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;IO/3rdParty/lzma;IO/3rdParty/lz4;IO/3rdParty/lzham;$(QTDIR32)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;TUVOK_NO_QT;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -266,7 +266,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;IO/3rdParty/lzma;IO/3rdParty/lz4;$(QTDIR64)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;IO/3rdParty/lzma;IO/3rdParty/lz4;IO/3rdParty/lzham;$(QTDIR64)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -288,7 +288,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;IO/3rdParty/lzma;IO/3rdParty/lz4;$(QTDIR64)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;IO/3rdParty/lzma;IO/3rdParty/lz4;IO/3rdParty/lzham;$(QTDIR64)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;TUVOK_NO_QT;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -309,7 +309,7 @@
       <AdditionalOptions>/U"_SECURE_SCL" /D"_SECURE_SCL=0" %(AdditionalOptions)</AdditionalOptions>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;IO/3rdParty/lzma;IO/3rdParty/lz4;$(QTDIR32)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;IO/3rdParty/lzma;IO/3rdParty/lz4;IO/3rdParty/lzham;$(QTDIR32)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -329,7 +329,7 @@
       <AdditionalOptions>/U"_SECURE_SCL" /D"_SECURE_SCL=0" %(AdditionalOptions)</AdditionalOptions>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;IO/3rdParty/lzma;IO/3rdParty/lz4;$(QTDIR32)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;IO/3rdParty/lzma;IO/3rdParty/lz4;IO/3rdParty/lzham;$(QTDIR32)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;TUVOK_NO_QT;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -352,7 +352,7 @@
       <AdditionalOptions>/U"_SECURE_SCL" /D"_SECURE_SCL=0" %(AdditionalOptions)</AdditionalOptions>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;IO/3rdParty/lzma;IO/3rdParty/lz4;$(QTDIR64)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;IO/3rdParty/lzma;IO/3rdParty/lz4;IO/3rdParty/lzham;$(QTDIR64)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -375,7 +375,7 @@
       <AdditionalOptions>/U"_SECURE_SCL" /D"_SECURE_SCL=0" %(AdditionalOptions)</AdditionalOptions>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;IO/3rdParty/lzma;IO/3rdParty/lz4;$(QTDIR64)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;IO/3rdParty/lzma;IO/3rdParty/lz4;IO/3rdParty/lzham;$(QTDIR64)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;TUVOK_NO_QT;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -393,7 +393,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;IO/3rdParty/lzma;IO/3rdParty/lz4;$(QTDIR32)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;IO/3rdParty/lzma;IO/3rdParty/lz4;IO/3rdParty/lzham;$(QTDIR32)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_LIB;USE_DIRECTX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -415,7 +415,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;IO/3rdParty/lzma;IO/3rdParty/lz4;$(QTDIR64)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;IO/3rdParty/lzma;IO/3rdParty/lz4;IO/3rdParty/lzham;$(QTDIR64)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_LIB;USE_DIRECTX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -436,7 +436,7 @@
       <AdditionalOptions>/U"_SECURE_SCL" /D"_SECURE_SCL=0" %(AdditionalOptions)</AdditionalOptions>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;IO/3rdParty/lzma;IO/3rdParty/lz4;$(QTDIR32)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;IO/3rdParty/lzma;IO/3rdParty/lz4;IO/3rdParty/lzham;$(QTDIR32)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_LIB;USE_DIRECTX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -459,7 +459,7 @@
       <AdditionalOptions>/U"_SECURE_SCL" /D"_SECURE_SCL=0" %(AdditionalOptions)</AdditionalOptions>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;IO/3rdParty/lzma;IO/3rdParty/lz4;$(QTDIR64)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;IO/3rdParty/lzma;IO/3rdParty/lz4;IO/3rdParty/lzham;$(QTDIR64)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_LIB;USE_DIRECTX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -529,6 +529,26 @@
     <ClCompile Include="Basics\Mesh.cpp" />
     <ClCompile Include="IO\3rdParty\lz4\lz4.c" />
     <ClCompile Include="IO\3rdParty\lz4\lz4hc.c" />
+    <ClCompile Include="IO\3rdParty\lzham\lzham_assert.cpp" />
+    <ClCompile Include="IO\3rdParty\lzham\lzham_checksum.cpp" />
+    <ClCompile Include="IO\3rdParty\lzham\lzham_huffman_codes.cpp" />
+    <ClCompile Include="IO\3rdParty\lzham\lzham_lib.cpp" />
+    <ClCompile Include="IO\3rdParty\lzham\lzham_lzbase.cpp" />
+    <ClCompile Include="IO\3rdParty\lzham\lzham_lzcomp.cpp" />
+    <ClCompile Include="IO\3rdParty\lzham\lzham_lzcomp_internal.cpp" />
+    <ClCompile Include="IO\3rdParty\lzham\lzham_lzcomp_state.cpp" />
+    <ClCompile Include="IO\3rdParty\lzham\lzham_lzdecomp.cpp" />
+    <ClCompile Include="IO\3rdParty\lzham\lzham_lzdecompbase.cpp" />
+    <ClCompile Include="IO\3rdParty\lzham\lzham_match_accel.cpp" />
+    <ClCompile Include="IO\3rdParty\lzham\lzham_mem.cpp" />
+    <ClCompile Include="IO\3rdParty\lzham\lzham_platform.cpp" />
+    <ClCompile Include="IO\3rdParty\lzham\lzham_polar_codes.cpp" />
+    <ClCompile Include="IO\3rdParty\lzham\lzham_prefix_coding.cpp" />
+    <ClCompile Include="IO\3rdParty\lzham\lzham_pthreads_threading.cpp" />
+    <ClCompile Include="IO\3rdParty\lzham\lzham_symbol_codec.cpp" />
+    <ClCompile Include="IO\3rdParty\lzham\lzham_timer.cpp" />
+    <ClCompile Include="IO\3rdParty\lzham\lzham_vector.cpp" />
+    <ClCompile Include="IO\3rdParty\lzham\lzham_win32_threading.cpp" />
     <ClCompile Include="IO\3rdParty\lzma\LzFind.c" />
     <ClCompile Include="IO\3rdParty\lzma\LzmaDec.c" />
     <ClCompile Include="IO\3rdParty\lzma\LzmaEnc.c" />
@@ -542,6 +562,7 @@
     <ClCompile Include="IO\UVF\ExtendedOctree\ExtendedOctree.cpp" />
     <ClCompile Include="IO\UVF\ExtendedOctree\ExtendedOctreeConverter.cpp" />
     <ClCompile Include="IO\UVF\ExtendedOctree\Lz4Compression.cpp" />
+    <ClCompile Include="IO\UVF\ExtendedOctree\LzhamCompression.cpp" />
     <ClCompile Include="IO\UVF\ExtendedOctree\LzmaCompression.cpp" />
     <ClCompile Include="IO\UVF\ExtendedOctree\VolumeTools.cpp" />
     <ClCompile Include="IO\UVF\ExtendedOctree\ZlibCompression.cpp" />
@@ -1338,6 +1359,37 @@
     <ClInclude Include="Basics\3rdParty\tclap\ZshCompletionOutput.h" />
     <ClInclude Include="IO\3rdParty\lz4\lz4.h" />
     <ClInclude Include="IO\3rdParty\lz4\lz4hc.h" />
+    <ClInclude Include="IO\3rdParty\lz4\lz4Version.h" />
+    <ClInclude Include="IO\3rdParty\lzham\lzham.h" />
+    <ClInclude Include="IO\3rdParty\lzham\lzhamVersion.h" />
+    <ClInclude Include="IO\3rdParty\lzham\lzham_assert.h" />
+    <ClInclude Include="IO\3rdParty\lzham\lzham_checksum.h" />
+    <ClInclude Include="IO\3rdParty\lzham\lzham_comp.h" />
+    <ClInclude Include="IO\3rdParty\lzham\lzham_config.h" />
+    <ClInclude Include="IO\3rdParty\lzham\lzham_core.h" />
+    <ClInclude Include="IO\3rdParty\lzham\lzham_decomp.h" />
+    <ClInclude Include="IO\3rdParty\lzham\lzham_helpers.h" />
+    <ClInclude Include="IO\3rdParty\lzham\lzham_huffman_codes.h" />
+    <ClInclude Include="IO\3rdParty\lzham\lzham_lzbase.h" />
+    <ClInclude Include="IO\3rdParty\lzham\lzham_lzcomp_internal.h" />
+    <ClInclude Include="IO\3rdParty\lzham\lzham_lzdecompbase.h" />
+    <ClInclude Include="IO\3rdParty\lzham\lzham_match_accel.h" />
+    <ClInclude Include="IO\3rdParty\lzham\lzham_math.h" />
+    <ClInclude Include="IO\3rdParty\lzham\lzham_mem.h" />
+    <ClInclude Include="IO\3rdParty\lzham\lzham_null_threading.h" />
+    <ClInclude Include="IO\3rdParty\lzham\lzham_platform.h" />
+    <ClInclude Include="IO\3rdParty\lzham\lzham_polar_codes.h" />
+    <ClInclude Include="IO\3rdParty\lzham\lzham_prefix_coding.h" />
+    <ClInclude Include="IO\3rdParty\lzham\lzham_pthreads_threading.h" />
+    <ClInclude Include="IO\3rdParty\lzham\lzham_static_lib.h" />
+    <ClInclude Include="IO\3rdParty\lzham\lzham_symbol_codec.h" />
+    <ClInclude Include="IO\3rdParty\lzham\lzham_threading.h" />
+    <ClInclude Include="IO\3rdParty\lzham\lzham_timer.h" />
+    <ClInclude Include="IO\3rdParty\lzham\lzham_traits.h" />
+    <ClInclude Include="IO\3rdParty\lzham\lzham_types.h" />
+    <ClInclude Include="IO\3rdParty\lzham\lzham_utils.h" />
+    <ClInclude Include="IO\3rdParty\lzham\lzham_vector.h" />
+    <ClInclude Include="IO\3rdParty\lzham\lzham_win32_threading.h" />
     <ClInclude Include="IO\3rdParty\lzma\7zVersion.h" />
     <ClInclude Include="IO\3rdParty\lzma\LzFind.h" />
     <ClInclude Include="IO\3rdParty\lzma\LzHash.h" />
@@ -1356,6 +1408,7 @@
     <ClInclude Include="IO\UVF\ExtendedOctree\Hilbert.h" />
     <ClInclude Include="IO\UVF\ExtendedOctree\Hilbert.inc" />
     <ClInclude Include="IO\UVF\ExtendedOctree\Lz4Compression.h" />
+    <ClInclude Include="IO\UVF\ExtendedOctree\LzhamCompression.h" />
     <ClInclude Include="IO\UVF\ExtendedOctree\LzmaCompression.h" />
     <ClInclude Include="IO\UVF\ExtendedOctree\VolumeTools.h" />
     <ClInclude Include="IO\UVF\ExtendedOctree\ZlibCompression.h" />

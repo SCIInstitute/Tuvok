@@ -124,6 +124,9 @@
     <Filter Include="IO\lz4">
       <UniqueIdentifier>{b9f713b0-87f3-4ccf-96c7-fb4cc8035fd9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="IO\lzham">
+      <UniqueIdentifier>{f742fb6f-4164-45f5-8a98-c2867ea81931}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Basics\Appendix.cpp">
@@ -1028,6 +1031,69 @@
     </ClCompile>
     <ClCompile Include="IO\UVF\ExtendedOctree\BzlibCompression.cpp">
       <Filter>IO\UVF\ExtendedOctree</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\UVF\ExtendedOctree\LzhamCompression.cpp">
+      <Filter>IO\UVF\ExtendedOctree</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\lzham\lzham_lib.cpp">
+      <Filter>IO\lzham</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\lzham\lzham_lzbase.cpp">
+      <Filter>IO\lzham</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\lzham\lzham_lzcomp.cpp">
+      <Filter>IO\lzham</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\lzham\lzham_lzcomp_internal.cpp">
+      <Filter>IO\lzham</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\lzham\lzham_assert.cpp">
+      <Filter>IO\lzham</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\lzham\lzham_mem.cpp">
+      <Filter>IO\lzham</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\lzham\lzham_platform.cpp">
+      <Filter>IO\lzham</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\lzham\lzham_vector.cpp">
+      <Filter>IO\lzham</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\lzham\lzham_lzdecomp.cpp">
+      <Filter>IO\lzham</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\lzham\lzham_lzdecompbase.cpp">
+      <Filter>IO\lzham</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\lzham\lzham_timer.cpp">
+      <Filter>IO\lzham</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\lzham\lzham_symbol_codec.cpp">
+      <Filter>IO\lzham</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\lzham\lzham_prefix_coding.cpp">
+      <Filter>IO\lzham</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\lzham\lzham_checksum.cpp">
+      <Filter>IO\lzham</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\lzham\lzham_huffman_codes.cpp">
+      <Filter>IO\lzham</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\lzham\lzham_polar_codes.cpp">
+      <Filter>IO\lzham</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\lzham\lzham_pthreads_threading.cpp">
+      <Filter>IO\lzham</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\lzham\lzham_win32_threading.cpp">
+      <Filter>IO\lzham</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\lzham\lzham_lzcomp_state.cpp">
+      <Filter>IO\lzham</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\lzham\lzham_match_accel.cpp">
+      <Filter>IO\lzham</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -2060,6 +2126,102 @@
     </ClInclude>
     <ClInclude Include="IO\UVF\ExtendedOctree\BzlibCompression.h">
       <Filter>IO\UVF\ExtendedOctree</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\UVF\ExtendedOctree\LzhamCompression.h">
+      <Filter>IO\UVF\ExtendedOctree</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\lzham\lzham.h">
+      <Filter>IO\lzham</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\lzham\lzham_comp.h">
+      <Filter>IO\lzham</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\lzham\lzham_config.h">
+      <Filter>IO\lzham</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\lzham\lzham_core.h">
+      <Filter>IO\lzham</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\lzham\lzham_decomp.h">
+      <Filter>IO\lzham</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\lzham\lzham_lzbase.h">
+      <Filter>IO\lzham</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\lzham\lzham_lzcomp_internal.h">
+      <Filter>IO\lzham</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\lzham\lzham_match_accel.h">
+      <Filter>IO\lzham</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\lzham\lzham_static_lib.h">
+      <Filter>IO\lzham</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\lzham\lzham_assert.h">
+      <Filter>IO\lzham</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\lzham\lzham_helpers.h">
+      <Filter>IO\lzham</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\lzham\lzham_math.h">
+      <Filter>IO\lzham</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\lzham\lzham_mem.h">
+      <Filter>IO\lzham</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\lzham\lzham_platform.h">
+      <Filter>IO\lzham</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\lzham\lzham_traits.h">
+      <Filter>IO\lzham</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\lzham\lzham_types.h">
+      <Filter>IO\lzham</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\lzham\lzham_utils.h">
+      <Filter>IO\lzham</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\lzham\lzham_vector.h">
+      <Filter>IO\lzham</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\lzham\lzham_lzdecompbase.h">
+      <Filter>IO\lzham</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\lzham\lzham_timer.h">
+      <Filter>IO\lzham</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\lzham\lzham_symbol_codec.h">
+      <Filter>IO\lzham</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\lzham\lzham_prefix_coding.h">
+      <Filter>IO\lzham</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\lzham\lzham_checksum.h">
+      <Filter>IO\lzham</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\lzham\lzham_huffman_codes.h">
+      <Filter>IO\lzham</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\lzham\lzham_polar_codes.h">
+      <Filter>IO\lzham</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\lzham\lzham_null_threading.h">
+      <Filter>IO\lzham</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\lzham\lzham_pthreads_threading.h">
+      <Filter>IO\lzham</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\lzham\lzham_threading.h">
+      <Filter>IO\lzham</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\lzham\lzham_win32_threading.h">
+      <Filter>IO\lzham</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\lz4\lz4Version.h">
+      <Filter>IO\lz4</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\lzham\lzhamVersion.h">
+      <Filter>IO\lzham</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
