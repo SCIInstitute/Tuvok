@@ -1,8 +1,11 @@
 // File: lzham_mem.cpp
 // See Copyright Notice and license at the end of include/lzham.h
 #include "lzham_core.h"
-//#include <malloc.h>
-#include <stdlib.h> // for malloc
+#if !defined(__APPLE__)
+#include <malloc.h>
+#else
+#include <malloc/malloc.h>
+#endif
 
 using namespace lzham;
 
@@ -65,9 +68,9 @@ namespace lzham
       }
    #endif // LZHAM_MEM_STATS
 
-   static void* lzham_default_realloc(void* p, size_t size, size_t* pActual_size, lzham_bool movable, void* pUser_data)
+   static void* lzham_default_realloc(void* p, size_t size, size_t* pActual_size, lzham_bool movable, void* /*pUser_data*/)
    {
-      pUser_data;
+      //pUser_data;
 
       void* p_new;
 
