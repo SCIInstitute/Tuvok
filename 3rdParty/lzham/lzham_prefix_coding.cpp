@@ -9,16 +9,18 @@
 
 namespace lzham
 {
+#define LZHAM_cMaxEverCodeSize 34
+
    namespace prefix_coding
    {
       bool limit_max_code_size(uint num_syms, uint8* pCodesizes, uint max_code_size)
       {
-         const uint cMaxEverCodeSize = 34;            
+         //const uint cMaxEverCodeSize = 34;            
          
-         if ((!num_syms) || (num_syms > cMaxSupportedSyms) || (max_code_size < 1) || (max_code_size > cMaxEverCodeSize))
+         if ((!num_syms) || (num_syms > cMaxSupportedSyms) || (max_code_size < 1) || (max_code_size > LZHAM_cMaxEverCodeSize))
             return false;
          
-         uint num_codes[cMaxEverCodeSize + 1];
+         uint num_codes[LZHAM_cMaxEverCodeSize + 1];
          utils::zero_object(num_codes);
 
          bool should_limit = false;
@@ -27,7 +29,7 @@ namespace lzham
          {
             uint c = pCodesizes[i];
             
-            LZHAM_ASSERT(c <= cMaxEverCodeSize);
+            LZHAM_ASSERT(c <= LZHAM_cMaxEverCodeSize);
             
             num_codes[c]++;
             if (c > max_code_size)
@@ -38,8 +40,8 @@ namespace lzham
             return true;
          
          uint ofs = 0;
-         uint next_sorted_ofs[cMaxEverCodeSize + 1];
-         for (uint i = 1; i <= cMaxEverCodeSize; i++)
+         uint next_sorted_ofs[LZHAM_cMaxEverCodeSize + 1];
+         for (uint i = 1; i <= LZHAM_cMaxEverCodeSize; i++)
          {
             next_sorted_ofs[i] = ofs;
             ofs += num_codes[i];
@@ -51,7 +53,7 @@ namespace lzham
          if (ofs > (1U << max_code_size))
             return false;
                            
-         for (uint i = max_code_size + 1; i <= cMaxEverCodeSize; i++)
+         for (uint i = max_code_size + 1; i <= LZHAM_cMaxEverCodeSize; i++)
             num_codes[max_code_size] += num_codes[i];
          
          // Technique of adjusting tree to enforce maximum code size from LHArc.
