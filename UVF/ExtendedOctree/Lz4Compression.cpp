@@ -27,7 +27,7 @@ size_t lz4Compress(std::shared_ptr<uint8_t> src, size_t uncompressedBytes,
   // for now. (e.g. processing the HeadAneurysm dataset with brick size 256 at
   // brick index 8)
   int compressedBytes = 0;
-  //if (compressionLevel < 1)
+  //if (compressionLevel < 2)
     compressedBytes = LZ4_compress((const char*)src.get(),
                                    (char*)dst.get(),
                                    inputSize);

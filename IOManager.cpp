@@ -146,7 +146,7 @@ IOManager::IOManager() :
   m_bUseMedianFilter(false),
   m_bClampToEdge(false),
   m_iCompression(1), // default zlib compression
-  m_iCompressionLevel(4), // default compression level for lzma compression
+  m_iCompressionLevel(1), // default compression level best speed
   m_iLayout(0), // default scanline layout
   m_LoadDS(NULL)
 {

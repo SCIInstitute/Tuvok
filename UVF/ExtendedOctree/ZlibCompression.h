@@ -18,10 +18,14 @@ void zDecompress(std::shared_ptr<uint8_t> src, std::shared_ptr<uint8_t>& dst,
   @param  src the data to compress
   @param  uncompressedBytes number of bytes in 'src'
   @param  dst the output buffer that will be created of the same size as 'src'
+  @param  compressionLevel between 0..9 ( 0 - no compression,
+                                          1 - best speed, ...,
+                                          9 - best compression)
   @return the number of bytes in the compressed data
   */
 size_t zCompress(std::shared_ptr<uint8_t> src, size_t uncompressedBytes,
-                 std::shared_ptr<uint8_t>& dst);
+                 std::shared_ptr<uint8_t>& dst,
+                 uint32_t compressionLevel = 1);
 
 #endif /* UVF_ZLIB_COMPRESSION_H */
 

@@ -15,7 +15,7 @@ void lz4Decompress(std::shared_ptr<uint8_t> src, std::shared_ptr<uint8_t>& dst,
                    size_t uncompressedBytes);
 
 /**
-  Compresses data into 'dst' using LZMA algorithm (7z).
+  Compresses data into 'dst' using LZ4 algorithm.
   @param  src the data to compress
   @param  uncompressedBytes number of bytes in 'src'
   @param  dst the output buffer that will be created of the same size as 'src'

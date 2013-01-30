@@ -73,13 +73,10 @@ struct CleanupZlibStream {
   }
 };
 
-/** compresses data into 'out'.
- * @parameter in the data to compress
- * @parameter n  number of bytes in 'in'
- * @parameter out the output buffer created
- * @returns the number of bytes in the compressed data */
 size_t zCompress(std::shared_ptr<uint8_t> src, size_t uncompressedBytes,
-                 std::shared_ptr<uint8_t>& dst) {
+                 std::shared_ptr<uint8_t>& dst,
+                 uint32_t compressionLevel)
+{
   if(static_cast<uint64_t>(uncompressedBytes) >
      std::numeric_limits<uInt>::max()) {
     /* we'd have to compress this data in chunks, this mem-based interface
@@ -87,11 +84,14 @@ size_t zCompress(std::shared_ptr<uint8_t> src, size_t uncompressedBytes,
     dst = src;
     return uncompressedBytes;
   }
+  if (compressionLevel > 9)
+    compressionLevel = 9;
+
   std::shared_ptr<z_stream> strm(new z_stream, CleanupZlibStream());
   strm->zalloc = Z_NULL;
   strm->zfree = Z_NULL;
   strm->opaque = Z_NULL;
-  if(deflateInit(strm.get(), Z_BEST_SPEED) != Z_OK) {
+  if(deflateInit(strm.get(), (int)compressionLevel) != Z_OK) {
     /* zlib initialization failed, just bail with no compression. */
     dst = src;
     return uncompressedBytes;

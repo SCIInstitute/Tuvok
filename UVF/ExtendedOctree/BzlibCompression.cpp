@@ -39,8 +39,6 @@ size_t bzCompress(std::shared_ptr<uint8_t> src, size_t uncompressedBytes,
     std::runtime_error("Input data too big for bzip2");
   dst.reset(new uint8_t[size_t(upperBound)], nonstd::DeleteArray<uint8_t>());
 
-  assert(compressionLevel <= 9);
-  assert(compressionLevel > 0);
   if (compressionLevel > 9)
     compressionLevel = 9;
   else if (compressionLevel < 1)

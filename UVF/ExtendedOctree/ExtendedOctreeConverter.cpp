@@ -36,6 +36,7 @@
 #include "LzmaCompression.h"
 #include "Lz4Compression.h"
 #include "BzlibCompression.h"
+#include "LzhamCompression.h"
 #include "Basics/ProgressTimer.h"
 
 // simple/generic progress update message
@@ -504,7 +505,8 @@ void ExtendedOctreeConverter::ComputeStatsAndCompressAll(ExtendedOctree& tree)
       uint64_t newlen = 0;
       switch (m_eCompression) {
       case CT_ZLIB:
-        newlen = zCompress(BrickData, BrickSize(tree, i), compressed);
+        newlen = zCompress(BrickData, BrickSize(tree, i), compressed,
+                           tree.m_iCompressionLevel);
         break;
       case CT_LZMA:
         newlen = lzmaCompress(BrickData, BrickSize(tree, i), compressed,
@@ -518,6 +520,10 @@ void ExtendedOctreeConverter::ComputeStatsAndCompressAll(ExtendedOctree& tree)
       case CT_BZLIB:
         newlen = bzCompress(BrickData, BrickSize(tree, i), compressed,
                             tree.m_iCompressionLevel);
+        break;
+      case CT_LZHAM:
+        newlen = lzhamCompress(BrickData, BrickSize(tree, i), compressed,
+                               tree.m_iCompressionLevel);
         break;
       default:
         throw std::runtime_error("unknown compression format");
@@ -581,7 +587,8 @@ ExtendedOctreeConverter::Fetch(ExtendedOctree& tree,
       uint64_t iCompressed = 0;
       switch (m_eCompression) {
       case CT_ZLIB:
-        iCompressed = zCompress(pData, record.m_iLength, pCompressed);
+        iCompressed = zCompress(pData, record.m_iLength, pCompressed,
+                                tree.m_iCompressionLevel);
         break;
       case CT_LZMA: {
         // we only use the encoded props for safety checks
@@ -598,6 +605,10 @@ ExtendedOctreeConverter::Fetch(ExtendedOctree& tree,
       case CT_BZLIB:
         iCompressed = bzCompress(pData, record.m_iLength, pCompressed,
                                  tree.m_iCompressionLevel);
+        break;
+      case CT_LZHAM:
+        iCompressed = lzhamCompress(pData, record.m_iLength, pCompressed,
+                                    tree.m_iCompressionLevel);
         break;
       default:
         throw std::runtime_error("unknown compression format");

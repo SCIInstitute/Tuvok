@@ -1,5 +1,5 @@
-#ifndef UVF_BZLIB_COMPRESSION_H
-#define UVF_BZLIB_COMPRESSION_H
+#ifndef UVF_LZHAM_COMPRESSION_H
+#define UVF_LZHAM_COMPRESSION_H
 
 #include <cstdint>
 #include <memory>
@@ -12,23 +12,26 @@
   @param  uncompressedBytes number of bytes available and expected in 'dst'
   @throws std::runtime_error if something fails
   */
-void bzDecompress(std::shared_ptr<uint8_t> src, size_t compressedBytes,
-                  std::shared_ptr<uint8_t>& dst, size_t uncompressedBytes);
+void lzhamDecompress(std::shared_ptr<uint8_t> src, size_t compressedBytes,
+                     std::shared_ptr<uint8_t>& dst, size_t uncompressedBytes);
 
 /**
-  Compresses data into 'dst' using Bzlib.
+  Compresses data into 'dst' using LZHAM algorithm.
   @param  src the data to compress
   @param  uncompressedBytes number of bytes in 'src'
   @param  dst the output buffer that will be created of the same size as 'src'
-  @param  compressionLevel between 1..9
+  @param  compressionLevel between 0..10 ( 0 - no compression,
+                                           1 - best speed, ...,
+                                           9 - best compression,
+                                          10 - uber compression)
   @return the number of bytes in the compressed data
   @throws std::runtime_error if something fails
   */
-size_t bzCompress(std::shared_ptr<uint8_t> src, size_t uncompressedBytes,
-                  std::shared_ptr<uint8_t>& dst,
-                  uint32_t compressionLevel = 1);
+size_t lzhamCompress(std::shared_ptr<uint8_t> src, size_t uncompressedBytes,
+                     std::shared_ptr<uint8_t>& dst,
+                     uint32_t compressionLevel = 1);
 
-#endif /* UVF_BZLIB_COMPRESSION_H */
+#endif /* UVF_LZHAM_COMPRESSION_H */
 
 /*
  The MIT License

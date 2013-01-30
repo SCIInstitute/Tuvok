@@ -67,7 +67,6 @@ namespace {
   void initLzmaProperties(CLzmaEncProps& props,
                           uint32_t compressionLevel)
   {
-    assert(compressionLevel <= 9);
     if (compressionLevel > 9)
       compressionLevel = 9;
 
