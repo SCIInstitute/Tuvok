@@ -604,9 +604,9 @@ namespace lzham
       m_probs.clear();
    }
 
-   bool adaptive_arith_data_model::init(bool encoding, uint total_syms)
+   bool adaptive_arith_data_model::init(bool /*encoding*/, uint total_syms)
    {
-      encoding;
+      //encoding;
       if (!total_syms)
       {
          clear();
