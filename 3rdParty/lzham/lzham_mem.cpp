@@ -12,7 +12,11 @@ using namespace lzham;
 #define LZHAM_MEM_STATS 0
 
 #ifndef LZHAM_USE_WIN32_API
+#if !defined(__APPLE__)
    #define _msize malloc_usable_size
+#else
+   #define _msize malloc_size
+#endif
 #endif
 
 namespace lzham

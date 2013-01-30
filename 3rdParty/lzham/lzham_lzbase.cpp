@@ -42,6 +42,7 @@ namespace lzham
          lo >>= shift;
          hi >>= shift;
 
+         if (n) {}
          LZHAM_ASSERT(hi < n);
          memset(pTab + lo, (uint8)i, hi - lo + 1);
       }
