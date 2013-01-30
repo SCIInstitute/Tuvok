@@ -248,6 +248,7 @@ HEADERS += \
            IO/UVF/ExtendedOctree/LzmaCompression.h \
            IO/UVF/ExtendedOctree/Lz4Compression.h \
            IO/UVF/ExtendedOctree/BzlibCompression.h \
+           IO/UVF/ExtendedOctree/LzhamCompression.h \
            IO/TTIFFWriter/TTIFFWriter.h \
            IO/VariantArray.h \
            IO/VFFConverter.h \
@@ -574,6 +575,7 @@ SOURCES += \
            IO/UVF/ExtendedOctree/LzmaCompression.cpp \
            IO/UVF/ExtendedOctree/Lz4Compression.cpp \
            IO/UVF/ExtendedOctree/BzlibCompression.cpp \
+           IO/UVF/ExtendedOctree/LzhamCompression.cpp \
            IO/TTIFFWriter/TTIFFWriter.cpp \
            IO/VariantArray.cpp \
            IO/VFFConverter.cpp \
