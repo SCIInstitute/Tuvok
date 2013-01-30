@@ -3,9 +3,10 @@
 #include "lzham_core.h"
 #include "lzham_win32_threading.h"
 #include "lzham_timer.h"
-#include <process.h>
 
 #if LZHAM_USE_WIN32_API
+
+#include <process.h>
 
 namespace lzham
 {
