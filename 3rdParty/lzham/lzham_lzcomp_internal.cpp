@@ -673,7 +673,7 @@ namespace lzham
       pNew_node_state->m_total_complexity = total_complexity;
       pNew_node_state->m_saved_state = trial_state;
 
-      m_num_node_states = LZHAM_MIN(m_num_node_states + 1, cMaxNodeStates);
+      m_num_node_states = LZHAM_MIN(m_num_node_states + 1, static_cast<uint>(cMaxNodeStates));
 
 #ifdef LZHAM_LZVERIFY
       for (uint i = 0; i < (m_num_node_states - 1); ++i)
@@ -734,7 +734,7 @@ namespace lzham
       {
          node* pCur_node = &pNodes[cur_node_index];
 
-         const uint max_admissable_match_len = LZHAM_MIN(CLZBase::cMaxMatchLen, bytes_to_parse - cur_node_index);
+         const uint max_admissable_match_len = LZHAM_MIN(static_cast<uint>(CLZBase::cMaxMatchLen), bytes_to_parse - cur_node_index);
          const uint find_dict_size = m_accel.get_cur_dict_size() + cur_lookahead_ofs;
 
          const uint lit_pred0 = approx_state.get_pred_char(m_accel, cur_dict_ofs, 1);
@@ -1002,7 +1002,7 @@ namespace lzham
       {
          node_state* pCur_node = &pNodes[cur_node_index];
 
-         const uint max_admissable_match_len = LZHAM_MIN(CLZBase::cMaxMatchLen, bytes_to_parse - cur_node_index);
+         const uint max_admissable_match_len = LZHAM_MIN(static_cast<uint>(CLZBase::cMaxMatchLen), bytes_to_parse - cur_node_index);
          const uint find_dict_size = m_accel.m_cur_dict_size + cur_lookahead_ofs;
 
          if (cur_node_index)
@@ -1413,7 +1413,7 @@ namespace lzham
 
       while (cur_ofs < bytes_to_parse)
       {
-         const uint max_admissable_match_len = LZHAM_MIN(CLZBase::cMaxHugeMatchLen, bytes_to_parse - cur_ofs);
+         const uint max_admissable_match_len = LZHAM_MIN(static_cast<uint>(CLZBase::cMaxHugeMatchLen), bytes_to_parse - cur_ofs);
 
          int largest_dec_index = enumerate_lz_decisions(cur_dict_ofs, approx_state, decisions, 1, max_admissable_match_len);
          if (largest_dec_index < 0)
@@ -1477,7 +1477,7 @@ namespace lzham
       cur_block_history.m_raw_block = raw_block;
       cur_block_history.m_reset_update_rate = reset_update_rate;
 
-      m_block_history_size = LZHAM_MIN(m_block_history_size + 1, cMaxBlockHistorySize);
+      m_block_history_size = LZHAM_MIN(m_block_history_size + 1, static_cast<uint>(cMaxBlockHistorySize));
    }
 
    uint lzcompressor::get_recent_block_ratio()
@@ -1618,7 +1618,7 @@ namespace lzham
 
             greedy_parse_state.m_issue_reset_state_partial = false;
             greedy_parse_state.m_start_ofs = cur_dict_ofs;
-            greedy_parse_state.m_bytes_to_match = LZHAM_MIN(bytes_to_match, CLZBase::cMaxHugeMatchLen);
+            greedy_parse_state.m_bytes_to_match = LZHAM_MIN(bytes_to_match, static_cast<uint>(CLZBase::cMaxHugeMatchLen));
 
             greedy_parse_state.m_max_greedy_decisions = LZHAM_MAX((bytes_to_match / cAvgAcceptableGreedyMatchLen), 2);
             greedy_parse_state.m_greedy_parse_gave_up = false;
@@ -1671,7 +1671,7 @@ namespace lzham
                for (uint i = 0; i < num_greedy_decisions_to_code; i++)
                {
                   LZHAM_ASSERT(best_decisions[i].m_pos == (int)cur_dict_ofs);
-                  LZHAM_ASSERT(i >= 0);
+                  //LZHAM_ASSERT(i >= 0);
                   LZHAM_ASSERT(i < (int)best_decisions.size());
 
 #if LZHAM_UPDATE_STATS
@@ -1837,7 +1837,7 @@ namespace lzham
                      i += dec_step;
                   }
 
-                  i;
+                  /*i;*/
                }
 
                LZHAM_ASSERT(cur_dict_ofs == parse_thread.m_start_ofs + parse_thread.m_bytes_to_match);
@@ -1867,7 +1867,7 @@ namespace lzham
       // Coded the entire block - now see if it makes more sense to just send a raw/uncompressed block.
 
       uint compressed_size = m_codec.get_encoding_buf().size();
-      compressed_size;
+      /*compressed_size;*/
 
       bool used_raw_block = false;
 

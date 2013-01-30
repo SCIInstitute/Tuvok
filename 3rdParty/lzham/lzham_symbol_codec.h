@@ -130,7 +130,7 @@ namespace lzham
       void clear();
 
       bool init(bool encoding, uint total_syms);
-      bool init(bool encoding, uint total_syms, bool fast_encoding, bool use_polar_codes = false) { fast_encoding, use_polar_codes; return init(encoding, total_syms); }
+      bool init(bool encoding, uint total_syms, bool fast_encoding, bool use_polar_codes = false) { /*fast_encoding, use_polar_codes;*/ return init(encoding, total_syms); }
       void reset();
 
       void reset_update_rate();

@@ -21,7 +21,7 @@ namespace lzham
    public:
       inline semaphore(long initialCount = 0, long maximumCount = 1, const char* pName = NULL)
       {
-         maximumCount, pName;
+         //maximumCount, pName;
          LZHAM_ASSERT(maximumCount >= initialCount);
          if (sem_init(&m_sem, 0, initialCount))
          {
