@@ -43,7 +43,7 @@ namespace lzham
 
       // From "Hackers Delight"
       // val remains unchanged if it is already a power of 2.
-      template<> inline uint32 next_pow2<uint32>(uint32 val)
+      inline uint32 next_pow2_32(uint32 val)
       {
          val--;
          val |= val >> 16;
@@ -55,7 +55,7 @@ namespace lzham
       }
 
       // val remains unchanged if it is already a power of 2.
-      template<> inline uint64 next_pow2<uint64>(uint64 val)
+      inline uint64 next_pow2_64(uint64 val)
       {
          val--;
          val |= val >> 32;
@@ -65,6 +65,17 @@ namespace lzham
          val |= val >> 2;
          val |= val >> 1;
          return val + 1;
+      }
+
+      template<> inline size_t next_pow2<size_t>(size_t val)
+      {
+        if (sizeof(size_t) == 4)
+          return next_pow2_32(static_cast<uint32>(val));
+        else if (sizeof(size_t) == 8)
+          return next_pow2_64(static_cast<uint64>(val));
+        else
+          static_assert(sizeof(size_t) == 4 || sizeof(size_t) == 8, "strange size_t");
+        return 0;
       }
 
       inline uint floor_log2i(uint v)

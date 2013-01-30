@@ -217,7 +217,7 @@ namespace lzham
             pTables->m_cur_sorted_symbol_order_size = total_used_syms;
             
             if (!math::is_power_of_2(total_used_syms))
-               pTables->m_cur_sorted_symbol_order_size = math::minimum<uint>(num_syms, math::next_pow2(total_used_syms));
+               pTables->m_cur_sorted_symbol_order_size = math::minimum<uint>(num_syms, math::next_pow2_32(total_used_syms));
             
             if (pTables->m_sorted_symbol_order)
             {

@@ -614,7 +614,7 @@ namespace lzham
       }
 
       if ((total_syms < 2) || (!math::is_power_of_2(total_syms)))
-         total_syms = math::next_pow2(total_syms);
+         total_syms = math::next_pow2_32(total_syms);
 
       m_total_syms = total_syms;
 
