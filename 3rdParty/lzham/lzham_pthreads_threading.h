@@ -377,7 +377,7 @@ namespace lzham
    }
 
    // TODO: Implement
-   uint lzham_get_max_helper_threads();
+   uint lzham_get_max_helper_threads() { return 0; }
 
 } // namespace lzham
 
