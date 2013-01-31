@@ -12,7 +12,7 @@ extern "C" {
 
 size_t lz4Compress(std::shared_ptr<uint8_t> src, size_t uncompressedBytes,
                    std::shared_ptr<uint8_t>& dst,
-                   uint32_t /*compressionLevel*/)
+                   bool /*highCompression*/)
 {
   if (uncompressedBytes > size_t(std::numeric_limits<int>::max()))
     throw std::runtime_error("Input data too big for LZ4 (max ~1.9GB)");
@@ -27,7 +27,7 @@ size_t lz4Compress(std::shared_ptr<uint8_t> src, size_t uncompressedBytes,
   // for now. (e.g. processing the HeadAneurysm dataset with brick size 256 at
   // brick index 8)
   int compressedBytes = 0;
-  //if (compressionLevel < 2)
+  //if (!highCompression)
     compressedBytes = LZ4_compress((const char*)src.get(),
                                    (char*)dst.get(),
                                    inputSize);

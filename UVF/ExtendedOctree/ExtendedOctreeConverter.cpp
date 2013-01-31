@@ -506,24 +506,24 @@ void ExtendedOctreeConverter::ComputeStatsAndCompressAll(ExtendedOctree& tree)
       switch (m_eCompression) {
       case CT_ZLIB:
         newlen = zCompress(BrickData, BrickSize(tree, i), compressed,
-                           tree.m_iCompressionLevel);
+                           tree.m_iCompressionLevel); // 0..9 (0 no comp)
         break;
       case CT_LZMA:
         newlen = lzmaCompress(BrickData, BrickSize(tree, i), compressed,
-                              lzmaProps, tree.m_iCompressionLevel);
+                              lzmaProps, tree.m_iCompressionLevel - 1); // 0..9
         assert(lzmaProps == tree.m_lzmaProps);
         break;
       case CT_LZ4:
         newlen = lz4Compress(BrickData, BrickSize(tree, i), compressed,
-                             tree.m_iCompressionLevel);
+                             tree.m_iCompressionLevel > 5); // high or normal
         break;
       case CT_BZLIB:
         newlen = bzCompress(BrickData, BrickSize(tree, i), compressed,
-                            tree.m_iCompressionLevel);
+                            tree.m_iCompressionLevel); // 1..9
         break;
       case CT_LZHAM:
         newlen = lzhamCompress(BrickData, BrickSize(tree, i), compressed,
-                               tree.m_iCompressionLevel);
+                               tree.m_iCompressionLevel); // 0..10 (0 no comp)
         break;
       default:
         throw std::runtime_error("unknown compression format");
@@ -588,27 +588,27 @@ ExtendedOctreeConverter::Fetch(ExtendedOctree& tree,
       switch (m_eCompression) {
       case CT_ZLIB:
         iCompressed = zCompress(pData, record.m_iLength, pCompressed,
-                                tree.m_iCompressionLevel);
+                                tree.m_iCompressionLevel); // 0..9 (0 no comp)
         break;
       case CT_LZMA: {
         // we only use the encoded props for safety checks
         // they should be identical for all bricks of the tree
         std::array<uint8_t, 5> props;
         iCompressed = lzmaCompress(pData, record.m_iLength, pCompressed,
-                                   props, tree.m_iCompressionLevel);
+                                   props, tree.m_iCompressionLevel - 1); // 0..9
         assert(props == tree.m_lzmaProps);
         break; }
       case CT_LZ4:
         iCompressed = lz4Compress(pData, record.m_iLength, pCompressed,
-                                  tree.m_iCompressionLevel);
+                                  tree.m_iCompressionLevel > 5); // high or normal
         break;
       case CT_BZLIB:
         iCompressed = bzCompress(pData, record.m_iLength, pCompressed,
-                                 tree.m_iCompressionLevel);
+                                 tree.m_iCompressionLevel); // 1..9
         break;
       case CT_LZHAM:
         iCompressed = lzhamCompress(pData, record.m_iLength, pCompressed,
-                                    tree.m_iCompressionLevel);
+                                    tree.m_iCompressionLevel); // 0..10 (0 no comp)
         break;
       default:
         throw std::runtime_error("unknown compression format");
