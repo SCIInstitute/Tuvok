@@ -29,7 +29,10 @@ namespace lzham
             
             LZHAM_ASSERT(c <= cMaxEverCodeSize);
             
-            num_codes[c]++;
+            // "% (cMaxEverCodeSize + 1)" seems to fix a GCC compiler bug
+            // throwing an "array subscript is above array bounds" warning at us
+            // when compiling this file with -O2 code optimization
+            num_codes[c % (cMaxEverCodeSize + 1)]++;
             if (c > max_code_size)
                should_limit = true;
          }
