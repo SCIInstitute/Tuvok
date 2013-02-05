@@ -259,7 +259,6 @@ size_t TTIFFWriter::TypeToSize(TTDataType dataType) {
       return 0;
   }
 }
-
 /*
    For more information, please see: http://software.sci.utah.edu
 
