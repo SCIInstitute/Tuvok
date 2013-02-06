@@ -169,7 +169,10 @@ public:
   /// this function computes the texture coordinates for a given brick
   /// this may be non trivial with power of two padding, overlap handling
   /// and per brick rescale
-  virtual  std::pair<FLOATVECTOR3, FLOATVECTOR3> GetTextCoords(BrickTable::const_iterator brick, bool bUseOnlyPowerOfTwo) const;
+  virtual  std::pair<FLOATVECTOR3, FLOATVECTOR3> GetTextCoords(
+    BrickTable::const_iterator brick,
+    bool bUseOnlyPowerOfTwo
+  ) const;
 
 protected:
   std::shared_ptr<Histogram1D>          m_pHist1D;
