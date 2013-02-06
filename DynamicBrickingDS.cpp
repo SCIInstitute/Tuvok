@@ -50,11 +50,12 @@ struct DynamicBrickingDS::dbinfo {
 /// in each dimension
 static std::array<uint64_t,3> layout(const std::array<uint64_t,3> voxels,
                                      const std::array<unsigned,3> bsize) {
-  return {{
+  std::array<uint64_t,3> tmp = {{
     static_cast<uint64_t>(ceil(static_cast<float>(voxels[0]) / bsize[0])),
     static_cast<uint64_t>(ceil(static_cast<float>(voxels[1]) / bsize[1])),
     static_cast<uint64_t>(ceil(static_cast<float>(voxels[2]) / bsize[2])),
   }};
+  return tmp;
 }
 
 // converts a 3D index ('loc') into a 1D index.
@@ -132,11 +133,12 @@ UINTVECTOR3 DynamicBrickingDS::GetBrickVoxelCounts(const BrickKey&) const {
 
 static std::array<unsigned,3>
 to3d(const std::array<uint64_t,3> dim, uint64_t idx) {
-  return {{
+  std::array<unsigned,3> tmp = {{
     static_cast<unsigned>(idx % dim[0]),
     static_cast<unsigned>((idx / dim[0]) % dim[1]),
     static_cast<unsigned>(idx / (dim[1] * dim[2]))
   }};
+  return tmp;
 }
 
 // with a brick identifier from the target dataset, find the 3D brick index in
@@ -167,17 +169,19 @@ std::array<uint64_t,3> SourceBrickIndex(const BrickKey& k,
     layout(voxels, bsize)[2] / ds->GetDomainSize(lod, timestep)[2]
   }};
   // the layout of the brick in the actual data set is floor(loc, ratio[i])
-  return {{
+  std::array<uint64_t,3> tmp = {{
     static_cast<uint64_t>(floor(static_cast<double>(idx[0])/ratio[0])),
     static_cast<uint64_t>(floor(static_cast<double>(idx[1])/ratio[1])),
     static_cast<uint64_t>(floor(static_cast<double>(idx[2])/ratio[2]))
   }};
+  return tmp;
 }
 
 std::array<uint64_t,3> VoxelsInLOD(const Dataset& ds, size_t lod) {
   const size_t timestep = 0; /// @todo properly implement.
   UINT64VECTOR3 domain = ds.GetDomainSize(lod, timestep);
-  return {{ domain[0], domain[1], domain[2] }};
+  std::array<uint64_t,3> tmp = {{ domain[0], domain[1], domain[2] }};
+  return tmp;
 }
 
 // with the source brick index, give a brick key for the source dataset.
@@ -236,7 +240,10 @@ std::array<uint64_t,3> TargetIndex(const BrickKey& k,
   return Index(ds, lod, idx1d, bricksize);
 }
 
-std::array<unsigned,3> ua(const UINTVECTOR3& v) { return {{v[0], v[1], v[2]}}; }
+std::array<unsigned,3> ua(const UINTVECTOR3& v) {
+  std::array<unsigned,3> tmp = {{ v[0], v[1], v[2] }};
+  return tmp;
+}
 
 // index of the first voxel in the current brick, among the whole level
 std::array<uint64_t,3> SourceIndex(const BrickKey& k,
@@ -344,21 +351,23 @@ Box SourceBox(...) {
 std::array<unsigned,3> TargetBrickSize(const Dataset& ds, const BrickKey& k) {
   const BrickedDataset& b = dynamic_cast<const BrickedDataset&>(ds);
   UINTVECTOR3 sz = b.GetBrickMetadata(k).n_voxels;
-  return {{
+  std::array<unsigned,3> tmp = {{
     static_cast<unsigned>(sz[0]),
     static_cast<unsigned>(sz[1]),
     static_cast<unsigned>(sz[2])
   }};
+  return tmp;
 }
 // gives the size of the given brick from the source DS
 std::array<unsigned,3> SourceBrickSize(const Dataset& ds, const BrickKey& k) {
   const BrickedDataset& b = dynamic_cast<const BrickedDataset&>(ds);
   UINTVECTOR3 sz = b.GetBrickMetadata(k).n_voxels;
-  return {{
+  std::array<unsigned,3> tmp = {{
     static_cast<unsigned>(sz[0]),
     static_cast<unsigned>(sz[1]),
     static_cast<unsigned>(sz[2])
   }};
+  return tmp;
 }
 
 // Because of how we done the re-bricking, we know that all target bricks will

@@ -71,11 +71,12 @@ const_brick_iterator::const_brick_iterator(
 /// in each dimension
 static std::array<uint64_t,3> layout(const std::array<uint64_t,3> voxels,
                                      const std::array<unsigned,3> bsize) {
-  return {{
+  std::array<uint64_t,3> tmp = {{
     static_cast<uint64_t>(ceil(static_cast<float>(voxels[0]) / bsize[0])),
     static_cast<uint64_t>(ceil(static_cast<float>(voxels[1]) / bsize[1])),
     static_cast<uint64_t>(ceil(static_cast<float>(voxels[2]) / bsize[2])),
   }};
+  return tmp;
 }
 
 const_brick_iterator& const_brick_iterator::advance() {
