@@ -68,9 +68,9 @@ static uint64_t to1d(const std::array<uint64_t,3> loc,
 /// @param voxels number of voxels
 /// @returns the number of voxels 'l' has.  this is normally 'bsz', but can be
 ///          smaller when the 'l' abuts the side of a dimension
-std::array<uint32_t,3> nvoxels(const std::array<uint64_t,3> l,
-                               const std::array<unsigned,3> bsz,
-                               const std::array<uint64_t,3> voxels) {
+static std::array<uint32_t,3> nvoxels(const std::array<uint64_t,3> l,
+                                      const std::array<unsigned,3> bsz,
+                                      const std::array<uint64_t,3> voxels) {
   // the brick starts at 'v' and goes to 'v+bricksize'.  But 'v+bricksize'
   // might exceed beyond the bounds of the domain ('voxels'), and therefore
   // it should shrink.

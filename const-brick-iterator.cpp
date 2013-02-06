@@ -15,6 +15,40 @@ static UINTVECTOR3 va(const std::array<uint32_t,3> a) {
   return UINTVECTOR3(a[0], a[1], a[2]);
 }
 
+/// @param l the current location, in brick coords
+/// @param bsz size of the bricks
+/// @param voxels number of voxels
+/// @returns the number of voxels 'l' has.  this is normally 'bsz', but can be
+///          smaller when the 'l' abuts the side of a dimension
+static std::array<uint32_t,3> nvoxels(const std::array<uint64_t,3> l,
+                                      const std::array<unsigned,3> bsz,
+                                      const std::array<uint64_t,3> voxels) {
+  // the brick starts at 'v' and goes to 'v+bricksize'.  But 'v+bricksize'
+  // might exceed beyond the bounds of the domain ('voxels'), and therefore
+  // it should shrink.
+  std::array<uint64_t,3> v = {{
+    l[0] * bsz[0], l[1] * bsz[1], l[2] * bsz[2]
+  }};
+  const std::array<uint32_t,3> difference = {{
+    static_cast<uint32_t>(voxels[0] - v[0]),
+    static_cast<uint32_t>(voxels[1] - v[1]),
+    static_cast<uint32_t>(voxels[2] - v[2])
+  }};
+  // get a uint32 version so we don't have to cast w/ e.g. min below.
+  const std::array<uint32_t,3> bs = {{
+    static_cast<uint32_t>(bsz[0]),
+    static_cast<uint32_t>(bsz[1]),
+    static_cast<uint32_t>(bsz[2]),
+  }};
+  const std::array<uint32_t,3> nvox = {{
+    difference[0] ? std::min(bs[0], difference[0]) : bs[0],
+    difference[1] ? std::min(bs[1], difference[1]) : bs[1],
+    difference[2] ? std::min(bs[2], difference[2]) : bs[2],
+  }};
+
+  return nvox;
+}
+
 // The dimension with the largest ratio of size-to-bricksize
 #define DIM \
     (vox[0] / bsize[0] > vox[1] / bsize[1] ? \
@@ -80,36 +114,26 @@ const_brick_iterator& const_brick_iterator::operator++() {
 }
 
 const std::pair<BrickKey, BrickMD> const_brick_iterator::dereference() const {
-  BrickKey k(0, this->LOD,
-             to1d({{this->location[0]-1, this->location[1]-1,
-                    this->location[2]-1}}, this->voxels));
-  const std::array<uint64_t,3> low = {{
-    this->location[0] * this->bsize[0],
-    this->location[1] * this->bsize[1],
-    this->location[2] * this->bsize[2],
-  }};
-  const std::array<uint64_t,3> high = {{
-    low[0] + this->bsize[0], low[1] + this->bsize[1], low[2] + this->bsize[2]
-  }};
-  BrickMD md;
-  md.center = FLOATVECTOR3(0.0f, 0.0f, 0.0f);
-  md.extents = FLOATVECTOR3(0.0f, 0.0f, 0.0f);
-  md.n_voxels = UINTVECTOR3(
-    std::min(static_cast<unsigned>(this->voxels[0]-high[0]), this->bsize[0]),
-    std::min(static_cast<unsigned>(this->voxels[1]-high[1]), this->bsize[1]),
-    std::min(static_cast<unsigned>(this->voxels[2]-high[2]), this->bsize[2])
+  const size_t timestep = 0; // unsupported/unimplemented.
+  uint64_t index = to1d(
+    {{ this->location[0]-1, this->location[1]-1, this->location[2]-1 }},
+    layout(this->voxels, this->bsize)
   );
+  BrickKey bk(timestep, this->LOD, index);
 
-  return std::make_pair(k, md);
+  BrickMD md = {
+    FLOATVECTOR3(0.0f, 0.0f, 0.0f), // fixme
+    FLOATVECTOR3(0.0f, 0.0f, 0.0f), // fixme
+    UINTVECTOR3(va(nvoxels(this->location, this->bsize, this->voxels)))
+  };
+  return std::make_pair(bk, md);
 }
 const std::pair<BrickKey, BrickMD> const_brick_iterator::operator*() const {
   return this->dereference();
 }
 
 bool const_brick_iterator::equals(const const_brick_iterator& iter) const {
-  return this->location[0] == iter.location[0] &&
-         this->location[1] == iter.location[1] &&
-         this->location[2] == iter.location[2];
+  return this->location == iter.location;
 }
 bool const_brick_iterator::operator==(const const_brick_iterator& that) const {
   return this->equals(that);
