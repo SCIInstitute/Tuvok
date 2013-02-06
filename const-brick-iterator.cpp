@@ -1,0 +1,153 @@
+#include <array>
+#include <cmath>
+#include "const-brick-iterator.h"
+
+namespace tuvok {
+
+// converts a 3D index ('loc') into a 1D index.
+static uint64_t to1d(const std::array<uint64_t,3> loc,
+                     const std::array<uint64_t,3> size) {
+  return loc[2]*size[1]*size[0] + loc[1]*size[0] + loc[0];
+}
+
+// just converts a 3-element array into a UINTVECTOR3.
+static UINTVECTOR3 va(const std::array<uint32_t,3> a) {
+  return UINTVECTOR3(a[0], a[1], a[2]);
+}
+
+// The dimension with the largest ratio of size-to-bricksize
+#define DIM \
+    (vox[0] / bsize[0] > vox[1] / bsize[1] ? \
+      (vox[0] / bsize[0] > vox[2] / bsize[2] ? 0 : 2) \
+    : (vox[1] / bsize[1] > vox[2] / bsize[2] ? 1 : 2))
+const_brick_iterator::const_brick_iterator(
+  const std::array<uint64_t,3> vox,
+  const std::array<unsigned,3> bricksize
+) : bsize(bricksize),
+    // a bit intense for an initializer list, but it needs to be here so this
+    // can be const.
+    MaxLODs(static_cast<size_t>(ceil(double(vox[DIM]) / bricksize[DIM]))),
+    voxels(vox), LOD(0)
+#undef DIM
+{
+  location = {{1, 1, 1}};
+}
+
+/// gives the brick layout for a given decomposition. i.e. the number of bricks
+/// in each dimension
+static std::array<uint64_t,3> layout(const std::array<uint64_t,3> voxels,
+                                     const std::array<unsigned,3> bsize) {
+  return {{
+    static_cast<uint64_t>(ceil(static_cast<float>(voxels[0]) / bsize[0])),
+    static_cast<uint64_t>(ceil(static_cast<float>(voxels[1]) / bsize[1])),
+    static_cast<uint64_t>(ceil(static_cast<float>(voxels[2]) / bsize[2])),
+  }};
+}
+
+const_brick_iterator& const_brick_iterator::advance() {
+  // the layout for this level
+  const std::array<uint64_t,3> ly = layout(this->voxels, this->bsize);
+
+  // increment the x coord. if it goes beyond the end, then switch to
+  // Y... and so on.
+  this->location[0]++;
+  if(this->location[0] > ly[0]) {
+    this->location[0] = 1;
+    this->location[1]++;
+  }
+  if(this->location[1] > ly[1]) {
+    this->location[1] = 1;
+    this->location[2]++;
+  }
+  if(this->location[2] > ly[2]) {
+    this->location[2] = 1;
+    this->LOD++;
+    // we also have to decrease the number of voxels for the new level
+    if(this->voxels[0] > this->bsize[0]) { this->voxels[0] = voxels[0] /= 2; }
+    if(this->voxels[1] > this->bsize[1]) { this->voxels[1] = voxels[1] /= 2; }
+    if(this->voxels[2] > this->bsize[2]) { this->voxels[2] = voxels[2] /= 2; }
+  }
+  if(this->LOD >= this->MaxLODs) {
+    // invalidate the iterator.
+    this->voxels[0] = this->voxels[1] = this->voxels[2] = 0ULL;
+    this->location[0] = this->location[1] = this->location[2] = 0ULL;
+  }
+  return *this;
+}
+
+const_brick_iterator& const_brick_iterator::operator++() {
+  return this->advance();
+}
+
+const std::pair<BrickKey, BrickMD> const_brick_iterator::dereference() const {
+  BrickKey k(0, this->LOD,
+             to1d({{this->location[0]-1, this->location[1]-1,
+                    this->location[2]-1}}, this->voxels));
+  const std::array<uint64_t,3> low = {{
+    this->location[0] * this->bsize[0],
+    this->location[1] * this->bsize[1],
+    this->location[2] * this->bsize[2],
+  }};
+  const std::array<uint64_t,3> high = {{
+    low[0] + this->bsize[0], low[1] + this->bsize[1], low[2] + this->bsize[2]
+  }};
+  BrickMD md;
+  md.center = FLOATVECTOR3(0.0f, 0.0f, 0.0f);
+  md.extents = FLOATVECTOR3(0.0f, 0.0f, 0.0f);
+  md.n_voxels = UINTVECTOR3(
+    std::min(static_cast<unsigned>(this->voxels[0]-high[0]), this->bsize[0]),
+    std::min(static_cast<unsigned>(this->voxels[1]-high[1]), this->bsize[1]),
+    std::min(static_cast<unsigned>(this->voxels[2]-high[2]), this->bsize[2])
+  );
+
+  return std::make_pair(k, md);
+}
+const std::pair<BrickKey, BrickMD> const_brick_iterator::operator*() const {
+  return this->dereference();
+}
+
+bool const_brick_iterator::equals(const const_brick_iterator& iter) const {
+  return this->location[0] == iter.location[0] &&
+         this->location[1] == iter.location[1] &&
+         this->location[2] == iter.location[2];
+}
+bool const_brick_iterator::operator==(const const_brick_iterator& that) const {
+  return this->equals(that);
+}
+bool const_brick_iterator::operator!=(const const_brick_iterator& that) const {
+  return !this->equals(that);
+}
+
+const_brick_iterator begin(const std::array<uint64_t,3> voxels,
+                           const std::array<unsigned,3> bricksize) {
+  return const_brick_iterator(voxels, bricksize);
+}
+const_brick_iterator end() { return const_brick_iterator(); }
+
+}
+/*
+   For more information, please see: http://software.sci.utah.edu
+
+   The MIT License
+
+   Copyright (c) 2013 IVDA Group
+
+
+   Permission is hereby granted, free of charge, to any person obtaining a
+   copy of this software and associated documentation files (the "Software"),
+   to deal in the Software without restriction, including without limitation
+   the rights to use, copy, modify, merge, publish, distribute, sublicense,
+   and/or sell copies of the Software, and to permit persons to whom the
+   Software is furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included
+   in all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+   THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+   DEALINGS IN THE SOFTWARE.
+*/

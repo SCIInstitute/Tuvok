@@ -52,7 +52,7 @@ contains(QMAKE_PRL_CONFIG, shared) {
 }
 
 #TEST_HEADERS=multisrc.h dicom.h jpeg.h minmax.h
-TEST_HEADERS=quantize.h jpeg.h largefile.h
+TEST_HEADERS=quantize.h jpeg.h largefile.h rebricking.h
 
 alltests.target = alltests.cpp
 alltests.commands = python ../3rdParty/cxxtest/cxxtestgen.py --no-static-init --error-printer -o alltests.cpp $$TEST_HEADERS
