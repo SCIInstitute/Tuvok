@@ -50,7 +50,7 @@ inline void check_equality<double>(double a, double b) {
 // Create a temporary file and return the name.
 // This isn't great -- there's a race between when we close and reopen it --
 // but there's no (standard) way to turn a file descriptor into a std::fstream.
-static std::string mk_tmpfile(std::ofstream& ofs, std::ios_base::openmode mode)
+std::string mk_tmpfile(std::ofstream& ofs, std::ios_base::openmode mode)
 {
 #ifdef _WIN32
   char *templ = tmpnam((char*)0);
