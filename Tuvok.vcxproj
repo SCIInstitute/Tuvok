@@ -628,9 +628,11 @@
     <ClCompile Include="DebugOut\MultiplexOut.cpp" />
     <ClCompile Include="DebugOut\TextfileOut.cpp" />
     <ClCompile Include="3rdParty\GLEW\GL\glew.c" />
+    <ClCompile Include="IO\const-brick-iterator.cpp" />
     <ClCompile Include="IO\BrickedDataset.cpp" />
     <ClCompile Include="IO\Dataset.cpp" />
     <ClCompile Include="IO\DSFactory.cpp" />
+    <ClCompile Include="IO\DynamicBrickingDS.cpp" />
     <ClCompile Include="IO\ExternalDataset.cpp" />
     <ClCompile Include="IO\FileBackedDataset.cpp" />
     <ClCompile Include="IO\gzio.c" />
@@ -1555,10 +1557,12 @@
     <ClInclude Include="IO\3rdParty\boost\boost\config\compiler\visualc.hpp" />
     <ClInclude Include="IO\3rdParty\boost\boost\config\warning_disable.hpp" />
     <ClInclude Include="IO\3rdParty\boost\boost\config\platform\win32.hpp" />
+    <ClInclude Include="IO\const-brick-iterator.h" />
     <ClInclude Include="IO\Brick.h" />
     <ClInclude Include="IO\BrickedDataset.h" />
     <ClInclude Include="IO\Dataset.h" />
     <ClInclude Include="IO\DSFactory.h" />
+    <ClInclude Include="IO\DynamicBrickingDS.h" />
     <ClInclude Include="IO\ExternalDataset.h" />
     <ClInclude Include="IO\FileBackedDataset.h" />
     <ClInclude Include="IO\gzio.h" />
