@@ -1670,9 +1670,8 @@ namespace lzham
             {
                for (uint i = 0; i < num_greedy_decisions_to_code; i++)
                {
+                  LZHAM_ASSERT(i < (uint)best_decisions.size());
                   LZHAM_ASSERT(best_decisions[i].m_pos == (int)cur_dict_ofs);
-                  //LZHAM_ASSERT(i >= 0);
-                  LZHAM_ASSERT(i < (int)best_decisions.size());
 
 #if LZHAM_UPDATE_STATS
                   bit_cost_t cost = m_state.get_cost(*this, m_accel, best_decisions[i]);
