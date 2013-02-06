@@ -223,11 +223,12 @@ static std::array<uint64_t,3> Index(
     layout(VoxelsInLOD(ds, lod), bricksize), idx1d
   );
 
-  return std::array<uint64_t,3>({{
+  std::array<uint64_t,3> tmp = {{
     idx3d[0] * bricksize[0],
     idx3d[1] * bricksize[1],
     idx3d[2] * bricksize[2]
-  }});
+  }};
+  return tmp;
 }
 
 // index of the first voxel of the given brick, among the whole level.
@@ -627,7 +628,7 @@ static uint64_t nbricks(const std::array<uint64_t,3> voxels,
   assert(voxels[1] > 0); assert(bricksize[1] > 0);
   assert(voxels[2] > 0); assert(bricksize[2] > 0);
   UINTVECTOR3 blayout(voxels[0] / bricksize[0], voxels[1] / bricksize[1],
-                     voxels[2] / bricksize[2]);
+                      voxels[2] / bricksize[2]);
   // if the brick size is bigger than the number of voxels, we'll end up with 0
   // in that dimension!
   if(blayout[0] == 0) { blayout[0] = 1; }
@@ -715,7 +716,7 @@ void DynamicBrickingDS::Rebrick() {
                   });
 }
 
-#ifndef NDEBUG
+#if !defined(NDEBUG) && !defined(_MSC_VER)
 static bool test() {
   std::array<uint64_t,3> sz = {{192,200,16}};
   std::array<unsigned,3> th2 = {{32,32,32}};

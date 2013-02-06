@@ -15,7 +15,7 @@ class const_brick_iterator :
     explicit const_brick_iterator(const std::array<uint64_t,3> voxels,
                                   const std::array<unsigned,3> bricksize);
 #ifdef _MSC_VER
-    const_brick_iterator() : MaxLODs(0), LOD(0)) {
+    const_brick_iterator() : MaxLODs(0), LOD(0) {
 #else
     const_brick_iterator() : bsize({{0,0,0}}), MaxLODs(0), voxels({{0,0,0}}),
                              LOD(0), location({{0,0,0}}) {
