@@ -19,6 +19,7 @@
 #include <array>
 #include <cassert>
 #include <iterator>
+#include <stdexcept>
 #include "Controller/Controller.h"
 #include "const-brick-iterator.h"
 #include "DynamicBrickingDS.h"
