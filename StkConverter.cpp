@@ -65,7 +65,7 @@ bool
 StkConverter::ConvertToRAW(const std::string& strSourceFilename,
                            const std::string& strTempDir,
                            bool, uint64_t& iHeaderSkip,
-                           uint64_t& iComponentSize,
+                           unsigned& iComponentSize,
                            uint64_t& iComponentCount,
                            bool& bConvertEndianess, bool& bSigned,
                            bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
@@ -144,7 +144,7 @@ StkConverter::ConvertToRAW(const std::string& strSourceFilename,
 // unimplemented!
 bool
 StkConverter::ConvertToNative(const std::string&, const std::string&,
-                              uint64_t, uint64_t, uint64_t, bool, bool, UINT64VECTOR3,
+                              uint64_t, unsigned, uint64_t, bool, bool, UINT64VECTOR3,
                               FLOATVECTOR3, bool, bool)
 {
   return false;

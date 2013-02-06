@@ -543,7 +543,7 @@ UINT64VECTOR3 DynamicBrickingDS::GetEffectiveBrickSize(const BrickKey&) const
   return UINT64VECTOR3(0,0,0);
 }
 
-CFORWARDRET(uint64_t, GetBitWidth)
+CFORWARDRET(unsigned, GetBitWidth)
 CFORWARDRET(uint64_t, GetComponentCount)
 CFORWARDRET(bool, GetIsSigned)
 CFORWARDRET(bool, GetIsFloat)

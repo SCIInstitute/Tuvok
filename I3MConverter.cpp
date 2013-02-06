@@ -56,7 +56,7 @@ I3MConverter::I3MConverter()
 
 bool I3MConverter::ConvertToRAW(const std::string& strSourceFilename,
                                 const std::string& strTempDir, bool,
-                                uint64_t& iHeaderSkip, uint64_t& iComponentSize,
+                                uint64_t& iHeaderSkip, unsigned& iComponentSize,
                                 uint64_t& iComponentCount,
                                 bool& bConvertEndianess, bool& bSigned,
                                 bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
@@ -269,7 +269,7 @@ void I3MConverter::DownSample(LargeRAWFile& SourceRAWFile, unsigned char* pDense
 
 bool I3MConverter::ConvertToNative(const std::string& strRawFilename,
                                    const std::string& strTargetFilename, uint64_t iHeaderSkip,
-                                   uint64_t iComponentSize, uint64_t iComponentCount, bool bSigned,
+                                   unsigned iComponentSize, uint64_t iComponentCount, bool bSigned,
                                    bool bFloatingPoint, UINT64VECTOR3 vVolumeSize,
                                    FLOATVECTOR3 vVolumeAspect, bool ,
                                    const bool ) {

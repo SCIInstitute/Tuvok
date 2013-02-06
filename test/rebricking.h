@@ -82,7 +82,7 @@ public:
   void test_data_type() {
     std::shared_ptr<UVFDataset> ds = mk8x8testdata();
     DynamicBrickingDS dynamic(ds, {{8,8,8}});
-    TS_ASSERT_EQUALS(dynamic.GetBitWidth(), 8ULL);
+    TS_ASSERT_EQUALS(dynamic.GetBitWidth(), 8U);
     TS_ASSERT_EQUALS(dynamic.GetComponentCount(), 1ULL);
     TS_ASSERT_EQUALS(dynamic.GetIsSigned(), false);
     TS_ASSERT_EQUALS(dynamic.GetIsFloat(), false);

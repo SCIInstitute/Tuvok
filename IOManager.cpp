@@ -747,7 +747,7 @@ bool IOManager::MergeDatasets(const vector <string>& strFilenames,
           strTargetFilename.c_str());
 
   // convert the input files to RAW
-  uint64_t        iComponentSizeG=0;
+  unsigned        iComponentSizeG=0;
   uint64_t        iComponentCountG=0;
   bool          bConvertEndianessG=false;
   bool          bSignedG=false;
@@ -831,7 +831,7 @@ bool IOManager::MergeDatasets(const vector <string>& strFilenames,
       } else bRAWCreated = true;
       vIntermediateFiles.push_back(IntermediateFile);
     } else {
-      uint64_t        iComponentSize=0;
+      unsigned      iComponentSize=0;
       uint64_t        iComponentCount=0;
       bool          bConvertEndianess=false;
       bool          bSigned=false;
@@ -1025,7 +1025,7 @@ bool IOManager::MergeDatasets(const vector <string>& strFilenames,
     const uint64_t timesteps = 1;
     bTargetCreated = RAWConverter::ConvertRAWDataset(
         strMergedFile, strTargetFilename, strTempDir, 0,
-        size_t(iComponentSizeG), iComponentCountG, timesteps, bConvertEndianessG,
+        iComponentSizeG, iComponentCountG, timesteps, bConvertEndianessG,
         bSignedG, bIsFloatG, vVolumeSizeG, vVolumeAspectG, strTitleG,
         SysTools::GetFilename(strMergedFile), m_iMaxBrickSize,
         m_iBrickOverlap, m_bUseMedianFilter, m_bClampToEdge, m_iCompression,
@@ -1155,7 +1155,7 @@ bool IOManager::ConvertDataset(const list<string>& files,
 
   string   strFilename = *files.begin();
   uint64_t        iHeaderSkip=0;
-  uint64_t        iComponentSize=0;
+  unsigned        iComponentSize=0;
   uint64_t        iComponentCount=0;
   bool          bConvertEndianess=false;
   bool          bSigned=false;
@@ -1454,7 +1454,7 @@ bool IOManager::ExtractIsosurface(const tuvok::UVFDataset* pSourceData,
 
   bool   bFloatingPoint  = pSourceData->GetIsFloat();
   bool   bSigned         = pSourceData->GetIsSigned();
-  uint64_t  iComponentSize = pSourceData->GetBitWidth();
+  unsigned iComponentSize = pSourceData->GetBitWidth();
   FLOATVECTOR3 vScale    = FLOATVECTOR3(pSourceData->GetScale());
 
   AbstrGeoConverter* conv = GetGeoConverterForExt(SysTools::ToLowerCase(SysTools::GetExt(strTargetFilename)),true, false);

@@ -166,7 +166,7 @@ size_t AbstrConverter::GetIncoreSize() {
 bool
 AbstrConverter::QuantizeTo8Bit(LargeRAWFile& rawfile,
                                const std::string& strTargetFilename,
-                               uint64_t iComponentSize,
+                               unsigned iComponentSize,
                                uint64_t iSize,
                                bool bSigned,
                                bool bIsFloat,

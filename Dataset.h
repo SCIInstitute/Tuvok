@@ -130,7 +130,7 @@ public:
   ///         into account any brick overlaps.
   virtual UINT64VECTOR3 GetEffectiveBrickSize(const BrickKey &) const = 0;
 
-  virtual uint64_t GetBitWidth() const = 0;
+  virtual unsigned GetBitWidth() const = 0;
   virtual uint64_t GetComponentCount() const = 0;
   virtual bool GetIsSigned() const = 0;
   virtual bool GetIsFloat() const = 0;

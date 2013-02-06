@@ -1076,7 +1076,7 @@ uint64_t UVFDataset::GetLODLevelCount() const
 
 /// \todo change this if we want to support data where elements are of
 // different size
-uint64_t UVFDataset::GetBitWidth() const
+unsigned UVFDataset::GetBitWidth() const
 {
   assert(!m_timesteps.empty() && "no data, haven't analyzed UVF?");
   // All data in the time series should have the same bit width, so any

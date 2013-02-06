@@ -82,7 +82,7 @@ namespace {
 static std::string convert_endianness(const std::string& strFilename,
                                       const std::string& strTempDir,
                                       uint64_t iHeaderSkip,
-                                      size_t iComponentSize,
+                                      unsigned iComponentSize,
                                       size_t in_core_size)
 {
   using namespace tuvok::io;
@@ -155,7 +155,7 @@ static std::string convert_endianness(const std::string& strFilename,
 static std::shared_ptr<KeyValuePairDataBlock> metadata(
   const string& strDesc, const string& strSource,
   bool bLittleEndian, bool bSigned, bool bIsFloat,
-  size_t iComponentSize,
+  unsigned iComponentSize,
   KVPairs* pKVPairs
 )
 {
@@ -197,7 +197,7 @@ std::shared_ptr<LargeRAWFile>
 quantize(std::shared_ptr<LargeRAWFile> sourceData,
          const std::string tmpQuantizedFile, const bool bSigned,
          const bool bIsFloat,
-         size_t& iComponentSize, const uint64_t iComponentCount,
+         unsigned& iComponentSize, const uint64_t iComponentCount,
          const uint64_t timesteps, const uint64_t volumeSize,
          const bool bQuantizeTo8Bit, Histogram1DDataBlock* Histogram1D)
 {
@@ -413,7 +413,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
                                      const string& strTargetFilename,
                                      const string& strTempDir,
                                      uint64_t iHeaderSkip,
-                                     size_t iComponentSize,
+                                     unsigned iComponentSize,
                                      uint64_t iComponentCount,
                                      uint64_t timesteps,
                                      bool bConvertEndianness, bool bSigned,
@@ -874,7 +874,7 @@ bool RAWConverter::ExtractBZIP2Dataset(const string& strFilename,
 bool RAWConverter::ParseTXTDataset(const string& strFilename,
                                      const string& strBinaryFile,
                                      uint64_t iHeaderSkip,
-                                     uint64_t iComponentSize,
+                                     unsigned iComponentSize,
                                      uint64_t iComponentCount,
                                      bool bSigned,
                                      bool bIsFloat,
@@ -1010,7 +1010,7 @@ bool RAWConverter::ParseTXTDataset(const string& strFilename,
 bool RAWConverter::ConvertToNative(const std::string& strRawFilename,
                                    const std::string& strTargetFilename,
                                    uint64_t iHeaderSkip,
-                                   uint64_t iComponentSize, uint64_t, bool, bool,
+                                   unsigned iComponentSize, uint64_t, bool, bool,
                                    UINT64VECTOR3, FLOATVECTOR3, bool,
                                    bool bQuantizeTo8Bit) {
   // convert raw to raw is easy :-), just copy the file and ignore the metadata
@@ -1029,7 +1029,7 @@ bool RAWConverter::ConvertToNative(const std::string& strRawFilename,
 bool RAWConverter::AppendRAW(const std::string& strRawFilename,
                              uint64_t iHeaderSkip,
                              const std::string& strTargetFilename,
-                             uint64_t iComponentSize, bool bChangeEndianess,
+                             unsigned iComponentSize, bool bChangeEndianess,
                              bool bToSigned, bool bQuantizeTo8Bit) {
   // TODO:
   // should we ever need this combination
@@ -1147,7 +1147,7 @@ bool RAWConverter::ConvertToUVF(const std::list<std::string>& files,
 {
   // all the parameters set here are just defaults, they should all be
   // overridden in ConvertToRAW which takes them as call by reference
-  uint64_t        iComponentSize=8;
+  unsigned        iComponentSize=8;
   uint64_t        iComponentCount=1;
   bool          bConvertEndianess=false;
   bool          bSigned=true;
@@ -1242,7 +1242,7 @@ bool RAWConverter::ConvertToUVF(const std::list<std::string>& files,
 
   bool bUVFCreated = ConvertRAWDataset(merged_fn, strTargetFilename,
                                        strTempDir, *header_skip.begin(),
-                                       size_t(iComponentSize),
+                                       iComponentSize,
                                        iComponentCount,
                                        files.size(),
                                        bConvertEndianess,
@@ -1269,7 +1269,7 @@ bool RAWConverter::Analyze(const std::string& strSourceFilename,
                            const std::string& strTempDir,
                            bool bNoUserInteraction, RangeInfo& info) {
   uint64_t        iHeaderSkip=0;
-  uint64_t        iComponentSize=0;
+  unsigned        iComponentSize=0;
   uint64_t        iComponentCount=0;
   bool          bConvertEndianess=false;
   bool          bSigned=false;
@@ -1311,7 +1311,7 @@ bool RAWConverter::Analyze(const std::string& strSourceFilename,
 }
 
 bool RAWConverter::Analyze(const std::string& strSourceFilename,
-                           uint64_t iHeaderSkip, uint64_t iComponentSize,
+                           uint64_t iHeaderSkip, unsigned iComponentSize,
                            uint64_t iComponentCount, bool bSigned,
                            bool bFloatingPoint, UINT64VECTOR3 vVolumeSize,
                            RangeInfo& info) {

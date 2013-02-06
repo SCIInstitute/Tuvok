@@ -51,7 +51,7 @@ QVISConverter::QVISConverter()
 
 bool QVISConverter::ConvertToRAW(
   const std::string& strSourceFilename, const std::string&, bool,
-  uint64_t& iHeaderSkip, uint64_t& iComponentSize, uint64_t& iComponentCount,
+  uint64_t& iHeaderSkip, unsigned& iComponentSize, uint64_t& iComponentCount,
   bool& bConvertEndianess, bool& bSigned, bool& bIsFloat,
   UINT64VECTOR3& vVolumeSize, FLOATVECTOR3& vVolumeAspect,
   std::string& strTitle, std::string& strIntermediateFile,
@@ -151,7 +151,7 @@ bool QVISConverter::ConvertToRAW(
 bool QVISConverter::ConvertToNative(const std::string& strRawFilename,
                                     const std::string& strTargetFilename,
                                     uint64_t iHeaderSkip,
-                                    uint64_t iComponentSize,
+                                    unsigned iComponentSize,
                                     uint64_t iComponentCount, bool bSigned,
                                     bool bFloatingPoint,
                                     UINT64VECTOR3 vVolumeSize,

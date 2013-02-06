@@ -54,7 +54,7 @@ class RangeInfo {
 public:
   UINT64VECTOR3                 m_vDomainSize;
   FLOATVECTOR3                  m_vAspect;
-  uint64_t                      m_iComponentSize;
+  unsigned                      m_iComponentSize;
   int                           m_iValueType;
   std::pair<double, double>     m_fRange;
   std::pair<int64_t, int64_t>   m_iRange;
@@ -94,7 +94,7 @@ public:
   virtual bool ConvertToRAW(const std::string& strSourceFilename,
                             const std::string& strTempDir,
                             bool bNoUserInteraction,
-                            uint64_t& iHeaderSkip, uint64_t& iComponentSize,
+                            uint64_t& iHeaderSkip, unsigned& iComponentSize,
                             uint64_t& iComponentCount,
                             bool& bConvertEndianess, bool& bSigned,
                             bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
@@ -104,7 +104,7 @@ public:
 
   virtual bool ConvertToNative(const std::string& strRawFilename,
                                const std::string& strTargetFilename,
-                               uint64_t iHeaderSkip, uint64_t iComponentSize,
+                               uint64_t iHeaderSkip, unsigned iComponentSize,
                                uint64_t iComponentCount, bool bSigned,
                                bool bFloatingPoint,
                                UINT64VECTOR3 vVolumeSize,
@@ -135,7 +135,7 @@ public:
 
   static bool QuantizeTo8Bit(LargeRAWFile& rawfile,
                              const std::string& strTargetFilename,
-                             uint64_t iComponentSize, uint64_t iSize,
+                             unsigned iComponentSize, uint64_t iSize,
                              bool bSigned, bool bIsFloat,
                              Histogram1DDataBlock* Histogram1D=0);
 

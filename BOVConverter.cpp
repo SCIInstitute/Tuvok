@@ -63,7 +63,7 @@ BOVConverter::BOVConverter()
 bool BOVConverter::ConvertToRAW(
                             const std::string& strSourceFilename,
                             const std::string&, bool,
-                            uint64_t& iHeaderSkip, uint64_t& iComponentSize,
+                            uint64_t& iHeaderSkip, unsigned& iComponentSize,
                             uint64_t& iComponentCount, bool& bConvertEndianness,
                             bool& bSigned, bool& bIsFloat,
                             UINT64VECTOR3& vVolumeSize,
@@ -169,7 +169,7 @@ bool BOVConverter::ConvertToRAW(
 
 bool BOVConverter::ConvertToNative(const std::string& raw,
                                    const std::string& target,
-                                   uint64_t skip, uint64_t component_size,
+                                   uint64_t skip, unsigned component_size,
                                    uint64_t n_components, bool is_signed,
                                    bool fp, UINT64VECTOR3 dimensions,
                                    FLOATVECTOR3 aspect, bool batch,

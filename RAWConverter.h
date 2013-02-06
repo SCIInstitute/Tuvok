@@ -79,7 +79,7 @@ public:
   static bool ConvertRAWDataset(const std::string& strFilename,
                                 const std::string& strTargetFilename,
                                 const std::string& strTempDir,
-                                uint64_t iHeaderSkip, size_t iComponentSize,
+                                uint64_t iHeaderSkip, unsigned iComponentSize,
                                 uint64_t iComponentCount,
                                 uint64_t timesteps,
                                 bool bConvertEndianness, bool bSigned,
@@ -107,20 +107,20 @@ public:
 
   static bool ParseTXTDataset(const std::string& strFilename,
                               const std::string& strBinaryFile,
-                              uint64_t iHeaderSkip, uint64_t iComponentSize,
+                              uint64_t iHeaderSkip, unsigned iComponentSize,
                               uint64_t iComponentCount, bool bSigned,
                               bool bIsFloat, UINT64VECTOR3 vVolumeSize);
 
   static bool AppendRAW(const std::string& strRawFilename, uint64_t iHeaderSkip,
                         const std::string& strTargetFilename,
-                        uint64_t iComponentSize,
+                        unsigned iComponentSize,
                         bool bChangeEndianess=false,
                         bool bToSigned=false,
                         const bool bQuantizeTo8Bit=false);
 
   virtual bool ConvertToNative(const std::string& strRawFilename,
                                const std::string& strTargetFilename,
-                               uint64_t iHeaderSkip, uint64_t iComponentSize,
+                               uint64_t iHeaderSkip, unsigned iComponentSize,
                                uint64_t iComponentCount, bool bSigned,
                                bool bFloatingPoint, UINT64VECTOR3 vVolumeSize,
                                FLOATVECTOR3 vVolumeAspect,
@@ -158,7 +158,7 @@ public:
                        bool bNoUserInteraction, RangeInfo& info);
 
   static bool Analyze(const std::string& strSourceFilename, uint64_t iHeaderSkip,
-                      uint64_t iComponentSize, uint64_t iComponentCount,
+                      unsigned iComponentSize, uint64_t iComponentCount,
                       bool bSigned, bool bFloatingPoint,
                       UINT64VECTOR3 vVolumeSize,
                       RangeInfo& info);

@@ -143,7 +143,7 @@ public:
   void SetGradientMagnitudeRange(float, float);
 
   /// Number of bits in the data representation.
-  virtual uint64_t GetBitWidth() const {
+  virtual unsigned GetBitWidth() const {
     // We query VariantArray for the type.  Yet we have one variant array per
     // brick; theoretically each brick could have a different underlying data
     // type.  However our model doesn't handle that: the data type is global

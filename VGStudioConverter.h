@@ -50,7 +50,7 @@ public:
   virtual bool ConvertToRAW(const std::string& strSourceFilename,
                             const std::string& strTempDir,
                             bool bNoUserInteraction,
-                            uint64_t& iHeaderSkip, uint64_t& iComponentSize,
+                            uint64_t& iHeaderSkip, unsigned& iComponentSize,
                             uint64_t& iComponentCount,
                             bool& bConvertEndianess, bool& bSigned,
                             bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
