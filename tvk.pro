@@ -182,6 +182,7 @@ HEADERS += \
            IO/3rdParty/lzham/lzham_utils.h \
            IO/3rdParty/lzham/lzham_vector.h \
            IO/3rdParty/lzham/lzham_win32_threading.h \
+           IO/const-brick-iterator.h \
            IO/AbstrConverter.h \
            IO/AmiraConverter.h \
            IO/AnalyzeConverter.h \
@@ -191,6 +192,7 @@ HEADERS += \
            IO/DICOM/DICOMParser.h \
            IO/DirectoryParser.h \
            IO/DSFactory.h \
+           IO/DynamicBrickingDS.h \
            IO/ExternalDataset.h \
            IO/FileBackedDataset.h \
            IO/GeomViewConverter.h \
@@ -515,6 +517,7 @@ SOURCES += \
            IO/3rdParty/lzham/lzham_timer.cpp \
            IO/3rdParty/lzham/lzham_vector.cpp \
            IO/3rdParty/lzham/lzham_win32_threading.cpp \
+           IO/const-brick-iterator.cpp \
            IO/AbstrConverter.cpp \
            IO/AmiraConverter.cpp \
            IO/AnalyzeConverter.cpp \
@@ -523,6 +526,7 @@ SOURCES += \
            IO/Dataset.cpp \
            IO/DICOM/DICOMParser.cpp \
            IO/DirectoryParser.cpp \
+           IO/DynamicBrickingDS.cpp \
            IO/DSFactory.cpp \
            IO/ExternalDataset.cpp \
            IO/FileBackedDataset.cpp \
