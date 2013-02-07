@@ -9,10 +9,14 @@
 #include "util-test.h"
 
 static const std::array<std::array<uint16_t, 8>, 8> data = {{
-  {{ 0, 1, 2, 3, 4, 5, 6, 7 }},
-  {{ 8, 9,10,11,12,13,14,15 }},
-  {{16,17,18,19,20,21,22,23 }},
-  {{24,25,26,27,28,29,30,31 }}
+  {{  0, 1, 2, 3, 4, 5, 6, 7 }},
+  {{  8, 9,10,11,12,13,14,15 }},
+  {{ 16,17,18,19,20,21,22,23 }},
+  {{ 24,25,26,27,28,29,30,31 }},
+  {{ 32,33,34,35,36,37,38,39 }},
+  {{ 40,41,42,43,44,45,46,47 }},
+  {{ 48,49,50,51,52,53,54,55 }},
+  {{ 56,57,58,59,60,61,62,63 }}
 }};
 
 static void mk8x8(const char* filename) {
@@ -88,7 +92,7 @@ public:
     TS_ASSERT_EQUALS(dynamic.GetIsFloat(), false);
     TS_ASSERT_EQUALS(dynamic.IsSameEndianness(), true);
     TS_ASSERT_DELTA(dynamic.GetRange().first, 0.0, 0.001);
-    TS_ASSERT_DELTA(dynamic.GetRange().second, 31.0, 0.001);
+    TS_ASSERT_DELTA(dynamic.GetRange().second, 63.0, 0.001);
   }
 
   void test_data_simple() {
@@ -100,5 +104,9 @@ public:
     }
     TS_ASSERT_EQUALS(d.size(), data.size()*data[0].size());
     // run through each element and check for equality
+    for(size_t i=0; i < data.size()*data[0].size(); ++i) {
+      std::pair<size_t,size_t> coord = idx2d(i, {{8,8}});
+      TS_ASSERT_EQUALS(d[i], data[coord.first][coord.second]);
+    }
   }
 };
