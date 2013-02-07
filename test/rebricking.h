@@ -38,10 +38,18 @@ std::shared_ptr<UVFDataset> mk8x8testdata() {
   const char* outfn = "out.uvf"; ///< @todo fixme use a real temp filename
   mk8x8("abc"); ///< @todo fixme use a real temporary file
   mk_uvf("abc", outfn);
-  std::shared_ptr<UVFDataset> ds(new UVFDataset("out.uvf", 128, false));
+  std::shared_ptr<UVFDataset> ds(new UVFDataset(outfn, 128, false));
   TS_ASSERT(ds->IsOpen());
   return ds;
 }
+
+std::pair<size_t, size_t> idx2d(size_t idx1d,
+                                       std::array<size_t,2> dims) {
+  return std::make_pair(idx1d / dims[1], idx1d % dims[0]);
+}
+
+// number of ghost cells per dimension...
+static unsigned ghost() { return 4; }
 
 class RebrickerTests : public CxxTest::TestSuite {
 public:
@@ -93,6 +101,24 @@ public:
     TS_ASSERT_EQUALS(dynamic.IsSameEndianness(), true);
     TS_ASSERT_DELTA(dynamic.GetRange().first, 0.0, 0.001);
     TS_ASSERT_DELTA(dynamic.GetRange().second, 63.0, 0.001);
+  }
+
+  void test_no_dynamic() {
+    std::shared_ptr<UVFDataset> ds = mk8x8testdata();
+    BrickKey bk(0,0,0); std::vector<uint8_t> d;
+    if(ds->GetBrick(bk, d) == false) {
+      TS_FAIL("could not read data");
+    }
+    TS_ASSERT_EQUALS(d.size(),
+      (data.size()+ghost()) * (data[0].size()+ghost()) * (1+ghost())
+    );
+#if 1
+    // run through each element and check for equality
+    for(size_t i=0; i < 4 && i < data.size()*data[0].size(); ++i) {
+      std::pair<size_t,size_t> coord = idx2d(i, {{8,8}});
+      TS_ASSERT_EQUALS(d[i], data[coord.first][coord.second]);
+    }
+#endif
   }
 
   void test_data_simple() {
