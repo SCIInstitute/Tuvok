@@ -46,6 +46,9 @@ struct DynamicBrickingDS::dbinfo {
   std::vector<uint8_t> ReadSourceBrick(unsigned lod, std::array<uint64_t,3> idx);
 };
 
+// gives the number of ghost voxels (per dimension) in a brick.  must be the
+// same for both source and target.
+static unsigned ghost() { return 4; }
 
 /// gives the brick layout for a given decomposition. i.e. the number of bricks
 /// in each dimension
@@ -354,9 +357,9 @@ std::array<unsigned,3> TargetBrickSize(const Dataset& ds, const BrickKey& k) {
   const BrickedDataset& b = dynamic_cast<const BrickedDataset&>(ds);
   UINTVECTOR3 sz = b.GetBrickMetadata(k).n_voxels;
   std::array<unsigned,3> tmp = {{
-    static_cast<unsigned>(sz[0]),
-    static_cast<unsigned>(sz[1]),
-    static_cast<unsigned>(sz[2])
+    static_cast<unsigned>(sz[0]) + ghost(),
+    static_cast<unsigned>(sz[1]) + ghost(),
+    static_cast<unsigned>(sz[2]) + ghost()
   }};
   return tmp;
 }
@@ -644,9 +647,6 @@ static uint64_t nbricks(const std::array<uint64_t,3> voxels,
   return nb;
 }
 
-// gives the number of ghost voxels (per dimension) in a source dataset brick.
-static unsigned src_ghost() { return 4; }
-
 // @returns true if a is a multiple of b
 static bool integer_multiple(unsigned a, unsigned b) {
   // we need to limit it somewhere so that we ensure a*i doesn't overflow.
@@ -662,9 +662,9 @@ void DynamicBrickingDS::Rebrick() {
   // first make sure this makes sense.
   const UVFDataset& uvf = dynamic_cast<const UVFDataset&>(*this->di->ds);
   std::array<unsigned,3> src_bs = {{
-    (unsigned)uvf.GetMaxUsedBrickSizes()[0] - src_ghost(),
-    (unsigned)uvf.GetMaxUsedBrickSizes()[1] - src_ghost(),
-    (unsigned)uvf.GetMaxUsedBrickSizes()[2] - src_ghost()
+    (unsigned)uvf.GetMaxUsedBrickSizes()[0] - ghost(),
+    (unsigned)uvf.GetMaxUsedBrickSizes()[1] - ghost(),
+    (unsigned)uvf.GetMaxUsedBrickSizes()[2] - ghost()
   }};
   this->di->brickSize[0] = std::min(this->di->brickSize[0], src_bs[0]);
   this->di->brickSize[1] = std::min(this->di->brickSize[1], src_bs[1]);

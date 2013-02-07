@@ -102,7 +102,9 @@ public:
     if(dynamic.GetBrick(bk, d) == false) {
       TS_FAIL("getting brick data failed.");
     }
-    TS_ASSERT_EQUALS(d.size(), data.size()*data[0].size());
+    TS_ASSERT_EQUALS(d.size(),
+      (data.size()+ghost()) * (data[0].size()+ghost()) * (1+ghost())
+    );
     // run through each element and check for equality
     for(size_t i=0; i < data.size()*data[0].size(); ++i) {
       std::pair<size_t,size_t> coord = idx2d(i, {{8,8}});
