@@ -447,6 +447,14 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
     bSigned, bIsFloat, iComponentSize, pKVPairs
   );
 
+  if(iComponentSize < 8) {
+    T_ERROR("width too small; you probably forgot it is in BITS (not bytes)");
+#ifndef NDEBUG
+    abort();
+#endif
+    return false;
+  }
+
   if (iComponentCount > 4) {
     T_ERROR("Currently, only up to four component data is supported.");
     return false;
