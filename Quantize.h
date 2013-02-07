@@ -483,13 +483,13 @@ static bool Quantize(LargeRAWFile& InputData,
                                              minmax.second);
 
   bool bDataWillbeChanged = fQuantFact != 1.0 || minmax.first != 0 ||
-                            sizeof(T) > 2;
+                            sizeof(T) > 2 || sizeof(T) > sizeof(U);
 
   LargeRAWFile OutputData(strTargetFilename);
   // if the only reason for quantization is the histogram computation
   // we don't need an output file
   if (bDataWillbeChanged) {
-    OutputData.Create(iSize*sizeof(unsigned short));
+    OutputData.Create(iSize*sizeof(U));
     if(!OutputData.IsOpen()) {
       InputData.Close();
       T_ERROR("Could not create output file '%s'", strTargetFilename.c_str());
