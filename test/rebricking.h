@@ -26,7 +26,7 @@ static void mk8x8(const char* filename) {
   ofs.close();
 }
 static void mk_uvf(const char* filename, const char* uvf) {
-  RAWConverter::ConvertRAWDataset(filename, uvf, ".", 0, sizeof(uint16_t), 1,
+  RAWConverter::ConvertRAWDataset(filename, uvf, ".", 0, sizeof(uint16_t)*8, 1,
                                   1, false, false, false,
                                   UINT64VECTOR3(8,8,1), FLOATVECTOR3(1,1,1),
                                   "desc", "iotest", 16, 2, true, false, 0,0,
