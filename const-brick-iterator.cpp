@@ -64,7 +64,7 @@ const_brick_iterator::const_brick_iterator(
     voxels(vox), LOD(0)
 #undef DIM
 {
-  location = {{1, 1, 1}};
+  location[0] = location[1] = location[2] = 1ULL;
 }
 
 /// gives the brick layout for a given decomposition. i.e. the number of bricks
@@ -116,9 +116,11 @@ const_brick_iterator& const_brick_iterator::operator++() {
 
 const std::pair<BrickKey, BrickMD> const_brick_iterator::dereference() const {
   const size_t timestep = 0; // unsupported/unimplemented.
+  std::array<uint64_t,3> loc_sub1 = {{
+    this->location[0] - 1, this->location[1] - 1, this->location[2] - 1
+  }};
   uint64_t index = to1d(
-    {{ this->location[0]-1, this->location[1]-1, this->location[2]-1 }},
-    layout(this->voxels, this->bsize)
+    loc_sub1, layout(this->voxels, this->bsize)
   );
   BrickKey bk(timestep, this->LOD, index);
 
