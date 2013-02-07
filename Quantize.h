@@ -312,12 +312,12 @@ std::pair<T,T> io_minmax(DataSrc<T> ds, Histogram<T, sz> histogram,
                                std::min(static_cast<size_t>((iSize-iPos) *
                                         sizeof(T)), iCurrentInCoreSizeBytes));
     if(n_records == 0) {
-      WARNING("Short file during quantization.");
+      WARNING("Short file during quantization (%llu of %llu)", iPos, iSize);
       break; // bail out if the read gave us nothing.
     }
     data.resize(n_records);
 
-    iPos += uint64_t(n_records);
+    iPos += uint64_t(n_records * sizeof(T));
     progress.notify("Computing value range",iPos);
 
     typedef typename std::vector<T>::const_iterator iterator;
@@ -329,6 +329,7 @@ std::pair<T,T> io_minmax(DataSrc<T> ds, Histogram<T, sz> histogram,
     // Run over the data again and bin the data for the histogram.
     for(size_t i=0; i < n_records && histogram.bin(data[i]); ++i) { }
   }
+  assert(iPos == iSize);
   return t_minmax;
 }
 
@@ -440,6 +441,7 @@ static bool Quantize(LargeRAWFile& InputData,
   assert(Input.width == sizeof(T));
   const uint64_t iSize = Input.elements * Input.components * Input.timesteps *
                          Input.width;
+  MESSAGE("%s should have %llu bytes.", InputData.GetFilename().c_str(), iSize);
 
   // figure out min/max
   std::vector<uint64_t> aHist(hist_size, 0);
