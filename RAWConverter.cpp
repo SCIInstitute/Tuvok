@@ -206,7 +206,7 @@ quantize(std::shared_ptr<LargeRAWFile> sourceData,
   BStreamDescriptor bsd;
   bsd.elements = volumeSize;
   bsd.components = iComponentCount;
-  bsd.width = iComponentSize / 8;
+  bsd.width = iComponentSize / 8; assert(bsd.width > 0);
   bsd.is_signed = bSigned;
   bsd.fp = bIsFloat;
   bsd.big_endian = EndianConvert::IsBigEndian(); // should be native, now.
