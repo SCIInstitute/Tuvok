@@ -51,90 +51,99 @@ std::pair<size_t, size_t> idx2d(size_t idx1d,
 // number of ghost cells per dimension...
 static unsigned ghost() { return 4; }
 
+// just creates and destroys the object.
+void tsimple() {
+  std::shared_ptr<UVFDataset> ds = mk8x8testdata();
+  DynamicBrickingDS dynamic(ds, {{8,8,8}});
+}
+
+// splits a 1-brick 8x8x1 volume into two bricks, of size 4x8x1 each.
+void tmake_two() {
+  std::shared_ptr<UVFDataset> ds = mk8x8testdata();
+  DynamicBrickingDS dynamic(ds, {{4,8,1}});
+  // it should be 3 bricks, not 2, because this will create a new LoD
+  TS_ASSERT_EQUALS(dynamic.GetTotalBrickCount(),
+                   static_cast<BrickTable::size_type>(3));
+}
+
+// does not divide the volume evenly.
+void tuneven() {
+  std::shared_ptr<UVFDataset> ds = mk8x8testdata();
+  TS_ASSERT_THROWS(DynamicBrickingDS dynamic(ds, {{3,8,1}}),
+                   std::runtime_error);
+}
+
+// all previous test split on X, make sure Y works too!
+void ty() {
+  std::shared_ptr<UVFDataset> ds = mk8x8testdata();
+  DynamicBrickingDS dynamic(ds, {{8,4,1}});
+  TS_ASSERT_EQUALS(dynamic.GetTotalBrickCount(),
+                   static_cast<BrickTable::size_type>(3));
+}
+
+void tuneven_multiple_dims() {
+  std::shared_ptr<UVFDataset> ds = mk8x8testdata();
+  TS_ASSERT_THROWS(DynamicBrickingDS dynamic(ds, {{3,8,1}}),
+                   std::runtime_error);
+}
+
+// we gave an 8x8x1 buffer of values in [0,31]; even though the data are
+// uint64_t, we should recognize that we actually have 8bit data, etc.
+void tdata_type() {
+  std::shared_ptr<UVFDataset> ds = mk8x8testdata();
+  DynamicBrickingDS dynamic(ds, {{8,8,8}});
+  TS_ASSERT_EQUALS(dynamic.GetBitWidth(), 8U);
+  TS_ASSERT_EQUALS(dynamic.GetComponentCount(), 1ULL);
+  TS_ASSERT_EQUALS(dynamic.GetIsSigned(), false);
+  TS_ASSERT_EQUALS(dynamic.GetIsFloat(), false);
+  TS_ASSERT_EQUALS(dynamic.IsSameEndianness(), true);
+  TS_ASSERT_DELTA(dynamic.GetRange().first, 0.0, 0.001);
+  TS_ASSERT_DELTA(dynamic.GetRange().second, 63.0, 0.001);
+}
+
+void tno_dynamic() {
+  std::shared_ptr<UVFDataset> ds = mk8x8testdata();
+  BrickKey bk(0,0,0); std::vector<uint8_t> d;
+  if(ds->GetBrick(bk, d) == false) {
+    TS_FAIL("could not read data");
+  }
+  TS_ASSERT_EQUALS(d.size(),
+    (data.size()+ghost()) * (data[0].size()+ghost()) * (1+ghost())
+  );
+#if 1
+  // run through each element and check for equality
+  for(size_t i=0; i < 4 && i < data.size()*data[0].size(); ++i) {
+    std::pair<size_t,size_t> coord = idx2d(i, {{8,8}});
+    TS_ASSERT_EQUALS(d[i], data[coord.first][coord.second]);
+  }
+#endif
+}
+
+void tdata_simple () {
+  std::shared_ptr<UVFDataset> ds = mk8x8testdata();
+  DynamicBrickingDS dynamic(ds, {{8,8,8}});
+  BrickKey bk(0,0,0); std::vector<uint8_t> d;
+  if(dynamic.GetBrick(bk, d) == false) {
+    TS_FAIL("getting brick data failed.");
+  }
+  TS_ASSERT_EQUALS(d.size(),
+    (data.size()+ghost()) * (data[0].size()+ghost()) * (1+ghost())
+  );
+  // run through each element and check for equality
+  for(size_t i=0; i < data.size()*data[0].size(); ++i) {
+    std::pair<size_t,size_t> coord = idx2d(i, {{8,8}});
+    TS_ASSERT_EQUALS(d[i], data[coord.first][coord.second]);
+  }
+}
+
 class RebrickerTests : public CxxTest::TestSuite {
 public:
-  // just creates and destroys the object.
-  void test_simple() {
-    std::shared_ptr<UVFDataset> ds = mk8x8testdata();
-    DynamicBrickingDS dynamic(ds, {{8,8,8}});
-  }
-
-  // splits a 1-brick 8x8x1 volume into two bricks, of size 4x8x1 each.
-  void test_make_two() {
-    std::shared_ptr<UVFDataset> ds = mk8x8testdata();
-    DynamicBrickingDS dynamic(ds, {{4,8,1}});
-    // it should be 3 bricks, not 2, because this will create a new LoD
-    TS_ASSERT_EQUALS(dynamic.GetTotalBrickCount(),
-                     static_cast<BrickTable::size_type>(3));
-  }
-
-  // does not divide the volume evenly.
-  void test_uneven() {
-    std::shared_ptr<UVFDataset> ds = mk8x8testdata();
-    TS_ASSERT_THROWS(DynamicBrickingDS dynamic(ds, {{3,8,1}}),
-                     std::runtime_error);
-  }
-
-  // all previous test split on X, make sure Y works too!
-  void test_y() {
-    std::shared_ptr<UVFDataset> ds = mk8x8testdata();
-    DynamicBrickingDS dynamic(ds, {{8,4,1}});
-    TS_ASSERT_EQUALS(dynamic.GetTotalBrickCount(),
-                     static_cast<BrickTable::size_type>(3));
-  }
-
-  void test_uneven_multiple_dims() {
-    std::shared_ptr<UVFDataset> ds = mk8x8testdata();
-    TS_ASSERT_THROWS(DynamicBrickingDS dynamic(ds, {{3,8,1}}),
-                     std::runtime_error);
-  }
-
-  // we gave an 8x8x1 buffer of values in [0,31]; even though the data are
-  // uint64_t, we should recognize that we actually have 8bit data, etc.
-  void test_data_type() {
-    std::shared_ptr<UVFDataset> ds = mk8x8testdata();
-    DynamicBrickingDS dynamic(ds, {{8,8,8}});
-    TS_ASSERT_EQUALS(dynamic.GetBitWidth(), 8U);
-    TS_ASSERT_EQUALS(dynamic.GetComponentCount(), 1ULL);
-    TS_ASSERT_EQUALS(dynamic.GetIsSigned(), false);
-    TS_ASSERT_EQUALS(dynamic.GetIsFloat(), false);
-    TS_ASSERT_EQUALS(dynamic.IsSameEndianness(), true);
-    TS_ASSERT_DELTA(dynamic.GetRange().first, 0.0, 0.001);
-    TS_ASSERT_DELTA(dynamic.GetRange().second, 63.0, 0.001);
-  }
-
-  void test_no_dynamic() {
-    std::shared_ptr<UVFDataset> ds = mk8x8testdata();
-    BrickKey bk(0,0,0); std::vector<uint8_t> d;
-    if(ds->GetBrick(bk, d) == false) {
-      TS_FAIL("could not read data");
-    }
-    TS_ASSERT_EQUALS(d.size(),
-      (data.size()+ghost()) * (data[0].size()+ghost()) * (1+ghost())
-    );
-#if 1
-    // run through each element and check for equality
-    for(size_t i=0; i < 4 && i < data.size()*data[0].size(); ++i) {
-      std::pair<size_t,size_t> coord = idx2d(i, {{8,8}});
-      TS_ASSERT_EQUALS(d[i], data[coord.first][coord.second]);
-    }
-#endif
-  }
-
-  void test_data_simple() {
-    std::shared_ptr<UVFDataset> ds = mk8x8testdata();
-    DynamicBrickingDS dynamic(ds, {{8,8,8}});
-    BrickKey bk(0,0,0); std::vector<uint8_t> d;
-    if(dynamic.GetBrick(bk, d) == false) {
-      TS_FAIL("getting brick data failed.");
-    }
-    TS_ASSERT_EQUALS(d.size(),
-      (data.size()+ghost()) * (data[0].size()+ghost()) * (1+ghost())
-    );
-    // run through each element and check for equality
-    for(size_t i=0; i < data.size()*data[0].size(); ++i) {
-      std::pair<size_t,size_t> coord = idx2d(i, {{8,8}});
-      TS_ASSERT_EQUALS(d[i], data[coord.first][coord.second]);
-    }
-  }
+  void test_simple() { tsimple(); }
+  void test_make_two() { tmake_two(); }
+  void test_uneven() { tuneven(); }
+  void test_y() { ty(); }
+  void test_uneven_multiple_dims() { tuneven_multiple_dims(); }
+  void test_data_type() { tdata_type(); }
+  void test_no_dynamic() { tno_dynamic(); }
+  void test_data_simple() { tdata_simple(); }
 };
