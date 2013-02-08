@@ -415,23 +415,24 @@ bool DynamicBrickingDS::GetBrick(const BrickKey& k, std::vector<uint8_t>& data) 
   // unless the target brick shares a corner with the target brick, we'll need
   // to begin reading from it offset inwards a little bit.  where, exactly?
   std::array<uint64_t,3> src_offset = {{
-    tgt_index[2] - src_index[2],
+    tgt_index[0] - src_index[0],
     tgt_index[1] - src_index[1],
-    tgt_index[0] - src_index[0]
+    tgt_index[2] - src_index[2]
   }};
 
   for(uint64_t z=0; z < tgt_bs[2]; ++z) {
     for(uint64_t y=0; y < tgt_bs[1]; ++y) {
       const uint64_t x = 0;
-      const uint64_t tgt_offset = z*tgt_bs[2]*tgt_bs[1] + y*tgt_bs[1] + x;
+      const uint64_t tgt_offset = z*tgt_bs[0]*tgt_bs[1] + y*tgt_bs[0] + x;
 
-      const uint64_t src_o = src_offset[2]*src_bs[1]*src_bs[0] +
+      const uint64_t src_o = src_offset[2]*src_bs[0]*src_bs[1] +
                              src_offset[1]*src_bs[0] + src_offset[0];
       std::copy(srcdata.data()+src_o, srcdata.data()+src_o+scanline,
                 data.data()+tgt_offset);
       src_offset[1]++; // should follow 'y' increment.
     }
-    src_offset[2]++; // should follow 'z' increment
+    src_offset[1] = tgt_index[1]-src_index[1]; // reset y ..
+    src_offset[2]++; // .. and increment z
   }
   return true;
 }

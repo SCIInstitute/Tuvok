@@ -43,9 +43,13 @@ std::shared_ptr<UVFDataset> mk8x8testdata() {
   return ds;
 }
 
-std::pair<size_t, size_t> idx2d(size_t idx1d,
-                                       std::array<size_t,2> dims) {
-  return std::make_pair(idx1d / dims[1], idx1d % dims[0]);
+std::array<size_t,3> idx3d(size_t idx1d,
+                           std::array<size_t,3> dim) {
+  return {{
+    idx1d % dim[0],
+    (idx1d / dim[0]) % dim[1],
+    idx1d / (dim[1]*dim[2])
+  }};
 }
 
 // number of ghost cells per dimension...
@@ -110,13 +114,24 @@ void tno_dynamic() {
   TS_ASSERT_EQUALS(d.size(),
     (data.size()+ghost()) * (data[0].size()+ghost()) * (1+ghost())
   );
-#if 1
-  // run through each element and check for equality
-  for(size_t i=0; i < 4 && i < data.size()*data[0].size(); ++i) {
-    std::pair<size_t,size_t> coord = idx2d(i, {{8,8}});
-    TS_ASSERT_EQUALS(d[i], data[coord.first][coord.second]);
+  const UINT64VECTOR3 bs(
+    ds->GetBrickMetadata(bk).n_voxels[0],
+    ds->GetBrickMetadata(bk).n_voxels[1],
+    ds->GetBrickMetadata(bk).n_voxels[2]
+  );
+
+  // run through each element and check for equality.  however we have ghost
+  // data, make sure to skip over that (since our source array doesn't have
+  // it!)
+  const size_t offset = ghost()/2;
+  const size_t slice_sz = (data.size() + ghost()) * (data[0].size() + ghost());
+  for(size_t y=offset; y < bs[1]-offset; ++y) {
+    for(size_t x=offset; x < bs[0]-offset; ++x) {
+      const size_t idx = slice_sz*2 + y*bs[0] + x;
+      // yes, the x/y indices are reversed in 'data'.
+      TS_ASSERT_EQUALS(d[idx], data[y-offset][x-offset]);
+    }
   }
-#endif
 }
 
 void tdata_simple () {
@@ -129,10 +144,27 @@ void tdata_simple () {
   TS_ASSERT_EQUALS(d.size(),
     (data.size()+ghost()) * (data[0].size()+ghost()) * (1+ghost())
   );
-  // run through each element and check for equality
-  for(size_t i=0; i < data.size()*data[0].size(); ++i) {
-    std::pair<size_t,size_t> coord = idx2d(i, {{8,8}});
-    TS_ASSERT_EQUALS(d[i], data[coord.first][coord.second]);
+
+  const UINT64VECTOR3 bs(
+    ds->GetBrickMetadata(bk).n_voxels[0],
+    ds->GetBrickMetadata(bk).n_voxels[1],
+    ds->GetBrickMetadata(bk).n_voxels[2]
+  );
+  TS_ASSERT_EQUALS(bs[0], 12ULL);
+  TS_ASSERT_EQUALS(bs[1], 12ULL);
+  TS_ASSERT_EQUALS(bs[2], 5ULL);
+
+  // run through each element and check for equality.  however we have ghost
+  // data, make sure to skip over that (since our source array doesn't have
+  // it!)
+  const size_t offset = ghost()/2;
+  const size_t slice_sz = (data.size() + ghost()) * (data[0].size() + ghost());
+  for(size_t y=offset; y < bs[1]-offset; ++y) {
+    for(size_t x=offset; x < bs[0]-offset; ++x) {
+      const size_t idx = slice_sz*2 + y*bs[0] + x;
+      // yes, the x/y indexes are reversed in 'data'.
+      TS_ASSERT_EQUALS(d[idx], data[y-offset][x-offset]);
+    }
   }
 }
 
