@@ -56,7 +56,7 @@ contains(QMAKE_PRL_CONFIG, shared) {
 TEST_HEADERS=quantize.h largefile.h rebricking.h
 
 alltests.target = alltests.cpp
-alltests.commands = python ../3rdParty/cxxtest/cxxtestgen.py --no-static-init --error-printer -o alltests.cpp $$TEST_HEADERS
+alltests.commands = python ../3rdParty/cxxtest/cxxtestgen.py --abort-on-fail --no-static-init --error-printer -o alltests.cpp $$TEST_HEADERS
 alltests.depends = $$TEST_HEADERS
 
 #cxxtester.depends = alltests.cpp
