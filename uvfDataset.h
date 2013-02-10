@@ -25,12 +25,6 @@
    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
    DEALINGS IN THE SOFTWARE.
 */
-/**
-  \file    uvfDataset.h
-  \author  Tom Fogal
-           SCI Institute
-           University of Utah
-*/
 #pragma once
 #ifndef TUVOK_UVF_DATASET_H
 #define TUVOK_UVF_DATASET_H
@@ -69,6 +63,7 @@ namespace tuvok {
       m_pHist2DDataBlock(NULL),
       m_pMaxMinData(NULL)
     {}  
+    virtual ~Timestep() {}
     float                        m_fMaxGradMagnitude;
     const DataBlock*             m_pVolumeDataBlock; ///< data
     const Histogram1DDataBlock*  m_pHist1DDataBlock;
@@ -127,8 +122,8 @@ public:
   virtual bool ContainsData(const BrickKey &k, double fMin,double fMax) const;
   virtual bool ContainsData(const BrickKey &k, double fMin,double fMax, double fMinGradient,double fMaxGradient) const;
 
-  // Used by GLVolumePool to speed up visibility computations
-  InternalMaxMinComponent MaxMinForKey(const BrickKey &k) const;
+  /// @returns the min/max scalar and gradient values for the given brick
+  InternalMaxMinComponent MaxMinForKey(const BrickKey& k) const;
 
   // LOD Data
   /// @todo fixme -- this should take a brick key and just ignore the spatial

@@ -1201,18 +1201,17 @@ void UVFDataset::ComputeRange() {
   }
 }
 
-InternalMaxMinComponent UVFDataset::MaxMinForKey(const BrickKey &k) const {
+InternalMaxMinComponent UVFDataset::MaxMinForKey(const BrickKey& k) const {
   InternalMaxMinComponent maxMinElement;
   if (m_bToCBlock) {
-    const TOCTimestep* ts = static_cast<TOCTimestep*>(m_timesteps[std::get<0>(k)]);
+    const TOCTimestep* ts = dynamic_cast<const TOCTimestep*>(m_timesteps[std::get<0>(k)]);
     size_t iLinIndex = size_t(ts->GetDB()->GetLinearBrickIndex(KeyToTOCVector(k)));
     return  ts->m_pMaxMinData->GetValue(iLinIndex, ts->GetDB()->GetComponentCount() == 4 ? 3 : 0 );
   } else {
-
     const NDBrickKey& key = IndexToVectorKey(k);
-    size_t iLOD = static_cast<size_t>(std::get<1>(k));
+    size_t iLOD = std::get<1>(k);
 
-    const RDTimestep* ts = static_cast<RDTimestep*>(m_timesteps[key.timestep]);
+    const RDTimestep* ts = dynamic_cast<const RDTimestep*>(m_timesteps[key.timestep]);
     return ts->m_vvaMaxMin[iLOD]
                           [static_cast<size_t>(key.brick[0])]
                           [static_cast<size_t>(key.brick[1])]
