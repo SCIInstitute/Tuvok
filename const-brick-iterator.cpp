@@ -15,6 +15,8 @@ static UINTVECTOR3 va(const std::array<uint32_t,3> a) {
   return UINTVECTOR3(a[0], a[1], a[2]);
 }
 
+static unsigned ghost() { return 4; }
+
 /// @param l the current location, in brick coords
 /// @param bsz size of the bricks
 /// @param voxels number of voxels
@@ -40,11 +42,15 @@ static std::array<uint32_t,3> nvoxels(const std::array<uint64_t,3> l,
     static_cast<uint32_t>(bsz[1]),
     static_cast<uint32_t>(bsz[2]),
   }};
-  const std::array<uint32_t,3> nvox = {{
+  std::array<uint32_t,3> nvox = {{
     difference[0] ? std::min(bs[0], difference[0]) : bs[0],
     difference[1] ? std::min(bs[1], difference[1]) : bs[1],
     difference[2] ? std::min(bs[2], difference[2]) : bs[2],
   }};
+  // add in the ghost data we have on each brick!
+  nvox[0] += ghost();
+  nvox[1] += ghost();
+  nvox[2] += ghost();
 
   return nvox;
 }

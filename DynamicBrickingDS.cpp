@@ -15,6 +15,7 @@
 // * interface for this is strange: would be nicer if it took the voxel ranges
 //   we need, per-dimension, and the resolution it wants (instead of 'keys')?
 // * 'GetMaxBrickSize' needs to be moved up to Dataset
+// * remove 'overlap' from dbinfo (not used anyway) and just hardcode 'ghost()'
 #include <algorithm>
 #include <array>
 #include <cassert>
@@ -104,7 +105,7 @@ static std::array<uint32_t,3> nvoxels(const std::array<uint64_t,3> l,
 
 DynamicBrickingDS::DynamicBrickingDS(std::shared_ptr<Dataset> ds,
                                      std::array<unsigned, 3> maxBrickSize) :
-  di(new DynamicBrickingDS::dbinfo(ds, maxBrickSize, 2))
+  di(new DynamicBrickingDS::dbinfo(ds, maxBrickSize, 4))
 {
   di->ds = ds;
   di->brickSize = maxBrickSize;
@@ -357,9 +358,9 @@ std::array<unsigned,3> TargetBrickSize(const Dataset& ds, const BrickKey& k) {
   const BrickedDataset& b = dynamic_cast<const BrickedDataset&>(ds);
   UINTVECTOR3 sz = b.GetBrickMetadata(k).n_voxels;
   std::array<unsigned,3> tmp = {{
-    static_cast<unsigned>(sz[0]) + ghost(),
-    static_cast<unsigned>(sz[1]) + ghost(),
-    static_cast<unsigned>(sz[2]) + ghost()
+    static_cast<unsigned>(sz[0]),
+    static_cast<unsigned>(sz[1]),
+    static_cast<unsigned>(sz[2]),
   }};
   return tmp;
 }
