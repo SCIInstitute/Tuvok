@@ -134,6 +134,23 @@ void tno_dynamic() {
   }
 }
 
+void tdomain_size() {
+  std::shared_ptr<UVFDataset> ds = mk8x8testdata();
+  {
+    DynamicBrickingDS dynamic(ds, {{8,8,8}});
+    TS_ASSERT_EQUALS(ds->GetDomainSize(0,0)[0], dynamic.GetDomainSize(0,0)[0]);
+    TS_ASSERT_EQUALS(ds->GetDomainSize(0,0)[1], dynamic.GetDomainSize(0,0)[1]);
+    TS_ASSERT_EQUALS(ds->GetDomainSize(0,0)[2], dynamic.GetDomainSize(0,0)[2]);
+  }
+  {
+    DynamicBrickingDS dynamic(ds, {{4,4,4}});
+    TS_ASSERT_EQUALS(ds->GetDomainSize(0,0)[0], dynamic.GetDomainSize(0,0)[0]);
+    TS_ASSERT_EQUALS(ds->GetDomainSize(0,0)[1], dynamic.GetDomainSize(0,0)[1]);
+    TS_ASSERT_EQUALS(ds->GetDomainSize(0,0)[2], dynamic.GetDomainSize(0,0)[2]);
+  }
+}
+
+// very simple case: "rebrick" a dataset into the same number of bricks.
 void tdata_simple () {
   std::shared_ptr<UVFDataset> ds = mk8x8testdata();
   DynamicBrickingDS dynamic(ds, {{8,8,8}});
@@ -177,5 +194,6 @@ public:
   void test_uneven_multiple_dims() { tuneven_multiple_dims(); }
   void test_data_type() { tdata_type(); }
   void test_no_dynamic() { tno_dynamic(); }
+  void test_domain_size() { tdomain_size(); }
   void test_data_simple() { tdata_simple(); }
 };
