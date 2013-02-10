@@ -170,6 +170,10 @@ void tdata_simple () {
   TS_ASSERT_EQUALS(bs[0], 12ULL);
   TS_ASSERT_EQUALS(bs[1], 12ULL);
   TS_ASSERT_EQUALS(bs[2], 5ULL);
+  const UINTVECTOR3 dynamic_bs = dynamic.GetBrickMetadata(bk).n_voxels;
+  TS_ASSERT_EQUALS(bs[0], dynamic_bs[0]);
+  TS_ASSERT_EQUALS(bs[1], dynamic_bs[1]);
+  TS_ASSERT_EQUALS(bs[2], dynamic_bs[2]);
 
   // run through each element and check for equality.  however we have ghost
   // data, make sure to skip over that (since our source array doesn't have
