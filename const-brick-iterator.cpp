@@ -1,5 +1,6 @@
 #include <array>
 #include <cmath>
+#include "Basics/MathTools.h"
 #include "const-brick-iterator.h"
 
 namespace tuvok {
@@ -131,10 +132,59 @@ const std::pair<BrickKey, BrickMD> const_brick_iterator::dereference() const {
   );
   BrickKey bk(timestep, this->LOD, index);
 
+  FLOATVECTOR3 exts, center;
+  { // what percentage of the way through the volume are we?
+    const std::array<uint64_t,3> vlow = {{
+      loc_sub1[0] * this->bsize[0],
+      loc_sub1[1] * this->bsize[1],
+      loc_sub1[2] * this->bsize[2]
+    }};
+    // the high coord is the low coord + the number of voxels in the brick
+    const std::array<uint32_t,3> bsz = nvoxels(this->location, this->bsize,
+                                               this->voxels);
+    const std::array<uint64_t,3> vhigh = {{
+      vlow[0]+bsz[0]-ghost(), vlow[1]+bsz[1]-ghost(), vlow[2]+bsz[2]-ghost()
+    }};
+    // where the center of this brick would be, in voxels.  note this is FP:
+    // the 'center' could be a half-voxel in, if the brick has an odd number of
+    // voxels.
+    const std::array<float,3> vox_center = {{
+      (vlow[0] + vhigh[0]) / 2.0f,
+      (vlow[1] + vhigh[1]) / 2.0f,
+      (vlow[2] + vhigh[2]) / 2.0f
+    }};
+    const std::array<float,3> voxelsf = {{ // for type purposes.
+      static_cast<float>(this->voxels[0]), static_cast<float>(this->voxels[1]),
+      static_cast<float>(this->voxels[2])
+    }};
+    // we know the center in voxels, and we know the width of the domain in
+    // world space.  interpolate to get the center in world space.
+    center = FLOATVECTOR3(
+      MathTools::lerp(vox_center[0], 0.0f,voxelsf[0], this->extents[0][0],
+                                                      this->extents[1][0]),
+      MathTools::lerp(vox_center[1], 0.0f,voxelsf[1], this->extents[0][1],
+                                                      this->extents[1][1]),
+      MathTools::lerp(vox_center[2], 0.0f,voxelsf[2], this->extents[0][2],
+                                                      this->extents[1][2])
+    );
+    const uint64_t zero = 0ULL; // for type purposes.
+    const FLOATVECTOR3 wlow(
+      MathTools::lerp(vlow[0], zero,this->voxels[0], 0.0f,this->extents[0][0]),
+      MathTools::lerp(vlow[1], zero,this->voxels[1], 0.0f,this->extents[0][1]),
+      MathTools::lerp(vlow[2], zero,this->voxels[2], 0.0f,this->extents[0][2])
+    );
+    const FLOATVECTOR3 whigh(
+      MathTools::lerp(vhigh[0], zero,this->voxels[0], 0.0f,this->extents[1][0]),
+      MathTools::lerp(vhigh[1], zero,this->voxels[1], 0.0f,this->extents[1][1]),
+      MathTools::lerp(vhigh[2], zero,this->voxels[2], 0.0f,this->extents[1][2])
+    );
+    exts = whigh - wlow;
+  }
+
   BrickMD md = {
-    FLOATVECTOR3(0.0f, 0.0f, 0.0f), // fixme
-    FLOATVECTOR3(0.0f, 0.0f, 0.0f), // fixme
-    UINTVECTOR3(va(nvoxels(this->location, this->bsize, this->voxels)))
+    center,
+    exts,
+    va(nvoxels(this->location, this->bsize, this->voxels))
   };
   return std::make_pair(bk, md);
 }

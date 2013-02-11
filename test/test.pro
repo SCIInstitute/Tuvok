@@ -53,10 +53,12 @@ contains(QMAKE_PRL_CONFIG, shared) {
 
 #TEST_HEADERS=multisrc.h dicom.h jpeg.h minmax.h
 #TEST_HEADERS=quantize.h jpeg.h largefile.h rebricking.h
-TEST_HEADERS=quantize.h largefile.h rebricking.h
+TEST_HEADERS=quantize.h largefile.h rebricking.h cbi.h
 
+TG_PARAMS=--have-eh --abort-on-fail --no-static-init --error-printer
 alltests.target = alltests.cpp
-alltests.commands = python ../3rdParty/cxxtest/cxxtestgen.py --abort-on-fail --no-static-init --error-printer -o alltests.cpp $$TEST_HEADERS
+alltests.commands = python ../3rdParty/cxxtest/cxxtestgen.py \
+  $$TG_PARAMS -o alltests.cpp $$TEST_HEADERS
 alltests.depends = $$TEST_HEADERS
 
 #cxxtester.depends = alltests.cpp

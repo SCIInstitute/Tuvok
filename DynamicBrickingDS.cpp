@@ -1,4 +1,3 @@
-// * calculate / fix extents && centers!
 // * Dataset's "GetBitWidth" should return an unsigned or something
 // * can we chain these recursively?  e.g.:
 //      DynBrickingDS a(ds, {{128, 128, 128}});
