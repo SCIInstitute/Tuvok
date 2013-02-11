@@ -1,4 +1,3 @@
-// * not considering brick overlap now, will need voxel overlap
 // * calculate / fix extents && centers!
 // * Dataset's "GetBitWidth" should return an unsigned or something
 // * can we chain these recursively?  e.g.:
@@ -16,10 +15,10 @@
 //   we need, per-dimension, and the resolution it wants (instead of 'keys')?
 // * 'GetMaxBrickSize' needs to be moved up to Dataset
 // * remove 'overlap' from dbinfo (not used anyway) and just hardcode 'ghost()'
+// * rename/fix creation of the iterator functions ("begin"/"end" too general)
 #include <algorithm>
 #include <array>
 #include <cassert>
-#include <iterator>
 #include <stdexcept>
 #include "Controller/Controller.h"
 #include "const-brick-iterator.h"
@@ -699,10 +698,14 @@ void DynamicBrickingDS::Rebrick() {
 
   assert(nvoxels[0] > 0 && nvoxels[1] > 0 && nvoxels[2]);
 
+  std::array<float,3> low = {{ 0.0f, 0.0f, 0.0f }};
+  std::array<float,3> high = {{ 10.0f, 5.0f, 19.0f }};
+  std::array<std::array<float,3>,2> extents = {{ low, high }};
+
   // give a hint as to how many bricks we'll have total.
   assert(nbricks(nvoxels, di->brickSize) > 0);
   this->NBricksHint(nbricks(nvoxels, di->brickSize));
-  std::for_each(begin(nvoxels, di->brickSize), end(),
+  std::for_each(begin(nvoxels, di->brickSize, extents), end(),
                 [&](const std::pair<BrickKey,BrickMD>& b) {
                     // since our brick sizes are smaller, and in both our
                     // DS and the DS we use we continue creating LODs
@@ -753,7 +756,10 @@ static bool test() {
   {
     std::array<uint64_t, 3> voxels = {{8,8,1}};
     std::array<unsigned,3> bsize = {{4,8,1}};
-    auto beg = begin(voxels, bsize);
+    std::array<float,3> low = {{ 0.0f, 0.0f, 0.0f }};
+    std::array<float,3> high = {{ 10.0f, 5.0f, 19.0f }};
+    std::array<std::array<float,3>,2> extents = {{ low, high }};
+    auto beg = begin(voxels, bsize, extents);
     assert(beg != end());
     assert(std::get<0>((*beg).first) == 0); // timestep
     assert(std::get<1>((*beg).first) == 0); // LOD

@@ -62,12 +62,13 @@ static std::array<uint32_t,3> nvoxels(const std::array<uint64_t,3> l,
     : (vox[1] / bsize[1] > vox[2] / bsize[2] ? 1 : 2))
 const_brick_iterator::const_brick_iterator(
   const std::array<uint64_t,3> vox,
-  const std::array<unsigned,3> bricksize
+  const std::array<unsigned,3> bricksize,
+  const std::array<std::array<float,3>,2> exts
 ) : bsize(bricksize),
     // a bit intense for an initializer list, but it needs to be here so this
     // can be const.
     MaxLODs(static_cast<size_t>(ceil(double(vox[DIM]) / bricksize[DIM]))),
-    voxels(vox), LOD(0)
+    voxels(vox), LOD(0), extents(exts)
 #undef DIM
 {
   location[0] = location[1] = location[2] = 1ULL;
@@ -152,8 +153,9 @@ bool const_brick_iterator::operator!=(const const_brick_iterator& that) const {
 }
 
 const_brick_iterator begin(const std::array<uint64_t,3> voxels,
-                           const std::array<unsigned,3> bricksize) {
-  return const_brick_iterator(voxels, bricksize);
+                           const std::array<unsigned,3> bricksize,
+                           const std::array<std::array<float,3>,2> extents) {
+  return const_brick_iterator(voxels, bricksize, extents);
 }
 const_brick_iterator end() { return const_brick_iterator(); }
 

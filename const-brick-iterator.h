@@ -12,13 +12,21 @@ class const_brick_iterator :
   public std::iterator<std::forward_iterator_tag,
                        const std::pair<BrickKey, BrickMD>, int> {
   public:
-    explicit const_brick_iterator(const std::array<uint64_t,3> voxels,
-                                  const std::array<unsigned,3> bricksize);
+    ///@parameter voxels number of voxels in the data set
+    ///@parameter bricksize size of the bricks to use
+    ///@parameter extent low/high of the data in world space
+    explicit const_brick_iterator(
+      const std::array<uint64_t,3> voxels,
+      const std::array<unsigned,3> bricksize,
+      const std::array<std::array<float,3>,2> extent
+    );
 #ifdef _MSC_VER
     const_brick_iterator() : MaxLODs(0), LOD(0) {
 #else
     const_brick_iterator() : bsize({{0,0,0}}), MaxLODs(0), voxels({{0,0,0}}),
-                             LOD(0), location({{0,0,0}}) {
+                             LOD(0), location({{0,0,0}}),
+                             extents({{ {{0.0f,0.0f,0.0f}},
+                                        {{1.0f,1.0f,1.0f}} }}) {
 #endif
       voxels[0] = voxels[1] = voxels[2] = 0ULL;
       location[0] = location[1] = location[2] = 0ULL;
@@ -39,10 +47,12 @@ class const_brick_iterator :
     size_t LOD; ///< what LOD we're on.  0 is fine. +1 is coarser, ...
     // current brick, in layout coords (not voxels)
     std::array<uint64_t,3> location;
+    const std::array<std::array<float,3>,2> extents;
 };
 
 const_brick_iterator begin(const std::array<uint64_t,3> voxels,
-                           const std::array<unsigned,3> bricksize);
+                           const std::array<unsigned,3> bricksize,
+                           const std::array<std::array<float,3>,2> extents);
 const_brick_iterator end();
 
 }
