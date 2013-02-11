@@ -704,16 +704,17 @@ void DynamicBrickingDS::Rebrick() {
   this->NBricksHint(nbricks(nvoxels, di->brickSize));
   std::for_each(begin(nvoxels, di->brickSize), end(),
                 [&](const std::pair<BrickKey,BrickMD>& b) {
-                  // since our brick sizes are smaller, and in both our
-                  // DS and the DS we use we continue creating LODs
-                  // until we get to a single brick, we could have
-                  // more LODs in our Dataset than we do in the source
-                  // Dataset.
-                  // We could dynamically generate that lower-res data.  We
-                  // probably do want to do that eventually.  But for now,
-                  // let's just stop generating data when we hit the source
-                  // data's LOD.
-                    if(std::get<1>(b.first) /* LOD */ < di->ds->GetLODLevelCount()) {
+                    // since our brick sizes are smaller, and in both our
+                    // DS and the DS we use we continue creating LODs
+                    // until we get to a single brick, we could have
+                    // more LODs in our Dataset than we do in the source
+                    // Dataset.
+                    // We could dynamically generate that lower-res data.  We
+                    // probably do want to do that eventually.  But for now,
+                    // let's just stop generating data when we hit the source
+                    // data's LOD.
+                    const size_t lod = std::get<1>(b.first);
+                    if(lod < di->ds->GetLODLevelCount()) {
                       this->AddBrick(b.first, b.second);
                     }
                   });
