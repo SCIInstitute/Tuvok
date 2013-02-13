@@ -784,25 +784,51 @@ GLVolumePool* GPUMemMan::GetVolumePool(UVFDataset* dataSet, GLenum filter, int /
   GLint iMaxVolumeDims;
   GL(glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE_EXT, &iMaxVolumeDims));
   const uint64_t iMaxGPUMem = Controller::Instance().SysInfo()->GetMaxUsableGPUMem()-m_iAllocatedGPUMemory;
-  const uint64_t iElemSize = iMaxGPUMem/(iCompCount*iBitWidth/8);
-  const uint32_t r3ElemSize = std::min(uint32_t(iMaxVolumeDims), uint32_t(pow(iElemSize, 1.0f/3.0f)));
 
+  // the max brick layout that fits into the available GPU memory
+  const uint64_t iMaxVoxelCount = iMaxGPUMem/(iCompCount*iBitWidth/8);
+  const uint64_t r3Voxels = uint64_t(pow(iMaxVoxelCount, 1.0f/3.0f));
+  UINTVECTOR3 maxBricksForGPU;
 
+  // round the starting input size (r3Voxels) to the closest multiple brick size
+  // to guarantee as cubic as possible volume pools and to better fill the
+  // available amount of memory
+  // (e.g. it creates a 1024x512x1536 pool instead of a 512x2048x512 pool for
+  // a brick size of 512^3 and 3.4 GB available memory)
+  uint64_t multipleOfBrickSizeThatFitsInX = uint64_t(((float)r3Voxels/vMaxBS.x) + 0.5f) *vMaxBS.x;
+  if (multipleOfBrickSizeThatFitsInX > uint64_t(iMaxVolumeDims))
+    multipleOfBrickSizeThatFitsInX = (iMaxVolumeDims/vMaxBS.x)*vMaxBS.x;
+  maxBricksForGPU.x = (uint32_t)multipleOfBrickSizeThatFitsInX;
 
-  // the max brick layout the GPU would let us create
-  // based on the max texture size an the available memory
-  const UINTVECTOR3 maxBricksForGPU( (r3ElemSize/vMaxBS.x)*vMaxBS.x,
-                                     (r3ElemSize/vMaxBS.y)*vMaxBS.y,
-                                     (r3ElemSize/vMaxBS.z)*vMaxBS.z);
+  uint64_t multipleOfBrickSizeThatFitsInY = ((iMaxVoxelCount/(maxBricksForGPU.x*maxBricksForGPU.x))/vMaxBS.y)*vMaxBS.y;
+  if (multipleOfBrickSizeThatFitsInY > uint64_t(iMaxVolumeDims))
+    multipleOfBrickSizeThatFitsInY = (iMaxVolumeDims/vMaxBS.y)*vMaxBS.y;
+  maxBricksForGPU.y = (uint32_t)multipleOfBrickSizeThatFitsInY;
 
-  const uint64_t iTotalBrickCount = dataSet->GetTotalBrickCount();
+  uint64_t multipleOfBrickSizeThatFitsInZ = ((iMaxVoxelCount/(maxBricksForGPU.x*maxBricksForGPU.y))/vMaxBS.z)*vMaxBS.z;
+  if (multipleOfBrickSizeThatFitsInZ > uint64_t(iMaxVolumeDims))
+    multipleOfBrickSizeThatFitsInZ = (iMaxVolumeDims/vMaxBS.z)*vMaxBS.z;
+  maxBricksForGPU.z = (uint32_t)multipleOfBrickSizeThatFitsInZ;
 
   // the max brick layout required by the dataset
-  const uint64_t r3Bricks = uint64_t(pow(iTotalBrickCount, 1.0f/3.0f));
+  const uint64_t iMaxBrickCount = dataSet->GetTotalBrickCount();
+  const uint64_t r3Bricks = uint64_t(pow(iMaxBrickCount, 1.0f/3.0f));
   UINT64VECTOR3 maxBricksForDataset;
-  maxBricksForDataset.x = std::min(uint64_t(iMaxVolumeDims), vMaxBS.x*r3Bricks);
-  maxBricksForDataset.y = std::min(uint64_t(iMaxVolumeDims), vMaxBS.y*uint64_t(ceil(float(iTotalBrickCount) / ((maxBricksForDataset.x/vMaxBS.x) * (maxBricksForDataset.x/vMaxBS.x)))));
-  maxBricksForDataset.z = std::min(uint64_t(iMaxVolumeDims), vMaxBS.z*uint64_t(ceil(float(iTotalBrickCount) / ((maxBricksForDataset.x/vMaxBS.x) * (maxBricksForDataset.y/vMaxBS.y)))));
+
+  multipleOfBrickSizeThatFitsInX = vMaxBS.x*r3Bricks;
+  if (multipleOfBrickSizeThatFitsInX > uint64_t(iMaxVolumeDims))
+    multipleOfBrickSizeThatFitsInX = (iMaxVolumeDims/vMaxBS.x)*vMaxBS.x;
+  maxBricksForDataset.x = (uint32_t)multipleOfBrickSizeThatFitsInX;
+
+  multipleOfBrickSizeThatFitsInY = vMaxBS.y*uint64_t(ceil(float(iMaxBrickCount) / ((maxBricksForDataset.x/vMaxBS.x) * (maxBricksForDataset.x/vMaxBS.x))));
+  if (multipleOfBrickSizeThatFitsInY > uint64_t(iMaxVolumeDims))
+    multipleOfBrickSizeThatFitsInY = (iMaxVolumeDims/vMaxBS.y)*vMaxBS.y;
+  maxBricksForDataset.y = (uint32_t)multipleOfBrickSizeThatFitsInY;
+
+  multipleOfBrickSizeThatFitsInZ = vMaxBS.z*uint64_t(ceil(float(iMaxBrickCount) / ((maxBricksForDataset.x/vMaxBS.x) * (maxBricksForDataset.y/vMaxBS.y))));
+  if (multipleOfBrickSizeThatFitsInZ > uint64_t(iMaxVolumeDims))
+    multipleOfBrickSizeThatFitsInZ = (iMaxVolumeDims/vMaxBS.z)*vMaxBS.z;
+  maxBricksForDataset.z = (uint32_t)multipleOfBrickSizeThatFitsInZ;
 
   // now use the smaller of the two layouts, normally that
   // would be the maxBricksForGPU but for small datasets that
