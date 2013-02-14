@@ -304,6 +304,8 @@ class AbstrRenderer {
     virtual void PH_SetBrickIOBytes(uint64_t b);
     virtual double PH_RenderingTime() const;
 
+    virtual bool PH_OpenBrickAccessLogfile(const std::string&);
+    virtual bool PH_CloseBrickAccessLogfile();
     virtual bool PH_OpenLogfile(const std::string&);
     virtual bool PH_CloseLogfile();
     virtual void PH_SetOptimalFrameAverageCount(size_t);

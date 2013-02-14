@@ -1763,6 +1763,8 @@ void AbstrRenderer::PH_SetBrickIOTime(double) { }
 uint64_t AbstrRenderer::PH_BrickIOBytes() const { return 0; }
 void AbstrRenderer::PH_SetBrickIOBytes(uint64_t) { }
 double AbstrRenderer::PH_RenderingTime() const { return 0.0; }
+bool AbstrRenderer::PH_OpenBrickAccessLogfile(const std::string&) { return false; }
+bool AbstrRenderer::PH_CloseBrickAccessLogfile() { return false; }
 bool AbstrRenderer::PH_OpenLogfile(const std::string&) { return false; }
 bool AbstrRenderer::PH_CloseLogfile() { return false; }
 void AbstrRenderer::PH_SetOptimalFrameAverageCount(size_t) { }
@@ -2199,6 +2201,10 @@ void AbstrRenderer::RegisterLuaFunctions(
                     "recalcVisibility", "synchronous!", false);
   id = reg.function(&AbstrRenderer::PH_Converged, "converged",
                     "checks if rendering converged", false);
+  id = reg.function(&AbstrRenderer::PH_OpenBrickAccessLogfile, "openBALogfile",
+                    "opens a new log file where brick access stats will be written to", false);
+  id = reg.function(&AbstrRenderer::PH_CloseBrickAccessLogfile, "closeBALogfile",
+                    "closes a open brick access log file", false);
   id = reg.function(&AbstrRenderer::PH_OpenLogfile, "openLogfile",
                     "opens a new log file where frame stats will be written to", false);
   id = reg.function(&AbstrRenderer::PH_CloseLogfile, "closeLogfile",

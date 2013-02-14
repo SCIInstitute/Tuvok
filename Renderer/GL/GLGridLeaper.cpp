@@ -60,6 +60,8 @@ GLGridLeaper::GLGridLeaper(MasterController* pMasterController,
   , m_iAveragingFrameCount(0)
   , m_bAveragingFrameTimes(false)
   , m_pLogFile(NULL)
+  , m_pBrickAccess(NULL)
+  , m_iFrameCount(0)
 #ifdef GLGRIDLEAPER_DEBUGVIEW
   , m_pFBODebug(NULL)
   , m_pFBODebugNext(NULL)
@@ -133,6 +135,7 @@ bool GLGridLeaper::LoadDataset(const string& strFilename) {
 }
 GLGridLeaper::~GLGridLeaper() {
   PH_CloseLogfile();
+  PH_CloseBrickAccessLogfile();
   delete m_pglHashTable; m_pglHashTable = NULL;
 #ifdef GLGRIDLEAPER_WORKINGSET
   delete m_pWorkingSetTable; m_pWorkingSetTable = NULL;
@@ -931,6 +934,15 @@ bool GLGridLeaper::Render3DRegion(RenderRegion3D& rr) {
   // conditional measurements
   if (!hash.empty()) {
     float const t = float(m_Timer.Elapsed());
+    if (m_pBrickAccess) {
+      // report used bricks
+      *m_pBrickAccess << " Subframe=" << m_iSubframes;
+      *m_pBrickAccess << " PagedBrickCount=" << hash.size() << std::endl;
+      for (size_t i=0; i<hash.size(); ++i) {
+        *m_pBrickAccess << hash[i] << " ";
+      }
+      *m_pBrickAccess << std::endl;
+    }
     OTHER("subframe %d took %.2f ms and %d bricks were paged in",
       m_iSubframes, t, m_iPagedBricks);
     m_iSubframes++;
@@ -967,6 +979,11 @@ bool GLGridLeaper::Render3DRegion(RenderRegion3D& rr) {
                   << m_iSubframes << ";\t" // subframe count
                   << m_iPagedBricks << ";\t" // paged in brick count
                   << m_vUploadMem.size() * m_iPagedBricks / 1024.f / 1024.f << ";\t"; // paged in memory (MB)
+    }
+    if (m_pBrickAccess) {
+      *m_pBrickAccess << " Frame=" << ++m_iFrameCount;
+      *m_pBrickAccess << " TotalPagedBrickCount=" << m_iPagedBricks;
+      *m_pBrickAccess << " TotalSubframeCount=" << m_iSubframes << std::endl;
     }
 
 #ifdef GLGRIDLEAPER_WORKINGSET
@@ -1017,6 +1034,11 @@ bool GLGridLeaper::Render3DRegion(RenderRegion3D& rr) {
                     << m_vUploadMem.size() * vUsedBricks.size() / 1024.f / 1024.f << ";\t"; // working set memory (MB)
 #endif
         *m_pLogFile << std::endl;
+      }
+      if (m_pBrickAccess) {
+        *m_pBrickAccess << " Frame=" << ++m_iFrameCount;
+        *m_pBrickAccess << " TotalPagedBrickCount=" << m_iPagedBricks;
+        *m_pBrickAccess << " TotalSubframeCount=" << m_iSubframes << std::endl;
       }
       m_bConverged = true;
       m_bAveragingFrameTimes = false;
@@ -1077,6 +1099,62 @@ void GLGridLeaper::PH_SetBrickIOBytes(uint64_t b) {
 double GLGridLeaper::PH_RenderingTime() const {
   return m_RenderingTime;
 }
+
+bool GLGridLeaper::PH_OpenBrickAccessLogfile(const std::string& filename) {
+  if (m_pBrickAccess)
+    return false; // we already have a file do close and open
+  std::string logFilename = filename;
+
+  if (filename.empty()) {
+    if (m_pToCDataset)
+      logFilename = SysTools::RemoveExt(m_pToCDataset->Filename()) + "_log.ba";
+    else
+      return false; // we do not know which file to open
+  }
+
+  logFilename = SysTools::FindNextSequenceName(logFilename);
+  m_pBrickAccess = new std::ofstream(logFilename);
+
+  // write header
+  *m_pBrickAccess << std::fixed << std::setprecision(5);
+  if (m_pToCDataset) {
+    *m_pBrickAccess << "Filename=" << m_pToCDataset->Filename() << std::endl;
+    *m_pBrickAccess << "MaxBrickSize=" << m_pToCDataset->GetMaxBrickSize() << std::endl;
+    *m_pBrickAccess << "BrickOverlap=" << m_pToCDataset->GetBrickOverlapSize() << std::endl;
+    *m_pBrickAccess << "LoDCount=" << m_pToCDataset->GetLODLevelCount() << std::endl;
+    for (uint64_t lod=0; lod < m_pToCDataset->GetLODLevelCount(); ++lod) {
+      *m_pBrickAccess << " LoD=" << lod;
+      *m_pBrickAccess << " DomainSize=" << m_pToCDataset->GetDomainSize(lod);
+      *m_pBrickAccess << " BrickCount=" << m_pToCDataset->GetBrickLayout(lod, 0);
+      *m_pBrickAccess << std::endl;
+    }
+  }
+  *m_pBrickAccess << std::endl;
+  m_iFrameCount = 0;
+
+  // single largest brick is always chached, just print it here for completeness
+  *m_pBrickAccess << " Subframe=" << 0;
+  *m_pBrickAccess << " PagedBrickCount=" << 1 << std::endl;
+  *m_pBrickAccess << UINTVECTOR4(0,0,0, uint32_t(m_pToCDataset->GetLargestSingleBrickLOD(m_iTimestep))) << " ";
+  *m_pBrickAccess << std::endl;
+  *m_pBrickAccess << " Frame=" << 0;
+  *m_pBrickAccess << " TotalPagedBrickCount=" << 1;
+  *m_pBrickAccess << " TotalSubframeCount=" << 1 << std::endl;
+
+  return true;
+}
+
+bool GLGridLeaper::PH_CloseBrickAccessLogfile() {
+  if (m_pBrickAccess) {
+    m_pBrickAccess->close();
+    delete m_pBrickAccess;
+    m_pBrickAccess = NULL;
+    return true;
+  } else {
+    return false;
+  }
+}
+
 bool GLGridLeaper::PH_OpenLogfile(const std::string& filename) {
   if (m_pLogFile)
     return false; // we already have a file do close and open

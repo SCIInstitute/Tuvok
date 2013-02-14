@@ -71,6 +71,8 @@ namespace tuvok {
       virtual uint64_t PH_BrickIOBytes() const;
       virtual void PH_SetBrickIOBytes(uint64_t b);
       virtual double PH_RenderingTime() const;
+      virtual bool PH_OpenBrickAccessLogfile(const std::string&);
+      virtual bool PH_CloseBrickAccessLogfile();
       virtual bool PH_OpenLogfile(const std::string&);
       virtual bool PH_CloseLogfile();
       virtual void PH_SetOptimalFrameAverageCount(size_t);
@@ -113,6 +115,8 @@ namespace tuvok {
       size_t          m_iAveragingFrameCount;
       bool            m_bAveragingFrameTimes;
       std::ofstream*  m_pLogFile;
+      std::ofstream*  m_pBrickAccess;
+      uint64_t        m_iFrameCount;
 
 #ifdef GLGRIDLEAPER_DEBUGVIEW
       GLFBOTex*       m_pFBODebug;
