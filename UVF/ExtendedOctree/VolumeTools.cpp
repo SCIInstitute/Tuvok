@@ -171,7 +171,7 @@ UINTVECTOR2 VolumeTools::Fit1DIndexTo2DArray(uint64_t iMax1DIndex,
   if (iMax1DIndex <= uint64_t(iMax2DArraySize))
     return UINTVECTOR2(uint32_t(iMax1DIndex), 1);
 
-  // fit 1D index into the smallest possible square
+  // fit 1D index into the smallest possible rectangle
   UINTVECTOR2 v2DArraySize;
   v2DArraySize.x = uint32_t(std::ceil(std::sqrt(double(iMax1DIndex))));
   v2DArraySize.y = uint32_t(std::ceil(double(iMax1DIndex)/double(v2DArraySize.x)));
