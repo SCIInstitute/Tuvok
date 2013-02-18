@@ -173,11 +173,18 @@ std::array<uint64_t,3> SourceBrickIndex(const BrickKey& k,
     layout(voxels, bsize)[2] / ds->GetDomainSize(lod, timestep)[2]
   }};
   // the layout of the brick in the actual data set is floor(loc, ratio[i])
-  std::array<uint64_t,3> tmp = {{
-    static_cast<uint64_t>(floor(static_cast<double>(idx[0])/ratio[0])),
-    static_cast<uint64_t>(floor(static_cast<double>(idx[1])/ratio[1])),
-    static_cast<uint64_t>(floor(static_cast<double>(idx[2])/ratio[2]))
-  }};
+  // ... but the brick size could be greater than the number of voxels in the
+  // LOD, if it's a single-brick LOD.  In that case we need to make sure to
+  // avoid that division by 0.  We special case the first brick instead.
+  std::array<uint64_t,3> tmp;
+  for(size_t i=0; i < 3; ++i) {
+    if(idx[i] == 0) {
+      tmp[i] = 0;
+    } else {
+      double rio = static_cast<double>(idx[i]) / ratio[i];
+      tmp[i] = static_cast<uint64_t>(floor(rio));
+    }
+  }
   return tmp;
 }
 
