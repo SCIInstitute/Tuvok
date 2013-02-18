@@ -33,6 +33,7 @@
         University of Utah
 */
 #include "StdTuvokDefines.h"
+#include <memory>
 
 #ifndef TUVOK_NO_QT
  #include <QtGui/QImage>
@@ -40,8 +41,9 @@
 #endif
 
 #include "StackExporter.h"
-#include <Basics/SysTools.h>
-#include <Basics/LargeRAWFile.h>
+#include "Basics/SysTools.h"
+#include "Basics/LargeRAWFile.h"
+#include "Basics/nonstd.h"
 #include "Controller/Controller.h"
 
 
@@ -178,7 +180,6 @@ bool StackExporter::WriteStacks(const std::string& strRAWFilename,
                                 float fRescale,
                                 UINT64VECTOR3 vDomainSize,
                                 bool bAllDirs) {
-
   if (iComponentCount > 4)  {
     T_ERROR("Invalid channel count, no more than four components are accepted by the stack exporter.");
     return false;
@@ -209,7 +210,10 @@ bool StackExporter::WriteStacks(const std::string& strRAWFilename,
                            (vDomainSize.y <= vDomainSize.x && vDomainSize.y <= vDomainSize.z) ? vDomainSize.x * vDomainSize.z : vDomainSize.x * vDomainSize.y));
 
 
-  unsigned char* pData = new unsigned char[4*iMaxPair*iDataByteWith];
+  std::shared_ptr<unsigned char> data(
+    new unsigned char[4*iMaxPair*iDataByteWith],
+    nonstd::DeleteArray<unsigned char>()
+  );
 
   UINT64VECTOR2 vSize(vDomainSize.z, vDomainSize.y);
   std::string strCurrentDirTargetFilename = SysTools::AppendFilename(strTargetFilename, "_x");
@@ -223,14 +227,13 @@ bool StackExporter::WriteStacks(const std::string& strRAWFilename,
       for (uint64_t v = 0;v<vDomainSize.y;v++) {
         for (uint64_t u = 0;u<vDomainSize.z;u++) {
           dataSource.SeekPos(elemSize * (x+u*vDomainSize.x*vDomainSize.y+v*vDomainSize.x) );
-          dataSource.ReadRAW(pData+offset, elemSize);
+          dataSource.ReadRAW(data.get()+offset, elemSize);
           offset += elemSize;
         }
       }
 
-      if (!WriteSlice(pData, pTrans, iBitWidth, strCurrentDirTargetFilename, vSize, fRescale, iComponentCount)) {
+      if (!WriteSlice(data.get(), pTrans, iBitWidth, strCurrentDirTargetFilename, vSize, fRescale, iComponentCount)) {
         T_ERROR("Unable to write stack image %llu.",x);
-        delete [] pData;
         dataSource.Close();
       }
     }
@@ -243,13 +246,12 @@ bool StackExporter::WriteStacks(const std::string& strRAWFilename,
       uint64_t offset = 0;
       for (uint64_t u = 0;u<vDomainSize.z;u++) {
         dataSource.SeekPos(elemSize * (y*vDomainSize.x+u*vDomainSize.x*vDomainSize.y) );
-        dataSource.ReadRAW(pData+offset, vDomainSize.x*elemSize);
+        dataSource.ReadRAW(data.get()+offset, vDomainSize.x*elemSize);
         offset += vDomainSize.x*elemSize;
       }
 
-      if (!WriteSlice(pData, pTrans, iBitWidth, strCurrentDirTargetFilename, vSize, fRescale, iComponentCount)) {
+      if (!WriteSlice(data.get(), pTrans, iBitWidth, strCurrentDirTargetFilename, vSize, fRescale, iComponentCount)) {
         T_ERROR("Unable to write stack image %llu.",y);
-        delete [] pData;
         dataSource.Close();
       }
     }
@@ -264,16 +266,14 @@ bool StackExporter::WriteStacks(const std::string& strRAWFilename,
   for (uint64_t z = 0;z<vDomainSize.z;z++) {
     MESSAGE("Exporting Z-Axis Stack. Processing Image %llu of %llu", z+1, vDomainSize.z);
 
-    dataSource.ReadRAW(pData, vDomainSize.x*vDomainSize.y*elemSize);
+    dataSource.ReadRAW(data.get(), vDomainSize.x*vDomainSize.y*elemSize);
 
-    if (!WriteSlice(pData, pTrans, iBitWidth, strCurrentDirTargetFilename, vSize, fRescale, iComponentCount)) {
+    if (!WriteSlice(data.get(), pTrans, iBitWidth, strCurrentDirTargetFilename, vSize, fRescale, iComponentCount)) {
       T_ERROR("Unable to write stack image %llu.",z);
-      delete [] pData;
       dataSource.Close();
     }
   }
 
   dataSource.Close();
-  delete [] pData;
   return true;
 }
