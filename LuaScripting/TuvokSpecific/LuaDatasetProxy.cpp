@@ -30,13 +30,13 @@
  \brief A Lua class proxy for IO's dataset class.
  */
 
+#include <vector>
+
 #include "Controller/Controller.h"
 #include "3rdParty/LUA/lua.hpp"
 #include "IO/IOManager.h"
 #include "IO/FileBackedDataset.h"
 #include "IO/uvfDataset.h"
-
-#include <vector>
 
 #include "../LuaScripting.h"
 #include "../LuaClassRegistration.h"
@@ -66,16 +66,13 @@ void dataset(std::shared_ptr<LuaScripting>& ss) {
 }
 
 LuaDatasetProxy::LuaDatasetProxy()
-    : mDS(NULL)
-    , mDatasetType(Unknown)
-{
-  mReg = NULL;
-}
+    : mReg(NULL)
+    , mDS(NULL)
+    , mDatasetType(Unknown) { }
 
 LuaDatasetProxy::~LuaDatasetProxy()
 {
-  if (mReg != NULL)
-    delete mReg;
+  delete mReg; mReg = NULL;
   mDS = NULL;
 }
 
@@ -129,22 +126,26 @@ void LuaDatasetProxy::bind(Dataset* ds, shared_ptr<LuaScripting> ss)
     FileBackedDataset* fileDataset = dynamic_cast<FileBackedDataset*>(ds);
     if (fileDataset != NULL)
     {
+      MESSAGE("Binding extra FileBackedDS functions.");
       id = mReg->functionProxy(fileDataset, &FileBackedDataset::Filename,
                                "fullpath", "Full path to the dataset.", false);
     }
 
-    UVFDataset* uvfDataset = dynamic_cast<UVFDataset*>(ds);
-    if (uvfDataset != NULL)
-    {
+    try {
+      UVFDataset& uvfDataset = dynamic_cast<UVFDataset&>(*ds);
+      MESSAGE("Binding extra UVF functions.");
       mDatasetType = UVF;
-
-      id = mReg->functionProxy(uvfDataset, &UVFDataset::RemoveMesh,
-                               "removeMesh", "", true);
-      id = mReg->functionProxy(uvfDataset, &UVFDataset::AppendMesh,
-                               "appendMesh", "", false);
-      id = mReg->functionProxy(uvfDataset, &UVFDataset::GeometryTransformToFile,
-                               "geomTransformToFile", "", false);
+      mReg->functionProxy(&uvfDataset, &UVFDataset::RemoveMesh, "removeMesh",
+                          "", true);
+      mReg->functionProxy(&uvfDataset, &UVFDataset::AppendMesh,
+                          "appendMesh", "", false);
+      id = mReg->functionProxy(&uvfDataset,
+        &UVFDataset::GeometryTransformToFile, "geomTransformToFile", "",
+        false
+      );
       ss->setProvenanceExempt(id);
+    } catch(const std::bad_cast&) {
+      WARNING("Not a uvf; not binding advanced functions.");
     }
 
     /// @todo Expose 1D/2D histogram? Currently, it is being transfered

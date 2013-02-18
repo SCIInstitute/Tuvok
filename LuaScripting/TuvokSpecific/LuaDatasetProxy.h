@@ -54,7 +54,7 @@ public:
   /// @todo when??
   enum DatasetType
   {
-    Unknown,
+    Unknown=0,
     UVF
   };
 
