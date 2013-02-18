@@ -446,8 +446,11 @@ bool DynamicBrickingDS::Verify(const std::string&) const {
   return false;
 }
 std::list<std::string> DynamicBrickingDS::Extensions() const {
-  T_ERROR("you should be calling this on the underlying DS");
-  return std::list<std::string>();
+  WARNING("You should be calling this on the underlying DS.  I'll do that "
+          "for you, I guess...");
+  std::shared_ptr<FileBackedDataset> fbds =
+    std::dynamic_pointer_cast<FileBackedDataset>(this->di->ds);
+  return fbds->Extensions();
 }
 
 // computes the layout when transitioning to a new level.
