@@ -228,7 +228,7 @@ namespace { namespace Fits {
   template<> bool inXBits<int8_t, 4096>(int8_t) { return true; }
   template<> bool inXBits<uint8_t, 256>(uint8_t) { return true; }
   template<> bool inXBits<uint8_t, 4096>(uint8_t) { return true; }
-}; };
+} }
 
 /// Histogram policies.  minmax can sometimes compute a 1D histogram as it
 /// marches over the data.  It may happen that the data must be quantized
@@ -287,6 +287,7 @@ struct UnsignedHistogram {
 /// Computes the minimum and maximum of a conceptually one dimensional dataset.
 /// Takes policies to tell it how to access data && notify external entities of
 /// progress.
+namespace {
 template <typename T, size_t sz,
           template <typename T_> class DataSrc,
           template <typename T_, size_t> class Histogram,
@@ -665,5 +666,6 @@ static bool BinningQuantize(LargeRAWFile& InputData,
                              strTargetFilename, binAssignments, Histogram1D,
                              progress);
   }
+}
 }
 #endif // SCIO_QUANTIZE_H
