@@ -77,6 +77,13 @@ FLOATVECTOR3 BrickedDataset::GetBrickExtents(const BrickKey &bk) const
   }
   return iter->second.extents;
 }
+UINTVECTOR3 BrickedDataset::GetBrickVoxelCounts(const BrickKey& bk) const {
+  BrickTable::const_iterator iter = this->bricks.find(bk);
+  if(this->bricks.end() == iter) {
+    throw std::domain_error("unknown brick.");
+  }
+  return iter->second.n_voxels;
+}
 
 /// @return an iterator that can be used to visit every brick in the dataset.
 BrickTable::const_iterator BrickedDataset::BricksBegin() const

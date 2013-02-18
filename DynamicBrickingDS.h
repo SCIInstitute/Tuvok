@@ -23,8 +23,6 @@ public:
   /// Removes all the cache information we've made so far.
   virtual void Clear();
 
-  virtual UINTVECTOR3 GetBrickVoxelCounts(const BrickKey&) const;
-
   /// Data access
   ///@{
   virtual bool GetBrick(const BrickKey&, std::vector<uint8_t>&) const;

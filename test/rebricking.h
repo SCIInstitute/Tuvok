@@ -216,6 +216,29 @@ void tdata_half_split() {
   }
 }
 
+// tests GetBrickVoxelCount API.
+void tvoxel_count() {
+  std::shared_ptr<UVFDataset> ds = mk8x8testdata();
+  {
+    DynamicBrickingDS dynamic(ds, {{8,8,1}});
+    const BrickKey bk(0,0,0);
+    TS_ASSERT_EQUALS(dynamic.GetBrickVoxelCounts(bk)[0], 12U);
+    TS_ASSERT_EQUALS(dynamic.GetBrickVoxelCounts(bk)[1], 12U);
+    TS_ASSERT_EQUALS(dynamic.GetBrickVoxelCounts(bk)[2],  5U);
+  }
+  {
+    DynamicBrickingDS dynamic(ds, {{4,8,1}});
+    BrickKey bk(0,0,0);
+    TS_ASSERT_EQUALS(dynamic.GetBrickVoxelCounts(bk)[0],  8U);
+    TS_ASSERT_EQUALS(dynamic.GetBrickVoxelCounts(bk)[1], 12U);
+    TS_ASSERT_EQUALS(dynamic.GetBrickVoxelCounts(bk)[2],  5U);
+    bk = BrickKey(0,0,1);
+    TS_ASSERT_EQUALS(dynamic.GetBrickVoxelCounts(bk)[0],  8U);
+    TS_ASSERT_EQUALS(dynamic.GetBrickVoxelCounts(bk)[1], 12U);
+    TS_ASSERT_EQUALS(dynamic.GetBrickVoxelCounts(bk)[2],  5U);
+  }
+}
+
 class RebrickerTests : public CxxTest::TestSuite {
 public:
   void test_simple() { tsimple(); }
@@ -228,4 +251,5 @@ public:
   void test_domain_size() { tdomain_size(); }
   void test_data_simple() { tdata_simple(); }
   void test_data_half_split() { tdata_half_split(); }
+  void test_voxel_count() { tvoxel_count(); }
 };

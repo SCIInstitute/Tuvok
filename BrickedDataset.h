@@ -47,6 +47,8 @@ public:
 
   /// Looks up the spatial range of a brick.
   virtual FLOATVECTOR3 GetBrickExtents(const BrickKey &) const;
+  /// number of voxels in the given brick.
+  virtual UINTVECTOR3 GetBrickVoxelCounts(const BrickKey&) const;
 
   /// @return an iterator that can be used to visit every brick in the dataset.
   virtual BrickTable::const_iterator BricksBegin() const;

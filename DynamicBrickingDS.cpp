@@ -129,10 +129,6 @@ void DynamicBrickingDS::Clear() {
   /// @todo FIXME should also clear our own internal stuff here.
 }
 
-UINTVECTOR3 DynamicBrickingDS::GetBrickVoxelCounts(const BrickKey&) const {
-  abort(); return UINTVECTOR3();
-}
-
 static std::array<unsigned,3>
 to3d(const std::array<uint64_t,3> dim, uint64_t idx) {
   std::array<unsigned,3> tmp = {{
