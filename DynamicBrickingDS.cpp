@@ -14,6 +14,7 @@
 // * 'GetMaxBrickSize' needs to be moved up to Dataset
 // * rename/fix creation of the iterator functions ("begin"/"end" too general)
 // * stop dynamic_cast'ing to UVFDataset; move those methods to BrickedDataset.
+// * implement GetBrick for other bit widths!!
 #include <algorithm>
 #include <array>
 #include <cassert>
@@ -193,23 +194,6 @@ BrickKey SourceKey(const std::array<uint64_t,3> brick_idx, size_t lod,
                   to1d(brick_idx, layout(src_voxels, src_bricksize)));
 }
 
-#if 0
-ReadSourceBrick(...) {
-  const std::array<unsigned,3> src_bricksize = {{
-    static_cast<unsigned>(Controller::Instance().IOMan()->GetMaxBrickSize()),
-    static_cast<unsigned>(Controller::Instance().IOMan()->GetMaxBrickSize()),
-    static_cast<unsigned>(Controller::Instance().IOMan()->GetMaxBrickSize())
-  }};
-
-  // idx3d is where we are in 3d; 'layout(voxels, bsize)' is our
-  // "layout size": the number of bricks in each dimension. we can
-  // 'to1d' them to get our 1D brick index.
-  return BrickKey(
-    timestep, lod, to1d(idx3d, layout(voxels, original_bricksize))
-  );
-}
-#endif
-
 static std::array<uint64_t,3> Index(
   const Dataset& ds, size_t lod, uint64_t idx1d,
   const std::array<unsigned,3> bricksize
@@ -250,100 +234,6 @@ std::array<uint64_t,3> SourceIndex(const BrickKey& k,
   const UVFDataset& uvf = dynamic_cast<const UVFDataset&>(ds);
   return Index(ds, lod, idx1d, ua(uvf.GetMaxBrickSize()));
 }
-
-#if 0
-void CopyFromIntersectingBrick() {
-  std::vector<uint8_t> tmpdata;
-  std::array<uint64_t,3> src_bidx = SourceBrickIndex(k, this->di->ds,
-                                                     this->di->brickSize);
-  tmpdata = ReadSourceBrick(lod, src_bidx);
-  // need to figure out the voxel index of target brick's upper left and src's
-  // bricks upper left, that tells us how many voxels to go 'in' before we
-  // start copying.
-  std::array<uint64_t,3> tgt_index = TargetIndex(...);
-  std::array<uint64_t,3> src_index = SourceIndex(...);
-  // it should always be the case that tgt_index >= src_index: we looked up the
-  // brick so it would do that!
-  assert(tgt_index[0] >= src_index[0]);
-  assert(tgt_index[1] >= src_index[1]);
-  assert(tgt_index[2] >= src_index[2]);
-
-  data.resize(voxels in target);
-  // we need to do copies from 'tmpdata' into 'data', but both of them will
-  // have holes.  the approach we take is to iterate through the target,
-  // copying the elements of the source.
-
-  std::array<uint64_t,3> src_bs = SourceBrickSize(src_idx);
-  std::array<uint64_t,3> tgt_bs = TargetBrickSize(tgt_idx);
-
-  // how wide can our scanline be? its the intersection of our overlaps.
-  size_t scanline;
-  if(tgt_index[0]+tgt_bs[0] <= src_index[0]+src_bs[0]) { // tgt fits in src
-    scanline = tgt_bs[0];
-  } else {
-    scanline = src_bs[0];
-  }
-  assert(scanline <= tgt_bs[0]); // no wider than brick we're copying into
-
-  // unless the target brick shares a corner with the target brick, we'll need
-  // to begin reading from it offset in a little bit.  but from where?
-  std::array<uint64_t,3> src_offset = {{
-    tgt_index[2] - src_index[2],
-    tgt_index[1] - src_index[1],
-    tgt_index[0] - src_index[0]
-  }};
-
-  for(uint64_t z=0; z < tgt_bs[2]; ++z, ++src_offset[2]) {
-    for(uint64_t y=0; y < tgt_bs[1]; ++y, ++src_offset[1]) {
-      uint64_t x = tgt_index[0]-src_index[0];
-      uint64_t tgt_offset = z*tgt_bs[2]*tgt_bs[1] + y*tgt_bs[1] + x;
-      assert(x + scanline <= tgt_bs[0]); // else our scanline width is wrong
-
-      src_offset[0] = tgt_index[0]-src_index[0];
-      const uint64_t src_o = src_offset[2]*src_bs[1]*src_bs[0] +
-                             src_offset[1]*src_bs[0] + src_offset[0];
-      std::copy(tmpdata.data()+src_o, data.data()+tgt_offset, scanline);
-    }
-  }
-}
-#endif
-
-#if 0
-// a 3D box with an upper and lower coordinate; used for testing if two regions
-// overlap.
-// though technically we could throw anything in there, we use Box's in this
-// code to talk about *voxel* coordinates (as opposed to brick coords).
-struct Box {
-  std::array<uint64_t,3> lower;
-  std::array<uint64_t,3> upper;
-
-  static bool intersect(const std::pair<uint64_t,uint64_t>& a,
-                        const std::pair<uint64_t,uint64_t>& b) {
-    assert(a.second >= a.first);
-    assert(b.second >= b.first);
-
-    return (a.first <= b.first && a.second >= b.first) ||
-           (a.second >= b.first && a.second <= b.second);
-  }
-  bool intersect(const Box& b) const {
-    return intersect(std::make_pair(lower[0],upper[0]),
-                     std::make_pair(b.lower[0], b.upper[0])) &&
-           intersect(std::make_pair(lower[1],upper[1]),
-                     std::make_pair(b.lower[1], b.upper[1])) &&
-           intersect(std::make_pair(lower[2],upper[2]),
-                     std::make_pair(b.lower[2], b.upper[2]));
-  }
-};
-#endif
-
-#if 0
-// gives back a box from the given brick coordinates.  the box's high/low is
-// given in voxel coordinates
-// if no brick exists at those coords, returns a Box which always intersects
-// false.
-Box SourceBox(...) {
-}
-#endif
 
 // gives the size of the given brick from the target DS
 std::array<unsigned,3> TargetBrickSize(const Dataset& ds, const BrickKey& k) {
@@ -429,73 +319,6 @@ bool DynamicBrickingDS::GetBrick(const BrickKey& k, std::vector<uint8_t>& data) 
   }
   return true;
 }
-    
-
-#if 0
-// this is outdated because it tries too hard, doesn't assume any overlap
-// between data sets.
-void OldReadBrickCrap() {
-  std::array<uint64_t,3> src_bidx = SourceBrickIndex(...);
-  const Box target = {{
-    .lower = {{ tgt_index[0], tgt_index[1], tgt_index[2] }},
-    .upper = {{ tgt_index[0]+tgt_bs[0], tgt_index[1]+tgt_bs[1],
-                tgt_index[2]+tgt_bs[2] }}
-  }};
-   
-  std::array<uint64_t,3> tgt_index = TargetIndex(...);
-  std::array<uint64_t,3> src_index = SourceIndex(...);
-  std::array<uint64_t,3> src_bs = SourceBrickSize(src_idx);
-  std::array<uint64_t,3> tgt_bs = TargetBrickSize(tgt_idx);
-  std::array<uint64_t,3> src_bidx = SourceBrickIndex(k, this->di->ds,
-                                                     this->di->brickSize);
-
-  // our target box can span up to two bricks in the source space---per
-  // dimension.  So we have to check intersection with 2^3=8 potential pairs.
-  // (these should count in binary, and the "+X"s should in the SourceBox
-  // should match what goes on inside the if.)
-  Box src = SourceBox(src_bidx[0]+0, src_bidx[1]+0, src_bidx[2]+0);
-  if(Intersects(target, src)) {
-    CopyFromIntersectingBrick(tgt_index,
-                              src_bidx[0]+0, src_bidx[1]+0, src_bidx[2]+0);
-  }
-  src = SourceBox(src_bidx[0]+0, src_bidx[1]+0, src_bidx[2]+1);
-  if(Intersects(target, src)) {
-    CopyFromIntersectingBrick(tgt_index,
-                              src_bidx[0]+0, src_bidx[1]+0, src_bidx[2]+1);
-  }
-  src = SourceBox(src_bidx[0]+0, src_bidx[1]+1, src_bidx[2]+0);
-  if(Intersects(target, src)) {
-    CopyFromIntersectingBrick(tgt_index,
-                              src_bidx[0]+0, src_bidx[1]+1, src_bidx[2]+0);
-  }
-  src = SourceBox(src_bidx[0]+0, src_bidx[1]+1, src_bidx[2]+1);
-  if(Intersects(target, src)) {
-    CopyFromIntersectingBrick(tgt_index,
-                              src_bidx[0]+0, src_bidx[1]+1, src_bidx[2]+1);
-  }
-
-  src = SourceBox(src_bidx[0]+1, src_bidx[1]+0, src_bidx[2]+0);
-  if(Intersects(target, src)) {
-    CopyFromIntersectingBrick(tgt_index,
-                              src_bidx[0]+1, src_bidx[1]+0, src_bidx[2]+0);
-  }
-  src = SourceBox(src_bidx[0]+1, src_bidx[1]+0, src_bidx[2]+1);
-  if(Intersects(target, src)) {
-    CopyFromIntersectingBrick(tgt_index,
-                              src_bidx[0]+1, src_bidx[1]+0, src_bidx[2]+1);
-  }
-  src = SourceBox(src_bidx[0]+1, src_bidx[1]+1, src_bidx[2]+0);
-  if(Intersects(target, src)) {
-    CopyFromIntersectingBrick(tgt_index,
-                              src_bidx[0]+1, src_bidx[1]+1, src_bidx[2]+0);
-  }
-  src = SourceBox(src_bidx[0]+1, src_bidx[1]+1, src_bidx[2]+1);
-  if(Intersects(target, src)) {
-    CopyFromIntersectingBrick(tgt_index,
-                              src_bidx[0]+1, src_bidx[1]+1, src_bidx[2]+1);
-  }
-}
-#endif
 
 bool DynamicBrickingDS::GetBrick(const BrickKey&, std::vector<int8_t>&) const
 {
