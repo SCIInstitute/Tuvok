@@ -239,6 +239,22 @@ void tvoxel_count() {
   }
 }
 
+// rebricking should not change the world space layouts
+void tmetadata() {
+  std::shared_ptr<UVFDataset> ds = mk8x8testdata();
+  const BrickKey bk(0,0,0);
+  const BrickMD& src_md = ds->GetBrickMetadata(bk);
+  { // bricks are bigger than DS -> DS unchanged -> metadata unchanged
+    DynamicBrickingDS dynamic(ds, {{8,8,1}});
+    const BrickMD& tgt_md = dynamic.GetBrickMetadata(bk);
+
+    TS_ASSERT_EQUALS(src_md.center[0], tgt_md.center[0]);
+    TS_ASSERT_EQUALS(src_md.center[1], tgt_md.center[1]);
+    TS_ASSERT_EQUALS(src_md.center[2], tgt_md.center[2]);
+    TS_ASSERT_EQUALS(src_md.extents[2], tgt_md.extents[2]);
+  }
+}
+
 class RebrickerTests : public CxxTest::TestSuite {
 public:
   void test_simple() { tsimple(); }
@@ -252,4 +268,5 @@ public:
   void test_data_simple() { tdata_simple(); }
   void test_data_half_split() { tdata_half_split(); }
   void test_voxel_count() { tvoxel_count(); }
+  void test_metadata() { tmetadata(); }
 };
