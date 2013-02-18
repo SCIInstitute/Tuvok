@@ -495,6 +495,21 @@ static bool integer_multiple(unsigned a, unsigned b) {
   return false;
 }
 
+std::array<std::array<float,3>,2>
+DatasetExtents(const std::shared_ptr<Dataset>& ds) {
+  std::shared_ptr<BrickedDataset> bds =
+    std::dynamic_pointer_cast<BrickedDataset>(ds);
+  const size_t timestep = 0;
+  const size_t lod = bds->GetLargestSingleBrickLOD(timestep);
+  const BrickKey key(timestep, lod, 0);
+  FLOATVECTOR3 extents = bds->GetBrickExtents(key);
+
+  std::array<std::array<float,3>,2> rv;
+  rv[0] = {{-(extents[0]/2.0f), -(extents[1]/2.0f), -(extents[2]/2.0f) }};
+  rv[1] = {{ (extents[0]/2.0f),  (extents[1]/2.0f),  (extents[2]/2.0f) }};
+  return rv;
+}
+
 void DynamicBrickingDS::Rebrick() {
   // first make sure this makes sense.
   const UVFDataset& uvf = dynamic_cast<const UVFDataset&>(*this->di->ds);
@@ -533,9 +548,7 @@ void DynamicBrickingDS::Rebrick() {
 
   assert(nvoxels[0] > 0 && nvoxels[1] > 0 && nvoxels[2]);
 
-  std::array<float,3> low = {{ 0.0f, 0.0f, 0.0f }};
-  std::array<float,3> high = {{ 10.0f, 5.0f, 19.0f }};
-  std::array<std::array<float,3>,2> extents = {{ low, high }};
+  std::array<std::array<float,3>,2> extents = DatasetExtents(this->di->ds);
 
   // give a hint as to how many bricks we'll have total.
   assert(nbricks(nvoxels, di->brickSize) > 0);
