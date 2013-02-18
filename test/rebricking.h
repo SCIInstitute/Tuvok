@@ -154,6 +154,8 @@ void tdomain_size() {
 void tdata_simple () {
   std::shared_ptr<UVFDataset> ds = mk8x8testdata();
   DynamicBrickingDS dynamic(ds, {{8,8,8}});
+  TS_ASSERT_EQUALS(dynamic.GetLODLevelCount(), ds->GetLODLevelCount());
+  TS_ASSERT_EQUALS(dynamic.GetTotalBrickCount(), ds->GetTotalBrickCount());
   BrickKey bk(0,0,0); std::vector<uint8_t> d;
   if(dynamic.GetBrick(bk, d) == false) {
     TS_FAIL("getting brick data failed.");
