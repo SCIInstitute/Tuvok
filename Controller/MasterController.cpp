@@ -34,6 +34,7 @@
 //
 //!    Copyright (C) 2008 SCI Institute
 
+#include <algorithm>
 #include <sstream>
 #include <functional>
 #include "MasterController.h"
@@ -400,5 +401,3 @@ bool MasterController::ExperimentalFeatures() const {
 void MasterController::ExperimentalFeatures(bool b) {
   m_bExperimentalFeatures = b;
 }
-
-
