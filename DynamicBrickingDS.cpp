@@ -508,8 +508,10 @@ DatasetExtents(const std::shared_ptr<Dataset>& ds) {
   FLOATVECTOR3 extents = bds->GetBrickExtents(key);
 
   std::array<std::array<float,3>,2> rv;
-  rv[0] = {{-(extents[0]/2.0f), -(extents[1]/2.0f), -(extents[2]/2.0f) }};
-  rv[1] = {{ (extents[0]/2.0f),  (extents[1]/2.0f),  (extents[2]/2.0f) }};
+  typedef std::array<float,3> v;
+  v elow =  {{ -(extents[0]/2.0f), -(extents[1]/2.0f), -(extents[2]/2.0f) }};
+  v ehigh = {{  (extents[0]/2.0f),  (extents[1]/2.0f),  (extents[2]/2.0f) }};
+  rv[0] = elow; rv[1] = ehigh;
   return rv;
 }
 
