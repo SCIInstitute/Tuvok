@@ -4,7 +4,7 @@
 #include <array>
 #include <memory>
 #include <vector>
-#include "BrickedDataset.h"
+#include "FileBackedDataset.h"
 
 namespace tuvok {
 
@@ -13,7 +13,7 @@ namespace tuvok {
 
 /// During construction, you must give an already-opened data set and
 /// the desired brick size.
-class DynamicBrickingDS : public BrickedDataset {
+class DynamicBrickingDS : public FileBackedDataset {
 public:
   DynamicBrickingDS(std::shared_ptr<Dataset> ds,
                     std::array<unsigned, 3> maxBrickSize);
@@ -93,6 +93,16 @@ public:
   virtual std::pair<FLOATVECTOR3, FLOATVECTOR3>
   GetTextCoords(BrickTable::const_iterator brick,
                 bool bUseOnlyPowerOfTwo) const;
+
+  /// functions for FileBackedDataset interface
+  ///@{
+  virtual bool IsOpen() const;
+  virtual std::string Filename() const;
+
+  virtual bool CanRead(const std::string&, const std::vector<int8_t>&) const;
+  virtual bool Verify(const std::string&) const;
+  virtual std::list<std::string> Extensions() const;
+  ///@}
 
 private:
   // rebricks the data according to the current brick size parameters.

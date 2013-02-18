@@ -100,6 +100,8 @@ static std::array<uint32_t,3> nvoxels(const std::array<uint64_t,3> l,
 
 DynamicBrickingDS::DynamicBrickingDS(std::shared_ptr<Dataset> ds,
                                      std::array<unsigned, 3> maxBrickSize) :
+  FileBackedDataset(dynamic_cast<const FileBackedDataset*>
+                                (ds.get())->Filename()),
   di(new DynamicBrickingDS::dbinfo(ds, maxBrickSize))
 {
   di->ds = ds;
@@ -428,6 +430,34 @@ std::pair<FLOATVECTOR3, FLOATVECTOR3>
 DynamicBrickingDS::GetTextCoords(BrickTable::const_iterator brick,
                                  bool PoT) const {
   return di->ds->GetTextCoords(brick, PoT);
+}
+
+bool DynamicBrickingDS::IsOpen() const {
+  const FileBackedDataset& f = dynamic_cast<const FileBackedDataset&>(
+    *(this->di->ds.get())
+  );
+  return f.IsOpen();
+}
+std::string DynamicBrickingDS::Filename() const {
+  const FileBackedDataset& f = dynamic_cast<const FileBackedDataset&>(
+    *(this->di->ds.get())
+  );
+  return f.Filename();
+}
+
+bool DynamicBrickingDS::CanRead(const std::string&,
+                                const std::vector<int8_t>&) const
+{
+  return false;
+}
+bool DynamicBrickingDS::Verify(const std::string&) const {
+  T_ERROR("you shouldn't use a dynamic bricking DS to verify a file!");
+  assert(false);
+  return false;
+}
+std::list<std::string> DynamicBrickingDS::Extensions() const {
+  T_ERROR("you should be calling this on the underlying DS");
+  return std::list<std::string>();
 }
 
 // computes the layout when transitioning to a new level.
