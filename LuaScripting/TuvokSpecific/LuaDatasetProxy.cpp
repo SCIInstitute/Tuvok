@@ -50,6 +50,21 @@ using namespace std;
 namespace tuvok
 {
 
+namespace Registrar {
+void addIOInterface(LuaClassRegistration<Dataset>& reg, Dataset*,
+                    LuaScripting*) {
+  reg.function(&Dataset::GetLODLevelCount, "LODs", "help?", false);
+}
+void dataset(std::shared_ptr<LuaScripting>& ss) {
+  LuaDatasetProxy* proxy = new LuaDatasetProxy;
+  ss->registerClass<Dataset>(
+    proxy, &LuaDatasetProxy::CreateDS, "tuvok.dataset", "creates a new dataset",
+    LuaClassRegCallback<Dataset>::Type(addIOInterface)
+  );
+  delete proxy;
+}
+}
+
 LuaDatasetProxy::LuaDatasetProxy()
     : mDS(NULL)
     , mDatasetType(Unknown)
@@ -62,6 +77,12 @@ LuaDatasetProxy::~LuaDatasetProxy()
   if (mReg != NULL)
     delete mReg;
   mDS = NULL;
+}
+
+Dataset* LuaDatasetProxy::CreateDS(const std::string& uvf, unsigned bricksize) {
+  return Controller::Instance().IOMan()->CreateDataset(uvf,
+    uint64_t(bricksize), false
+  );
 }
 
 void LuaDatasetProxy::bind(Dataset* ds, shared_ptr<LuaScripting> ss)

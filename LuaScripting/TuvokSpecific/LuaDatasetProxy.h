@@ -41,11 +41,17 @@ namespace tuvok
 
 class Dataset;
 
+namespace Registrar {
+  // entry point for registering all the tuvok.dataset functions.
+  void dataset(std::shared_ptr<LuaScripting>&);
+}
+
 class LuaDatasetProxy
 {
 public:
 
   /// Will be removed in the future...
+  /// @todo when??
   enum DatasetType
   {
     Unknown,
@@ -55,6 +61,7 @@ public:
   LuaDatasetProxy();
   virtual ~LuaDatasetProxy();
 
+  Dataset* CreateDS(const std::string& uvf, unsigned bricksize);
   void bind(Dataset* ds, std::shared_ptr<LuaScripting> ss);
 
   static LuaDatasetProxy* luaConstruct() {return new LuaDatasetProxy;}

@@ -25,18 +25,10 @@
    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
    DEALINGS IN THE SOFTWARE.
 */
-
-//!    File   : ImageVis3D.cpp
-//!    Author : Jens Krueger
-//!             SCI Institute
-//!             University of Utah
-//!    Date   : September 2008
-//
-//!    Copyright (C) 2008 SCI Institute
 #pragma once
 
-#ifndef MASTERCONTROLLER_H
-#define MASTERCONTROLLER_H
+#ifndef TUVOK_MASTERCONTROLLER_H
+#define TUVOK_MASTERCONTROLLER_H
 
 #include "../StdTuvokDefines.h"
 #include <functional>
@@ -45,7 +37,6 @@
 #include <string>
 #include <vector>
 
-#include "Basics/TuvokException.h"
 #include "Basics/Vectors.h"
 #include "../DebugOut/MultiplexOut.h"
 #include "../DebugOut/ConsoleOut.h"
@@ -59,7 +50,6 @@ namespace tuvok {
 
 class AbstrRenderer;
 class GPUMemMan;
-class Scripting;
 class LuaScripting;
 class LuaMemberReg;
 class LuaIOManagerProxy;
@@ -217,4 +207,4 @@ private:
 };
 
 }
-#endif // MASTERCONTROLLER_H
+#endif // TUVOK_MASTERCONTROLLER_H

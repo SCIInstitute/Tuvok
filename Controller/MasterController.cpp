@@ -297,7 +297,6 @@ void MasterController::SetMaxCPUMem(float fractionOfMemory) {
   m_pGPUMemMan->MemSizesChanged();
 }
 
-
 void MasterController::RegisterLuaCommands() {
   std::shared_ptr<LuaScripting> ss = LuaScript();
 
@@ -311,6 +310,8 @@ void MasterController::RegisterLuaCommands() {
       "of the values in the tuvok.renderer.types table.",
       LuaClassRegCallback<AbstrRenderer>::Type(
           AbstrRenderer::RegisterLuaFunctions));
+
+  tuvok::Registrar::dataset(ss);
 
   // Populate the tuvok.renderer.type table.
   ss->exec(renderer + ".types = {}");
@@ -353,9 +354,7 @@ void MasterController::RegisterLuaCommands() {
   ss->registerClassStatic<LuaDatasetProxy>(
       &LuaDatasetProxy::luaConstruct,
       "tuvok.datasetProxy",
-      "Constructs a dataset proxy. Construction of these proxies should be "
-      "left to the abstract renderer. If you just need to load a dataset, use "
-      "tuvok.dataset.new instead.",
+      "Constructs a dataset proxy.",
       LuaClassRegCallback<LuaDatasetProxy>::Type(
           LuaDatasetProxy::defineLuaInterface));
 
