@@ -93,10 +93,8 @@ MasterController::~MasterController() {
 }
 
 void MasterController::Cleanup() {
-  for (AbstrRendererListIter i = m_vVolumeRenderer.begin();
-       i < m_vVolumeRenderer.end(); ++i) {
-    delete (*i);
-  }
+  std::for_each(m_vVolumeRenderer.begin(), m_vVolumeRenderer.end(),
+                [](AbstrRenderer* i) { delete i; });
   m_vVolumeRenderer.clear();
   delete m_pSystemInfo;
   m_pSystemInfo = NULL;
@@ -231,10 +229,7 @@ void MasterController::ReleaseVolumeRenderer(AbstrRenderer* pVolumeRenderer) {
 
   bool foundRenderer = false;
 
-  for (AbstrRendererListIter i = m_vVolumeRenderer.begin();
-       i < m_vVolumeRenderer.end();
-       ++i) {
-
+  for(auto i = m_vVolumeRenderer.begin(); i != m_vVolumeRenderer.end(); ++i) {
     if (*i == pVolumeRenderer) {
       foundRenderer = true;
       m_DebugOut.Message(_func_, "Removing volume renderer");
