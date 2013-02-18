@@ -64,40 +64,6 @@ static uint64_t to1d(const std::array<uint64_t,3>& loc,
   return loc[2]*size[1]*size[0] + loc[1]*size[0] + loc[0];
 }
 
-/// @param l the current location, in brick coords
-/// @param bsz size of the bricks
-/// @param voxels number of voxels
-/// @returns the number of voxels 'l' has.  this is normally 'bsz', but can be
-///          smaller when the 'l' abuts the side of a dimension
-static std::array<uint32_t,3> nvoxels(const std::array<uint64_t,3> l,
-                                      const std::array<unsigned,3> bsz,
-                                      const std::array<uint64_t,3> voxels) {
-  // the brick starts at 'v' and goes to 'v+bricksize'.  But 'v+bricksize'
-  // might exceed beyond the bounds of the domain ('voxels'), and therefore
-  // it should shrink.
-  std::array<uint64_t,3> v = {{
-    l[0] * bsz[0], l[1] * bsz[1], l[2] * bsz[2]
-  }};
-  const std::array<uint32_t,3> difference = {{
-    static_cast<uint32_t>(voxels[0] - v[0]),
-    static_cast<uint32_t>(voxels[1] - v[1]),
-    static_cast<uint32_t>(voxels[2] - v[2])
-  }};
-  // get a uint32 version so we don't have to cast w/ e.g. min below.
-  const std::array<uint32_t,3> bs = {{
-    static_cast<uint32_t>(bsz[0]),
-    static_cast<uint32_t>(bsz[1]),
-    static_cast<uint32_t>(bsz[2]),
-  }};
-  const std::array<uint32_t,3> nvox = {{
-    difference[0] ? std::min(bs[0], difference[0]) : bs[0],
-    difference[1] ? std::min(bs[1], difference[1]) : bs[1],
-    difference[2] ? std::min(bs[2], difference[2]) : bs[2],
-  }};
-
-  return nvox;
-}
-
 DynamicBrickingDS::DynamicBrickingDS(std::shared_ptr<Dataset> ds,
                                      std::array<unsigned, 3> maxBrickSize) :
   FileBackedDataset(dynamic_cast<const FileBackedDataset*>
