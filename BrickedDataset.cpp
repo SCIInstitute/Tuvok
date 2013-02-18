@@ -122,6 +122,10 @@ size_t BrickedDataset::GetLargestSingleBrickLOD(size_t ts) const {
   return 0;
 }
 
+uint64_t BrickedDataset::GetTotalBrickCount() const {
+  return static_cast<uint64_t>(this->bricks.size());
+}
+
 const BrickMD& BrickedDataset::GetBrickMetadata(const BrickKey& k) const
 {
   return this->bricks.find(k)->second;
