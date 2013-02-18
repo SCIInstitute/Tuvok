@@ -1087,8 +1087,7 @@ bool IOManager::ConvertDataset(const list<string>& files,
   {
     ostringstream request;
     request << "Request to convert datasets ";
-    copy(files.begin(), files.end(),
-              ostream_iterator<string>(request, ", "));
+    copy(files.begin(), files.end(), ostream_iterator<string>(request, ", "));
     request << "to " << strTargetFilename << " received.";
     MESSAGE("%s", request.str().c_str());
   }
