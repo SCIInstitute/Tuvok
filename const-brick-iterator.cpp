@@ -169,16 +169,22 @@ const std::pair<BrickKey, BrickMD> const_brick_iterator::dereference() const {
     );
     const uint64_t zero = 0ULL; // for type purposes.
     const FLOATVECTOR3 wlow(
-      MathTools::lerp(vlow[0], zero,this->voxels[0], 0.0f,this->extents[0][0]),
-      MathTools::lerp(vlow[1], zero,this->voxels[1], 0.0f,this->extents[0][1]),
-      MathTools::lerp(vlow[2], zero,this->voxels[2], 0.0f,this->extents[0][2])
+      MathTools::lerp(vlow[0], zero,this->voxels[0],
+                      this->extents[0][0],this->extents[1][0]),
+      MathTools::lerp(vlow[1], zero,this->voxels[1],
+                      this->extents[0][1],this->extents[1][1]),
+      MathTools::lerp(vlow[2], zero,this->voxels[2],
+                      this->extents[0][2],this->extents[1][2])
     );
     const FLOATVECTOR3 whigh(
-      MathTools::lerp(vhigh[0], zero,this->voxels[0], 0.0f,this->extents[1][0]),
-      MathTools::lerp(vhigh[1], zero,this->voxels[1], 0.0f,this->extents[1][1]),
-      MathTools::lerp(vhigh[2], zero,this->voxels[2], 0.0f,this->extents[1][2])
+      MathTools::lerp(vhigh[0], zero,this->voxels[0],
+                      this->extents[0][0],this->extents[1][0]),
+      MathTools::lerp(vhigh[1], zero,this->voxels[1],
+                      this->extents[0][1],this->extents[1][1]),
+      MathTools::lerp(vhigh[2], zero,this->voxels[2],
+                      this->extents[0][2],this->extents[1][2])
     );
-    exts = whigh - wlow;
+    exts = FLOATVECTOR3(whigh[0]-wlow[0], whigh[1]-wlow[1], whigh[2]-wlow[2]);
   }
 
   BrickMD md = {
