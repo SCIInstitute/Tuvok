@@ -12,8 +12,8 @@
 // * interface for this is strange: would be nicer if it took the voxel ranges
 //   we need, per-dimension, and the resolution it wants (instead of 'keys')?
 // * 'GetMaxBrickSize' needs to be moved up to Dataset
-// * remove 'overlap' from dbinfo (not used anyway) and just hardcode 'ghost()'
 // * rename/fix creation of the iterator functions ("begin"/"end" too general)
+// * stop dynamic_cast'ing to UVFDataset; move those methods to BrickedDataset.
 #include <algorithm>
 #include <array>
 #include <cassert>
@@ -33,12 +33,9 @@ static bool test();
 struct DynamicBrickingDS::dbinfo {
   std::shared_ptr<Dataset> ds;
   std::array<unsigned, 3> brickSize;
-  /// number of voxels of ghost data, per-SIDE (not dimension)
-  const unsigned overlap;
 
   dbinfo(std::shared_ptr<Dataset> d,
-         std::array<unsigned,3> bs,
-         const unsigned olap) : ds(d), brickSize(bs), overlap(olap) { }
+         std::array<unsigned,3> bs) : ds(d), brickSize(bs) { }
 
   // assumes timestep=0
   std::vector<uint8_t> ReadSourceBrick(unsigned lod, std::array<uint64_t,3> idx);
@@ -102,7 +99,7 @@ static std::array<uint32_t,3> nvoxels(const std::array<uint64_t,3> l,
 
 DynamicBrickingDS::DynamicBrickingDS(std::shared_ptr<Dataset> ds,
                                      std::array<unsigned, 3> maxBrickSize) :
-  di(new DynamicBrickingDS::dbinfo(ds, maxBrickSize, 4))
+  di(new DynamicBrickingDS::dbinfo(ds, maxBrickSize))
 {
   di->ds = ds;
   di->brickSize = maxBrickSize;
@@ -311,6 +308,7 @@ void CopyFromIntersectingBrick() {
 }
 #endif
 
+#if 0
 // a 3D box with an upper and lower coordinate; used for testing if two regions
 // overlap.
 // though technically we could throw anything in there, we use Box's in this
@@ -336,6 +334,7 @@ struct Box {
                      std::make_pair(b.lower[2], b.upper[2]));
   }
 };
+#endif
 
 #if 0
 // gives back a box from the given brick coordinates.  the box's high/low is
@@ -683,7 +682,6 @@ void DynamicBrickingDS::Rebrick() {
   }
 
   BrickedDataset::Clear();
-  // FIXME read these from di->ds
   std::array<uint64_t, 3> nvoxels = {{
     di->ds->GetDomainSize(0,0)[0],
     di->ds->GetDomainSize(0,0)[1],
