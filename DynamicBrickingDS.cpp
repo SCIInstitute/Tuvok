@@ -22,6 +22,7 @@
 #include "Controller/Controller.h"
 #include "const-brick-iterator.h"
 #include "DynamicBrickingDS.h"
+#include "FileBackedDataset.h"
 #include "IOManager.h"
 #include "uvfDataset.h"
 
@@ -61,6 +62,9 @@ static std::array<uint64_t,3> layout(const std::array<uint64_t,3> voxels,
 // converts a 3D index ('loc') into a 1D index.
 static uint64_t to1d(const std::array<uint64_t,3>& loc,
                      const std::array<uint64_t,3>& size) {
+  assert(loc[2] < size[2]);
+  assert(loc[1] < size[1]);
+  assert(loc[0] < size[0]);
   return loc[2]*size[1]*size[0] + loc[1]*size[0] + loc[0];
 }
 
@@ -247,6 +251,13 @@ bool DynamicBrickingDS::GetBrick(const BrickKey& k, std::vector<uint8_t>& data) 
   BrickKey skey = SourceKey(SourceBrickIndex(k, this->di->ds,
                                              this->di->brickSize),
                             lod, *(this->di->ds));
+#ifndef NDEBUG
+  // brick key should make sense.
+  std::shared_ptr<FileBackedDataset> fbds =
+    std::dynamic_pointer_cast<FileBackedDataset>(this->di->ds);
+  assert(std::get<2>(skey) < fbds->GetTotalBrickCount());
+  assert(std::get<0>(skey) < fbds->GetNumberOfTimesteps());
+#endif
 
   std::vector<uint8_t> srcdata;
   this->di->ds->GetBrick(skey, srcdata);
