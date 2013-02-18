@@ -33,6 +33,9 @@
            block.
 */
 
+#ifdef TUVOK_LUARAII_ASSERT
+# include <cassert>
+#endif
 #include <vector>
 
 #include "LuaScripting.h"
@@ -87,8 +90,8 @@ LuaStackRAII::~LuaStackRAII()
       // Take advantage of the fact that this class will be used in conjunction
       // with LuaScripting.
       ostringstream os;
-      os << "log.warn([==[LuaStackRAII: unexpected stack size. Expected: ";
-      os << stackTarget << ". Actual: " << stackTop << ".";
+      os << "log.warn([==[LuaStackRAII: unexpected stack size. Expected: "
+         << stackTarget << ". Actual: " << stackTop << ".\n";
 
       // To ensure we don't wipe out Lua error messages (generally, these will
       // be caught by lua_atpanic).
@@ -98,7 +101,8 @@ LuaStackRAII::~LuaStackRAII()
         os << " String on the top of the stack: " << str;
       }
 
-      os << "]==])";
+      os << "]==])\n"
+         << "This probably means we're cleaning up after a thrown exception!";
 
       //luaL_dostring(mL, os.str().c_str());
       luaStackRAIIInternalDoString(mL, os.str());
