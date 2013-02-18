@@ -223,12 +223,11 @@ bool AbstrRenderer::LoadDataset(const string& strFilename) {
   }
 
   m_pDataset = m_pMasterController->IOMan()->LoadDataset(strFilename,this);
-  m_pLuaDatasetPtr->bind(m_pDataset, m_pMasterController->LuaScript());
-
   if (m_pDataset == NULL) {
     T_ERROR("IOManager call to load dataset failed.");
     return false;
   }
+  m_pLuaDatasetPtr->bind(m_pDataset, m_pMasterController->LuaScript());
 
   MESSAGE("Load successful, initializing renderer!");
 
