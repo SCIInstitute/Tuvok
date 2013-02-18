@@ -32,6 +32,7 @@
            University of Utah
 */
 #include <cassert>
+#include <stdexcept>
 #include "BrickedDataset.h"
 #include "Controller/Controller.h"
 
