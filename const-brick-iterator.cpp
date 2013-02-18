@@ -6,13 +6,13 @@
 namespace tuvok {
 
 // converts a 3D index ('loc') into a 1D index.
-static uint64_t to1d(const std::array<uint64_t,3> loc,
-                     const std::array<uint64_t,3> size) {
+static uint64_t to1d(const std::array<uint64_t,3>& loc,
+                     const std::array<uint64_t,3>& size) {
   return loc[2]*size[1]*size[0] + loc[1]*size[0] + loc[0];
 }
 
 // just converts a 3-element array into a UINTVECTOR3.
-static UINTVECTOR3 va(const std::array<uint32_t,3> a) {
+static UINTVECTOR3 va(const std::array<uint32_t,3>& a) {
   return UINTVECTOR3(a[0], a[1], a[2]);
 }
 
@@ -62,9 +62,9 @@ static std::array<uint32_t,3> nvoxels(const std::array<uint64_t,3> l,
       (vox[0] / bsize[0] > vox[2] / bsize[2] ? 0 : 2) \
     : (vox[1] / bsize[1] > vox[2] / bsize[2] ? 1 : 2))
 const_brick_iterator::const_brick_iterator(
-  const std::array<uint64_t,3> vox,
-  const std::array<unsigned,3> bricksize,
-  const std::array<std::array<float,3>,2> exts
+  const std::array<uint64_t,3>& vox,
+  const std::array<unsigned,3>& bricksize,
+  const std::array<std::array<float,3>,2>& exts
 ) : bsize(bricksize),
     // a bit intense for an initializer list, but it needs to be here so this
     // can be const.
@@ -202,9 +202,9 @@ bool const_brick_iterator::operator!=(const const_brick_iterator& that) const {
   return !this->equals(that);
 }
 
-const_brick_iterator begin(const std::array<uint64_t,3> voxels,
-                           const std::array<unsigned,3> bricksize,
-                           const std::array<std::array<float,3>,2> extents) {
+const_brick_iterator begin(const std::array<uint64_t,3>& voxels,
+                           const std::array<unsigned,3>& bricksize,
+                           const std::array<std::array<float,3>,2>& extents) {
   return const_brick_iterator(voxels, bricksize, extents);
 }
 const_brick_iterator end() { return const_brick_iterator(); }

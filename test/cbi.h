@@ -11,10 +11,10 @@ void simple_center() {
     {{ 0.0f, 0.0f, 0.0f }},
     {{ 10.0f, 35.0f, 19.0f }}
   }};
-  tuvok::const_brick_iterator cbh = tuvok::begin(voxels, bsize, extents);
-  TS_ASSERT_DELTA((*cbh).second.center[0],  5.0f, 0.0001f);
-  TS_ASSERT_DELTA((*cbh).second.center[1], 17.5f, 0.0001f);
-  TS_ASSERT_DELTA((*cbh).second.center[2],  9.5f, 0.0001f);
+  tuvok::const_brick_iterator cbi = tuvok::begin(voxels, bsize, extents);
+  TS_ASSERT_DELTA((*cbi).second.center[0],  5.0f, 0.0001f);
+  TS_ASSERT_DELTA((*cbi).second.center[1], 17.5f, 0.0001f);
+  TS_ASSERT_DELTA((*cbi).second.center[2],  9.5f, 0.0001f);
 }
 
 void simple_extents() {
@@ -24,10 +24,10 @@ void simple_extents() {
     {{ 0.0f, 0.0f, 0.0f }},
     {{ 12.0f, 6.0f, 24.0f }}
   }};
-  tuvok::const_brick_iterator cbh = tuvok::begin(voxels, bsize, extents);
-  TS_ASSERT_DELTA((*cbh).second.extents[0], 12.0f, 0.0001f);
-  TS_ASSERT_DELTA((*cbh).second.extents[1],  6.0f, 0.0001f);
-  TS_ASSERT_DELTA((*cbh).second.extents[2], 24.0f, 0.0001f);
+  tuvok::const_brick_iterator cbi = tuvok::begin(voxels, bsize, extents);
+  TS_ASSERT_DELTA((*cbi).second.extents[0], 12.0f, 0.0001f);
+  TS_ASSERT_DELTA((*cbi).second.extents[1],  6.0f, 0.0001f);
+  TS_ASSERT_DELTA((*cbi).second.extents[2], 24.0f, 0.0001f);
 }
 
 class BHIteratorTests : public CxxTest::TestSuite {

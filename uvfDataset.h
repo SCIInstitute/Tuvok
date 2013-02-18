@@ -182,10 +182,11 @@ public:
   const UVF* GetUVFFile() const {return m_pDatasetFile;}
 
   virtual const char* Name() const { 
-    if (m_timesteps.size())
+    if(!m_timesteps.empty()) {
       return m_timesteps[0]->m_pVolumeDataBlock->strBlockID.c_str(); 
-    else
+    } else {
       return "Generic UVF Dataset"; 
+    }
   }
 
   NDBrickKey IndexToVectorKey(const BrickKey &k) const;

@@ -3,7 +3,6 @@
 //      DynBrickingDS a(ds, {{128, 128, 128}});
 //      DynBrickingDS b(a, {{16, 16, 16}});
 // * tuvok::Dataset derives from boost::noncopyable... c++11 ?
-// * OriginalKey is hacking '0' for the timestep
 // * hack: only generate LODs which exist in source data (keep?)
 // * Dataset::GetLODLevelCount returns a uint64_t?
 // * size_t -> unsigned for brick sizes
@@ -62,8 +61,8 @@ static std::array<uint64_t,3> layout(const std::array<uint64_t,3> voxels,
 }
 
 // converts a 3D index ('loc') into a 1D index.
-static uint64_t to1d(const std::array<uint64_t,3> loc,
-                     const std::array<uint64_t,3> size) {
+static uint64_t to1d(const std::array<uint64_t,3>& loc,
+                     const std::array<uint64_t,3>& size) {
   return loc[2]*size[1]*size[0] + loc[1]*size[0] + loc[0];
 }
 
@@ -626,8 +625,8 @@ static UINTVECTOR3 layout_next_level(UINTVECTOR3 layout) {
 
 // identifies the number of a bricks a data set will have, when divided into
 // bricks.
-static uint64_t nbricks(const std::array<uint64_t,3> voxels,
-                        const std::array<unsigned,3> bricksize) {
+static uint64_t nbricks(const std::array<uint64_t,3>& voxels,
+                        const std::array<unsigned,3>& bricksize) {
   assert(voxels[0] > 0); assert(bricksize[0] > 0);
   assert(voxels[1] > 0); assert(bricksize[1] > 0);
   assert(voxels[2] > 0); assert(bricksize[2] > 0);

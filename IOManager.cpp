@@ -2570,10 +2570,10 @@ void IOManager::CopyToTSB(const Mesh& m, GeometryDataBlock* tsb) const {
   size_t iVerticesPerPoly = m.GetVerticesPerPoly();
   tsb->SetPolySize(iVerticesPerPoly );
 
-  if (v.size()) {fVec.resize(v.size()*3); memcpy(&fVec[0],&v[0],v.size()*3*sizeof(float)); tsb->SetVertices(fVec);}
-  if (n.size()) {fVec.resize(n.size()*3); memcpy(&fVec[0],&n[0],n.size()*3*sizeof(float)); tsb->SetNormals(fVec);}
-  if (t.size()) {fVec.resize(t.size()*2); memcpy(&fVec[0],&t[0],t.size()*2*sizeof(float)); tsb->SetTexCoords(fVec);}
-  if (c.size()) {fVec.resize(c.size()*4); memcpy(&fVec[0],&c[0],c.size()*4*sizeof(float)); tsb->SetColors(fVec);}
+  if (!v.empty()) {fVec.resize(v.size()*3); memcpy(&fVec[0],&v[0],v.size()*3*sizeof(float)); tsb->SetVertices(fVec);}
+  if (!n.empty()) {fVec.resize(n.size()*3); memcpy(&fVec[0],&n[0],n.size()*3*sizeof(float)); tsb->SetNormals(fVec);}
+  if (!t.empty()) {fVec.resize(t.size()*2); memcpy(&fVec[0],&t[0],t.size()*2*sizeof(float)); tsb->SetTexCoords(fVec);}
+  if (!c.empty()) {fVec.resize(c.size()*4); memcpy(&fVec[0],&c[0],c.size()*4*sizeof(float)); tsb->SetColors(fVec);}
 
   tsb->SetVertexIndices(m.GetVertexIndices());
   tsb->SetNormalIndices(m.GetNormalIndices());

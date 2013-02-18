@@ -182,7 +182,7 @@ bool ImageStackInfo::Match(const ImageFileInfo* info) {
 
     std::vector<SimpleFileInfo*>::iterator iter;
 
-    for (iter = m_Elements.begin(); iter < m_Elements.end(); iter++) {
+    for(iter = m_Elements.begin(); iter < m_Elements.end(); ++iter) {
       if ((*iter)->m_iImageIndex > info->m_iImageIndex) break;
     }
 

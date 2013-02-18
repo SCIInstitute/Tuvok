@@ -16,9 +16,9 @@ class const_brick_iterator :
     ///@parameter bricksize size of the bricks to use
     ///@parameter extent low/high of the data in world space
     explicit const_brick_iterator(
-      const std::array<uint64_t,3> voxels,
-      const std::array<unsigned,3> bricksize,
-      const std::array<std::array<float,3>,2> extent
+      const std::array<uint64_t,3>& voxels,
+      const std::array<unsigned,3>& bricksize,
+      const std::array<std::array<float,3>,2>& extent
     );
 #ifdef _MSC_VER
     const_brick_iterator() : MaxLODs(0), LOD(0) {
@@ -50,9 +50,9 @@ class const_brick_iterator :
     const std::array<std::array<float,3>,2> extents;
 };
 
-const_brick_iterator begin(const std::array<uint64_t,3> voxels,
-                           const std::array<unsigned,3> bricksize,
-                           const std::array<std::array<float,3>,2> extents);
+const_brick_iterator begin(const std::array<uint64_t,3>& voxels,
+                           const std::array<unsigned,3>& bricksize,
+                           const std::array<std::array<float,3>,2>& extents);
 const_brick_iterator end();
 
 }
