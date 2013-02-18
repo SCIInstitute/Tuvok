@@ -104,7 +104,7 @@ public:
 
   VECTOR2<T>(): x(0), y(0) {}
   template <class S> explicit VECTOR2<T>( const std::vector<S>& v, const T& defaultVal = T(0) ) {
-    x = T(v.size()>0 ? v[0] : defaultVal);
+    x = T(!v.empty() ? v[0] : defaultVal);
     y = T(v.size()>1 ? v[1] : defaultVal);
   }
   VECTOR2<T>(const VECTOR2<T> &other): x(other.x), y(other.y) {}
@@ -216,9 +216,9 @@ public:
 
   VECTOR3<T>(): x(0), y(0),z(0) {}
   template <class S> explicit VECTOR3<T>( const std::vector<S>& v, const T& defaultVal = T(0) ) {
-    x = T(v.size()>0 ? v[0] : defaultVal);
-    y = T(v.size()>1 ? v[1] : defaultVal);
-    z = T(v.size()>2 ? v[2] : defaultVal);
+    x = T(!v.empty() ? v[0] : defaultVal);
+    y = T(!v.empty() ? v[1] : defaultVal);
+    z = T(!v.empty() ? v[2] : defaultVal);
   }
 
   VECTOR3<T>(const VECTOR3<T> &other): x(other.x), y(other.y), z(other.z) {}
@@ -294,7 +294,7 @@ public:
   T volume() const FUNC_CONST {return x*y*z;}
   T length() const FUNC_CONST {return sqrt(T(x*x+y*y+z*z));}
   void normalize() {T len = length(); x/=len;y/=len;z/=len;}
-  void normalize(T epsilon, const VECTOR3<T> replacement=VECTOR3<T>(T(0),T(0),T(1))) {
+  void normalize(T epsilon, const VECTOR3<T>& replacement=VECTOR3<T>(T(0),T(0),T(1))) {
     T len = length();
     if (len > epsilon) {
       x/=len;
@@ -311,7 +311,7 @@ public:
     return VECTOR3<T>(x/len,y/len,z/len);
   }
   VECTOR3<T> normalized(T epsilon,
-                        const VECTOR3<T> replacement =
+                        const VECTOR3<T>& replacement =
                           VECTOR3<T>(T(0),T(0),T(1))) const {
     T len = length(); 
     if (len > epsilon) {
@@ -398,10 +398,10 @@ public:
 
   VECTOR4<T>(): x(0), y(0),z(0), w(0) {}
   template <class S> explicit VECTOR4<T>( const std::vector<S>& v, const T& defaultVal = T(0) ) {
-    x = T(v.size()>0 ? v[0] : defaultVal);
-    y = T(v.size()>1 ? v[1] : defaultVal);
-    z = T(v.size()>2 ? v[2] : defaultVal);
-    w = T(v.size()>3 ? v[3] : defaultVal);
+    x = T(!v.empty() ? v[0] : defaultVal);
+    y = T(!v.empty() ? v[1] : defaultVal);
+    z = T(!v.empty() ? v[2] : defaultVal);
+    w = T(!v.empty() ? v[3] : defaultVal);
   }
   VECTOR4<T>(const VECTOR2<T> &other, const T _z, const T _w): x(other.x), y(other.y), z(_z), w(_w) {}
   VECTOR4<T>(const VECTOR3<T> &other, const T _w): x(other.x), y(other.y), z(other.z), w(_w) {}
@@ -1182,7 +1182,9 @@ public:
 
   // OpenGL
   #ifdef USEGL
-    static void BuildStereoLookAtAndProjection(const VECTOR3<T> vEye, const VECTOR3<T> vAt, const VECTOR3<T> vUp,
+    static void BuildStereoLookAtAndProjection(const VECTOR3<T>& vEye,
+                                               const VECTOR3<T>& vAt,
+                                               const VECTOR3<T>& vUp,
                                               T fFOVY, T fAspect, T fZNear, T fZFar, T fFocalLength,
                                               T fEyeDist, int iEyeID, MATRIX4<T>& mView, MATRIX4<T>& mProj) {
 
@@ -1206,7 +1208,9 @@ public:
     }
 
 
-    static void BuildStereoLookAtAndProjection(const VECTOR3<T> vEye, const VECTOR3<T> vAt, const VECTOR3<T> vUp,
+    static void BuildStereoLookAtAndProjection(const VECTOR3<T>& vEye,
+                                               const VECTOR3<T>& vAt,
+                                               const VECTOR3<T>& vUp,
                                               T fFOVY, T fAspect, T fZNear, T fZFar, T fFocalLength,
                                               T fEyeDist, MATRIX4<T>& mViewLeft, MATRIX4<T>& mViewRight, MATRIX4<T>& mProjLeft, MATRIX4<T>& mProjRight) {
 
@@ -1239,7 +1243,8 @@ public:
       mViewRight = mTranslate * mViewRight;
     }
 
-    void BuildLookAt(const VECTOR3<T> vEye, const VECTOR3<T> vAt, const VECTOR3<T> vUp) {
+    void BuildLookAt(const VECTOR3<T>& vEye, const VECTOR3<T>& vAt,
+                     const VECTOR3<T>& vUp) {
       VECTOR3<T> F = vAt-vEye;
       VECTOR3<T> U = vUp;
       VECTOR3<T> S = F % U;
@@ -1416,10 +1421,10 @@ public:
   PLANE<T>(): VECTOR4<T>(0,0,0,0) {}
   // plane from paramters (usually all 4 are given)
   template <class S> explicit PLANE<T>( const std::vector<S>& v ) {
-    this->x = T(v.size()>0 ? v[0] : 0);
-    this->y = T(v.size()>1 ? v[1] : 0);
-    this->z = T(v.size()>2 ? v[2] : 0);
-    this->w = T(v.size()>3 ? v[3] : 0);
+    this->x = T(!v.empty() ? v[0] : 0);
+    this->y = T(!v.empty() ? v[1] : 0);
+    this->z = T(!v.empty() ? v[2] : 0);
+    this->w = T(!v.empty() ? v[3] : 0);
   }
   // plane from points
   template <class S> explicit PLANE<T>( const VECTOR3<S>& v0, const VECTOR3<S>& v1, const VECTOR3<S>& v2 ) {

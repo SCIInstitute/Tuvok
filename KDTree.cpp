@@ -240,9 +240,7 @@ void KDTree::Subdivide(KDTreeNode* node, const DOUBLEVECTOR3& min,
 
   // compute costs for splits
   for (slist::iterator candidate = splitCandidates.begin();
-       candidate!=splitCandidates.end();
-       candidate++) {
-
+       candidate!=splitCandidates.end(); ++candidate) {
     DOUBLEVECTOR3 b1 = bboxSize;  b1[axis] = candidate->pos - min[axis];
     DOUBLEVECTOR3 b2 = bboxSize;  b2[axis] -= b1[axis];
 
@@ -260,7 +258,6 @@ void KDTree::Subdivide(KDTreeNode* node, const DOUBLEVECTOR3& min,
       minCost = splitcost;
       bestpos = candidate->pos;
     }
-
   }
 	// calculate cost for not splitting
 	double noSplitCost = double(node->GetList().size());

@@ -849,7 +849,7 @@ namespace SysTools {
     vector<string> files = GetDirContents(dir, fileName+"*", ext);
 
     // chop of original filename (in case it also ends with numbers)
-    for (vector<string>::iterator i = files.begin();i<files.end();i++) {
+    for (auto i=files.begin(); i < files.end(); ++i) {
       std::string tmp = GetFilename(*i);
       (*i) = tmp.substr(fileName.length(), tmp.length()-fileName.length());
     }
