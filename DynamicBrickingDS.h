@@ -18,6 +18,8 @@ public:
   DynamicBrickingDS(std::shared_ptr<Dataset> ds,
                     std::array<unsigned, 3> maxBrickSize);
   virtual ~DynamicBrickingDS();
+  virtual std::shared_ptr<const Histogram1D> Get1DHistogram() const;
+  virtual std::shared_ptr<const Histogram2D> Get2DHistogram() const;
 
   virtual float MaxGradientMagnitude() const;
   /// Removes all the cache information we've made so far.

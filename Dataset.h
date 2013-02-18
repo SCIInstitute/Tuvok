@@ -73,8 +73,12 @@ public:
   // shared_ptr's are fine however and are represented as lightuserdata in Lua.
   // See Tuvok's LuaDatasetProxy.
   std::vector<std::shared_ptr<Mesh>> GetMeshes() const { return m_vpMeshList; }
-  std::shared_ptr<const Histogram1D> Get1DHistogram() const {return m_pHist1D;}
-  std::shared_ptr<const Histogram2D> Get2DHistogram() const {return m_pHist2D;}
+  virtual std::shared_ptr<const Histogram1D> Get1DHistogram() const {
+    return m_pHist1D;
+  }
+  virtual std::shared_ptr<const Histogram2D> Get2DHistogram() const {
+    return m_pHist2D;
+  }
   virtual float MaxGradientMagnitude() const = 0;
 
   /// Remove all cached bricks / brick metadata.
