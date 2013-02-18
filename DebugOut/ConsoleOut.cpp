@@ -62,7 +62,7 @@ ConsoleOut::~ConsoleOut() {
 void ConsoleOut::printf(enum DebugChannel channel, const char* source,
                         const char* msg)
 {
-  char buff[16384];
+  char buff[16384] = {0};
 #ifdef DETECTED_OS_WINDOWS
   strncpy_s(buff, 16384, msg, 16384);
 #else
