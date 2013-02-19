@@ -48,10 +48,6 @@ static std::array<uint32_t,3> nvoxels(const std::array<uint64_t,3> l,
     difference[1] ? std::min(bs[1], difference[1]) : bs[1],
     difference[2] ? std::min(bs[2], difference[2]) : bs[2],
   }};
-  // add in the ghost data we have on each brick!
-  nvox[0] += ghost();
-  nvox[1] += ghost();
-  nvox[2] += ghost();
 
   return nvox;
 }
@@ -143,20 +139,23 @@ const std::pair<BrickKey, BrickMD> const_brick_iterator::dereference() const {
     const std::array<uint32_t,3> bsz = nvoxels(this->location, this->bsize,
                                                this->voxels);
     const std::array<uint64_t,3> vhigh = {{
-      vlow[0]+bsz[0]-ghost(), vlow[1]+bsz[1]-ghost(), vlow[2]+bsz[2]-ghost()
+      vlow[0]+bsz[0], vlow[1]+bsz[1], vlow[2]+bsz[2]
     }};
     // where the center of this brick would be, in voxels.  note this is FP:
     // the 'center' could be a half-voxel in, if the brick has an odd number of
     // voxels.
     const std::array<float,3> vox_center = {{
-      (vlow[0] + vhigh[0]) / 2.0f,
-      (vlow[1] + vhigh[1]) / 2.0f,
-      (vlow[2] + vhigh[2]) / 2.0f
+      ((vhigh[0]-vlow[0])/2.0f) + vlow[0],
+      ((vhigh[1]-vlow[1])/2.0f) + vlow[1],
+      ((vhigh[2]-vlow[2])/2.0f) + vlow[2],
     }};
     const std::array<float,3> voxelsf = {{ // for type purposes.
       static_cast<float>(this->voxels[0]), static_cast<float>(this->voxels[1]),
       static_cast<float>(this->voxels[2])
     }};
+    assert(vox_center[0] < voxelsf[0]);
+    assert(vox_center[1] < voxelsf[1]);
+    assert(vox_center[2] < voxelsf[2]);
     // we know the center in voxels, and we know the width of the domain in
     // world space.  interpolate to get the center in world space.
     center = FLOATVECTOR3(
@@ -167,6 +166,9 @@ const std::pair<BrickKey, BrickMD> const_brick_iterator::dereference() const {
       MathTools::lerp(vox_center[2], 0.0f,voxelsf[2], this->extents[0][2],
                                                       this->extents[1][2])
     );
+    assert(extents[0][0] <= center[0] && center[0] <= extents[1][0]);
+    assert(extents[0][1] <= center[1] && center[1] <= extents[1][1]);
+    assert(extents[0][2] <= center[2] && center[2] <= extents[1][2]);
     const uint64_t zero = 0ULL; // for type purposes.
     const FLOATVECTOR3 wlow(
       MathTools::lerp(vlow[0], zero,this->voxels[0],
@@ -185,13 +187,14 @@ const std::pair<BrickKey, BrickMD> const_brick_iterator::dereference() const {
                       this->extents[0][2],this->extents[1][2])
     );
     exts = FLOATVECTOR3(whigh[0]-wlow[0], whigh[1]-wlow[1], whigh[2]-wlow[2]);
+    assert(exts[0] <= (this->extents[1][0]-this->extents[0][0]));
+    assert(exts[1] <= (this->extents[1][1]-this->extents[0][1]));
+    assert(exts[2] <= (this->extents[1][2]-this->extents[0][2]));
   }
 
-  BrickMD md = {
-    center,
-    exts,
-    va(nvoxels(this->location, this->bsize, this->voxels))
-  };
+  UINTVECTOR3 nvox = va(nvoxels(this->location, this->bsize, this->voxels));
+  nvox += ghost(); // add in the ghost data on each brick!
+  BrickMD md = { center, exts, nvox };
   return std::make_pair(bk, md);
 }
 const std::pair<BrickKey, BrickMD> const_brick_iterator::operator*() const {

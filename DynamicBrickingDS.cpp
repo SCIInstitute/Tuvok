@@ -526,11 +526,6 @@ void DynamicBrickingDS::Rebrick() {
   this->di->brickSize[0] = std::min(this->di->brickSize[0], src_bs[0]);
   this->di->brickSize[1] = std::min(this->di->brickSize[1], src_bs[1]);
   this->di->brickSize[2] = std::min(this->di->brickSize[2], src_bs[2]);
-  if(this->di->brickSize[0] > src_bs[0] ||
-     this->di->brickSize[1] > src_bs[1] ||
-     this->di->brickSize[2] > src_bs[2]) {
-    throw std::runtime_error("brick size is too big");
-  }
   if(!integer_multiple(this->di->brickSize[0], src_bs[0])) {
     throw std::runtime_error("x dimension is not an integer multiple of "
                              "original brick size.");
@@ -554,6 +549,11 @@ void DynamicBrickingDS::Rebrick() {
   assert(nvoxels[0] > 0 && nvoxels[1] > 0 && nvoxels[2]);
 
   std::array<std::array<float,3>,2> extents = DatasetExtents(this->di->ds);
+  MESSAGE("Extents are: [%g:%g x %g:%g x %g:%g]", extents[0][0],extents[1][0],
+          extents[0][1],extents[1][0], extents[0][2],extents[1][2]);
+  assert(extents[1][0] >= extents[0][0]);
+  assert(extents[1][1] >= extents[0][1]);
+  assert(extents[1][2] >= extents[0][2]);
 
   // give a hint as to how many bricks we'll have total.
   assert(nbricks(nvoxels, di->brickSize) > 0);
@@ -570,6 +570,16 @@ void DynamicBrickingDS::Rebrick() {
                     // let's just stop generating data when we hit the source
                     // data's LOD.
                     const size_t lod = std::get<1>(b.first);
+#ifndef NDEBUG
+                    const FLOATVECTOR3 fullexts(
+                      extents[1][0] - extents[0][0],
+                      extents[1][1] - extents[0][1],
+                      extents[1][2] - extents[0][2]
+                    );
+                    assert(b.second.extents[0] <= fullexts[0]);
+                    assert(b.second.extents[1] <= fullexts[1]);
+                    assert(b.second.extents[2] <= fullexts[2]);
+#endif
                     if(lod < di->ds->GetLODLevelCount()) {
                       this->AddBrick(b.first, b.second);
                     }
