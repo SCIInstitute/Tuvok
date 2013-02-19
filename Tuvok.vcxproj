@@ -1049,7 +1049,6 @@
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4996;4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (No Qt)|x64'">4996;4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
-    <ClCompile Include="IO\3rdParty\tiff\tif_jbig.c" />
     <ClCompile Include="IO\3rdParty\tiff\tif_jpeg.c" />
     <ClCompile Include="IO\3rdParty\tiff\tif_luv.c">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">4267;4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
@@ -1080,7 +1079,6 @@
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (No Qt)|x64'">4244;4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <ClCompile Include="IO\3rdParty\tiff\tif_next.c" />
-    <ClCompile Include="IO\3rdParty\tiff\tif_ojpeg.c" />
     <ClCompile Include="IO\3rdParty\tiff\tif_open.c">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">4267;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">4267;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>

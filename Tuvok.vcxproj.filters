@@ -615,9 +615,6 @@
     <ClCompile Include="IO\3rdParty\tiff\tif_getimage.c">
       <Filter>IO\TIFF</Filter>
     </ClCompile>
-    <ClCompile Include="IO\3rdParty\tiff\tif_jbig.c">
-      <Filter>IO\TIFF</Filter>
-    </ClCompile>
     <ClCompile Include="IO\3rdParty\tiff\tif_jpeg.c">
       <Filter>IO\TIFF</Filter>
     </ClCompile>
@@ -628,9 +625,6 @@
       <Filter>IO\TIFF</Filter>
     </ClCompile>
     <ClCompile Include="IO\3rdParty\tiff\tif_next.c">
-      <Filter>IO\TIFF</Filter>
-    </ClCompile>
-    <ClCompile Include="IO\3rdParty\tiff\tif_ojpeg.c">
       <Filter>IO\TIFF</Filter>
     </ClCompile>
     <ClCompile Include="IO\3rdParty\tiff\tif_open.c">
