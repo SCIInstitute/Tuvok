@@ -136,7 +136,7 @@ const std::pair<BrickKey, BrickMD> const_brick_iterator::dereference() const {
       loc_sub1[2] * this->bsize[2]
     }};
     // the high coord is the low coord + the number of voxels in the brick
-    const std::array<uint32_t,3> bsz = nvoxels(this->location, this->bsize,
+    const std::array<uint32_t,3> bsz = nvoxels(loc_sub1, this->bsize,
                                                this->voxels);
     const std::array<uint64_t,3> vhigh = {{
       vlow[0]+bsz[0], vlow[1]+bsz[1], vlow[2]+bsz[2]
@@ -192,7 +192,7 @@ const std::pair<BrickKey, BrickMD> const_brick_iterator::dereference() const {
     assert(exts[2] <= (this->extents[1][2]-this->extents[0][2]));
   }
 
-  UINTVECTOR3 nvox = va(nvoxels(this->location, this->bsize, this->voxels));
+  UINTVECTOR3 nvox = va(nvoxels(loc_sub1, this->bsize, this->voxels));
   nvox += ghost(); // add in the ghost data on each brick!
   BrickMD md = { center, exts, nvox };
   return std::make_pair(bk, md);
