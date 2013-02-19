@@ -488,9 +488,7 @@ SOURCES += \
            IO/3rdParty/tiff/tif_warning.c \
            IO/3rdParty/tiff/tif_write.c \
            IO/3rdParty/tiff/tif_zip.c \
-           IO/3rdParty/tiff/tif_jbig.c \
            IO/3rdParty/tiff/tif_jpeg.c \
-           IO/3rdParty/tiff/tif_ojpeg.c \
            IO/3rdParty/lzma/LzFind.c \
            IO/3rdParty/lzma/LzmaDec.c \
            IO/3rdParty/lzma/LzmaEnc.c \
