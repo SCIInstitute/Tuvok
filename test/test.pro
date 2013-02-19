@@ -51,8 +51,6 @@ contains(QMAKE_PRL_CONFIG, shared) {
   QTPLUGIN += qgif qjpeg
 }
 
-#TEST_HEADERS=multisrc.h dicom.h jpeg.h minmax.h
-#TEST_HEADERS=quantize.h jpeg.h largefile.h rebricking.h
 TEST_HEADERS=quantize.h largefile.h rebricking.h cbi.h
 
 TG_PARAMS=--have-eh --abort-on-fail --no-static-init --error-printer
