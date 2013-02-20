@@ -121,10 +121,18 @@ namespace SysTools {
   std::wstring ToUpperCase(const std::wstring& str);
   std::string ToUpperCase(const std::string& str);
 
-  std::vector< std::string > Tokenize(const std::string& strInput,
-                                      bool bQuoteprotect=true);
-  std::vector< std::wstring > Tokenize(const std::wstring& strInput,
-                                       bool bQuoteprotect=true);
+  enum EProtectMode {
+    PM_NONE = 0,
+    PM_QUOTES,
+    PM_BRACKETS,
+    PM_CUSTOM_DELIMITER
+  };
+  std::vector<std::string> Tokenize(const std::string& strInput,
+                                    EProtectMode mode = PM_QUOTES,
+                                    char customDelimiter=' ');
+  std::vector<std::wstring> Tokenize(const std::wstring& strInput,
+                                     EProtectMode mode = PM_QUOTES,
+                                     wchar_t customDelimiter=' ');
 
   std::string GetFromResourceOnMac(const std::string& fileName);
   std::wstring GetFromResourceOnMac(const std::wstring& fileName);

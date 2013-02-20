@@ -47,6 +47,7 @@
 #include <limits.h>
 #include <sstream>
 #include <sys/stat.h>
+#include <cassert>
 
 #ifndef _WIN32
   #include <regex.h>
@@ -77,66 +78,109 @@ using namespace std;
 
 namespace SysTools {
 
-  vector< string > Tokenize(const string& strInput, bool bQuoteprotect) {
-    if (bQuoteprotect) {
-      string buf;
-      stringstream ss(strInput);
-      vector<string> strElements;
-      bool bProtected = false;
-      while (ss >> buf) {
-        string cleanBuf = buf;
-        if (cleanBuf[0] == '\"')
-          cleanBuf = cleanBuf.substr(1, cleanBuf.length()-1);
-        if (!cleanBuf.empty() && cleanBuf[cleanBuf.size()-1] == '\"')
-          cleanBuf = cleanBuf.substr(0, cleanBuf.length()-1);
+  vector<string> Tokenize(const string& strInput,
+                          EProtectMode mode,
+                          char customDelimiter)
+  {
+    vector<string> strElements;
+    const wstring wstrInput(strInput.begin(), strInput.end());
+    const string strCustomDelimter(1, customDelimiter);
+    const wstring wstrCustomDelimiter(strCustomDelimter.begin(), strCustomDelimter.end());
+    assert(wstrCustomDelimiter.size() == 1);
 
-        if (bProtected) {
-          size_t end = strElements.size()-1;
-          strElements[end] = strElements[end] + " " + cleanBuf;
-        }
-        else
-          strElements.push_back(cleanBuf);
-
-        if (buf[0] == '\"')            bProtected = true;
-        if (buf[buf.size()-1] == '\"') bProtected = false;
-      }
-      return strElements;
-    } else {
-      string buf;
-      stringstream ss(strInput);
-      vector<string> strElements;
-      while (ss >> buf) strElements.push_back(buf);
-      return strElements;
+    vector<wstring> wstrElements = Tokenize(wstrInput, mode, wstrCustomDelimiter.at(0));
+    for (size_t i=0; i<wstrElements.size(); ++i) {
+      strElements.push_back(string(wstrElements[i].begin(), wstrElements[i].end()));
     }
+    return strElements;
   }
 
-  vector< wstring > Tokenize(const wstring& strInput, bool bQuoteprotect) {
-    if (bQuoteprotect) {
-      wstring buf;
-      wstringstream ss(strInput);
-      vector<wstring> strElements;
-      bool bProtected = false;
-      while (ss >> buf) {
-        wstring cleanBuf = buf;
-        if (cleanBuf[0] == '\"') cleanBuf = cleanBuf.substr(1, cleanBuf.length()-1);
-        if (cleanBuf[cleanBuf.size()-1] == '\"') cleanBuf = cleanBuf.substr(0, cleanBuf.length()-1);
+  vector<wstring> Tokenize(const wstring& strInput,
+                           EProtectMode mode,
+                           wchar_t customDelimiter)
+  {
+    vector<wstring> strElements;
+    switch (mode) {
+    case PM_QUOTES :
+      {
+        wstring buf;
+        wstringstream ss(strInput);
+        bool bProtected = false;
+        while (ss >> buf) {
+          wstring cleanBuf = buf;
+          if (cleanBuf[0] == L'\"')
+            cleanBuf = cleanBuf.substr(1, cleanBuf.length()-1);
 
-        if (bProtected)
-          strElements[strElements.size()-1] = strElements[strElements.size()-1] + L" " + cleanBuf;
-        else
-          strElements.push_back(cleanBuf);
+          if (!cleanBuf.empty() && cleanBuf[cleanBuf.size()-1] == L'\"')
+            cleanBuf = cleanBuf.substr(0, cleanBuf.length()-1);
 
-        if (buf[0] == '\"')            bProtected = true;
-        if (buf[buf.size()-1] == '\"') bProtected = false;
-      }
-      return strElements;
-    } else {
-      wstring buf;
-      wstringstream ss(strInput);
-      vector<wstring> strElements;
-      while (ss >> buf) strElements.push_back(buf);
-      return strElements;
+          if (bProtected) {
+            size_t end = strElements.size()-1;
+            strElements[end] = strElements[end] + L" " + cleanBuf;
+          }
+          else
+            strElements.push_back(cleanBuf);
+
+          if (buf[0] == L'\"')
+            bProtected = true;
+          if (buf[buf.size()-1] == L'\"')
+            bProtected = false;
+        }
+      } break;
+
+    case PM_BRACKETS :
+      {
+        int iLevel = 0;
+        size_t iStart = 0;
+        size_t i = 0;
+        for (;i<strInput.size();i++) {
+          switch (strInput[i]) {
+          case L'{':
+            if (iLevel == 0)
+              iStart++;
+            iLevel++;
+            break;
+          case L'}':
+            iLevel--;
+          case L' ':
+          case L'\n':
+          case L'\r':
+          case L'\t':
+            if (iLevel == 0) {
+              if (i-iStart > 0)
+                strElements.push_back(strInput.substr(iStart, i-iStart));
+              iStart = i+1;
+            }
+            break;
+          }
+        }
+        if (i-iStart > 0)
+          strElements.push_back(strInput.substr(iStart, i-iStart));
+      } break;
+
+    case PM_CUSTOM_DELIMITER :
+      {
+        size_t iStart = 0;
+        size_t i = 0;
+        for (;i<strInput.size();i++) {
+          if (strInput[i] == customDelimiter) {
+            if (i-iStart > 0)
+              strElements.push_back(strInput.substr(iStart, i-iStart));
+            iStart = i+1;
+          }
+        }
+        if (i-iStart > 0)
+          strElements.push_back(strInput.substr(iStart, i-iStart));
+      } break;
+
+    default :
+      {
+        wstring buf;
+        wstringstream ss(strInput);
+        while (ss >> buf) strElements.push_back(buf);
+      } break;
     }
+    return strElements;
   }
 
   string GetFromResourceOnMac(const string& strFileName) {
