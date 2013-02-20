@@ -121,7 +121,7 @@ OBJGeoConverter::ConvertToMesh(const std::string& strFilename) {
       WARNING("Skipping Material Library Tag in OBJ file");
     } else
 		if (linetype == "v") { // vertex attrib found
-      std::vector< std::string > pos = SysTools::Tokenize(line,false);
+      std::vector< std::string > pos = SysTools::Tokenize(line, SysTools::PM_NONE);
 
       if (pos.size() < 3) {
         WARNING("Found broken v tag (to few coordinates, "
