@@ -80,15 +80,19 @@ namespace SysTools {
 
   vector<string> Tokenize(const string& strInput,
                           EProtectMode mode,
-                          char customDelimiter)
+                          char const customOrOpeningDelimiter,
+                          char const closingDelimiter)
   {
     vector<string> strElements;
     const wstring wstrInput(strInput.begin(), strInput.end());
-    const string strCustomDelimter(1, customDelimiter);
-    const wstring wstrCustomDelimiter(strCustomDelimter.begin(), strCustomDelimter.end());
-    assert(wstrCustomDelimiter.size() == 1);
+    const string strCustomOrOpeningDelimter(1, customOrOpeningDelimiter);
+    const wstring wstrCustomOrOpeningDelimiter(strCustomOrOpeningDelimter.begin(), strCustomOrOpeningDelimter.end());
+    assert(wstrCustomOrOpeningDelimiter.size() == 1);
+    const string strClosingDelimter(1, closingDelimiter);
+    const wstring wstrClosingDelimiter(strClosingDelimter.begin(), strClosingDelimter.end());
+    assert(wstrClosingDelimiter.size() == 1);
 
-    vector<wstring> wstrElements = Tokenize(wstrInput, mode, wstrCustomDelimiter.at(0));
+    vector<wstring> wstrElements = Tokenize(wstrInput, mode, wstrCustomOrOpeningDelimiter.at(0), wstrClosingDelimiter.at(0));
     for (size_t i=0; i<wstrElements.size(); ++i) {
       strElements.push_back(string(wstrElements[i].begin(), wstrElements[i].end()));
     }
@@ -97,7 +101,8 @@ namespace SysTools {
 
   vector<wstring> Tokenize(const wstring& strInput,
                            EProtectMode mode,
-                           wchar_t customDelimiter)
+                           wchar_t const customOrOpeningDelimiter,
+                           wchar_t const closingDelimiter)
   {
     vector<wstring> strElements;
     switch (mode) {
@@ -134,14 +139,21 @@ namespace SysTools {
         size_t iStart = 0;
         size_t i = 0;
         for (;i<strInput.size();i++) {
-          switch (strInput[i]) {
-          case L'{':
+          if (strInput[i] == customOrOpeningDelimiter) {
             if (iLevel == 0)
               iStart++;
             iLevel++;
-            break;
-          case L'}':
+            continue;
+          } else if (strInput[i] == closingDelimiter) {
             iLevel--;
+            if (iLevel == 0) {
+              if (i-iStart > 0)
+                strElements.push_back(strInput.substr(iStart, i-iStart));
+              iStart = i+1;
+            }
+            continue;
+          }
+          switch (strInput[i]) {
           case L' ':
           case L'\n':
           case L'\r':
@@ -163,7 +175,7 @@ namespace SysTools {
         size_t iStart = 0;
         size_t i = 0;
         for (;i<strInput.size();i++) {
-          if (strInput[i] == customDelimiter) {
+          if (strInput[i] == customOrOpeningDelimiter) {
             if (i-iStart > 0)
               strElements.push_back(strInput.substr(iStart, i-iStart));
             iStart = i+1;

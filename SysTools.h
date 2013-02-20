@@ -129,10 +129,12 @@ namespace SysTools {
   };
   std::vector<std::string> Tokenize(const std::string& strInput,
                                     EProtectMode mode = PM_QUOTES,
-                                    char customDelimiter=' ');
+                                    char customOrOpeningDelimiter='{',
+                                    char closingDelimiter='}');
   std::vector<std::wstring> Tokenize(const std::wstring& strInput,
                                      EProtectMode mode = PM_QUOTES,
-                                     wchar_t customDelimiter=' ');
+                                     wchar_t customOrOpeningDelimiter=L'{',
+                                     wchar_t closingDelimiter=L'{');
 
   std::string GetFromResourceOnMac(const std::string& fileName);
   std::wstring GetFromResourceOnMac(const std::wstring& fileName);
