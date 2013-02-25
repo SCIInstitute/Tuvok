@@ -295,9 +295,11 @@ void AbstrRenderer::SetBlendPrecision(EBlendPrecision eBlendPrecision) {
   }
 }
 
+/// @todo fixme: this and ::LoadDataset should coexist better: the latter
+/// should probably call this method, instead of duplicating stuff.
 void AbstrRenderer::SetDataset(Dataset *vds) {
   if(m_pDataset) {
-    Controller::Instance().MemMan()->FreeDataset(vds, this);
+    Controller::Instance().MemMan()->FreeDataset(m_pDataset, this);
     delete m_pDataset;
   }
   m_pDataset = vds;
