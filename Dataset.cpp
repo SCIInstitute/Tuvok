@@ -61,18 +61,19 @@ DOUBLEVECTOR3 Dataset::GetRescaleFactors() const {
   return m_UserScale;
 }
 
-std::pair<FLOATVECTOR3, FLOATVECTOR3> Dataset::GetTextCoords(BrickTable::const_iterator brick, bool bUseOnlyPowerOfTwo) const {
-
+std::pair<FLOATVECTOR3, FLOATVECTOR3>
+Dataset::GetTextCoords(BrickTable::const_iterator brick,
+                       bool bUseOnlyPowerOfTwo) const {
   FLOATVECTOR3 vTexcoordsMin;
   FLOATVECTOR3 vTexcoordsMax;
 
-  UINTVECTOR3 vOverlap = GetBrickOverlapSize();
-  bool first_x = BrickIsFirstInDimension(0, brick->first);
-  bool first_y = BrickIsFirstInDimension(1, brick->first);
-  bool first_z = BrickIsFirstInDimension(2, brick->first);
-  bool last_x = BrickIsLastInDimension(0, brick->first);
-  bool last_y = BrickIsLastInDimension(1, brick->first);
-  bool last_z = BrickIsLastInDimension(2, brick->first);
+  const UINTVECTOR3 vOverlap = GetBrickOverlapSize();
+  const bool first_x = BrickIsFirstInDimension(0, brick->first);
+  const bool first_y = BrickIsFirstInDimension(1, brick->first);
+  const bool first_z = BrickIsFirstInDimension(2, brick->first);
+  const bool last_x = BrickIsLastInDimension(0, brick->first);
+  const bool last_y = BrickIsLastInDimension(1, brick->first);
+  const bool last_z = BrickIsLastInDimension(2, brick->first);
 
   if (bUseOnlyPowerOfTwo) {
     UINTVECTOR3 vRealVoxelCount(MathTools::NextPow2(brick->second.n_voxels.x),
@@ -93,7 +94,6 @@ std::pair<FLOATVECTOR3, FLOATVECTOR3> Dataset::GetTextCoords(BrickTable::const_i
     vTexcoordsMax -= FLOATVECTOR3(vRealVoxelCount - brick->second.n_voxels) /
                                     FLOATVECTOR3(vRealVoxelCount);
   } else {
-
     vTexcoordsMin = FLOATVECTOR3(
       (first_x) ? 0.5f/brick->second.n_voxels.x : vOverlap.x*0.5f/brick->second.n_voxels.x,
       (first_y) ? 0.5f/brick->second.n_voxels.y : vOverlap.y*0.5f/brick->second.n_voxels.y,
@@ -110,5 +110,4 @@ std::pair<FLOATVECTOR3, FLOATVECTOR3> Dataset::GetTextCoords(BrickTable::const_i
   return std::make_pair(vTexcoordsMin, vTexcoordsMax);
 }
 
-
-}; // tuvok namespace.
+} // tuvok namespace.

@@ -1720,7 +1720,6 @@ bool UVFDataset::GetBrick(const BrickKey& k, std::vector<double>& vData) const {
 }
 
 std::pair<FLOATVECTOR3, FLOATVECTOR3> UVFDataset::GetTextCoords(BrickTable::const_iterator brick, bool bUseOnlyPowerOfTwo) const {
-
   if (m_bToCBlock) {
     const UINT64VECTOR4 coords = KeyToTOCVector(brick->first);
     const TOCBlock* tb = static_cast<TOCTimestep*>(m_timesteps[std::get<0>(brick->first)])->GetDB();
