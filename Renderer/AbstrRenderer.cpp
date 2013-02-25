@@ -68,9 +68,9 @@ static const float s_fZNear = 0.01f;
 static const float s_fZFar = 1000.0f;
 
 AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
-                             bool bUseOnlyPowerOfTwo, 
+                             bool bUseOnlyPowerOfTwo,
                              bool bDownSampleTo8Bits,
-                             bool bDisableBorder, 
+                             bool bDisableBorder,
                              enum ScalingMethod sm) :
   m_pMasterController(pMasterController),
   m_eRenderMode(RM_1DTRANS),
@@ -196,7 +196,7 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
       m_pMasterController->LuaScript());
 
   // Create our 2D transfer function proxy.
-  m_pLua2DTrans = 
+  m_pLua2DTrans =
       m_pMasterController->LuaScript()->cexecRet<LuaClassInstance>(
           "tuvok.transferFun2D.new");
   m_pLua2DTransPtr = m_pLua2DTrans.getRawPointer<LuaTransferFun2DProxy>(
@@ -516,7 +516,7 @@ void AbstrRenderer::SetClipPlane(RenderRegion *renderRegion,
 bool AbstrRenderer::IsClipPlaneEnabled(RenderRegion *renderRegion) {
   if (!renderRegion)
     renderRegion = GetFirst3DRegion();
-  if (renderRegion) 
+  if (renderRegion)
     return m_bClipPlaneOn; /// @todo: Make this per RenderRegion.
   else
     return false;
@@ -999,7 +999,7 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
                       float(m_pDataset->GetScale().y),
                       float(m_pDataset->GetScale().z));
 
-  FLOATVECTOR3 vDomainSizeCorrectedScale = vScale * 
+  FLOATVECTOR3 vDomainSizeCorrectedScale = vScale *
                                            FLOATVECTOR3(vDomainSize)/
                                            float(vDomainSize.maxVal());
 
@@ -1042,8 +1042,8 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
               static_cast<unsigned>(std::get<1>(brick->first)),
               static_cast<unsigned>(std::get<2>(brick->first)));
       continue;
-    } 
-    
+    }
+
     if(b.bIsEmpty) {
       MESSAGE("Skipping further computations for brick <%u,%u,%u> "
               "because it is empty/invisible given the current vis parameters,"
@@ -1074,6 +1074,8 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
         b.fDistance = brick_distance(b, GetFirst3DRegion()->modelView[0]);
       }
     }
+    MESSAGE("considering brick <%zu,%zu,%zu>", std::get<0>(brick->first),
+            std::get<1>(brick->first), std::get<2>(brick->first));
 
     // add the brick to the list of active bricks
     vBrickList.push_back(b);
@@ -1094,7 +1096,7 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
 void AbstrRenderer::GetVolumeAABB(FLOATVECTOR3& vCenter, FLOATVECTOR3& vExtend) const {
   UINT64VECTOR3 vDomainSize = m_pDataset->GetDomainSize();
   FLOATVECTOR3 vScale = FLOATVECTOR3(m_pDataset->GetScale());
-  
+
   vExtend = FLOATVECTOR3(vDomainSize) * vScale;
   vExtend /= vExtend.maxVal();
   vCenter = FLOATVECTOR3(0,0,0);
@@ -1120,13 +1122,13 @@ void AbstrRenderer::PlanFrame(RenderRegion3D& region) {
 
   // let the mesh know about our current state, technically
   // SetVolumeAABB only needs to be called when the geometry of volume
-  // has changed (rescale) and SetUserPos only when the view has 
-  // changed (matrix update) but the mesh class is smart enough to catch 
+  // has changed (rescale) and SetUserPos only when the view has
+  // changed (matrix update) but the mesh class is smart enough to catch
   // redundant changes so we just leave the code here for now
   if (m_bSupportsMeshes) {
     FLOATVECTOR3 vCenter, vExtend;
     GetVolumeAABB(vCenter, vExtend);
-    FLOATVECTOR3 vMinPoint = vCenter-vExtend/2.0, 
+    FLOATVECTOR3 vMinPoint = vCenter-vExtend/2.0,
                  vMaxPoint = vCenter+vExtend/2.0;
 
      for (vector<shared_ptr<RenderMesh>>::iterator mesh = m_Meshes.begin();
@@ -1265,7 +1267,7 @@ void AbstrRenderer::Transfer3DRotationToMIP() {
   for (size_t i=0; i < renderRegions.size(); ++i) {
     if (!renderRegions[i]->is3D())
       renderRegions[i]->rotation = rot;
-  }  
+  }
 }
 
 void AbstrRenderer::SetRenderCoordArrows(bool bRenderCoordArrows) {
@@ -1464,7 +1466,7 @@ void AbstrRenderer::SetColors(FLOATVECTOR4 ambient,
 
   if (m_eRenderMode == RM_ISOSURFACE)
     ScheduleRecompose();
-  else 
+  else
     if (m_bUseLighting) Schedule3DWindowRedraws();
 }
 
@@ -1540,8 +1542,8 @@ void AbstrRenderer::SetTimestep(size_t t) {
     ScheduleCompleteRedraw();
   }
 }
-size_t AbstrRenderer::Timestep() const { 
-  return m_iTimestep; 
+size_t AbstrRenderer::Timestep() const {
+  return m_iTimestep;
 }
 
 void AbstrRenderer::SetUserMatrices(const FLOATMATRIX4& view, const FLOATMATRIX4& projection,
@@ -1565,7 +1567,7 @@ void AbstrRenderer::UnsetUserMatrices() {
 
 
 void AbstrRenderer::InitStereoFrame() {
-  m_iAlternatingFrameID = 0; 
+  m_iAlternatingFrameID = 0;
   Schedule3DWindowRedraws();
 }
 
@@ -1683,9 +1685,9 @@ bool AbstrRenderer::Execute(const std::string& strCommand,
 }
 
 
-void AbstrRenderer::SetInterpolant(Interpolant eInterpolant) {  
+void AbstrRenderer::SetInterpolant(Interpolant eInterpolant) {
   if (m_eInterpolant != eInterpolant) {
-      m_eInterpolant = eInterpolant; 
+      m_eInterpolant = eInterpolant;
       ScheduleCompleteRedraw();
   }
 }
@@ -1702,14 +1704,14 @@ LuaClassInstance AbstrRenderer::LuaGet2DTrans() {
   return m_pLua2DTrans;
 }
 
-void 
+void
 AbstrRenderer::SetFrustumCullingModelMatrix(const FLOATMATRIX4& modelMatrix) {
   m_FrustumCullingLOD.SetModelMatrix(modelMatrix);
 }
 
 int AbstrRenderer::GetFrustumCullingLODLevel(
-    const FLOATVECTOR3& vfCenter, 
-    const FLOATVECTOR3& vfExtent, 
+    const FLOATVECTOR3& vfCenter,
+    const FLOATVECTOR3& vfExtent,
     const UINTVECTOR3& viVoxelCount) const {
   return m_FrustumCullingLOD.GetLODLevel(vfCenter, vfExtent, viVoxelCount);
 }
@@ -1744,8 +1746,7 @@ void AbstrRenderer::ClearRendererMeshes() {
   m_Meshes.clear();
 }
 
-bool AbstrRenderer::CaptureSingleFrame(const std::string&,
-                                       bool) const {
+bool AbstrRenderer::CaptureSingleFrame(const std::string&, bool) const {
   return false;
 }
 
@@ -2031,7 +2032,7 @@ void AbstrRenderer::RegisterLuaFunctions(
 
   id = reg.function(&AbstrRenderer::SetFoV,
                     "setFoV", "Sets the angle/field of view for the virtual camera.", true);
-  
+
   id = reg.function(&AbstrRenderer::GetFoV,
                     "getFoV", "Returns the angle/field of view for the virtual camera.", false);
 
@@ -2114,11 +2115,11 @@ void AbstrRenderer::RegisterLuaFunctions(
                     "addShaderPath", "", true);
 
   id = reg.function(&AbstrRenderer::Initialize,
-                    "initialize", 
+                    "initialize",
                     "Provenance is NOT recorded for this function. It should "
                     "be called from the renderer initialization code "
                     "(such that all provenance records are "
-                    "children of the call to create the new renderer).", 
+                    "children of the call to create the new renderer).",
                     false);
   ss->setProvenanceExempt(id);
 
@@ -2235,7 +2236,7 @@ void AbstrRenderer::RegisterLuaFunctions(
                     "", false);
   id = reg.function(&AbstrRenderer::GetProjectionMatrix, "getProjectionMatrix",
                     "", false);
-  
+
   id = reg.function(&AbstrRenderer::SetUserMatrices, "setUserMatrices",
                     "", true);
   id = reg.function(&AbstrRenderer::UnsetUserMatrices, "unsetUserMatrices",
