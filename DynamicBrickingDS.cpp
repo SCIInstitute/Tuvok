@@ -41,6 +41,10 @@ struct DynamicBrickingDS::dbinfo {
 
   // assumes timestep=0
   std::vector<uint8_t> ReadSourceBrick(unsigned lod, std::array<uint64_t,3> idx);
+
+  // given the brick key in the dynamic DS, return the corresponding BrickKey
+  // in the source data.
+  BrickKey SourceBrickKey(const BrickKey&);
 };
 
 // gives the number of ghost voxels (per dimension) in a brick.  must be the
@@ -121,7 +125,7 @@ std::array<uint64_t,3> SourceBrickIndex(const BrickKey& k,
                                         const std::shared_ptr<Dataset> ds,
                                         const std::array<unsigned,3> bsize)
 {
-  // See the comment ReBrick: we shouldn't have more LODs than the source data.
+  // See the comment Rebrick: we shouldn't have more LODs than the source data.
   assert(std::get<1>(k) < ds->GetLODLevelCount());
   const size_t lod = std::min(std::get<1>(k),
                               static_cast<size_t>(ds->GetLODLevelCount()));
@@ -243,21 +247,28 @@ std::array<unsigned,3> SourceBrickSize(const Dataset& ds, const BrickKey& k) {
   return tmp;
 }
 
+// given the brick key in the dynamic DS, return the corresponding BrickKey
+// in the source data.
+BrickKey DynamicBrickingDS::dbinfo::SourceBrickKey(const BrickKey& k) {
+  const size_t lod = std::get<1>(k);
+  BrickKey skey = SourceKey(SourceBrickIndex(k, this->ds,
+                                             this->brickSize),
+                            lod, *(this->ds));
+#ifndef NDEBUG
+  // brick key should make sense.
+  std::shared_ptr<FileBackedDataset> fbds =
+    std::dynamic_pointer_cast<FileBackedDataset>(this->ds);
+  assert(std::get<2>(skey) < fbds->GetTotalBrickCount());
+  assert(std::get<0>(skey) < fbds->GetNumberOfTimesteps());
+#endif
+  return skey;
+}
+
 // Because of how we done the re-bricking, we know that all target bricks will
 // fit nicely inside a source brick: so we know we only need to read one brick.
 bool DynamicBrickingDS::GetBrick(const BrickKey& k, std::vector<uint8_t>& data) const
 {
-  const size_t lod = std::get<1>(k);
-  BrickKey skey = SourceKey(SourceBrickIndex(k, this->di->ds,
-                                             this->di->brickSize),
-                            lod, *(this->di->ds));
-#ifndef NDEBUG
-  // brick key should make sense.
-  std::shared_ptr<FileBackedDataset> fbds =
-    std::dynamic_pointer_cast<FileBackedDataset>(this->di->ds);
-  assert(std::get<2>(skey) < fbds->GetTotalBrickCount());
-  assert(std::get<0>(skey) < fbds->GetNumberOfTimesteps());
-#endif
+  BrickKey skey = this->di->SourceBrickKey(k);
 
   std::vector<uint8_t> srcdata;
   this->di->ds->GetBrick(skey, srcdata);
@@ -376,19 +387,27 @@ std::pair<double,double> DynamicBrickingDS::GetRange() const {
 }
 
 /// Acceleration queries.
+/// Right now, they just forward to the larger data set.  We might consider
+/// recomputing this metadata, to get better performance at the expense of
+/// memory.
+///@{
 bool DynamicBrickingDS::ContainsData(const BrickKey& bk, double isoval) const {
-  return di->ds->ContainsData(bk, isoval);
+  BrickKey skey = this->di->SourceBrickKey(bk);
+  return di->ds->ContainsData(skey, isoval);
 }
 bool DynamicBrickingDS::ContainsData(const BrickKey& bk, double fmin,
                                      double fmax) const {
-  return di->ds->ContainsData(bk, fmin, fmax);
+  BrickKey skey = this->di->SourceBrickKey(bk);
+  return di->ds->ContainsData(skey, fmin, fmax);
 }
 bool DynamicBrickingDS::ContainsData(const BrickKey& bk,
                                      double fmin, double fmax,
                                      double fminGradient,
                                      double fmaxGradient) const {
-  return di->ds->ContainsData(bk, fmin,fmax, fminGradient, fmaxGradient);
+  BrickKey skey = this->di->SourceBrickKey(bk);
+  return di->ds->ContainsData(skey, fmin,fmax, fminGradient, fmaxGradient);
 }
+///@}
 
 bool DynamicBrickingDS::Export(uint64_t lod, const std::string& to,
                                bool append) const {
@@ -402,6 +421,7 @@ bool DynamicBrickingDS::ApplyFunction(uint64_t lod,
                                           void* pUserContext),
                         void *pUserContext,
                         uint64_t iOverlap) const {
+  T_ERROR("This probably doesn't work.");
   return di->ds->ApplyFunction(lod, brickFunc, pUserContext, iOverlap);
 }
 
@@ -414,12 +434,6 @@ CFORWARDRET(const char*, Name)
 DynamicBrickingDS* DynamicBrickingDS::Create(const std::string&, uint64_t,
                                              bool) const {
   abort(); return NULL;
-}
-
-std::pair<FLOATVECTOR3, FLOATVECTOR3>
-DynamicBrickingDS::GetTextCoords(BrickTable::const_iterator brick,
-                                 bool PoT) const {
-  return di->ds->GetTextCoords(brick, PoT);
 }
 
 bool DynamicBrickingDS::IsOpen() const {
