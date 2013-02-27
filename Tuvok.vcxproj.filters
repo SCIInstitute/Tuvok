@@ -738,6 +738,9 @@
     <ClCompile Include="IO\VGStudioConverter.cpp">
       <Filter>IO\Volume Converter</Filter>
     </ClCompile>
+    <ClCompile Include="IO\VTKConverter.cpp">
+      <Filter>IO\Volume Converter</Filter>
+    </ClCompile>
     <ClCompile Include="IO\DirectoryParser.cpp">
       <Filter>IO\Volume Converter\Helper</Filter>
     </ClCompile>
@@ -1800,6 +1803,9 @@
       <Filter>IO\Volume Converter</Filter>
     </ClInclude>
     <ClInclude Include="IO\VGStudioConverter.h">
+      <Filter>IO\Volume Converter</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\VTKConverter.h">
       <Filter>IO\Volume Converter</Filter>
     </ClInclude>
     <ClInclude Include="IO\DirectoryParser.h">

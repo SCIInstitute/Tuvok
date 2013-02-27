@@ -1259,6 +1259,7 @@
     <ClCompile Include="IO\TiffVolumeConverter.cpp" />
     <ClCompile Include="IO\VFFConverter.cpp" />
     <ClCompile Include="IO\VGStudioConverter.cpp" />
+    <ClCompile Include="IO\VTKConverter.cpp" />
     <ClCompile Include="IO\DirectoryParser.cpp" />
     <ClCompile Include="IO\KeyValueFileParser.cpp" />
     <ClCompile Include="IO\VGIHeaderParser.cpp" />
@@ -1634,6 +1635,7 @@
     <ClInclude Include="IO\TiffVolumeConverter.h" />
     <ClInclude Include="IO\VFFConverter.h" />
     <ClInclude Include="IO\VGStudioConverter.h" />
+    <ClCompile Include="IO\VTKConverter.h" />
     <ClInclude Include="IO\DirectoryParser.h" />
     <ClInclude Include="IO\KeyValueFileParser.h" />
     <ClInclude Include="IO\VGIHeaderParser.h" />
