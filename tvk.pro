@@ -231,6 +231,7 @@ HEADERS += \
            IO/Tuvok_QtPlugins.h \
            IO/uvfDataset.h \
            IO/uvfMesh.h \
+           IO/VTKConverter.h \
            IO/UVF/DataBlock.h \
            IO/UVF/GlobalHeader.h \
            IO/UVF/Histogram1DDataBlock.h \
@@ -560,6 +561,7 @@ SOURCES += \
            IO/TuvokJPEG.cpp \
            IO/uvfDataset.cpp \
            IO/uvfMesh.cpp \
+           IO/VTKConverter.cpp \
            IO/UVF/DataBlock.cpp \
            IO/UVF/GlobalHeader.cpp \
            IO/UVF/Histogram1DDataBlock.cpp \
