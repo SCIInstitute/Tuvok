@@ -487,10 +487,12 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
       convert_endianness(strFilename, strTempDir, iHeaderSkip, iComponentSize,
                          core_size);
     iHeaderSkip = 0;  // the new file is straight raw without any header
+    MESSAGE("temporary source data; no header skip.");
     sourceData = std::shared_ptr<LargeRAWFile>(
       new TempFile(tmpEndianConvertedFile)
     );
   } else {
+    MESSAGE("non-temp source data, with %llu-byte header skip", iHeaderSkip);
     sourceData = std::shared_ptr<LargeRAWFile>(
       new LargeRAWFile(strFilename, iHeaderSkip)
     );
@@ -1182,6 +1184,8 @@ bool RAWConverter::ConvertToUVF(const std::list<std::string>& files,
                             bConvertEndianess, bSigned, bIsFloat,
                             vVolumeSize, vVolumeAspect, strTitle,
                             intermediate, bDelete);
+    assert(iComponentSize == 8 || iComponentSize == 16 ||
+           iComponentSize == 32 || iComponentSize == 64);
     if(!success) { break; }
     strIntermediateFile.push_front(intermediate);
     bDeleteIntermediateFile.push_front(bDelete);
@@ -1192,7 +1196,6 @@ bool RAWConverter::ConvertToUVF(const std::list<std::string>& files,
   if (!success) {
     T_ERROR("Convert to RAW step failed, aborting.");
     std::for_each(strIntermediateFile.begin(), strIntermediateFile.end(),
-
                   RemoveStdString);
     return false;
   }

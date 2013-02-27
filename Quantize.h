@@ -127,8 +127,10 @@ struct TuvokProgress {
 /// Data source policies.  Must implement:
 ///   constructor: takes an opened file.
 ///   size(): returns the number of elements in the file.
-///   read(data, b): reads `b' bytes in to `data'.  Returns number of elems
+///   read(data, e): reads `e' elements into `data'.  Returns number of elems
 ///                  actually read.
+///   To emphasize: These always work with the number of *elements*, NOT the
+///                 number of bytes!!!
 /// ios_data_src -- data source for C++ iostreams.
 /// raw_data_src -- data source for Basics' LargeRAWFile.
 ///@{
@@ -148,7 +150,8 @@ struct ios_data_src {
     ifs.seekg(cur, std::ios::beg);
     return retval/sizeof(T);
   }
-  size_t read(unsigned char *data, size_t max_bytes) {
+  size_t read(unsigned char *data, size_t max_elems) {
+    const size_t max_bytes = max_elems * sizeof(T);
     ifs.read(reinterpret_cast<char*>(data), std::streamsize(max_bytes));
     return ifs.gcount()/sizeof(T);
   }
@@ -167,8 +170,8 @@ struct raw_data_src {
   }
 
   uint64_t size() { return raw.GetCurrentSize() / sizeof(T); }
-  size_t read(unsigned char *data, size_t max_bytes) {
-    return raw.ReadRAW(data, max_bytes)/sizeof(T);
+  size_t read(unsigned char *data, size_t max_elems) {
+    return raw.ReadRAW(data, max_elems*sizeof(T))/sizeof(T);
   }
 
   void reset() {
@@ -293,10 +296,11 @@ template <typename T, size_t sz,
           template <typename T_, size_t> class Histogram,
           class Progress>
 std::pair<T,T> io_minmax(DataSrc<T> ds, Histogram<T, sz> histogram,
-                         const Progress& progress, uint64_t iSize,
+                         const Progress& progress, uint64_t iElems,
                          size_t iCurrentInCoreSizeBytes)
 {
-  std::vector<T> data(iCurrentInCoreSizeBytes/sizeof(T));
+  const size_t InCoreElems = iCurrentInCoreSizeBytes / sizeof(T);
+  std::vector<T> data(InCoreElems);
   uint64_t iPos = 0;
 
   // Default min is the max value representable by the data type.  Default max
@@ -308,18 +312,20 @@ std::pair<T,T> io_minmax(DataSrc<T> ds, Histogram<T, sz> histogram,
     t_minmax.second = std::numeric_limits<T>::min(); // ... == 0.
   }
 
-  while(iPos < iSize) {
-    size_t n_records = ds.read((unsigned char*)(&(data.at(0))),
-                               std::min(static_cast<size_t>((iSize-iPos) *
-                                        sizeof(T)), iCurrentInCoreSizeBytes));
+  while(iPos < iElems) {
+    size_t n_records = ds.read(
+      (unsigned char*)(&(data.at(0))),
+      std::min(static_cast<size_t>(iElems-iPos), InCoreElems)
+    );
     if(n_records == 0) {
-      WARNING("Short file during quantization (%llu of %llu)", iPos, iSize);
+      WARNING("Short file during minmax (%llu of %llu)", iPos, iElems);
       break; // bail out if the read gave us nothing.
     }
     data.resize(n_records);
 
-    iPos += uint64_t(n_records * sizeof(T));
-    progress.notify("Computing value range",iPos);
+    iPos += uint64_t(n_records);
+    assert(iPos <= iElems);
+    progress.notify("Computing value range", iPos);
 
     typedef typename std::vector<T>::const_iterator iterator;
     std::pair<iterator,iterator> cur_mm = std::minmax_element(data.begin(),
@@ -330,14 +336,16 @@ std::pair<T,T> io_minmax(DataSrc<T> ds, Histogram<T, sz> histogram,
     // Run over the data again and bin the data for the histogram.
     for(size_t i=0; i < n_records && histogram.bin(data[i]); ++i) { }
   }
-  assert(iPos == iSize);
+  assert(iPos == iElems);
+  MESSAGE("min/max is: [%g:%g]", static_cast<double>(t_minmax.first),
+          static_cast<double>(t_minmax.second));
   return t_minmax;
 }
 
 /// @returns false on error; true if we successfully generated
 /// 'strTargetFilename'.
 template <typename T, typename U>
-static bool ApplyMapping(const uint64_t iSize,
+static bool ApplyMapping(const uint64_t iElems,
                          const size_t iCurrentInCoreSizeBytes,
                          raw_data_src<T>& ds,
                          const std::string& strTargetFilename,
@@ -355,12 +363,13 @@ static bool ApplyMapping(const uint64_t iSize,
   std::vector<T> sourceData(iCurrentInCoreElems);
   uint64_t iPos = 0;
 
-  assert(iSize > 0); // our minmax assert later will fail anyway, if false.
+  assert(iElems > 0); // our minmax assert later will fail anyway, if false.
 
-  while(iPos < iSize) {
-    size_t n_records = ds.read((unsigned char*)(&(sourceData.at(0))),
-                               std::min(static_cast<size_t>((iSize-iPos) *
-                                        sizeof(T)), iCurrentInCoreElems));
+  while(iPos < iElems) {
+    size_t n_records = ds.read(
+      (unsigned char*)(&(sourceData.at(0))),
+      std::min(static_cast<size_t>(iElems-iPos), iCurrentInCoreElems)
+    );
     if(n_records == 0) {
       WARNING("Short file during mapping.");
       break; // bail out if the read gave us nothing.
@@ -368,7 +377,8 @@ static bool ApplyMapping(const uint64_t iSize,
     sourceData.resize(n_records);
 
     iPos += uint64_t(n_records);
-    progress.notify("Mapping data values to bins",iPos);
+    assert(iPos <= iElems);
+    progress.notify("Mapping data values to bins", iPos);
 
     // Run over the in-core data and apply mapping
     for(size_t i=0; i < n_records; ++i) {
@@ -377,6 +387,7 @@ static bool ApplyMapping(const uint64_t iSize,
 
     TargetData.WriteRAW((unsigned char*)&targetData[0], sizeof(U)*n_records);
   }
+  assert(iPos == iElems);
 
   TargetData.Close();
 
@@ -399,7 +410,7 @@ static bool ApplyMapping(const uint64_t iSize,
   const size_t sz = (sizeof(U) == 2 ? 4096 : 256);
   minmax = io_minmax(raw_data_src<U>(MappedData),
                      UnsignedHistogram<U, sz>(aHist),
-                     TuvokProgress<uint64_t>(iSize), iSize,
+                     TuvokProgress<uint64_t>(iElems), iElems,
                      iCurrentInCoreSizeBytes);
   assert(minmax.second >= minmax.first);
 
@@ -442,6 +453,7 @@ static bool Quantize(LargeRAWFile& InputData,
   assert(Input.width == sizeof(T));
   const uint64_t iSize = Input.elements * Input.components * Input.timesteps *
                          Input.width;
+  const uint64_t iElems = Input.elements * Input.components * Input.timesteps;
   MESSAGE("%s should have %llu bytes.", InputData.GetFilename().c_str(), iSize);
 
   // figure out min/max
@@ -450,7 +462,7 @@ static bool Quantize(LargeRAWFile& InputData,
   const size_t sz = (sizeof(U) == 2 ? 4096 : 256);
   minmax = io_minmax(raw_data_src<T>(InputData),
                      UnsignedHistogram<T, sz>(aHist),
-                     TuvokProgress<uint64_t>(iSize), iSize,
+                     TuvokProgress<uint64_t>(iElems), iElems,
                      iCurrentInCoreSizeBytes);
   assert(minmax.second >= minmax.first);
 
@@ -473,7 +485,7 @@ static bool Quantize(LargeRAWFile& InputData,
 
   if(iBinCount != NULL) {
     *iBinCount = bins_needed<T>(minmax);
-    MESSAGE("We need %llu bins", static_cast<uint64_t>(*iBinCount));
+    MESSAGE("We need %u bins", static_cast<unsigned>(*iBinCount));
   }
 
   size_t max_output_val = (1 << (sizeof(U)*8)) - 1;
@@ -570,7 +582,7 @@ static bool Quantize(LargeRAWFile& InputData,
 template <typename T, typename U>
 static bool BinningQuantize(LargeRAWFile& InputData,
                             const std::string& strTargetFilename,
-                            uint64_t iSize,
+                            uint64_t iElems,
                             unsigned& iComponentSize,
                             Histogram1DDataBlock* Histogram1D=0)
 {
@@ -589,16 +601,17 @@ static bool BinningQuantize(LargeRAWFile& InputData,
 
   raw_data_src<T> ds(InputData);
   std::vector<T> data(iCurrentInCoreElems);
-  TuvokProgress<uint64_t> progress(iSize);
+  TuvokProgress<uint64_t> progress(iElems);
   uint64_t iPos = 0;
   bool bBinningPossible = true;
 
   std::map<T, uint64_t> bins;
 
-  while(bBinningPossible && iPos < iSize) {
-    size_t n_records = ds.read((unsigned char*)(&(data.at(0))),
-                                std::min(static_cast<size_t>((iSize - iPos)*sizeof(T)),
-                                         iCurrentInCoreElems));
+  while(bBinningPossible && iPos < iElems) {
+    size_t n_records = ds.read(
+      (unsigned char*)(&(data.at(0))),
+      std::min(static_cast<size_t>(iElems-iPos), iCurrentInCoreElems)
+    );
     if(n_records == 0) {
       WARNING("Short file during counting.");
       break; // bail out if the read gave us nothing.
@@ -606,6 +619,7 @@ static bool BinningQuantize(LargeRAWFile& InputData,
     data.resize(n_records);
 
     iPos += uint64_t(n_records);
+    assert(iPos <= iElems);
     progress.notify("Counting number of unique values in the data", iPos);
 
     // Run over the in core data and sort it into bins
@@ -630,7 +644,7 @@ static bool BinningQuantize(LargeRAWFile& InputData,
   if (!bBinningPossible) {
     InputData.SeekStart();
     BStreamDescriptor bsd;
-    bsd.elements = iSize / sizeof(T);
+    bsd.elements = iElems;
     bsd.components = 1;
     bsd.width = sizeof(T);
     bsd.is_signed = ctti<T>::is_signed;
@@ -658,11 +672,11 @@ static bool BinningQuantize(LargeRAWFile& InputData,
   if (binAssignments.size() < 256) {
     iComponentSize = 8; // now we are only using 8 bits
     using namespace boost;
-    return ApplyMapping<T,uint8_t>(iSize, iCurrentInCoreSizeBytes, ds,
+    return ApplyMapping<T,uint8_t>(iElems, iCurrentInCoreSizeBytes, ds,
                                    strTargetFilename, binAssignments,
                                    Histogram1D, progress);
   } else {
-    return ApplyMapping<T,U>(iSize, iCurrentInCoreSizeBytes, ds,
+    return ApplyMapping<T,U>(iElems, iCurrentInCoreSizeBytes, ds,
                              strTargetFilename, binAssignments, Histogram1D,
                              progress);
   }
