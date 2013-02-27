@@ -72,18 +72,19 @@
 #include "AmiraConverter.h"
 #include "AnalyzeConverter.h"
 #include "BOVConverter.h"
-#include "NRRDConverter.h"
-#include "QVISConverter.h"
-#include "KitwareConverter.h"
-#include "REKConverter.h"
 #include "IASSConverter.h"
 #include "I3MConverter.h"
 #include "InveonConverter.h"
+#include "KitwareConverter.h"
+#include "MRCConverter.h"
+#include "NRRDConverter.h"
+#include "QVISConverter.h"
+#include "REKConverter.h"
 #include "StkConverter.h"
 #include "TiffVolumeConverter.h"
 #include "VFFConverter.h"
 #include "VGStudioConverter.h"
-#include "MRCConverter.h"
+#include "VTKConverter.h"
 
 #include "Mesh.h"
 #include "AbstrGeoConverter.h"
@@ -174,6 +175,7 @@ IOManager::IOManager() :
   m_vpConverters.push_back(new AnalyzeConverter());
   m_vpConverters.push_back(new AmiraConverter());
   m_vpConverters.push_back(new MRCConverter());
+  m_vpConverters.push_back(new VTKConverter());
   m_dsFactory->AddReader(shared_ptr<UVFDataset>(new UVFDataset()));
 }
 
