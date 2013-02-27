@@ -226,8 +226,7 @@ private:
       size_t targetSize = size_t(ts->GetDB()->GetComponentTypeSize() *
                                  ts->GetDB()->GetComponentCount() *
                                  ts->GetDB()->GetBrickSize(coords).volume())/sizeof(T);
-      if (vData.size() < targetSize)
-        vData.resize(targetSize);
+      vData.resize(targetSize);
       uint8_t* pData = (uint8_t*)&vData[0];
       ts->GetDB()->GetData(pData,coords);
       if (ts->GetDB()->GetAtlasSize(coords).area() != 0) {
