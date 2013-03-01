@@ -738,9 +738,6 @@
     <ClCompile Include="IO\VGStudioConverter.cpp">
       <Filter>IO\Volume Converter</Filter>
     </ClCompile>
-    <ClCompile Include="IO\VTKConverter.cpp">
-      <Filter>IO\Volume Converter</Filter>
-    </ClCompile>
     <ClCompile Include="IO\DirectoryParser.cpp">
       <Filter>IO\Volume Converter\Helper</Filter>
     </ClCompile>
@@ -1091,6 +1088,11 @@
     </ClCompile>
     <ClCompile Include="IO\3rdParty\lzham\lzham_match_accel.cpp">
       <Filter>IO\lzham</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\const-brick-iterator.cpp" />
+    <ClCompile Include="IO\DynamicBrickingDS.cpp" />
+    <ClCompile Include="IO\VTKConverter.cpp">
+      <Filter>IO</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1805,9 +1807,6 @@
     <ClInclude Include="IO\VGStudioConverter.h">
       <Filter>IO\Volume Converter</Filter>
     </ClInclude>
-    <ClInclude Include="IO\VTKConverter.h">
-      <Filter>IO\Volume Converter</Filter>
-    </ClInclude>
     <ClInclude Include="IO\DirectoryParser.h">
       <Filter>IO\Volume Converter\Helper</Filter>
     </ClInclude>
@@ -2222,6 +2221,11 @@
     </ClInclude>
     <ClInclude Include="IO\3rdParty\lzham\lzhamVersion.h">
       <Filter>IO\lzham</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\const-brick-iterator.h" />
+    <ClInclude Include="IO\DynamicBrickingDS.h" />
+    <ClInclude Include="IO\VTKConverter.h">
+      <Filter>IO</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

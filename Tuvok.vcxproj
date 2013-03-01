@@ -567,6 +567,7 @@
     <ClCompile Include="IO\UVF\ExtendedOctree\VolumeTools.cpp" />
     <ClCompile Include="IO\UVF\ExtendedOctree\ZlibCompression.cpp" />
     <ClCompile Include="IO\UVF\TOCBlock.cpp" />
+    <ClCompile Include="IO\VTKConverter.cpp" />
     <ClCompile Include="IO\XML3DGeoConverter.cpp" />
     <ClCompile Include="LUAScripting\LUAClassConstructor.cpp" />
     <ClCompile Include="LUAScripting\LUAClassInstance.cpp" />
@@ -1259,7 +1260,6 @@
     <ClCompile Include="IO\TiffVolumeConverter.cpp" />
     <ClCompile Include="IO\VFFConverter.cpp" />
     <ClCompile Include="IO\VGStudioConverter.cpp" />
-    <ClCompile Include="IO\VTKConverter.cpp" />
     <ClCompile Include="IO\DirectoryParser.cpp" />
     <ClCompile Include="IO\KeyValueFileParser.cpp" />
     <ClCompile Include="IO\VGIHeaderParser.cpp" />
@@ -1414,6 +1414,7 @@
     <ClInclude Include="IO\UVF\ExtendedOctree\VolumeTools.h" />
     <ClInclude Include="IO\UVF\ExtendedOctree\ZlibCompression.h" />
     <ClInclude Include="IO\UVF\TOCBlock.h" />
+    <ClInclude Include="IO\VTKConverter.h" />
     <ClInclude Include="IO\XML3DGeoConverter.h" />
     <ClInclude Include="LUAScripting\LUAClassConstructor.h" />
     <ClInclude Include="LUAScripting\LUAClassInstance.h" />
@@ -1635,7 +1636,6 @@
     <ClInclude Include="IO\TiffVolumeConverter.h" />
     <ClInclude Include="IO\VFFConverter.h" />
     <ClInclude Include="IO\VGStudioConverter.h" />
-    <ClCompile Include="IO\VTKConverter.h" />
     <ClInclude Include="IO\DirectoryParser.h" />
     <ClInclude Include="IO\KeyValueFileParser.h" />
     <ClInclude Include="IO\VGIHeaderParser.h" />
