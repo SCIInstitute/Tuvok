@@ -150,7 +150,7 @@ std::array<uint64_t,3> SourceBrickIndex(const BrickKey& k,
   // ... but the brick size could be greater than the number of voxels in the
   // LOD, if it's a single-brick LOD.  In that case we need to make sure to
   // avoid that division by 0.  We special case the first brick instead.
-  std::array<uint64_t,3> tmp;
+  std::array<uint64_t,3> tmp = {0};
   for(size_t i=0; i < 3; ++i) {
     if(idx[i] == 0) {
       tmp[i] = 0;
