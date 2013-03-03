@@ -1506,9 +1506,12 @@ bool ExtendedOctreeConverter::ApplyFunction(const ExtendedOctree &tree, uint64_t
         const UINT64VECTOR3 brickSize = tree.ComputeBrickSize(coords);
 
         tree.GetBrickData(pBrickData, coords);
-        if (skipOverlap != 0) VolumeTools::RemoveBoundary(pBrickData, brickSize, iVoxelSize, skipOverlap);
+        if (skipOverlap != 0) 
+          VolumeTools::RemoveBoundary(pBrickData, brickSize,
+                                      iVoxelSize, skipOverlap);
 
-        if(!brickFunc(pBrickData, brickSize, coords.xyz(),pUserContext)) {
+        if(!brickFunc(pBrickData, brickSize-(2*skipOverlap), 
+                      coords.xyz()*(tree.m_iBrickSize-(4*skipOverlap)),pUserContext)) {
           delete [] pBrickData;
           return false;
         }
