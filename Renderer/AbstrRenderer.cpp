@@ -1074,8 +1074,10 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
         b.fDistance = brick_distance(b, GetFirst3DRegion()->modelView[0]);
       }
     }
-    MESSAGE("considering brick <%zu,%zu,%zu>", std::get<0>(brick->first),
+/*
+MESSAGE("considering brick <%zu,%zu,%zu>", std::get<0>(brick->first),
             std::get<1>(brick->first), std::get<2>(brick->first));
+            */
 
     // add the brick to the list of active bricks
     vBrickList.push_back(b);
