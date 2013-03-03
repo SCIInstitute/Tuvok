@@ -2130,8 +2130,10 @@ MaxMin(const RasterDataBlock* rdb)
     do {
       std::vector<uint64_t> b_idx = NDBrickIndex(rdb, st_lod, brick);
       assert(rdb->ValidBrickIndex(vLOD, b_idx));
+      /*
       MESSAGE("%llu,%zu -> %llu,%llu,%llu", vLOD[0], brick,
               b_idx[0], b_idx[1], b_idx[2]);
+      */
 
       if(is_float && bit_width == 32) {
         assert(is_signed);
