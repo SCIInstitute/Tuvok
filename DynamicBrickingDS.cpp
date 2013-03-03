@@ -624,8 +624,9 @@ static bool test() {
     std::array<size_t,3> bsize = {{8,4,1}};
     size_t i=0;
     for(auto b=begin(voxels, bsize); b != end(); ++b) {
-      WARNING("brick %zu: %zu %zu %zu", i, std::get<0>((*b).first),
+/*      WARNING("brick %zu: %zu %zu %zu", i, std::get<0>((*b).first),
               std::get<1>((*b).first), std::get<2>((*b).first));
+              */
       ++i;
     }
   }
