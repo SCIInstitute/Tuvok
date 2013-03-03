@@ -219,6 +219,7 @@ HEADERS += \
            IO/LinesGeoConverter.h \
            IO/OBJGeoConverter.h \
            IO/PLYGeoConverter.h \
+           IO/StLGeoConverter.h \
            IO/MobileGeoConverter.h \
            IO/G3D.h \           
            IO/MedAlyVisGeoConverter.h \
@@ -552,6 +553,7 @@ SOURCES += \
            IO/LinesGeoConverter.cpp \
            IO/OBJGeoConverter.cpp \
            IO/PLYGeoConverter.cpp \
+           IO/StLGeoConverter.cpp \
            IO/MobileGeoConverter.cpp \
            IO/G3D.cpp \
            IO/MedAlyVisGeoConverter.cpp \

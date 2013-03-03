@@ -1094,6 +1094,9 @@
     <ClCompile Include="IO\VTKConverter.cpp">
       <Filter>IO</Filter>
     </ClCompile>
+    <ClCompile Include="IO\StLGeoConverter.cpp">
+      <Filter>IO\Geometry Converter</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Basics\Appendix.h">
@@ -2226,6 +2229,9 @@
     <ClInclude Include="IO\DynamicBrickingDS.h" />
     <ClInclude Include="IO\VTKConverter.h">
       <Filter>IO</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\StLGeoConverter.h">
+      <Filter>IO\Geometry Converter</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
