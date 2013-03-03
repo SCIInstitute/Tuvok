@@ -200,7 +200,7 @@ void VolumeTools::RemoveBoundary(uint8_t *pBrickData,
                                      (y+iRemove) * vBrickSize.x +
                                      (z+iRemove) * vBrickSize.x*vBrickSize.y));
       size_t outOffset = size_t(iVoxelSize * (y*vTargetBrickSize.x +
-                                       z*vTargetBrickSize.x*vTargetBrickSize.y));
+                                     z*vTargetBrickSize.x*vTargetBrickSize.y));
       memcpy(pBrickData+outOffset, pBrickData+inOffset, 
              size_t(iVoxelSize*vTargetBrickSize.x));
     }
