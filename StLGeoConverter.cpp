@@ -161,7 +161,7 @@ StLGeoConverter::ConvertToMesh(const std::string& strFilename) {
   // skip whitespaces
   size_t iStartPos = 0;
   for (;iStartPos<80;++iStartPos) {
-    if (header[iStartPos] != ' ' && header[iStartPos] != '/t') 
+    if (header[iStartPos] != ' ' && header[iStartPos] != '\t') 
       break;
   }
 
