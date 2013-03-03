@@ -170,6 +170,7 @@ SOURCES += \
   ./NRRDConverter.cpp \
   ./OBJGeoConverter.cpp \
   ./PLYGeoConverter.cpp \
+  ./StLGeoConverter.cpp \
   ./XML3DGeoConverter.cpp \
   ./QVISConverter.cpp \
   ./RAWConverter.cpp \
@@ -265,6 +266,7 @@ HEADERS += \
   ./NRRDConverter.h \
   ./OBJGeoConverter.h \
   ./PLYGeoConverter.h \
+  ./StLGeoConverter.h \
   ./XML3DGeoConverter.h \
   ./Quantize.h \
   ./QVISConverter.h \

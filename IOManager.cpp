@@ -96,6 +96,7 @@
 #include "OBJGeoConverter.h"
 #include "PLYGeoConverter.h"
 #include "XML3DGeoConverter.h"
+#include "StLGeoConverter.h"
 
 using namespace std;
 using namespace boost;
@@ -159,6 +160,7 @@ IOManager::IOManager() :
   m_vpGeoConverters.push_back(new OBJGeoConverter());
   m_vpGeoConverters.push_back(new PLYGeoConverter());
   m_vpGeoConverters.push_back(new XML3DGeoConverter());
+  m_vpGeoConverters.push_back(new StLGeoConverter());
 
   m_vpConverters.push_back(new VGStudioConverter());
   m_vpConverters.push_back(new QVISConverter());
