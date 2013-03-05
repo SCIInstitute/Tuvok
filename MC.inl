@@ -678,8 +678,8 @@ template <class T> FLOATVECTOR3 MarchingCubes<T>::InterpolateNormal(T fValueAtPo
   }
 
   FLOATVECTOR3 ret(static_cast<float>(result.x),
-				   static_cast<float>(result.y),
-				   static_cast<float>(result.z));
+           static_cast<float>(result.y),
+           static_cast<float>(result.z));
   return ret;
 }
 
