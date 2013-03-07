@@ -149,16 +149,17 @@ namespace tuvok {
   class GLVolumeListElem : boost::noncopyable {
   public:
     GLVolumeListElem(Dataset* _pDataset, const BrickKey&,
-                      bool bIsPaddedToPowerOfTwo, bool bDisableBorder,
-                      bool bIsDownsampledTo8Bits, bool bEmulate3DWith2DStacks,
-                      uint64_t iIntraFrameCounter,
-                      uint64_t iFrameCounter, MasterController* pMasterController,
-                      std::vector<unsigned char>& vUploadHub, int iShareGroupID);
+                     bool bIsPaddedToPowerOfTwo, bool bDisableBorder,
+                     bool bIsDownsampledTo8Bits, bool bEmulate3DWith2DStacks,
+                     uint64_t iIntraFrameCounter,
+                     uint64_t iFrameCounter, MasterController* pMasterController,
+                     std::vector<unsigned char>& vUploadHub, int iShareGroupID);
     ~GLVolumeListElem();
 
     bool Equals(const Dataset* _pDataset, const BrickKey&,
                 bool bIsPaddedToPowerOfTwo, bool bIsDownsampledTo8Bits,
-                bool bDisableBorder, bool bEmulate3DWith2DStacks, int iShareGroupID);
+                bool bDisableBorder, bool bEmulate3DWith2DStacks,
+                int iShareGroupID) const;
     bool Replace(Dataset* _pDataset, const BrickKey&,
                  bool bIsPaddedToPowerOfTwo, bool bIsDownsampledTo8Bits,
                  bool bDisableBorder, bool bEmulate3DWith2DStacks,
@@ -168,8 +169,9 @@ namespace tuvok {
                    bool bIsPaddedToPowerOfTwo, bool bIsDownsampledTo8Bits,
                    bool bDisableBorder, bool bEmulate3DWith2DStacks,
                    uint64_t& iIntraFrameCounter,
-                   uint64_t& iFrameCounter, int iShareGroupID);
-    void GetCounters(uint64_t& iIntraFrameCounter, uint64_t& iFrameCounter) {
+                   uint64_t& iFrameCounter, int iShareGroupID) const;
+    void GetCounters(uint64_t& iIntraFrameCounter,
+                     uint64_t& iFrameCounter) const {
       iIntraFrameCounter = m_iIntraFrameCounter;
       iFrameCounter = m_iFrameCounter;
     }
@@ -189,7 +191,7 @@ namespace tuvok {
       UINTVECTOR3 vSize,
       uint64_t iBitWidth,
       uint64_t iCompCount
-    );
+    ) const;
     bool CreateTexture(std::vector<unsigned char>& vUploadHub,
                        bool bDeleteOldTexture=true);
     void FreeTexture();
@@ -205,7 +207,7 @@ namespace tuvok {
     int GetShareGroupID() const {return m_iShareGroupID;}
   
   private:
-    bool Match(const UINTVECTOR3& vDimension);
+    bool Match(const UINTVECTOR3& vDimension) const;
 
     uint64_t m_iIntraFrameCounter;
     uint64_t m_iFrameCounter;
@@ -244,12 +246,9 @@ namespace tuvok {
       m_iShareGroupID(iShareGroupID)
     {}
 
-    ~FBOListElem()
-    {
-      delete pFBOTex;
-    }
+    ~FBOListElem() { delete pFBOTex; }
 
-    GLFBOTex* pFBOTex;
+    GLFBOTex* const pFBOTex;
     int m_iShareGroupID;
   };
   typedef std::deque<FBOListElem*> FBOList;
@@ -284,10 +283,10 @@ namespace tuvok {
              sdesc == glsl.sdesc;
     }
 
-    ShaderDescriptor sdesc;
+    const ShaderDescriptor sdesc;
     uint32_t iAccessCounter;
     GLSLProgram* pGLSLProgram;
-    int m_iShareGroupID;
+    const int m_iShareGroupID;
   };
   typedef std::deque<GLSLListElem*> GLSLList;
   typedef GLSLList::iterator GLSLListIter;

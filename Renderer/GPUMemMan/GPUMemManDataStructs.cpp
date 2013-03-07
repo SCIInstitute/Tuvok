@@ -90,7 +90,7 @@ bool GLVolumeListElem::Equals(const Dataset* _pDataset, const BrickKey& key,
                               bool bIsPaddedToPowerOfTwo,
                               bool bIsDownsampledTo8Bits, bool bDisableBorder,
                               bool bEmulate3DWith2DStacks,
-                              int iShareGroupID)
+                              int iShareGroupID) const
 {
   if (_pDataset != pDataset ||
       m_Key != key ||
@@ -120,7 +120,7 @@ bool GLVolumeListElem::BestMatch(const UINTVECTOR3& vDimension,
                                  bool bEmulate3DWith2DStacks,
                                  uint64_t& iIntraFrameCounter,
                                  uint64_t& iFrameCounter,
-                                 int iShareGroupID)
+                                 int iShareGroupID) const
 {
   if (!Match(vDimension) || iUserCount > 0
       || m_bIsPaddedToPowerOfTwo != bIsPaddedToPowerOfTwo
@@ -210,7 +210,7 @@ size_t GLVolumeListElem::GetCPUSize() const
 
 
 
-bool GLVolumeListElem::Match(const UINTVECTOR3& vDimension) {
+bool GLVolumeListElem::Match(const UINTVECTOR3& vDimension) const {
   if(!volume) { return false; }
 
   const UINTVECTOR3 vSize = pDataset->GetBrickVoxelCounts(m_Key);
@@ -234,7 +234,6 @@ bool GLVolumeListElem::Replace(Dataset* _pDataset,
                                uint64_t iFrameCounter,
                                std::vector<unsigned char>& vUploadHub,
                                int iShareGroupID) {
-  
   if(!volume) { return false; }
 
   pDataset = _pDataset;
@@ -242,7 +241,7 @@ bool GLVolumeListElem::Replace(Dataset* _pDataset,
   BrickKey tmpKey = key;
   m_Key = tmpKey;
 #else
-  m_Key    = key;
+  m_Key = key;
 #endif
   m_bIsPaddedToPowerOfTwo  = bIsPaddedToPowerOfTwo;
   m_bIsDownsampledTo8Bits  = bIsDownsampledTo8Bits;
@@ -309,7 +308,7 @@ static void DeleteArray(unsigned char* p) { delete[] p; }
 
 std::pair<std::shared_ptr<unsigned char>, UINTVECTOR3>
 GLVolumeListElem::PadData(unsigned char* pRawData, UINTVECTOR3 vSize, uint64_t iBitWidth,
-                          uint64_t iCompCount)
+                          uint64_t iCompCount) const
 {
   // pad the data to a power of two
   UINTVECTOR3 vPaddedSize(MathTools::NextPow2(uint32_t(vSize[0])),
