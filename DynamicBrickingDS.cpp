@@ -99,10 +99,6 @@ CFORWARDRET(float, MaxGradientMagnitude)
 CFORWARDRET(std::shared_ptr<const Histogram1D>, Get1DHistogram)
 CFORWARDRET(std::shared_ptr<const Histogram2D>, Get2DHistogram)
 
-//std::shared_ptr<const Histogram1D> Get1DHistogram() const;
-//std::shared_ptr<const Histogram2D> Get2DHistogram() const;
-
-
 // Removes all the cache information we've made so far.
 void DynamicBrickingDS::Clear() {
   di->ds->Clear();
