@@ -8,6 +8,17 @@
 
 namespace tuvok {
 
+/// Takes a number of voxels and a given brick size, and yields a brick
+/// whenever it is dereferenced.  Continues on to multiple LODs, until we
+/// create an LOD which is a single brick.
+/// Note that this is completely ignorant of ghost data!
+/// Example usage:
+///   for(auto b=begin({{128,128,128}}, {{16,16,16}}, ...); b != end(); ++b) {
+///     MESSAGE("working with brick <%u,%u,%u>",
+///             static_cast<unsigned>(std::get<0>(b.first)),
+///             static_cast<unsigned>(std::get<1>(b.first)),
+///             static_cast<unsigned>(std::get<2>(b.first)));
+///   }
 class const_brick_iterator :
   public std::iterator<std::forward_iterator_tag,
                        const std::pair<BrickKey, BrickMD>, int> {
@@ -62,7 +73,7 @@ const_brick_iterator end();
 
    The MIT License
 
-   Copyright (c) 2012 IVDA Group
+   Copyright (c) 2012-2013 IVDA Group
 
 
    Permission is hereby granted, free of charge, to any person obtaining a

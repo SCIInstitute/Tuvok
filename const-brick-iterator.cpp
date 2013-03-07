@@ -16,8 +16,6 @@ static UINTVECTOR3 va(const std::array<uint32_t,3>& a) {
   return UINTVECTOR3(a[0], a[1], a[2]);
 }
 
-static unsigned ghost() { return 4; }
-
 /// @param l the current location, in brick coords
 /// @param bsz size of the bricks
 /// @param voxels number of voxels
@@ -193,7 +191,6 @@ const std::pair<BrickKey, BrickMD> const_brick_iterator::dereference() const {
   }
 
   UINTVECTOR3 nvox = va(nvoxels(loc_sub1, this->bsize, this->voxels));
-  nvox += ghost(); // add in the ghost data on each brick!
   BrickMD md = { center, exts, nvox };
   return std::make_pair(bk, md);
 }
