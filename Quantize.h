@@ -636,6 +636,9 @@ static bool BinningQuantize(LargeRAWFile& InputData,
         }
     }
     MESSAGE("%lu bins needed...", static_cast<unsigned long>(bins.size()));
+    MESSAGE("minmax so far: %g,%g",
+            static_cast<double>(std::min_element(bins.begin(), bins.end())->first),
+            static_cast<double>(std::max_element(bins.begin(), bins.end())->first));
   }
 
   data.clear();
