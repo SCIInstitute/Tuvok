@@ -367,6 +367,7 @@ BrickKey DynamicBrickingDS::dbinfo::SourceBrickKey(const BrickKey& k) {
 // fit nicely inside a source brick: so we know we only need to read one brick.
 bool DynamicBrickingDS::GetBrick(const BrickKey& k, std::vector<uint8_t>& data) const
 {
+  assert(this->bricks.find(k) != this->bricks.end());
   BrickKey skey = this->di->SourceBrickKey(k);
 
   std::vector<uint8_t> srcdata;
@@ -422,32 +423,41 @@ bool DynamicBrickingDS::GetBrick(const BrickKey& k, std::vector<uint8_t>& data) 
   return true;
 }
 
-bool DynamicBrickingDS::GetBrick(const BrickKey&, std::vector<int8_t>&) const
+bool DynamicBrickingDS::GetBrick(const BrickKey& k, std::vector<int8_t>&) const
 {
+  assert(this->bricks.find(k) != this->bricks.end());
   abort(); return false;
 }
-bool DynamicBrickingDS::GetBrick(const BrickKey&, std::vector<uint16_t>&) const
+bool DynamicBrickingDS::GetBrick(const BrickKey& k,
+                                 std::vector<uint16_t>&) const
 {
+  assert(this->bricks.find(k) != this->bricks.end());
   abort(); return false;
 }
-bool DynamicBrickingDS::GetBrick(const BrickKey&, std::vector<int16_t>&) const
+bool DynamicBrickingDS::GetBrick(const BrickKey& k, std::vector<int16_t>&) const
 {
+  assert(this->bricks.find(k) != this->bricks.end());
   abort(); return false;
 }
-bool DynamicBrickingDS::GetBrick(const BrickKey&, std::vector<uint32_t>&) const
+bool DynamicBrickingDS::GetBrick(const BrickKey& k,
+                                 std::vector<uint32_t>&) const
 {
+  assert(this->bricks.find(k) != this->bricks.end());
   abort(); return false;
 }
-bool DynamicBrickingDS::GetBrick(const BrickKey&, std::vector<int32_t>&) const
+bool DynamicBrickingDS::GetBrick(const BrickKey& k, std::vector<int32_t>&) const
 {
+  assert(this->bricks.find(k) != this->bricks.end());
   abort(); return false;
 }
-bool DynamicBrickingDS::GetBrick(const BrickKey&, std::vector<float>&) const
+bool DynamicBrickingDS::GetBrick(const BrickKey& k, std::vector<float>&) const
 {
+  assert(this->bricks.find(k) != this->bricks.end());
   abort(); return false;
 }
-bool DynamicBrickingDS::GetBrick(const BrickKey&, std::vector<double>&) const
+bool DynamicBrickingDS::GetBrick(const BrickKey& k, std::vector<double>&) const
 {
+  assert(this->bricks.find(k) != this->bricks.end());
   abort(); return false;
 }
 
@@ -470,8 +480,9 @@ UINT64VECTOR3 DynamicBrickingDS::GetDomainSize(const size_t lod,
 CFORWARDRET(UINTVECTOR3, GetBrickOverlapSize)
 /// @return the number of voxels for the given brick, per dimension, taking
 ///         into account any brick overlaps.
-UINT64VECTOR3 DynamicBrickingDS::GetEffectiveBrickSize(const BrickKey&) const
+UINT64VECTOR3 DynamicBrickingDS::GetEffectiveBrickSize(const BrickKey& k) const
 {
+  assert(this->bricks.find(k) != this->bricks.end());
   abort();
   return UINT64VECTOR3(0,0,0);
 }
@@ -491,11 +502,13 @@ std::pair<double,double> DynamicBrickingDS::GetRange() const {
 /// memory.
 ///@{
 bool DynamicBrickingDS::ContainsData(const BrickKey& bk, double isoval) const {
+  assert(this->bricks.find(bk) != this->bricks.end());
   BrickKey skey = this->di->SourceBrickKey(bk);
   return di->ds->ContainsData(skey, isoval);
 }
 bool DynamicBrickingDS::ContainsData(const BrickKey& bk, double fmin,
                                      double fmax) const {
+  assert(this->bricks.find(bk) != this->bricks.end());
   BrickKey skey = this->di->SourceBrickKey(bk);
   return di->ds->ContainsData(skey, fmin, fmax);
 }
@@ -503,6 +516,7 @@ bool DynamicBrickingDS::ContainsData(const BrickKey& bk,
                                      double fmin, double fmax,
                                      double fminGradient,
                                      double fmaxGradient) const {
+  assert(this->bricks.find(bk) != this->bricks.end());
   BrickKey skey = this->di->SourceBrickKey(bk);
   return di->ds->ContainsData(skey, fmin,fmax, fminGradient, fmaxGradient);
 }
