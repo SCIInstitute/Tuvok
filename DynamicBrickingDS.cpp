@@ -312,8 +312,9 @@ std::array<uint64_t,3> SourceIndex(const BrickKey& k,
   const size_t lod = std::get<1>(k);
   const size_t idx1d = std::get<2>(k);
 
-  const UVFDataset& uvf = dynamic_cast<const UVFDataset&>(ds);
-  return Index(ds, lod, idx1d, ua(uvf.GetMaxBrickSize()));
+
+  const std::array<unsigned,3> src_bs = GenericSourceBrickSize(ds);
+  return Index(ds, lod, idx1d, src_bs);
 }
 
 // gives the size of the given brick from the target DS
