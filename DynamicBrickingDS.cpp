@@ -414,8 +414,13 @@ bool DynamicBrickingDS::GetBrick(const BrickKey& k, std::vector<uint8_t>& data) 
 
       const uint64_t src_o = src_offset[2]*src_bs[0]*src_bs[1] +
                              src_offset[1]*src_bs[0] + src_offset[0];
+#if 0
       std::copy(srcdata.data()+src_o, srcdata.data()+src_o+scanline,
                 data.data()+tgt_offset);
+#else
+      std::copy(srcdata.begin()+src_o, srcdata.begin()+src_o+scanline,
+                data.begin()+tgt_offset);
+#endif
       src_offset[1]++; // should follow 'y' increment.
     }
     src_offset[1] = tgt_index[1]-src_index[1]; // reset y ..
