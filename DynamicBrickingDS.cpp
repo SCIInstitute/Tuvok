@@ -747,6 +747,11 @@ void DynamicBrickingDS::Rebrick() {
                         // dataset.
                         assert(b.first == srckey);
                       }
+                      const std::array<unsigned,3> sbsize =
+                        SourceBrickSize(*this->di->ds, srckey);
+                      assert(b.second.n_voxels[0] <= sbsize[0]);
+                      assert(b.second.n_voxels[1] <= sbsize[1]);
+                      assert(b.second.n_voxels[2] <= sbsize[2]);
 #endif
                       this->AddBrick(brk.first, brk.second);
                     }
