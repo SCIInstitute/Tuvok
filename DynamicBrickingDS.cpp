@@ -736,9 +736,10 @@ void DynamicBrickingDS::Rebrick() {
                       brk.second.n_voxels[2] += ghost();
 #ifndef NDEBUG
                       BrickKey srckey = this->di->SourceBrickKey(b.first);
-                      MESSAGE("adding brick w/ srckey: <%zu,%zu,%zu>",
-                              std::get<0>(srckey), std::get<1>(srckey),
-                              std::get<2>(srckey));
+                      MESSAGE("adding brick w/ srckey: <%u,%u,%u>",
+                              static_cast<unsigned>(std::get<0>(srckey)),
+                              static_cast<unsigned>(std::get<1>(srckey)),
+                              static_cast<unsigned>(std::get<2>(srckey)));
                       if(this->di->brickSize[0] == src_bs[0] &&
                          this->di->brickSize[1] == src_bs[1] &&
                          this->di->brickSize[2] == src_bs[2]) {
