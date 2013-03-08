@@ -808,7 +808,7 @@ static bool test() {
     assert(std::get<1>((*beg).first) == 1); // LOD
     assert(std::get<2>((*beg).first) == 0); // index
     assert((*beg).second.n_voxels[0] ==  4);
-    assert((*beg).second.n_voxels[1] ==  8);
+    assert((*beg).second.n_voxels[1] ==  4);
     assert((*beg).second.n_voxels[2] ==  1);
     ++beg;
     assert(beg == end());

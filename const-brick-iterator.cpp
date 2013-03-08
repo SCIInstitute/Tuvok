@@ -100,9 +100,9 @@ const_brick_iterator& const_brick_iterator::advance() {
     this->location[2] = 1;
     this->LOD++;
     // we also have to decrease the number of voxels for the new level
-    if(this->voxels[0] > this->bsize[0]) { this->voxels[0] = voxels[0] /= 2; }
-    if(this->voxels[1] > this->bsize[1]) { this->voxels[1] = voxels[1] /= 2; }
-    if(this->voxels[2] > this->bsize[2]) { this->voxels[2] = voxels[2] /= 2; }
+    this->voxels[0] = voxels[0] /= 2; if(voxels[0] == 0) { voxels[0] = 1; }
+    this->voxels[1] = voxels[1] /= 2; if(voxels[1] == 0) { voxels[1] = 1; }
+    this->voxels[2] = voxels[2] /= 2; if(voxels[2] == 0) { voxels[2] = 1; }
   }
   if(this->LOD >= this->MaxLODs) {
     // invalidate the iterator.
