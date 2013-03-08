@@ -190,9 +190,15 @@ std::array<unsigned,3> TargetBricksPerSource(
   assert(tgt_blayout[1] >= src_blayout[1]);
   assert(tgt_blayout[2] >= src_blayout[2]);
   std::array<unsigned,3> rv = {{
-    tgt_blayout[0] / src_blayout[0],
-    tgt_blayout[1] / src_blayout[1],
-    tgt_blayout[2] / src_blayout[2]
+    static_cast<unsigned>(
+      ((static_cast<double>(tgt_blayout[0]) / src_blayout[0]) + 0.5)
+    ),
+    static_cast<unsigned>(
+      ((static_cast<double>(tgt_blayout[1]) / src_blayout[1]) + 0.5)
+    ),
+    static_cast<unsigned>(
+      ((static_cast<double>(tgt_blayout[2]) / src_blayout[2]) + 0.5)
+    )
   }};
   return rv;
 }
