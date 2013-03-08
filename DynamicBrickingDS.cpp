@@ -252,12 +252,15 @@ std::array<uint64_t,3> VoxelsInLOD(const Dataset& ds, size_t lod) {
 // are smaller.
 std::array<unsigned,3> GenericSourceBrickSize(const Dataset& ds) {
   const UVFDataset& uvf = dynamic_cast<const UVFDataset&>(ds);
-  const std::array<unsigned,3> s_bs = {{
+  const std::array<unsigned,3> src_bs = {{
     static_cast<unsigned>(uvf.GetMaxUsedBrickSizes()[0] - ghost()),
     static_cast<unsigned>(uvf.GetMaxUsedBrickSizes()[1] - ghost()),
     static_cast<unsigned>(uvf.GetMaxUsedBrickSizes()[2] - ghost())
   }};
-  return s_bs;
+  assert(src_bs[0] > 0 && src_bs[0] < 65535); // must make sense.
+  assert(src_bs[1] > 0 && src_bs[1] < 65535);
+  assert(src_bs[2] > 0 && src_bs[2] < 65535);
+  return src_bs;
 }
 
 // with the source brick index, give a brick key for the source dataset.
@@ -270,6 +273,7 @@ BrickKey SourceKey(const std::array<unsigned,3> brick_idx, size_t lod,
                   to1d(brick_idx, layout(src_voxels, src_bricksize)));
 }
 
+// figure out the voxel index of the upper left corner of a brick
 static std::array<uint64_t,3> Index(
   const Dataset& ds, size_t lod, uint64_t idx1d,
   const std::array<unsigned,3> bricksize
@@ -296,8 +300,9 @@ std::array<uint64_t,3> TargetIndex(const BrickKey& k,
   return Index(ds, lod, idx1d, bricksize);
 }
 
+// basically a cast from UINTVECTOR3 to a 3-elem array.
 std::array<unsigned,3> ua(const UINTVECTOR3& v) {
-  std::array<unsigned,3> tmp = {{ v[0], v[1], v[2] }};
+  const std::array<unsigned,3> tmp = {{ v[0], v[1], v[2] }};
   return tmp;
 }
 
@@ -338,7 +343,6 @@ std::array<unsigned,3> SourceBrickSize(const Dataset& ds, const BrickKey& k) {
 // in the source data.
 BrickKey DynamicBrickingDS::dbinfo::SourceBrickKey(const BrickKey& k) {
   const size_t lod = std::get<1>(k);
-  MESSAGE("Lod: %zu", lod);
   const std::array<unsigned,3> src_bidx =
     SourceBrickIndex(k, this->ds, this->brickSize);
   BrickKey skey = SourceKey(src_bidx, lod, *(this->ds));
@@ -349,6 +353,13 @@ BrickKey DynamicBrickingDS::dbinfo::SourceBrickKey(const BrickKey& k) {
   assert(std::get<2>(skey) < fbds->GetTotalBrickCount());
   assert(std::get<0>(skey) < fbds->GetNumberOfTimesteps());
 #endif
+  MESSAGE("keymap query: <%u,%u,%u> -> <%u,%u,%u>",
+          static_cast<unsigned>(std::get<0>(k)),
+          static_cast<unsigned>(std::get<1>(k)),
+          static_cast<unsigned>(std::get<2>(k)),
+          static_cast<unsigned>(std::get<0>(skey)),
+          static_cast<unsigned>(std::get<1>(skey)),
+          static_cast<unsigned>(std::get<2>(skey)));
   return skey;
 }
 
@@ -622,15 +633,7 @@ DatasetExtents(const std::shared_ptr<Dataset>& ds) {
 
 void DynamicBrickingDS::Rebrick() {
   // first make sure this makes sense.
-  const UVFDataset& uvf = dynamic_cast<const UVFDataset&>(*this->di->ds);
-  const std::array<unsigned,3> src_bs = {{
-    (unsigned)uvf.GetMaxUsedBrickSizes()[0] - ghost(),
-    (unsigned)uvf.GetMaxUsedBrickSizes()[1] - ghost(),
-    (unsigned)uvf.GetMaxUsedBrickSizes()[2] - ghost()
-  }};
-  assert(src_bs[0] > 0); // must make sense.
-  assert(src_bs[1] > 0);
-  assert(src_bs[2] > 0);
+  const std::array<unsigned,3> src_bs = GenericSourceBrickSize(*this->di->ds);
   this->di->brickSize[0] = std::min(this->di->brickSize[0], src_bs[0]);
   this->di->brickSize[1] = std::min(this->di->brickSize[1], src_bs[1]);
   this->di->brickSize[2] = std::min(this->di->brickSize[2], src_bs[2]);

@@ -42,10 +42,9 @@ BrickedDataset::BrickedDataset() { }
 BrickedDataset::~BrickedDataset() { }
 
 void BrickedDataset::NBricksHint(size_t n) {
-
-// The following line implements bricks.reserve(n);
-// in a portable way. unordered_map does not define
-// a reserve function but is seems gcc's tr1 does
+  // The following line implements bricks.reserve(n);
+  // in a portable way. unordered_map does not define
+  // a reserve function but is seems gcc's tr1 does
   bricks.rehash(size_t(ceil(float(n) / bricks.max_load_factor())));
 }
 
