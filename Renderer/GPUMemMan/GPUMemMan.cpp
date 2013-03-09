@@ -219,21 +219,12 @@ Dataset* GPUMemMan::LoadDataset(const string& strFilename,
   const IOManager& mgr = *(m_MasterController->IOMan());
   /// @todo fixme: just use `Dataset's here; instead of explicitly doing the
   /// IsOpen check, below, just rely on an exception being thrown.
-  FileBackedDataset* dataset = dynamic_cast<FileBackedDataset*>(
+  Dataset* dataset =
     // false: assume the file has already been verified
-    mgr.CreateDataset(strFilename, mgr.GetMaxBrickSize(), false)
-  );
+    mgr.CreateDataset(strFilename, mgr.GetMaxBrickSize(), false);
 
-  // We might not need this check anymore; CreateDataset should throw an
-  // exception, and we'll never get here, if opening fails.
-  if (dataset->IsOpen()) {
-    m_vpVolumeDatasets.push_back(VolDataListElem(dataset, requester));
-    return dataset;
-  } else {
-    delete dataset;
-    T_ERROR("Error opening dataset %s", strFilename.c_str());
-    return NULL;
-  }
+  m_vpVolumeDatasets.push_back(VolDataListElem(dataset, requester));
+  return dataset;
 }
 
 void GPUMemMan::AddDataset(Dataset* ds, AbstrRenderer *requester)
