@@ -772,8 +772,8 @@ void GPUMemMan::DeleteVolumePool(GLVolumePool** pool) {
   *pool = NULL;
 }
 
-GLVolumePool* GPUMemMan::GetVolumePool(UVFDataset* dataSet, GLenum filter, int /* iShareGroupID */) {
-
+GLVolumePool* GPUMemMan::GetVolumePool(UVFDataset* dataSet, GLenum filter,
+                                       int /* iShareGroupID */) {
   const uint64_t iBitWidth  = dataSet->GetBitWidth();
   const uint64_t iCompCount = dataSet->GetComponentCount();
   const UINTVECTOR3 vMaxBS = UINTVECTOR3(dataSet->GetMaxUsedBrickSizes());
@@ -897,7 +897,6 @@ GLVolume* GPUMemMan::AllocOrGetVolume(Dataset* pDataset,
                                       uint64_t iIntraFrameCounter,
                                       uint64_t iFrameCounter,
                                       int iShareGroupID) {
-
   for (GLVolumeListIter i = m_vpTex3DList.begin();
        i < m_vpTex3DList.end(); i++) {
     if ((*i)->Equals(pDataset, key, bUseOnlyPowerOfTwo,
@@ -946,7 +945,7 @@ GLVolume* GPUMemMan::AllocOrGetVolume(Dataset* pDataset,
       // We know the brick doesn't fit in memory, and we know there's no
       // existing texture which matches enough that we could overwrite it with
       // this one.  There's little we can do at this point ...
-      MESSAGE("  No suitable brick found. Randomly deleting bricks until this"
+      WARNING("  No suitable brick found. Randomly deleting bricks until this"
               " brick fits into memory");
 
       while (m_iAllocatedCPUMemory + iNeededCPUMemory >
@@ -969,7 +968,7 @@ GLVolume* GPUMemMan::AllocOrGetVolume(Dataset* pDataset,
     std::ostringstream newvol;
     newvol << "Creating new GL volume " << sz[0] << " x " << sz[1] << " x "
            << sz[2] << ", bitsize=" << iBitWidth << ", componentcount="
-           << iCompCount << ", interpolation=";
+           << iCompCount;
     MESSAGE("%s", newvol.str().c_str());
   }
 

@@ -462,7 +462,6 @@ bool GLVolumeListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
     }
   }
 
-
   glGetError();
   if (!m_bIsPaddedToPowerOfTwo ||
       (MathTools::IsPow2(uint32_t(vSize[0])) &&
@@ -472,18 +471,18 @@ bool GLVolumeListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
 
     if (m_bEmulate3DWith2DStacks) {
       volume = new GLVolume2DTex(uint32_t(vSize[0]), uint32_t(vSize[1]),
-                                     uint32_t(vSize[2]),
-                                     glInternalformat, glFormat, glType,
-                                     pRawData,
-                                     GL_LINEAR, GL_LINEAR,
-                                     clamp, clamp, clamp);
+                                 uint32_t(vSize[2]),
+                                 glInternalformat, glFormat, glType,
+                                 pRawData,
+                                 GL_LINEAR, GL_LINEAR,
+                                 clamp, clamp, clamp);
     } else {
       volume = new GLVolume3DTex(uint32_t(vSize[0]), uint32_t(vSize[1]),
-                                     uint32_t(vSize[2]),
-                                     glInternalformat, glFormat, glType,
-                                     pRawData,
-                                     GL_LINEAR, GL_LINEAR,
-                                     clamp, clamp, clamp);
+                                 uint32_t(vSize[2]),
+                                 glInternalformat, glFormat, glType,
+                                 pRawData,
+                                 GL_LINEAR, GL_LINEAR,
+                                 clamp, clamp, clamp);
     }
   } else {
     std::pair<std::shared_ptr<unsigned char>, UINTVECTOR3> padded =
@@ -493,20 +492,20 @@ bool GLVolumeListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
 
     if (m_bEmulate3DWith2DStacks) {
       volume = new GLVolume2DTex(vPaddedSize[0], vPaddedSize[1], vPaddedSize[2],
-                                     glInternalformat, glFormat, glType,
-                                     pPaddedData.get(),
-                                     GL_LINEAR, GL_LINEAR,
-                                     m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
-                                     m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
-                                     m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP);
+                                 glInternalformat, glFormat, glType,
+                                 pPaddedData.get(),
+                                 GL_LINEAR, GL_LINEAR,
+                                 m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
+                                 m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
+                                 m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP);
     } else {
       volume = new GLVolume3DTex(vPaddedSize[0], vPaddedSize[1], vPaddedSize[2],
-                                     glInternalformat, glFormat, glType,
-                                     pPaddedData.get(),
-                                     GL_LINEAR, GL_LINEAR,
-                                     m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
-                                     m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
-                                     m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP);
+                                 glInternalformat, glFormat, glType,
+                                 pPaddedData.get(),
+                                 GL_LINEAR, GL_LINEAR,
+                                 m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
+                                 m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
+                                 m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP);
     }
   }
 

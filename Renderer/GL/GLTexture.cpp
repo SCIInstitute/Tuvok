@@ -46,12 +46,12 @@ using namespace tuvok;
 GLTexture::GLTexture(GLint internalformat, GLenum format,
                      GLenum type, GLint iMagFilter,
                      GLint iMinFilter) : 
-m_iGLID(UINT32_INVALID),
-m_iMagFilter(iMagFilter),
-m_iMinFilter(iMinFilter),
-m_internalformat(internalformat),
-m_format(format),
-m_type(type)
+  m_iGLID(UINT32_INVALID),
+  m_iMagFilter(iMagFilter),
+  m_iMinFilter(iMinFilter),
+  m_internalformat(internalformat),
+  m_format(format),
+  m_type(type)
 {
 }
 
