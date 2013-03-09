@@ -1045,8 +1045,7 @@ UINT64VECTOR3 UVFDataset::GetMaxUsedBrickSizes() const
 
 }
 
-UINTVECTOR3 UVFDataset::GetMaxBrickSize() const
-{
+UINTVECTOR3 UVFDataset::GetMaxBrickSize() const {
   return m_aMaxBrickSize;
 }
 

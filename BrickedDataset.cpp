@@ -127,9 +127,18 @@ uint64_t BrickedDataset::GetTotalBrickCount() const {
   return static_cast<uint64_t>(this->bricks.size());
 }
 
-const BrickMD& BrickedDataset::GetBrickMetadata(const BrickKey& k) const
-{
+const BrickMD& BrickedDataset::GetBrickMetadata(const BrickKey& k) const {
   return this->bricks.find(k)->second;
+}
+
+UINTVECTOR3 BrickedDataset::GetMaxBrickSize() const {
+  UINTVECTOR3 bsize(0,0,0);
+  for(auto b=this->bricks.begin(); b != this->bricks.end(); ++b) {
+    if(b->second.n_voxels.volume() > bsize.volume()) {
+      bsize = b->second.n_voxels;
+    }
+  }
+  return bsize;
 }
 
 bool

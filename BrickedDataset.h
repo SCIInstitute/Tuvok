@@ -60,6 +60,8 @@ public:
 
   virtual const BrickMD& GetBrickMetadata(const BrickKey&) const;
 
+  virtual UINTVECTOR3 GetMaxBrickSize() const;
+
   virtual void Clear();
 
   /// It can be important to know whether the given brick is the first or last
