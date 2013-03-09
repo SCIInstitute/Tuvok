@@ -55,6 +55,7 @@ public:
   UINT64VECTOR3 GetEffectiveBrickSize(const BrickKey&) const;
 
   virtual UINTVECTOR3 GetMaxBrickSize() const;
+  virtual UINT64VECTOR3 GetBrickLayout(size_t lod, size_t ts) const;
 
   virtual unsigned GetBitWidth() const;
   virtual uint64_t GetComponentCount() const;
@@ -108,7 +109,6 @@ private:
 private:
   struct dbinfo;
   std::unique_ptr<struct dbinfo> di;
-
 };
 
 }

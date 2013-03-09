@@ -46,11 +46,13 @@ struct DynamicBrickingDS::dbinfo {
          std::array<unsigned,3> bs) : ds(d), brickSize(bs) { }
 
   // assumes timestep=0
-  std::vector<uint8_t> ReadSourceBrick(unsigned lod, std::array<uint64_t,3> idx);
-
+  std::vector<uint8_t> ReadSourceBrick(unsigned lod,
+                                       std::array<uint64_t,3> idx);
   // given the brick key in the dynamic DS, return the corresponding BrickKey
   // in the source data.
   BrickKey SourceBrickKey(const BrickKey&);
+
+  std::array<unsigned,3> TargetBrickLayout(size_t lod, size_t ts) const;
 };
 
 std::array<unsigned,3> GenericSourceBrickSize(const Dataset&);
@@ -370,6 +372,17 @@ BrickKey DynamicBrickingDS::dbinfo::SourceBrickKey(const BrickKey& k) {
   return skey;
 }
 
+std::array<unsigned,3>
+DynamicBrickingDS::dbinfo::TargetBrickLayout(size_t lod, size_t ts) const {
+  const std::array<uint64_t, 3> voxels = {{
+    this->ds->GetDomainSize(lod, ts)[0],
+    this->ds->GetDomainSize(lod, ts)[1],
+    this->ds->GetDomainSize(lod, ts)[2]
+  }};
+  std::array<unsigned,3> tgt_blayout = BrickLayout(voxels, this->brickSize);
+  return tgt_blayout;
+}
+
 // Because of how we done the re-bricking, we know that all target bricks will
 // fit nicely inside a source brick: so we know we only need to read one brick.
 bool DynamicBrickingDS::GetBrick(const BrickKey& k, std::vector<uint8_t>& data) const
@@ -502,6 +515,10 @@ UINT64VECTOR3 DynamicBrickingDS::GetEffectiveBrickSize(const BrickKey& k) const
 UINTVECTOR3 DynamicBrickingDS::GetMaxBrickSize() const {
   return UINTVECTOR3(this->di->brickSize[0], this->di->brickSize[1],
                      this->di->brickSize[2]);
+}
+UINT64VECTOR3 DynamicBrickingDS::GetBrickLayout(size_t lod, size_t ts) const {
+  const std::array<unsigned,3> lout = this->di->TargetBrickLayout(lod, ts);
+  return UINT64VECTOR3(lout[0], lout[1], lout[2]);
 }
 
 CFORWARDRET(unsigned, GetBitWidth)
