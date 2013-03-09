@@ -499,6 +499,11 @@ UINT64VECTOR3 DynamicBrickingDS::GetEffectiveBrickSize(const BrickKey& k) const
   return UINT64VECTOR3(0,0,0);
 }
 
+UINTVECTOR3 DynamicBrickingDS::GetMaxBrickSize() const {
+  return UINTVECTOR3(this->di->brickSize[0], this->di->brickSize[1],
+                     this->di->brickSize[2]);
+}
+
 CFORWARDRET(unsigned, GetBitWidth)
 CFORWARDRET(uint64_t, GetComponentCount)
 CFORWARDRET(bool, GetIsSigned)

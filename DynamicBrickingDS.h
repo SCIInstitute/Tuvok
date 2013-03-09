@@ -54,6 +54,8 @@ public:
   virtual UINTVECTOR3 GetBrickOverlapSize() const;
   UINT64VECTOR3 GetEffectiveBrickSize(const BrickKey&) const;
 
+  virtual UINTVECTOR3 GetMaxBrickSize() const;
+
   virtual unsigned GetBitWidth() const;
   virtual uint64_t GetComponentCount() const;
   virtual bool GetIsSigned() const;
