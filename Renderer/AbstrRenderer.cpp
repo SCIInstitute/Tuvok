@@ -45,7 +45,6 @@
 #include "Renderer/GPUMemMan/GPUMemMan.h"
 #include "Basics/MathTools.h"
 #include "Basics/GeometryGenerator.h"
-#include "IO/ExternalDataset.h"
 #include "IO/TransferFunction1D.h"
 #include "IO/TransferFunction2D.h"
 #include "RenderMesh.h"
@@ -307,17 +306,6 @@ void AbstrRenderer::SetDataset(Dataset *vds) {
   Controller::Instance().MemMan()->AddDataset(m_pDataset, this);
   ScheduleCompleteRedraw();
 }
-
-/*
-void AbstrRenderer::UpdateData(const BrickKey& bk,
-                               std::shared_ptr<float> fp, size_t len)
-{
-  MESSAGE("Updating data with %u element array", static_cast<uint32_t>(len));
-  // free old data; we know we'll never need it, at this point.
-  Controller::Instance().MemMan()->FreeAssociatedTextures(m_pDataset);
-  dynamic_cast<ExternalDataset*>(m_pDataset)->UpdateData(bk, fp, len);
-}
-*/
 
 void AbstrRenderer::Free1DTrans() {
   GPUMemMan& mm = *(Controller::Instance().MemMan());

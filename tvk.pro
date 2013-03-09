@@ -193,7 +193,6 @@ HEADERS += \
            IO/DirectoryParser.h \
            IO/DSFactory.h \
            IO/DynamicBrickingDS.h \
-           IO/ExternalDataset.h \
            IO/FileBackedDataset.h \
            IO/GeomViewConverter.h \
            IO/gzio.h \
@@ -528,7 +527,6 @@ SOURCES += \
            IO/DirectoryParser.cpp \
            IO/DynamicBrickingDS.cpp \
            IO/DSFactory.cpp \
-           IO/ExternalDataset.cpp \
            IO/FileBackedDataset.cpp \
            IO/GeomViewConverter.cpp \
            IO/gzio.c \

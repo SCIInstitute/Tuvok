@@ -45,7 +45,6 @@ set(TUVOK_SRCS ./Basics/Appendix.cpp
 ./IO/expressions/tvk-parse.parser.cpp
 ./IO/expressions/tvk-scan.lexer.cpp
 ./IO/expressions/volume.cpp
-./IO/ExternalDataset.cpp
 ./IO/FileBackedDataset.cpp
 ./IO/G3D.cpp
 ./IO/gzio.c
