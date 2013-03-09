@@ -111,8 +111,6 @@ void LuaDatasetProxy::bind(Dataset* ds, shared_ptr<LuaScripting> ss)
                              "get1DHistogram", "", false);
     id = mReg->functionProxy(ds, &Dataset::Get2DHistogram,
                              "get2DHistogram", "", false);
-    id = mReg->functionProxy(ds, &Dataset::Name,
-                             "name", "Dataset descriptive name.", false);
     id = mReg->functionProxy(ds, &Dataset::SaveRescaleFactors,
                              "saveRescaleFactors", "", false);
     id = mReg->functionProxy(ds, &Dataset::GetRescaleFactors,
@@ -129,6 +127,8 @@ void LuaDatasetProxy::bind(Dataset* ds, shared_ptr<LuaScripting> ss)
       MESSAGE("Binding extra FileBackedDS functions.");
       id = mReg->functionProxy(fileDataset, &FileBackedDataset::Filename,
                                "fullpath", "Full path to the dataset.", false);
+      id = mReg->functionProxy(ds, &FileBackedDataset::Name,
+                               "name", "Dataset descriptive name.", false);
     }
 
     try {
