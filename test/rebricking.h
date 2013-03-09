@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <fstream>
 #include <cxxtest/TestSuite.h>
+#include "Basics/SysTools.h"
 #include "Controller/Controller.h"
 #include "DynamicBrickingDS.h"
 #include "RAWConverter.h"
@@ -54,6 +55,34 @@ std::array<size_t,3> idx3d(size_t idx1d,
 
 // number of ghost cells per dimension...
 static unsigned ghost() { return 4; }
+
+/// tries to find the engine, so that we can use it for some tests.
+/// @returns false if we can't find it, so you can abort the test if so.
+bool check_for_engine() {
+  if(!SysTools::FileExists("engine.uvf") &&
+     !SysTools::FileExists("engine.raw.gz")) {
+    return false;
+  }
+  if(SysTools::FileExists("engine.uvf")) { return true; }
+
+  // if we have the raw data, we can just convert it.
+  if(SysTools::FileExists("engine.raw.gz")) {
+    TS_TRACE("Found raw engine data; converting it for tests.");
+    IOManager& iom = *Controller::Instance().IOMan();
+    std::ofstream nhdr("engine.nhdr");
+    if(!nhdr) { return false; }
+    nhdr << "NRRD0001\n"
+            "encoding: gzip\n"
+            "type: uint8\n"
+            "sizes: 256 256 128\n"
+            "dimension: 3\n"
+            "data file: engine.raw.gz\n";
+    nhdr.close();
+    return iom.ConvertDataset("engine.nhdr", "engine.uvf", ".", true, 256, 2,
+                              false);
+  }
+  return true;
+}
 
 // just creates and destroys the object.
 void tsimple() {
@@ -255,6 +284,33 @@ void tmetadata() {
   }
 }
 
+void trealdata() {
+  if(!check_for_engine()) { TS_FAIL("need engine for this test"); }
+  std::shared_ptr<UVFDataset> ds(new UVFDataset("engine.uvf", 256, false,
+                                                false));
+  DynamicBrickingDS dynamic(ds, {{256,256,128}});
+  BrickKey k(0,0, 3);
+  std::vector<uint8_t> data;
+  dynamic.GetBrick(k, data);
+}
+
+void trealdata_2() {
+  if(!check_for_engine()) { TS_FAIL("need engine for this test"); }
+  std::shared_ptr<UVFDataset> ds(new UVFDataset("engine.uvf", 256, false,
+                                                false));
+  DynamicBrickingDS dynamic(ds, {{126,256,128}});
+}
+
+void trealdata_make_two_lod2() {
+  if(!check_for_engine()) { TS_FAIL("need engine for this test"); }
+  std::shared_ptr<UVFDataset> ds(new UVFDataset("engine.uvf", 256, false,
+                                                false));
+  DynamicBrickingDS dynamic(ds, {{126,256,128}});
+  BrickKey k(0,2,0);
+  std::vector<uint8_t> data;
+  dynamic.GetBrick(k, data);
+}
+
 class RebrickerTests : public CxxTest::TestSuite {
 public:
   void test_simple() { tsimple(); }
@@ -269,4 +325,7 @@ public:
   void test_data_half_split() { tdata_half_split(); }
   void test_voxel_count() { tvoxel_count(); }
   void test_metadata() { tmetadata(); }
+  void test_real() { trealdata(); }
+  void test_real_2() { trealdata_2(); }
+  void test_real_make_two_lod2() { trealdata_make_two_lod2(); }
 };
