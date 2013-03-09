@@ -102,7 +102,8 @@ LuaStackRAII::~LuaStackRAII()
       }
 
       os << "]==])\n"
-         << "This probably means we're cleaning up after a thrown exception!";
+         << "log.warn(\"This probably means we're cleaning up after a thrown "
+                       "exception.\")\n";
 
       //luaL_dostring(mL, os.str().c_str());
       luaStackRAIIInternalDoString(mL, os.str());
