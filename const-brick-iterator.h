@@ -28,7 +28,7 @@ class const_brick_iterator :
     ///@parameter extent low/high of the data in world space
     explicit const_brick_iterator(
       const std::array<uint64_t,3>& voxels,
-      const std::array<unsigned,3>& bricksize,
+      const std::array<size_t,3>& bricksize,
       const std::array<std::array<float,3>,2>& extent
     );
 #ifdef _MSC_VER
@@ -52,7 +52,7 @@ class const_brick_iterator :
     bool operator!=(const const_brick_iterator& iter) const;
 
   private:
-    const std::array<unsigned,3> bsize;
+    const std::array<size_t,3> bsize;
     const size_t MaxLODs; ///< number of LODs we'll have total
     std::array<uint64_t,3> voxels; ///< in the current LOD
     size_t LOD; ///< what LOD we're on.  0 is fine. +1 is coarser, ...
@@ -62,7 +62,7 @@ class const_brick_iterator :
 };
 
 const_brick_iterator begin(const std::array<uint64_t,3>& voxels,
-                           const std::array<unsigned,3>& bricksize,
+                           const std::array<size_t,3>& bricksize,
                            const std::array<std::array<float,3>,2>& extents);
 const_brick_iterator end();
 

@@ -22,7 +22,7 @@ static UINTVECTOR3 va(const std::array<uint32_t,3>& a) {
 /// @returns the number of voxels 'l' has.  this is normally 'bsz', but can be
 ///          smaller when the 'l' abuts the side of a dimension
 static std::array<uint32_t,3> nvoxels(const std::array<uint64_t,3> l,
-                                      const std::array<unsigned,3> bsz,
+                                      const std::array<size_t,3> bsz,
                                       const std::array<uint64_t,3> voxels) {
   // the brick starts at 'v' and goes to 'v+bricksize'.  But 'v+bricksize'
   // might exceed beyond the bounds of the domain ('voxels'), and therefore
@@ -57,7 +57,7 @@ static std::array<uint32_t,3> nvoxels(const std::array<uint64_t,3> l,
     : (vox[1] / bsize[1] > vox[2] / bsize[2] ? 1 : 2))
 const_brick_iterator::const_brick_iterator(
   const std::array<uint64_t,3>& vox,
-  const std::array<unsigned,3>& bricksize,
+  const std::array<size_t,3>& bricksize,
   const std::array<std::array<float,3>,2>& exts
 ) : bsize(bricksize),
     // a bit intense for an initializer list, but it needs to be here so this
@@ -72,7 +72,7 @@ const_brick_iterator::const_brick_iterator(
 /// gives the brick layout for a given decomposition. i.e. the number of bricks
 /// in each dimension
 static std::array<uint64_t,3> layout(const std::array<uint64_t,3> voxels,
-                                     const std::array<unsigned,3> bsize) {
+                                     const std::array<size_t,3> bsize) {
   std::array<uint64_t,3> tmp = {{
     static_cast<uint64_t>(ceil(static_cast<float>(voxels[0]) / bsize[0])),
     static_cast<uint64_t>(ceil(static_cast<float>(voxels[1]) / bsize[1])),
@@ -209,7 +209,7 @@ bool const_brick_iterator::operator!=(const const_brick_iterator& that) const {
 }
 
 const_brick_iterator begin(const std::array<uint64_t,3>& voxels,
-                           const std::array<unsigned,3>& bricksize,
+                           const std::array<size_t,3>& bricksize,
                            const std::array<std::array<float,3>,2>& extents) {
   return const_brick_iterator(voxels, bricksize, extents);
 }

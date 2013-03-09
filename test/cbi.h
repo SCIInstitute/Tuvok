@@ -6,7 +6,7 @@
 
 void simple_center() {
   std::array<uint64_t,3> voxels = {{12,6,24}};
-  std::array<unsigned,3> bsize = {{12,6,24}};
+  std::array<size_t,3> bsize = {{12,6,24}};
   std::array<std::array<float,3>,2> extents = {{
     {{ 0.0f, 0.0f, 0.0f }},
     {{ 10.0f, 35.0f, 19.0f }}
@@ -19,7 +19,7 @@ void simple_center() {
 
 void simple_extents() {
   std::array<uint64_t,3> voxels = {{12,6,24}};
-  std::array<unsigned,3> bsize = {{12,6,24}};
+  std::array<size_t,3> bsize = {{12,6,24}};
   std::array<std::array<float,3>,2> extents = {{
     {{ 0.0f, 0.0f, 0.0f }},
     {{ 12.0f, 6.0f, 24.0f }}
@@ -33,7 +33,7 @@ void simple_extents() {
 // split the domain in two && make sure centers are correct
 void two_center() {
   std::array<uint64_t,3> voxels = {{12,6,24}};
-  std::array<unsigned,3> bsize = {{6,6,24}};
+  std::array<size_t,3> bsize = {{6,6,24}};
   std::array<std::array<float,3>,2> extents = {{
     {{ 0.0f, 0.0f, 0.0f }},
     {{ 10.0f, 35.0f, 19.0f }}
@@ -52,7 +52,7 @@ void two_center() {
 // split the domain in two && make sure extents are correct
 void two_extents() {
   std::array<uint64_t,3> voxels = {{12,6,24}};
-  std::array<unsigned,3> bsize = {{6,6,24}};
+  std::array<size_t,3> bsize = {{6,6,24}};
   std::array<std::array<float,3>,2> extents = {{
     {{ 0.0f, 0.0f, 0.0f }},
     {{ 10.0f, 35.0f, 19.0f }}
