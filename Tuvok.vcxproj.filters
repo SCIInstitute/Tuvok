@@ -303,9 +303,6 @@
     <ClCompile Include="IO\DSFactory.cpp">
       <Filter>IO</Filter>
     </ClCompile>
-    <ClCompile Include="IO\ExternalDataset.cpp">
-      <Filter>IO</Filter>
-    </ClCompile>
     <ClCompile Include="IO\FileBackedDataset.cpp">
       <Filter>IO</Filter>
     </ClCompile>
@@ -1589,9 +1586,6 @@
       <Filter>IO</Filter>
     </ClInclude>
     <ClInclude Include="IO\DSFactory.h">
-      <Filter>IO</Filter>
-    </ClInclude>
-    <ClInclude Include="IO\ExternalDataset.h">
       <Filter>IO</Filter>
     </ClInclude>
     <ClInclude Include="IO\FileBackedDataset.h">

@@ -635,7 +635,6 @@
     <ClCompile Include="IO\Dataset.cpp" />
     <ClCompile Include="IO\DSFactory.cpp" />
     <ClCompile Include="IO\DynamicBrickingDS.cpp" />
-    <ClCompile Include="IO\ExternalDataset.cpp" />
     <ClCompile Include="IO\FileBackedDataset.cpp" />
     <ClCompile Include="IO\gzio.c" />
     <ClCompile Include="IO\IOManager.cpp" />
@@ -1565,7 +1564,6 @@
     <ClInclude Include="IO\Dataset.h" />
     <ClInclude Include="IO\DSFactory.h" />
     <ClInclude Include="IO\DynamicBrickingDS.h" />
-    <ClInclude Include="IO\ExternalDataset.h" />
     <ClInclude Include="IO\FileBackedDataset.h" />
     <ClInclude Include="IO\gzio.h" />
     <ClInclude Include="IO\IOManager.h" />
