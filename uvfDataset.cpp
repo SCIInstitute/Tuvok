@@ -49,12 +49,15 @@ using namespace std;
 
 namespace tuvok {
 
-UVFDataset::UVFDataset(const std::string& strFilename, uint64_t iMaxAcceptableBricksize, bool bVerify, bool bMustBeSameVersion) :
-  FileBackedDataset(strFilename),
+UVFDataset::UVFDataset(const std::string& strFilename,
+                       uint64_t iMaxAcceptableBricksize,
+                       bool bVerify,
+                       bool bMustBeSameVersion) :
   m_bToCBlock(false),
   m_pKVDataBlock(NULL),
   m_bIsSameEndianness(true),
   m_pDatasetFile(NULL),
+  m_strFilename(strFilename),
   m_CachedRange(make_pair(+1,-1)),
   m_iMaxAcceptableBricksize(iMaxAcceptableBricksize)
 {
@@ -62,11 +65,11 @@ UVFDataset::UVFDataset(const std::string& strFilename, uint64_t iMaxAcceptableBr
 }
 
 UVFDataset::UVFDataset() :
-  FileBackedDataset(""),
   m_bToCBlock(false),
   m_pKVDataBlock(NULL),
   m_bIsSameEndianness(true),
   m_pDatasetFile(NULL),
+  m_strFilename(""),
   m_CachedRange(make_pair(+1,-1)),
   m_iMaxAcceptableBricksize(DEFAULT_BRICKSIZE)
 {
@@ -77,17 +80,15 @@ UVFDataset::~UVFDataset()
   Close();
 }
 
-bool UVFDataset::Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion)
-{
+void UVFDataset::Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion) {
   // open the file
   const std::string& fn = Filename();
   std::wstring wstrFilename(fn.begin(), fn.end());
   m_pDatasetFile = new UVF(wstrFilename);
   std::string strError;
-  m_bIsOpen = m_pDatasetFile->Open(bMustBeSameVersion,bVerify,bReadWrite,&strError);
-  if (!m_bIsOpen) {
-    T_ERROR(strError.c_str());
-    return false;
+  if(!m_pDatasetFile->Open(bMustBeSameVersion, bVerify, bReadWrite, &strError))
+  {
+    throw Exception("Could not open file", _func_, __LINE__);
   }
 
   if(m_pDatasetFile->ms_ulReaderVersion !=
@@ -110,8 +111,7 @@ bool UVFDataset::Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion)
     T_ERROR("No suitable volume block found in UVF file.  Check previous "
             "messages for rejected blocks.");
     Close();
-    m_bIsOpen = false;
-    return false;
+    throw Exception("No volume data", _func_, __LINE__);
   }
 
   for (size_t i = 0;i<m_timesteps.size();++i)
@@ -213,8 +213,6 @@ bool UVFDataset::Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion)
       MESSAGE("%s", stats.str().c_str());*/
     }
   }
-
-  return true;
 }
 
 void UVFDataset::Close() {
@@ -232,7 +230,6 @@ void UVFDataset::Close() {
 
   m_pKVDataBlock= NULL;
   m_pDatasetFile= NULL;
-  m_bIsOpen= false;
 }
 
 void UVFDataset::ComputeMetaData(size_t timestep) {
@@ -942,9 +939,10 @@ bool UVFDataset::ApplyFunction(uint64_t iLODLevel,
   }
 }
 
-// BrickKey's index is 1D. For UVF's RDB, we've got a 3D index.  When we create the
-// brick index to satisfy the interface, we do so in a reversible way.  This
-// methods reverses the 1D into into UVF's 3D index.
+// BrickKey's index is 1D. For UVF's RDB, we've got a 3D index.  When
+// we create the brick index to satisfy the interface, we do so in a
+// reversible way.  This methods reverses the 1D into into UVF's 3D
+// index.
 std::vector<uint64_t>
 UVFDataset::IndexToVector(const BrickKey &k) const {
   std::vector<uint64_t> vBrick;
@@ -971,7 +969,6 @@ UVFDataset::IndexToVector(const BrickKey &k) const {
 UINT64VECTOR4 UVFDataset::KeyToTOCVector(const BrickKey &k) const {
   if (m_bToCBlock) {
     const TOCTimestep* ts = static_cast<TOCTimestep*>(m_timesteps[std::get<0>(k)]);
-
     const uint64_t iLOD = std::get<1>(k);
     const uint64_t iLinearIndex = std::get<2>(k);
     const UINT64VECTOR3 iBricks = ts->GetDB()->GetBrickCount(iLOD);
@@ -1256,17 +1253,14 @@ const std::vector<std::pair<std::string, std::string>> UVFDataset::GetMetadata()
   return v;
 }
 
-bool UVFDataset::GeometryTransformToFile(size_t iMeshIndex, const FLOATMATRIX4& m) {
+bool UVFDataset::GeometryTransformToFile(size_t iMeshIndex,
+                                         const FLOATMATRIX4& m) {
   Close();
 
   MESSAGE("Attempting to reopen file in readwrite mode.");
 
-  if (!Open(false,true,false)) {
-    T_ERROR("Readwrite mode failed, maybe file is write protected?");
-
-    Open(false,false,false);
-    return false;
-  } else {
+  try {
+    Open(false,true,false);
     MESSAGE("Successfully reopened file in readwrite mode.");
 
     // turn meshindex into block index, those are different as the
@@ -1288,24 +1282,31 @@ bool UVFDataset::GeometryTransformToFile(size_t iMeshIndex, const FLOATMATRIX4& 
     }
 
     if (!bFound) {
-      T_ERROR("Unable to locate mesh data block %u", static_cast<unsigned>(iBlockIndex));
+      T_ERROR("Unable to locate mesh data block %u",
+              static_cast<unsigned>(iBlockIndex));
       return false;
     }
 
-    GeometryDataBlock* block = dynamic_cast<GeometryDataBlock*>(m_pDatasetFile->GetDataBlockRW(iBlockIndex,false));
+    GeometryDataBlock* block = dynamic_cast<GeometryDataBlock*>(
+      m_pDatasetFile->GetDataBlockRW(iBlockIndex,false)
+    );
+
     if (!block) {
-      T_ERROR("Inconsistent UVF block at index %u", static_cast<unsigned>(iBlockIndex));
+      T_ERROR("Inconsistent UVF block at index %u",
+              static_cast<unsigned>(iBlockIndex));
       return false;
     }
 
     MESSAGE("Transforming Vertices ...");
-    std::vector< float > vertices  = block->GetVertices();
+    std::vector<float> vertices  = block->GetVertices();
     if (vertices.size() % 3) {
-      T_ERROR("Inconsistent data vertex in UVF block at index %u", static_cast<unsigned>(iBlockIndex));
+      T_ERROR("Inconsistent data vertex in UVF block at index %u",
+              static_cast<unsigned>(iBlockIndex));
       return false;
     }
     for (size_t i = 0;i<vertices.size();i+=3) {
-      FLOATVECTOR3 v = (FLOATVECTOR4(vertices[i+0],vertices[i+1],vertices[i+2],1)*m).xyz();
+      FLOATVECTOR3 v = (FLOATVECTOR4(vertices[i+0], vertices[i+1],
+                                     vertices[i+2],1)*m).xyz();
       vertices[i+0] = v.x;
       vertices[i+1] = v.y;
       vertices[i+2] = v.z;
@@ -1319,11 +1320,13 @@ bool UVFDataset::GeometryTransformToFile(size_t iMeshIndex, const FLOATMATRIX4& 
 
     std::vector< float > normals  = block->GetNormals();
     if (normals.size() % 3) {
-      T_ERROR("Inconsistent normal data in UVF block at index %u", static_cast<unsigned>(iBlockIndex));
+      T_ERROR("Inconsistent normal data in UVF block at index %u",
+              static_cast<unsigned>(iBlockIndex));
       return false;
     }
     for (size_t i = 0;i<normals.size();i+=3) {
-      FLOATVECTOR3 n = (FLOATVECTOR4(normals[i+0],normals[i+1],normals[i+2],0)*invTranspose).xyz();
+      FLOATVECTOR3 n = (FLOATVECTOR4(normals[i+0], normals[i+1],
+                                     normals[i+2],0)*invTranspose).xyz();
       n.normalize();
       normals[i+0] = n.x;
       normals[i+1] = n.y;
@@ -1337,54 +1340,59 @@ bool UVFDataset::GeometryTransformToFile(size_t iMeshIndex, const FLOATMATRIX4& 
 
     Open(false,false,false);
     return true;
+  } catch(const tuvok::Exception&) {
+    T_ERROR("Readwrite mode failed, maybe file is write protected?");
+    Open(false,false,false);
+    return false;
   }
 }
 
 bool UVFDataset::RemoveMesh(size_t iMeshIndex) {
   Close();
 
-  MESSAGE("Attempting to reopen file in readwrite mode.");
+  MESSAGE("Attempting to reopen file in read/write mode.");
 
-  if (!Open(false,true,false)) {
-    T_ERROR("Readwrite mode failed, maybe file is write protected?");
-
+  try {
+    Open(false, true, false);
+  } catch(const Exception&) {
+    T_ERROR("Read/write mode failed, maybe file is write protected?");
     Open(false,false,false);
     return false;
-  } else {
-    MESSAGE("Successfully reopened file in readwrite mode.");
-
-    // turn meshindex into block index, those are different as the
-    // uvf file most likely also contains data other than meshes
-    // such as the volume or histograms, etc.
-    size_t iBlockIndex = 0;
-    bool bFound = false;
-
-    for(size_t block=0; block < m_pDatasetFile->GetDataBlockCount(); ++block) {
-      if (m_pDatasetFile->GetDataBlock(block)->GetBlockSemantic()
-                                                  == UVFTables::BS_GEOMETRY) {
-        if (iMeshIndex == 0) {
-          iBlockIndex = block;
-          bFound = true;
-          break;
-        }
-        iMeshIndex--;
-      }
-    }
-
-    if (!bFound) {
-      T_ERROR("Unable to locate mesh data block %u", static_cast<unsigned>(iMeshIndex));
-      return false;
-    }
-
-    bool bResult = m_pDatasetFile->DropBlockFromFile(iBlockIndex);
-
-    MESSAGE("Writing changes to disk");
-    Close();
-    MESSAGE("Reopening in read-only mode");
-
-    Open(false,false,false);
-    return bResult;
   }
+  MESSAGE("Successfully reopened file in readwrite mode.");
+
+  // turn meshindex into block index, those are different as the
+  // uvf file most likely also contains data other than meshes
+  // such as the volume or histograms, etc.
+  size_t iBlockIndex = 0;
+  bool bFound = false;
+
+  for(size_t block=0; block < m_pDatasetFile->GetDataBlockCount(); ++block) {
+    if (m_pDatasetFile->GetDataBlock(block)->GetBlockSemantic()
+                                                == UVFTables::BS_GEOMETRY) {
+      if (iMeshIndex == 0) {
+        iBlockIndex = block;
+        bFound = true;
+        break;
+      }
+      iMeshIndex--;
+    }
+  }
+
+  if (!bFound) {
+    T_ERROR("Unable to locate mesh data block %u",
+            static_cast<unsigned>(iMeshIndex));
+    return false;
+  }
+
+  bool bResult = m_pDatasetFile->DropBlockFromFile(iBlockIndex);
+
+  MESSAGE("Writing changes to disk");
+  Close();
+  MESSAGE("Reopening in read-only mode");
+
+  Open(false,false,false);
+  return bResult;
 }
 
 bool UVFDataset::AppendMesh(std::shared_ptr<const Mesh> meshIn) {
@@ -1394,79 +1402,79 @@ bool UVFDataset::AppendMesh(std::shared_ptr<const Mesh> meshIn) {
 
   MESSAGE("Attempting to reopen file in readwrite mode.");
 
-  if (!Open(false,true,false)) {
-    T_ERROR("Readwrite mode failed, maybe file is write protected?");
-
+  try {
+    Open(false,true,false);
+  } catch(const Exception&) {
+    T_ERROR("Read/write mode failed, maybe file is write protected?");
     Open(false,false,false);
     return false;
-  } else {
-    MESSAGE("Successfully reopened file in readwrite mode.");
-
-    // now create a GeometryDataBlock ...
-    std::shared_ptr<GeometryDataBlock> tsb(new GeometryDataBlock());
-
-    // ... and transfer the data from the mesh object
-    // source data
-    const VertVec&      v = m.GetVertices();
-    const NormVec&      n = m.GetNormals();
-    const TexCoordVec&  t = m.GetTexCoords();
-    const ColorVec&     c = m.GetColors();
-
-    // target data
-    vector<float> fVec;
-    size_t iVerticesPerPoly = m.GetVerticesPerPoly();
-    tsb->SetPolySize(iVerticesPerPoly);
-
-    if (v.size()) {
-      fVec.resize(v.size()*3);
-      memcpy(&fVec[0],&v[0],v.size()*3*sizeof(float));
-      tsb->SetVertices(fVec);
-    } else {
-      // even if the vectors are empty still let the datablock know
-      tsb->SetVertices(vector<float>());
-    }
-
-    if (n.size()) {
-      fVec.resize(n.size()*3);
-      memcpy(&fVec[0],&n[0],n.size()*3*sizeof(float));
-      tsb->SetNormals(fVec);
-    } else {
-      // even if the vectors are empty still let the datablock know
-      tsb->SetNormals(vector<float>());
-    }
-    if (t.size()) {
-      fVec.resize(t.size()*2);
-      memcpy(&fVec[0],&t[0],t.size()*2*sizeof(float));
-      tsb->SetTexCoords(fVec);
-    } else {
-      // even if the vectors are empty still let the datablock know
-      tsb->SetTexCoords(vector<float>());
-    }
-    if (c.size()) {
-      fVec.resize(c.size()*4);
-      memcpy(&fVec[0],&c[0],c.size()*4*sizeof(float));
-      tsb->SetColors(fVec);
-    } else {
-      // even if the vectors are empty still let the datablock know
-      tsb->SetColors(vector<float>());
-    }
-
-    tsb->SetVertexIndices(m.GetVertexIndices());
-    tsb->SetNormalIndices(m.GetNormalIndices());
-    tsb->SetTexCoordIndices(m.GetTexCoordIndices());
-    tsb->SetColorIndices(m.GetColorIndices());
-
-    tsb->m_Desc = m.Name();
-
-    m_pDatasetFile->AppendBlockToFile(tsb);
-
-    MESSAGE("Writing changes to disk");
-    Close();
-    MESSAGE("Reopening in read-only mode");
-
-    Open(false,false,false);
-    return true;
   }
+  MESSAGE("Successfully reopened file in readwrite mode.");
+
+  // now create a GeometryDataBlock ...
+  std::shared_ptr<GeometryDataBlock> tsb(new GeometryDataBlock());
+
+  // ... and transfer the data from the mesh object
+  // source data
+  const VertVec&      v = m.GetVertices();
+  const NormVec&      n = m.GetNormals();
+  const TexCoordVec&  t = m.GetTexCoords();
+  const ColorVec&     c = m.GetColors();
+
+  // target data
+  vector<float> fVec;
+  size_t iVerticesPerPoly = m.GetVerticesPerPoly();
+  tsb->SetPolySize(iVerticesPerPoly);
+
+  if (v.size()) {
+    fVec.resize(v.size()*3);
+    memcpy(&fVec[0],&v[0],v.size()*3*sizeof(float));
+    tsb->SetVertices(fVec);
+  } else {
+    // even if the vectors are empty still let the datablock know
+    tsb->SetVertices(vector<float>());
+  }
+
+  if (n.size()) {
+    fVec.resize(n.size()*3);
+    memcpy(&fVec[0],&n[0],n.size()*3*sizeof(float));
+    tsb->SetNormals(fVec);
+  } else {
+    // even if the vectors are empty still let the datablock know
+    tsb->SetNormals(vector<float>());
+  }
+  if (t.size()) {
+    fVec.resize(t.size()*2);
+    memcpy(&fVec[0],&t[0],t.size()*2*sizeof(float));
+    tsb->SetTexCoords(fVec);
+  } else {
+    // even if the vectors are empty still let the datablock know
+    tsb->SetTexCoords(vector<float>());
+  }
+  if (c.size()) {
+    fVec.resize(c.size()*4);
+    memcpy(&fVec[0],&c[0],c.size()*4*sizeof(float));
+    tsb->SetColors(fVec);
+  } else {
+    // even if the vectors are empty still let the datablock know
+    tsb->SetColors(vector<float>());
+  }
+
+  tsb->SetVertexIndices(m.GetVertexIndices());
+  tsb->SetNormalIndices(m.GetNormalIndices());
+  tsb->SetTexCoordIndices(m.GetTexCoordIndices());
+  tsb->SetColorIndices(m.GetColorIndices());
+
+  tsb->m_Desc = m.Name();
+
+  m_pDatasetFile->AppendBlockToFile(tsb);
+
+  MESSAGE("Writing changes to disk");
+  Close();
+  MESSAGE("Reopening in read-only mode");
+
+  Open(false,false,false);
+  return true;
 }
 
 
@@ -1608,47 +1616,47 @@ bool UVFDataset::SaveRescaleFactors() {
 
   MESSAGE("Attempting to reopen file in readwrite mode.");
 
-  if (!Open(false,true,false)) {
-    T_ERROR("Readwrite mode failed, maybe file is write protected?");
-
+  try {
+    Open(false,true,false);
+  } catch(const Exception&) {
+    T_ERROR("Read/write mode failed, maybe file is write protected?");
     Open(false,false,false);
     return false;
+  }
+  MESSAGE("Successfully reopened file in readwrite mode.");
+
+  if (m_bToCBlock) {
+    for(size_t tsi=0; tsi < m_timesteps.size(); ++tsi) {
+      TOCBlock* tocb =
+        static_cast<TOCBlock*>(
+          m_pDatasetFile->GetDataBlockRW(m_timesteps[tsi]->block_number, true)
+        );
+      tocb->SetScale(saveUserScale);
+    }
   } else {
-    MESSAGE("Successfully reopened file in readwrite mode.");
+    for(size_t tsi=0; tsi < m_timesteps.size(); ++tsi) {
+      RasterDataBlock* rdb =
+        static_cast<RasterDataBlock*>(
+          m_pDatasetFile->GetDataBlockRW(m_timesteps[tsi]->block_number, true)
+        );
 
-    if (m_bToCBlock) {
-      for(size_t tsi=0; tsi < m_timesteps.size(); ++tsi) {
-        TOCBlock* tocb =
-          static_cast<TOCBlock*>(
-            m_pDatasetFile->GetDataBlockRW(m_timesteps[tsi]->block_number, true)
-          );
-        tocb->SetScale(saveUserScale);
-      }
-    } else {
-      for(size_t tsi=0; tsi < m_timesteps.size(); ++tsi) {
-        RasterDataBlock* rdb =
-          static_cast<RasterDataBlock*>(
-            m_pDatasetFile->GetDataBlockRW(m_timesteps[tsi]->block_number, true)
-          );
-
-        size_t iSize = rdb->ulDomainSize.size();
-        for (size_t i=0; i < 3; i++) {
-          m_DomainScale[i] = saveUserScale[i];
-          // matrix multiplication with scale factors
-          rdb->dDomainTransformation[0+(iSize+1)*i] *= saveUserScale[0];
-          rdb->dDomainTransformation[1+(iSize+1)*i] *= saveUserScale[1];
-          rdb->dDomainTransformation[2+(iSize+1)*i] *= saveUserScale[2];
-        }
+      size_t iSize = rdb->ulDomainSize.size();
+      for (size_t i=0; i < 3; i++) {
+        m_DomainScale[i] = saveUserScale[i];
+        // matrix multiplication with scale factors
+        rdb->dDomainTransformation[0+(iSize+1)*i] *= saveUserScale[0];
+        rdb->dDomainTransformation[1+(iSize+1)*i] *= saveUserScale[1];
+        rdb->dDomainTransformation[2+(iSize+1)*i] *= saveUserScale[2];
       }
     }
-
-    MESSAGE("Writing changes to disk");
-    Close();
-    MESSAGE("Reopening in read-only mode");
-    Open(false,false,false);
-
-    return true;
   }
+
+  MESSAGE("Writing changes to disk");
+  Close();
+  MESSAGE("Reopening in read-only mode");
+  Open(false,false,false);
+
+  return true;
 }
 
 bool UVFDataset::CanRead(const std::string&,
@@ -1673,8 +1681,8 @@ bool UVFDataset::Verify(const std::string& filename) const
   return !checksumFail;
 }
 
-FileBackedDataset* UVFDataset::Create(const std::string& filename,
-                                      uint64_t max_brick_size, bool verify) const
+Dataset* UVFDataset::Create(const std::string& filename,
+                            uint64_t max_brick_size, bool verify) const
 {
   return new UVFDataset(filename, max_brick_size, verify, false);
 }

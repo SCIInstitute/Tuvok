@@ -35,13 +35,6 @@
 
 namespace tuvok {
 
-FileBackedDataset::FileBackedDataset(const std::string& fn)
-  : m_bIsOpen(false), m_strFilename(fn) {}
-FileBackedDataset::~FileBackedDataset() {}
-
-bool FileBackedDataset::IsOpen() const { return m_bIsOpen; }
-std::string FileBackedDataset::Filename() const { return m_strFilename; }
-
 bool FileBackedDataset::Verify(const std::string&) const { return true; }
 
 } // namespace tuvok

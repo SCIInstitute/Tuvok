@@ -40,7 +40,6 @@ std::shared_ptr<UVFDataset> mk8x8testdata() {
   mk8x8("abc"); ///< @todo fixme use a real temporary file
   mk_uvf("abc", outfn);
   std::shared_ptr<UVFDataset> ds(new UVFDataset(outfn, 128, false));
-  TS_ASSERT(ds->IsOpen());
   return ds;
 }
 

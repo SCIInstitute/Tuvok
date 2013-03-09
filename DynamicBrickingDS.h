@@ -4,6 +4,7 @@
 #include <array>
 #include <memory>
 #include <vector>
+#include "BrickedDataset.h"
 #include "FileBackedDataset.h"
 
 namespace tuvok {
@@ -13,7 +14,7 @@ namespace tuvok {
 
 /// During construction, you must give an already-opened data set and
 /// the desired brick size.
-class DynamicBrickingDS : public FileBackedDataset {
+class DynamicBrickingDS : public BrickedDataset, public FileBackedDataset {
 public:
   DynamicBrickingDS(std::shared_ptr<Dataset> ds,
                     std::array<size_t, 3> maxBrickSize);
@@ -85,17 +86,13 @@ public:
                         void *pUserContext,
                         uint64_t iOverlap) const;
 
-  /// A user-visible name for your format.  This might get displayed in UI
-  /// elements; e.g. the GUI might ask if the user wants to use the "Name()
-  /// reader" to open a particular file.
-  virtual const char* Name() const;
   /// Virtual constructor.
   virtual DynamicBrickingDS* Create(const std::string&, uint64_t, bool) const;
 
   /// functions for FileBackedDataset interface
   ///@{
-  virtual bool IsOpen() const;
   virtual std::string Filename() const;
+  virtual const char* Name() const;
 
   virtual bool CanRead(const std::string&, const std::vector<int8_t>&) const;
   virtual bool Verify(const std::string&) const;

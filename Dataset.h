@@ -163,10 +163,6 @@ public:
                         void *pUserContext,
                         uint64_t iOverlap) const = 0;
 
-  /// A user-visible name for your format.  This might get displayed in UI
-  /// elements; e.g. the GUI might ask if the user wants to use the "Name()
-  /// reader" to open a particular file.
-  virtual const char* Name() const { return "Generic"; }
   /// Virtual constructor.
   virtual Dataset* Create(const std::string&, uint64_t, bool) const=0;  
 

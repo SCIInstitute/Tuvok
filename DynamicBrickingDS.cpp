@@ -98,8 +98,6 @@ static uint64_t to1d(const std::array<unsigned,3>& loc,
 
 DynamicBrickingDS::DynamicBrickingDS(std::shared_ptr<Dataset> ds,
                                      BrickSize maxBrickSize) :
-  FileBackedDataset(dynamic_cast<const FileBackedDataset*>
-                                (ds.get())->Filename()),
   di(new DynamicBrickingDS::dbinfo(ds, maxBrickSize))
 {
   this->Rebrick();
@@ -358,8 +356,8 @@ BrickKey DynamicBrickingDS::dbinfo::SourceBrickKey(const BrickKey& k) {
   BrickKey skey = SourceKey(src_bidx, lod, *(this->ds));
 #ifndef NDEBUG
   // brick key should make sense.
-  std::shared_ptr<FileBackedDataset> fbds =
-    std::dynamic_pointer_cast<FileBackedDataset>(this->ds);
+  std::shared_ptr<BrickedDataset> fbds =
+    std::dynamic_pointer_cast<BrickedDataset>(this->ds);
   assert(std::get<0>(skey) < fbds->GetNumberOfTimesteps());
   assert(std::get<2>(skey) < fbds->GetTotalBrickCount());
 #endif
@@ -575,7 +573,9 @@ bool DynamicBrickingDS::ApplyFunction(uint64_t lod,
   return di->ds->ApplyFunction(lod, brickFunc, pUserContext, iOverlap);
 }
 
-CFORWARDRET(const char*, Name)
+const char* DynamicBrickingDS::Name() const {
+  return "Rebricked Data";
+}
 
 // Virtual constructor.  Hard to make sense of this in the IOManager's
 // context; this isn't a register-able Dataset type which tuvok can
@@ -586,12 +586,6 @@ DynamicBrickingDS* DynamicBrickingDS::Create(const std::string&, uint64_t,
   abort(); return NULL;
 }
 
-bool DynamicBrickingDS::IsOpen() const {
-  const FileBackedDataset& f = dynamic_cast<const FileBackedDataset&>(
-    *(this->di->ds.get())
-  );
-  return f.IsOpen();
-}
 std::string DynamicBrickingDS::Filename() const {
   const FileBackedDataset& f = dynamic_cast<const FileBackedDataset&>(
     *(this->di->ds.get())

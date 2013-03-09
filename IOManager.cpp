@@ -778,10 +778,6 @@ bool IOManager::MergeDatasets(const vector <string>& strFilenames,
 
     if (strExt == "UVF") {
       UVFDataset v(strFilenames[iInputData],m_iMaxBrickSize,false);
-      if (!v.IsOpen()) {
-        T_ERROR("Could not open '%s'!", strFilenames[iInputData].c_str());
-        return false;
-      }
 
       uint64_t iLODLevel = 0; // always extract the highest quality here
 
@@ -1176,7 +1172,6 @@ bool IOManager::ConvertDataset(const list<string>& files,
   if (strExt == "UVF") {
     // max(): disable bricksize check
     UVFDataset v(strFilename,numeric_limits<uint64_t>::max(),false,false);
-    if (!v.IsOpen()) return false;
 
     uint64_t iLODLevel = 0; // always extract the highest quality here
 
@@ -1289,8 +1284,7 @@ Dataset* IOManager::CreateDataset(const string& filename,
   return m_dsFactory->Create(filename, max_brick_size, verify);
 }
 
-void IOManager::AddReader(shared_ptr<FileBackedDataset> ds)
-{
+void IOManager::AddReader(shared_ptr<FileBackedDataset> ds) {
   m_dsFactory->AddReader(ds);
 }
 
@@ -1614,7 +1608,7 @@ bool IOManager::ExportDataset(const UVFDataset* pSourceData, uint64_t iLODlevel,
 // mean we can't read this.  If we can't read it, it needs to be converted.
 // All your data are belong to us.
 bool IOManager::NeedsConversion(const string& strFilename) const {
-  const weak_ptr<Dataset> reader = m_dsFactory->Reader(strFilename);
+  const weak_ptr<FileBackedDataset> reader = m_dsFactory->Reader(strFilename);
   return reader.expired();
 }
 
@@ -1622,7 +1616,7 @@ bool IOManager::NeedsConversion(const string& strFilename) const {
 // that verification method.
 bool IOManager::Verify(const string& strFilename) const
 {
-  const weak_ptr<Dataset> reader = m_dsFactory->Reader(strFilename);
+  const weak_ptr<FileBackedDataset> reader = m_dsFactory->Reader(strFilename);
 
   // I swear I did not purposely choose words so that this text aligned.
   assert(!reader.expired() && "Impossible; we wouldn't have reached this code "
@@ -1926,7 +1920,6 @@ bool IOManager::AnalyzeDataset(const string& strFilename, RangeInfo& info,
 
   if (strExt == "UVF") {
     UVFDataset v(strFilename,m_iMaxBrickSize,false);
-    if (!v.IsOpen()) return false;
 
     uint64_t iComponentCount = v.GetComponentCount();
     bool bSigned = v.GetIsSigned();

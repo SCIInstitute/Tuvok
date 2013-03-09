@@ -51,6 +51,7 @@
 namespace tuvok {
 
 class Dataset;
+class FileBackedDataset;
 
 namespace io {
 
@@ -65,12 +66,12 @@ public:
 
   /// Identify the reader which can read the given file.
   /// @return The dataset if we find a match, or NULL if not.
-  const std::weak_ptr<Dataset> Reader(const std::string&) const;
+  const std::weak_ptr<FileBackedDataset> Reader(const std::string&) const;
 
-  void AddReader(std::shared_ptr<Dataset>);
+  void AddReader(std::shared_ptr<FileBackedDataset>);
 
   // We can't copy datasets.  So we store pointers to them instead.
-  typedef std::list<std::shared_ptr<Dataset>> DSList;
+  typedef std::list<std::shared_ptr<FileBackedDataset>> DSList;
   const DSList& Readers() const;
 
 private:

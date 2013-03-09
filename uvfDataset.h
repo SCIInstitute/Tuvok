@@ -30,10 +30,11 @@
 #define TUVOK_UVF_DATASET_H
 
 #include <vector>
-#include "FileBackedDataset.h"
+#include "Controller/Controller.h"
 #include "UVF/RasterDataBlock.h"
 #include "UVF/MaxMinDataBlock.h"
-#include "Controller/Controller.h"
+#include "BrickedDataset.h"
+#include "FileBackedDataset.h"
 #include "AbstrConverter.h"
 
 /// For UVF, a brick key has to be a list for the LOD indicators and a
@@ -97,7 +98,7 @@ namespace tuvok {
     const TOCBlock* GetDB() const {return dynamic_cast<const TOCBlock*>(m_pVolumeDataBlock);}
   };
 
-class UVFDataset : public FileBackedDataset {
+class UVFDataset : public BrickedDataset, public FileBackedDataset {
 public:
   UVFDataset(const std::string& strFilename, uint64_t iMaxAcceptableBricksize,
              bool bVerify, bool bMustBeSameVersion = true);
@@ -175,9 +176,10 @@ public:
   bool RemoveMesh(size_t iMeshIndex);
   bool GeometryTransformToFile(size_t iMeshIndex, const FLOATMATRIX4& m);
 
+  virtual std::string Filename() const { return m_strFilename; }
   virtual bool CanRead(const std::string&, const std::vector<int8_t>&) const;
   virtual bool Verify(const std::string&) const;
-  virtual FileBackedDataset* Create(const std::string&, uint64_t, bool) const;
+  virtual Dataset* Create(const std::string&, uint64_t, bool) const;
   virtual std::list<std::string> Extensions() const;
   const UVF* GetUVFFile() const {return m_pDatasetFile;}
 
@@ -202,7 +204,8 @@ public:
 
 private:
   std::vector<uint64_t> IndexToVector(const BrickKey &k) const;
-  bool Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion=true);
+  /// @throws a tuvok::Exception if the open fails.
+  void Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion=true);
   void Close();
   void FindSuitableDataBlocks();
   void ComputeMetaData(size_t ts);
@@ -252,6 +255,7 @@ private:
   bool                                  m_bIsSameEndianness;
 
   UVF*                                  m_pDatasetFile;
+  const std::string                     m_strFilename;
   std::pair<double,double>              m_CachedRange;
 
   uint64_t                              m_iMaxAcceptableBricksize;
