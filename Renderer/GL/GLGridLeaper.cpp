@@ -1,25 +1,18 @@
-#include "GLInclude.h"
-#include "GLGridLeaper.h"
-#include "GLFBOTex.h"
-
-#include <Controller/Controller.h>
-#include "../GPUMemMan/GPUMemMan.h"
-#include "../../Basics/Plane.h"
-#include "GLSLProgram.h"
-#include "GLTexture1D.h"
-#include "GLTexture2D.h"
-#include "Renderer/TFScaling.h"
-#include "Basics/MathTools.h"
-#include "Basics/SystemInfo.h"
 #include "Basics/Clipper.h"
-
+#include "Basics/Plane.h"
 #include "Basics/SysTools.h" // for Paper Hack file log 
-
-#include "IO/uvfDataset.h"
+#include "Controller/Controller.h"
 #include "IO/TransferFunction1D.h"
 #include "IO/TransferFunction2D.h"
+#include "IO/uvfDataset.h"
+#include "Renderer/GPUMemMan/GPUMemMan.h"
 
+#include "GLFBOTex.h"
+#include "GLGridLeaper.h"
 #include "GLHashTable.h"
+#include "GLInclude.h"
+#include "GLSLProgram.h"
+#include "GLTexture1D.h"
 #include "GLVolumePool.h"
 #include "GLVBO.h"
 
@@ -152,7 +145,7 @@ void GLGridLeaper::CleanupShaders() {
 }
 
 struct {
-  void operator() (GLFBOTex*& fbo) {
+  void operator() (GLFBOTex*& fbo) const {
     if (fbo){
       Controller::Instance().MemMan()->FreeFBO(fbo); 
       fbo = NULL;
@@ -163,10 +156,12 @@ struct {
 void GLGridLeaper::Cleanup() {
   GLGPURayTraverser::Cleanup();
 
-  std::for_each(m_pFBORayStart.begin(),        m_pFBORayStart.end(),        deleteFBO);
-  std::for_each(m_pFBORayStartNext.begin(),    m_pFBORayStartNext.end(),    deleteFBO);
-  std::for_each(m_pFBOStartColor.begin(),     m_pFBOStartColor.end(),     deleteFBO);
-  std::for_each(m_pFBOStartColorNext.begin(), m_pFBOStartColorNext.end(), deleteFBO);
+  std::for_each(m_pFBORayStart.begin(), m_pFBORayStart.end(), deleteFBO);
+  std::for_each(m_pFBORayStartNext.begin(), m_pFBORayStartNext.end(),
+                deleteFBO);
+  std::for_each(m_pFBOStartColor.begin(), m_pFBOStartColor.end(), deleteFBO);
+  std::for_each(m_pFBOStartColorNext.begin(), m_pFBOStartColorNext.end(),
+                deleteFBO);
 
 #ifdef GLGRIDLEAPER_DEBUGVIEW
   deleteFBO(m_pFBODebug);
