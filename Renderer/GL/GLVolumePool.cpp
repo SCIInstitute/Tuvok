@@ -213,7 +213,7 @@ GLVolumePool::GLVolumePool(const UINTVECTOR3& poolSize, UVFDataset* pDataset, GL
   for (uint32_t i = 0; i < m_vMinMaxScalar.size(); i++) {
     UINTVECTOR4 const vBrickID = GetVectorBrickID(i);
     BrickKey const key = m_pDataset->IndexFrom4D(vBrickID, m_iMinMaxScalarTimestep);
-    InternalMaxMinComponent imme = m_pDataset->MaxMinForKey(key);
+    MinMaxBlock imme = m_pDataset->MaxMinForKey(key);
     m_vMinMaxScalar[i].min = imme.minScalar;
     m_vMinMaxScalar[i].max = imme.maxScalar;
   }
@@ -1239,7 +1239,7 @@ void GLVolumePool::RecomputeVisibility(VisibilityState const& visibility, size_t
     for (uint32_t iBrickID = 0; iBrickID < m_vMinMaxScalar.size(); iBrickID++) {
       UINTVECTOR4 const vBrickID = GetVectorBrickID(iBrickID);
       BrickKey const key = m_pDataset->IndexFrom4D(vBrickID, m_iMinMaxScalarTimestep);
-      InternalMaxMinComponent imme = m_pDataset->MaxMinForKey(key);
+      MinMaxBlock imme = m_pDataset->MaxMinForKey(key);
       m_vMinMaxScalar[iBrickID].min = imme.minScalar;
       m_vMinMaxScalar[iBrickID].max = imme.maxScalar;
     }
@@ -1254,7 +1254,7 @@ void GLVolumePool::RecomputeVisibility(VisibilityState const& visibility, size_t
       for (uint32_t iBrickID = 0; iBrickID < m_vMinMaxScalar.size(); iBrickID++) {
         UINTVECTOR4 const vBrickID = GetVectorBrickID(iBrickID);
         BrickKey const key = m_pDataset->IndexFrom4D(vBrickID, m_iMinMaxGradientTimestep);
-        InternalMaxMinComponent imme = m_pDataset->MaxMinForKey(key);
+        MinMaxBlock imme = m_pDataset->MaxMinForKey(key);
         m_vMinMaxGradient[iBrickID].min = imme.minGradient;
         m_vMinMaxGradient[iBrickID].max = imme.maxGradient;
       }
