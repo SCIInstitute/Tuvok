@@ -142,7 +142,7 @@ public:
   // Global Data
   float MaxGradientMagnitude() const;
   virtual UINTVECTOR3 GetMaxBrickSize() const;
-  virtual UINT64VECTOR3 GetMaxUsedBrickSizes() const;
+  virtual UINTVECTOR3 GetMaxUsedBrickSizes() const;
   virtual UINTVECTOR3 GetBrickOverlapSize() const;
   virtual uint64_t GetLODLevelCount() const;
   virtual unsigned GetBitWidth() const;

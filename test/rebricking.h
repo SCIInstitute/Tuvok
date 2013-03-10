@@ -310,6 +310,18 @@ void trealdata_make_two_lod2() {
   dynamic.GetBrick(k, data);
 }
 
+void tbsizes() {
+  std::shared_ptr<UVFDataset> ds = mk8x8testdata();
+  DynamicBrickingDS dynamic(ds, {{8,8,8}});
+  TS_ASSERT_EQUALS(dynamic.GetMaxBrickSize()[0], 8U);
+  TS_ASSERT_EQUALS(dynamic.GetMaxBrickSize()[1], 8U);
+  TS_ASSERT_EQUALS(dynamic.GetMaxBrickSize()[2], 1U);
+
+  TS_ASSERT_EQUALS(dynamic.GetMaxUsedBrickSizes()[0], 12U);
+  TS_ASSERT_EQUALS(dynamic.GetMaxUsedBrickSizes()[1], 12U);
+  TS_ASSERT_EQUALS(dynamic.GetMaxUsedBrickSizes()[2],  5U);
+}
+
 class RebrickerTests : public CxxTest::TestSuite {
 public:
   void test_simple() { tsimple(); }
@@ -327,4 +339,5 @@ public:
   void test_real() { trealdata(); }
   void test_real_2() { trealdata_2(); }
   void test_real_make_two_lod2() { trealdata_make_two_lod2(); }
+  void test_brick_sizes() { tbsizes(); }
 };

@@ -63,8 +63,12 @@ public:
 
   virtual const BrickMD& GetBrickMetadata(const BrickKey&) const;
 
-  /// @returns the largest brick size used for this decomposition
+  /// @returns the bricking size used for this decomposition
   virtual UINTVECTOR3 GetMaxBrickSize() const;
+  /// @returns the largest brick which *actually* got used when splitting up
+  /// the data set.  This can be smaller than GetMaxBrickSize, when, for
+  /// example, the domain is smaller than the brick size requested.
+  virtual UINTVECTOR3 GetMaxUsedBrickSizes() const;
   /// @returns the min/max scalar and gradient values for the given brick.
   virtual tuvok::MinMaxBlock MaxMinForKey(const BrickKey&) const=0;
 

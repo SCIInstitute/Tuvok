@@ -131,12 +131,15 @@ const BrickMD& BrickedDataset::GetBrickMetadata(const BrickKey& k) const {
   return this->bricks.find(k)->second;
 }
 
+// we don't actually know how the user bricked the data set here; only a
+// derived class would know.  so, calculate it instead.
 UINTVECTOR3 BrickedDataset::GetMaxBrickSize() const {
+  return this->GetMaxUsedBrickSizes();
+}
+UINTVECTOR3 BrickedDataset::GetMaxUsedBrickSizes() const {
   UINTVECTOR3 bsize(0,0,0);
   for(auto b=this->bricks.begin(); b != this->bricks.end(); ++b) {
-    if(b->second.n_voxels.volume() > bsize.volume()) {
-      bsize = b->second.n_voxels;
-    }
+    bsize.StoreMax(b->second.n_voxels);
   }
   return bsize;
 }

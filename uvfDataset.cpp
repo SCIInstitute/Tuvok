@@ -1003,44 +1003,27 @@ NDBrickKey UVFDataset::IndexToVectorKey(const BrickKey &k) const {
 
 // determines the largest actually used brick dimensions
 // in the current dataset
-UINT64VECTOR3 UVFDataset::GetMaxUsedBrickSizes() const
+UINTVECTOR3 UVFDataset::GetMaxUsedBrickSizes() const
 {
-  UINT64VECTOR3 vMaxSize(1,1,1);
-  UINT64VECTOR3 vAbsoluteMax(m_aMaxBrickSize);
+  UINTVECTOR3 vMaxSize(1,1,1);
+  UINTVECTOR3 vAbsoluteMax(m_aMaxBrickSize);
+  // we can do things differently/more intelligently for TOCBlocks.
   if (m_bToCBlock) {
     for(size_t tsi=0; tsi < m_timesteps.size(); ++tsi) {
-      const TOCTimestep* ts = (TOCTimestep*)m_timesteps[tsi];
+      const TOCTimestep* ts = (const TOCTimestep*)m_timesteps[tsi];
 
-      // the first brick in the highest LoD is the biggest brick (usually of size vAbsoluteMax)
-      vMaxSize.StoreMax(UINT64VECTOR3(ts->GetDB()->GetBrickSize(UINT64VECTOR4(0,0,0,0))));
+      // the first brick in the highest LoD is the biggest brick
+      // (usually of size vAbsoluteMax)
+      vMaxSize.StoreMax(
+        UINTVECTOR3(ts->GetDB()->GetBrickSize(UINT64VECTOR4(0,0,0,0)))
+      );
 
       if (vMaxSize == vAbsoluteMax) return vAbsoluteMax;
     }
     return vMaxSize;
-  } else {
-    UINT64VECTOR3 vAbsoluteMax(m_aMaxBrickSize);
-
-    for(size_t tsi=0; tsi < m_timesteps.size(); ++tsi) {
-      const RDTimestep* ts = (RDTimestep*)m_timesteps[tsi];
-
-      for (size_t iLOD=0;iLOD < ts->m_vvaBrickSize.size(); iLOD++) {
-        for (size_t iX=0; iX < ts->m_vvaBrickSize[iLOD].size(); iX++) {
-          for (size_t iY=0; iY < ts->m_vvaBrickSize[iLOD][iX].size(); iY++) {
-            for (size_t iZ=0; iZ < ts->m_vvaBrickSize[iLOD][iX][iY].size(); iZ++) {
-              vMaxSize.StoreMax(ts->m_vvaBrickSize[iLOD][iX][iY][iZ]);
-
-              // as no brick should be larger than vAbsoluteMax
-              // we can terminate the scan if we reached that size
-              if (vMaxSize == vAbsoluteMax) return vAbsoluteMax;
-            }
-          }
-        }
-      }
-    }
-
-    return vMaxSize;
   }
-
+  // our parent has no real info, just calculates this on the fly.
+  return BrickedDataset::GetMaxUsedBrickSizes();
 }
 
 UINTVECTOR3 UVFDataset::GetMaxBrickSize() const {
