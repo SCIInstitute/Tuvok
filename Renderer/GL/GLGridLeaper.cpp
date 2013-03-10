@@ -98,7 +98,7 @@ bool GLGridLeaper::CreateVolumePool() {
   }
 
   // find lowest LoD with only a single brick
-  const BrickKey bkey = m_pToCDataset->TOCVectorToKey(
+  const BrickKey bkey = m_pToCDataset->IndexFrom4D(
     UINTVECTOR4(0,0,0,
         uint32_t(m_pToCDataset->GetLargestSingleBrickLOD(m_iTimestep))),
     m_iTimestep

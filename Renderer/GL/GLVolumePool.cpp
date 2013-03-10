@@ -212,7 +212,7 @@ GLVolumePool::GLVolumePool(const UINTVECTOR3& poolSize, UVFDataset* pDataset, GL
   m_vMinMaxScalar.resize(m_iTotalBrickCount);
   for (uint32_t i = 0; i < m_vMinMaxScalar.size(); i++) {
     UINTVECTOR4 const vBrickID = GetVectorBrickID(i);
-    BrickKey const key = m_pDataset->TOCVectorToKey(vBrickID, m_iMinMaxScalarTimestep);
+    BrickKey const key = m_pDataset->IndexFrom4D(vBrickID, m_iMinMaxScalarTimestep);
     InternalMaxMinComponent imme = m_pDataset->MaxMinForKey(key);
     m_vMinMaxScalar[i].min = imme.minScalar;
     m_vMinMaxScalar[i].max = imme.maxScalar;
@@ -1190,7 +1190,7 @@ namespace {
     Timer t;
     for (auto missingBrick = vBrickIDs.cbegin(); missingBrick < vBrickIDs.cend(); missingBrick++) {
       UINTVECTOR4 const& vBrickID = *missingBrick;
-      BrickKey const key = pDataset->TOCVectorToKey(vBrickID, iTimestep);
+      BrickKey const key = pDataset->IndexFrom4D(vBrickID, iTimestep);
       UINTVECTOR3 const vVoxelSize = pDataset->GetBrickVoxelCounts(key);
 
       uint32_t const brickIndex = pool.GetIntegerBrickID(vBrickID);
@@ -1238,7 +1238,7 @@ void GLVolumePool::RecomputeVisibility(VisibilityState const& visibility, size_t
     m_iMinMaxScalarTimestep = iTimestep;
     for (uint32_t iBrickID = 0; iBrickID < m_vMinMaxScalar.size(); iBrickID++) {
       UINTVECTOR4 const vBrickID = GetVectorBrickID(iBrickID);
-      BrickKey const key = m_pDataset->TOCVectorToKey(vBrickID, m_iMinMaxScalarTimestep);
+      BrickKey const key = m_pDataset->IndexFrom4D(vBrickID, m_iMinMaxScalarTimestep);
       InternalMaxMinComponent imme = m_pDataset->MaxMinForKey(key);
       m_vMinMaxScalar[iBrickID].min = imme.minScalar;
       m_vMinMaxScalar[iBrickID].max = imme.maxScalar;
@@ -1253,7 +1253,7 @@ void GLVolumePool::RecomputeVisibility(VisibilityState const& visibility, size_t
       m_iMinMaxGradientTimestep = iTimestep;
       for (uint32_t iBrickID = 0; iBrickID < m_vMinMaxScalar.size(); iBrickID++) {
         UINTVECTOR4 const vBrickID = GetVectorBrickID(iBrickID);
-        BrickKey const key = m_pDataset->TOCVectorToKey(vBrickID, m_iMinMaxGradientTimestep);
+        BrickKey const key = m_pDataset->IndexFrom4D(vBrickID, m_iMinMaxGradientTimestep);
         InternalMaxMinComponent imme = m_pDataset->MaxMinForKey(key);
         m_vMinMaxGradient[iBrickID].min = imme.minGradient;
         m_vMinMaxGradient[iBrickID].max = imme.maxGradient;
@@ -1367,7 +1367,7 @@ uint32_t GLVolumePool::UploadBricks(const std::vector<UINTVECTOR4>& vBrickIDs,
       Timer t;
       for (auto missingBrick = vBrickIDs.cbegin(); missingBrick < vBrickIDs.cend(); missingBrick++) {
         UINTVECTOR4 const& vBrickID = *missingBrick;
-        BrickKey const key = m_pDataset->TOCVectorToKey(vBrickID, m_iMinMaxScalarTimestep);
+        BrickKey const key = m_pDataset->IndexFrom4D(vBrickID, m_iMinMaxScalarTimestep);
         UINTVECTOR3 const vVoxelSize = m_pDataset->GetBrickVoxelCounts(key);
 
         t.Start();
