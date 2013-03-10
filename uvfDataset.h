@@ -30,12 +30,13 @@
 #define TUVOK_UVF_DATASET_H
 
 #include <vector>
+#include "Basics/MinMaxBlock.h"
 #include "Controller/Controller.h"
 #include "UVF/RasterDataBlock.h"
 #include "UVF/MaxMinDataBlock.h"
-#include "LinearIndexDataset.h"
-#include "FileBackedDataset.h"
 #include "AbstrConverter.h"
+#include "FileBackedDataset.h"
+#include "LinearIndexDataset.h"
 
 /// For UVF, a brick key has to be a list for the LOD indicators and a
 /// list of brick indices for the brick itself.
@@ -89,7 +90,7 @@ namespace tuvok {
     /// then x,y,z.
     std::vector<std::vector<std::vector<std::vector<UINT64VECTOR3>>>>  m_vvaBrickSize;
     /// same layout as m_vvaBrickSize, but gives acceleration min/max info.
-    std::vector<std::vector<std::vector<InternalMaxMinVoxel>>> m_vvaMaxMin;
+    std::vector<std::vector<std::vector<MinMaxComponent>>> m_vvaMaxMin;
   };
 
   class TOCTimestep : public Timestep   {
@@ -124,7 +125,7 @@ public:
   virtual bool ContainsData(const BrickKey &k, double fMin,double fMax, double fMinGradient,double fMaxGradient) const;
 
   /// @returns the min/max scalar and gradient values for the given brick
-  InternalMaxMinComponent MaxMinForKey(const BrickKey& k) const;
+  tuvok::MinMaxBlock MaxMinForKey(const BrickKey& k) const;
 
   // LOD Data
   /// @todo fixme -- this should take a brick key and just ignore the spatial
