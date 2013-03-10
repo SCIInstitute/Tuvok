@@ -1962,9 +1962,9 @@ std::string GLRenderer::FindFile(const std::string& file, bool subdirs) const
     // if it doesn't exist but we allow subdir search, try harder
     if(subdirs) {
       std::vector<std::string> dirs = SysTools::GetSubDirList(
-        Controller::Instance().SysInfo()->GetProgramPath()
+        Controller::ConstInstance().SysInfo().GetProgramPath()
       );
-      dirs.push_back(Controller::Instance().SysInfo()->GetProgramPath());
+      dirs.push_back(Controller::ConstInstance().SysInfo().GetProgramPath());
 
       std::string raw_fn = SysTools::GetFilename(file);
       for(std::vector<std::string>::const_iterator d = dirs.begin();

@@ -142,10 +142,10 @@ ShaderDescriptor ShaderDescriptor::Create(
   // The user gave us some directories to search, but let's make sure we also
   // search the location of our binary.
   std::vector<std::string> dirs = SysTools::GetSubDirList(
-    Controller::Instance().SysInfo()->GetProgramPath()
+    Controller::ConstInstance().SysInfo().GetProgramPath()
   );
   directories.insert(directories.end(), dirs.begin(), dirs.end());
-  directories.push_back(Controller::Instance().SysInfo()->GetProgramPath());
+  directories.push_back(Controller::ConstInstance().SysInfo().GetProgramPath());
   directories = existing(directories); // prune bad directories
     
   typedef std::vector<std::pair<std::string, enum shader_type>> sv;
@@ -192,10 +192,10 @@ ShaderDescriptor ShaderDescriptor::Create(
   // The user gave us some directories to search, but let's make sure we also
   // search the location of our binary.
   std::vector<std::string> dirs = SysTools::GetSubDirList(
-    Controller::Instance().SysInfo()->GetProgramPath()
+    Controller::ConstInstance().SysInfo().GetProgramPath()
   );
   directories.insert(directories.end(), dirs.begin(), dirs.end());
-  directories.push_back(Controller::Instance().SysInfo()->GetProgramPath());
+  directories.push_back(Controller::ConstInstance().SysInfo().GetProgramPath());
   directories = existing(directories); // prune bad directories
     
   typedef std::vector<std::pair<std::string, enum shader_type>> sv;

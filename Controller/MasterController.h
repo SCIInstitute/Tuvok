@@ -133,7 +133,7 @@ public:
   /// amount of memory available.
   ///@{
   SystemInfo*       SysInfo()       { return m_pSystemInfo; }
-  const SystemInfo* SysInfo() const { return m_pSystemInfo; }
+  const SystemInfo& SysInfo() const { return *m_pSystemInfo; }
   ///@}
 
   /// Whether or not to expose certain features which aren't actually ready for

@@ -156,7 +156,7 @@ class GPUMemMan {
     FBOList                     m_vpFBOList;
     GLSLList                    m_vpGLSLList;
     MasterController*           m_MasterController;
-    SystemInfo*                 m_SystemInfo;
+    const SystemInfo&           m_SystemInfo;
 
     uint64_t                    m_iAllocatedGPUMemory;
     uint64_t                    m_iAllocatedCPUMemory;

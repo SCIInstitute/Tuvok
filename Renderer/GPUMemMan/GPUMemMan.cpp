@@ -79,7 +79,7 @@ using namespace tuvok;
 
 GPUMemMan::GPUMemMan(MasterController* masterController) :
   m_MasterController(masterController),
-  m_SystemInfo(masterController->SysInfo()),
+  m_SystemInfo(*masterController->SysInfo()),
   m_iAllocatedGPUMemory(0),
   m_iAllocatedCPUMemory(0),
   m_iFrameCounter(0),
@@ -775,7 +775,9 @@ GLVolumePool* GPUMemMan::GetVolumePool(LinearIndexDataset* dataSet,
   // and is no bigger than what OpenGL tells us is possible
   GLint iMaxVolumeDims;
   GL(glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE_EXT, &iMaxVolumeDims));
-  const uint64_t iMaxGPUMem = Controller::Instance().SysInfo()->GetMaxUsableGPUMem()-m_iAllocatedGPUMemory;
+  const uint64_t iMaxGPUMem =
+    Controller::ConstInstance().SysInfo().GetMaxUsableGPUMem() -
+    m_iAllocatedGPUMemory;
 
   // the max brick layout that fits into the available GPU memory
   const uint64_t iMaxVoxelCount = iMaxGPUMem/(iCompCount*iBitWidth/8);
@@ -910,7 +912,7 @@ GLVolume* GPUMemMan::AllocOrGetVolume(Dataset* pDataset,
 
   // for OpenGL we ignore the GPU memory load and let GL do the paging
   if (m_iAllocatedCPUMemory + iNeededCPUMemory >
-      m_SystemInfo->GetMaxUsableCPUMem()) {
+      m_SystemInfo.GetMaxUsableCPUMem()) {
     MESSAGE("Not enough memory for texture %u x %u x %u (%llubit * %llu), "
             "paging ...", sz[0], sz[1], sz[2],
             iBitWidth, iCompCount);
@@ -941,12 +943,12 @@ GLVolume* GPUMemMan::AllocOrGetVolume(Dataset* pDataset,
               " brick fits into memory");
 
       while (m_iAllocatedCPUMemory + iNeededCPUMemory >
-             m_SystemInfo->GetMaxUsableCPUMem()) {
+             m_SystemInfo.GetMaxUsableCPUMem()) {
         if (m_vpTex3DList.empty()) {
           // we do not have enough memory to page in even a single block...
           T_ERROR("Not enough memory to page a single brick into memory, "
                   "aborting (MaxMem=%llukb, NeededMem=%llukb).",
-                  m_SystemInfo->GetMaxUsableCPUMem()/1024,
+                  m_SystemInfo.GetMaxUsableCPUMem()/1024,
                   iNeededCPUMemory/1024);
           return NULL;
         }
@@ -1051,11 +1053,11 @@ void GPUMemMan::FreeAssociatedTextures(Dataset* pDataset, int iShareGroupID) {
 }
 
 void GPUMemMan::MemSizesChanged() {
-  if (m_iAllocatedCPUMemory > m_SystemInfo->GetMaxUsableCPUMem()) {
+  if (m_iAllocatedCPUMemory > m_SystemInfo.GetMaxUsableCPUMem()) {
       /// \todo CPU free resources to match max mem requirements
   }
 
-  if (m_iAllocatedGPUMemory > m_SystemInfo->GetMaxUsableGPUMem()) {
+  if (m_iAllocatedGPUMemory > m_SystemInfo.GetMaxUsableGPUMem()) {
       /// \todo GPU free resources to match max mem requirements
   }
 }
@@ -1073,7 +1075,7 @@ GLFBOTex* GPUMemMan::GetFBO(GLenum minfilter, GLenum magfilter,
 
   // if we are running out of mem, kick out bricks to create room for the FBO
   while (m_iAllocatedCPUMemory + m_iCPUMemEstimate >
-         m_SystemInfo->GetMaxUsableCPUMem() && !m_vpTex3DList.empty()) {
+         m_SystemInfo.GetMaxUsableCPUMem() && !m_vpTex3DList.empty()) {
     MESSAGE("Not enough memory for FBO %i x %i x %i, "
             "paging out bricks ...", int(width), int(height), iNumBuffers);
 
@@ -1213,12 +1215,12 @@ void GPUMemMan::FreeGLSLProgram(GLSLProgram* pGLSLProgram) {
   WARNING("GLSL program to free not found.");
 }
 
-uint64_t GPUMemMan::GetCPUMem() const {return m_SystemInfo->GetCPUMemSize();}
-uint64_t GPUMemMan::GetGPUMem() const {return m_SystemInfo->GetGPUMemSize();}
+uint64_t GPUMemMan::GetCPUMem() const {return m_SystemInfo.GetCPUMemSize();}
+uint64_t GPUMemMan::GetGPUMem() const {return m_SystemInfo.GetGPUMemSize();}
 uint32_t GPUMemMan::GetBitWidthMem() const {
-  return m_SystemInfo->GetProgramBitWidth();
+  return m_SystemInfo.GetProgramBitWidth();
 }
-uint32_t GPUMemMan::GetNumCPUs() const {return m_SystemInfo->GetNumberOfCPUs();}
+uint32_t GPUMemMan::GetNumCPUs() const {return m_SystemInfo.GetNumberOfCPUs();}
 
 
 void GPUMemMan::RegisterLuaCommands() {
