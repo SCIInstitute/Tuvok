@@ -62,8 +62,6 @@ public:
 
   /// @returns the largest brick size used for this decomposition
   virtual UINTVECTOR3 GetMaxBrickSize() const;
-  /// @returns the number of bricks in each dimension.
-  virtual UINT64VECTOR3 GetBrickLayout(size_t lod, size_t ts) const=0;
 
   virtual void Clear();
 
