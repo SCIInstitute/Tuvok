@@ -763,7 +763,8 @@ void GPUMemMan::DeleteVolumePool(GLVolumePool** pool) {
   *pool = NULL;
 }
 
-GLVolumePool* GPUMemMan::GetVolumePool(UVFDataset* dataSet, GLenum filter,
+GLVolumePool* GPUMemMan::GetVolumePool(LinearIndexDataset* dataSet,
+                                       GLenum filter,
                                        int /* iShareGroupID */) {
   const uint64_t iBitWidth  = dataSet->GetBitWidth();
   const uint64_t iCompCount = dataSet->GetComponentCount();

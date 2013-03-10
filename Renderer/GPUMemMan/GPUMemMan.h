@@ -52,7 +52,7 @@ class MasterController;
 class GLVolumePool; 
 
 class Dataset;  
-class UVFDataset;
+class LinearIndexDataset;
 
 class GPUMemMan {
   public:
@@ -126,7 +126,8 @@ class GPUMemMan {
                                 int iShareGroupID);
     void FreeGLSLProgram(GLSLProgram* pGLSLProgram);
 
-    GLVolumePool* GetVolumePool(UVFDataset* dataSet, GLenum filter, int iShareGroupID);
+    GLVolumePool* GetVolumePool(LinearIndexDataset* dataSet, GLenum filter,
+                                int iShareGroupID);
     void DeleteVolumePool(GLVolumePool** pool);
 
     void MemSizesChanged();
