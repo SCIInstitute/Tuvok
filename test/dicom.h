@@ -35,7 +35,7 @@ struct stacks : public std::unary_function<testdicom, void> {
 #ifdef VERBOSE
     TS_TRACE(std::string("testing stacks; ") + td.file);
 #endif
-    IOManager &iomgr = *(Controller::Instance().IOMan());
+    const IOManager &iomgr = Controller::Const().IOMan();
     std::vector<FileStackInfo*> files =
       iomgr.ScanDirectory(SysTools::GetPath(td.file));
     TS_ASSERT(!files.empty());

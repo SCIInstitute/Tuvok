@@ -158,7 +158,7 @@ AbstrConverter::Process8Bits(LargeRAWFile& InputData,
 
 size_t AbstrConverter::GetIncoreSize() {
   if (Controller::Instance().IOMan())
-    return size_t(Controller::Instance().IOMan()->GetIncoresize());
+    return size_t(Controller::Const().IOMan().GetIncoresize());
   else
     return DEFAULT_INCORESIZE;
 }

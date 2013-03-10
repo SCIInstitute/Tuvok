@@ -67,7 +67,7 @@ bool check_for_engine() {
   // if we have the raw data, we can just convert it.
   if(SysTools::FileExists("engine.raw.gz")) {
     TS_TRACE("Found raw engine data; converting it for tests.");
-    IOManager& iom = *Controller::Instance().IOMan();
+    const IOManager& iom = Controller::Const().IOMan();
     std::ofstream nhdr("engine.nhdr");
     if(!nhdr) { return false; }
     nhdr << "NRRD0001\n"
