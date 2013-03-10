@@ -14,7 +14,7 @@ namespace tuvok {
 class LinearIndexDataset : public BrickedDataset {
   public:
     LinearIndexDataset() = default;
-    virtual ~LinearIndexDataset() = default;
+    virtual ~LinearIndexDataset() {}
 
     /// @returns the brick layout for a given LoD.  This is the number of
     /// bricks which exist (given per-dimension)
