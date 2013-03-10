@@ -19,7 +19,7 @@ namespace tuvok {
   class GLHashTable;
   class GLVolumePool;
   class GLVBO;
-  class UVFDataset;
+  class LinearIndexDataset;
   class ShaderDescriptor;
 
 
@@ -104,9 +104,9 @@ namespace tuvok {
       GLSLProgram*    m_pProgramRayCast2DColor;
       GLSLProgram*    m_pProgramRayCast2DLightingColor;
       GLSLProgram*    m_pProgramRayCastISOColor;
-      UVFDataset*     m_pToCDataset;
-      bool            m_bConverged;
-      VisibilityState m_VisibilityState;
+      LinearIndexDataset*     m_pToCDataset;
+      bool                    m_bConverged;
+      VisibilityState         m_VisibilityState;
 
       // profiling
       uint32_t        m_iSubframes;

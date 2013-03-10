@@ -82,7 +82,10 @@ GLGridLeaper::GLGridLeaper(MasterController* pMasterController,
 
 
 bool GLGridLeaper::CreateVolumePool() {
-  m_pVolumePool = Controller::Instance().MemMan()->GetVolumePool(m_pToCDataset, ComputeGLFilter(),  m_pContext->GetShareGroupID());
+  UVFDataset* tocDS = dynamic_cast<UVFDataset*>(m_pToCDataset);
+  m_pVolumePool = Controller::Instance().MemMan()->GetVolumePool(tocDS,
+    ComputeGLFilter(),  m_pContext->GetShareGroupID()
+  );
 
   if (!m_pVolumePool) return false;
   // upload a brick that covers the entire domain to make sure have
@@ -118,18 +121,14 @@ bool GLGridLeaper::LoadDataset(const string& strFilename) {
     return false;
   }
 
-  UVFDataset* pUVFDataset = dynamic_cast<UVFDataset*>(m_pDataset);
-  if (!m_pDataset) {
-    T_ERROR("'Currently, this renderer works only with UVF datasets.");
+  LinearIndexDataset* pLinDataset = dynamic_cast<LinearIndexDataset*>
+                                                (m_pDataset);
+  if (!pLinDataset) {
+    T_ERROR("Currently, this renderer works only with linear datasets.");
     return false;
   }
 
-  if (!pUVFDataset->IsTOCBlock()) {
-    T_ERROR("'Currently, this renderer works only with UVF datasets in ExtendedOctree format.");
-    return false;
-  }
-
-  m_pToCDataset = pUVFDataset;
+  m_pToCDataset = pLinDataset;
 
   return true;
 }
@@ -1104,12 +1103,17 @@ bool GLGridLeaper::PH_OpenBrickAccessLogfile(const std::string& filename) {
   if (m_pBrickAccess)
     return false; // we already have a file do close and open
   std::string logFilename = filename;
+  std::string dsName;
 
   if (filename.empty()) {
-    if (m_pToCDataset)
-      logFilename = SysTools::RemoveExt(m_pToCDataset->Filename()) + "_log.ba";
-    else
+    try {
+      const FileBackedDataset& ds = dynamic_cast<const FileBackedDataset&>
+                                                (*m_pToCDataset);
+      dsName = SysTools::RemoveExt(ds.Filename());
+      logFilename = dsName + "_log.ba";
+    } catch(const std::bad_cast&) {
       return false; // we do not know which file to open
+    }
   }
 
   logFilename = SysTools::FindNextSequenceName(logFilename);
@@ -1118,7 +1122,7 @@ bool GLGridLeaper::PH_OpenBrickAccessLogfile(const std::string& filename) {
   // write header
   *m_pBrickAccess << std::fixed << std::setprecision(5);
   if (m_pToCDataset) {
-    *m_pBrickAccess << "Filename=" << m_pToCDataset->Filename() << std::endl;
+    *m_pBrickAccess << "Filename=" << dsName << std::endl;
     *m_pBrickAccess << "MaxBrickSize=" << m_pToCDataset->GetMaxBrickSize() << std::endl;
     *m_pBrickAccess << "BrickOverlap=" << m_pToCDataset->GetBrickOverlapSize() << std::endl;
     *m_pBrickAccess << "LoDCount=" << m_pToCDataset->GetLODLevelCount() << std::endl;
@@ -1161,10 +1165,13 @@ bool GLGridLeaper::PH_OpenLogfile(const std::string& filename) {
   std::string logFilename = filename;
 
   if (filename.empty()) {
-    if (m_pToCDataset)
-      logFilename = SysTools::RemoveExt(m_pToCDataset->Filename()) + "_log.csv";
-    else
+    try {
+      const FileBackedDataset& ds = dynamic_cast<const FileBackedDataset&>
+                                                (*m_pToCDataset);
+      logFilename = SysTools::RemoveExt(ds.Filename()) + "_log.csv";
+    } catch(const std::bad_cast&) {
       return false; // we do not know which file to open
+    }
   }
 
   logFilename = SysTools::FindNextSequenceName(logFilename);
