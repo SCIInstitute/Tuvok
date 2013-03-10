@@ -72,6 +72,7 @@ public:
   virtual bool ContainsData(const BrickKey&, double /*fMin*/, double /*fMax*/,
                             double /*fMinGradient*/,
                             double /*fMaxGradient*/) const;
+  virtual tuvok::MinMaxBlock MaxMinForKey(const BrickKey& k) const;
 
   /// unimplemented!  Override these if you want tools built on this IO layer
   /// to be able to create data in your format.

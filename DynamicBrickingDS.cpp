@@ -542,6 +542,11 @@ bool DynamicBrickingDS::ContainsData(const BrickKey& bk,
   BrickKey skey = this->di->SourceBrickKey(bk);
   return di->ds->ContainsData(skey, fmin,fmax, fminGradient, fmaxGradient);
 }
+/// @todo implement this based on caching, too.
+tuvok::MinMaxBlock DynamicBrickingDS::MaxMinForKey(const BrickKey& bk) const {
+  BrickKey skey = this->di->SourceBrickKey(bk);
+  return di->ds->MaxMinForKey(skey);
+}
 ///@}
 
 bool DynamicBrickingDS::Export(uint64_t lod, const std::string& to,

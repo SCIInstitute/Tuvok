@@ -35,11 +35,14 @@
 #ifndef TUVOK_BRICKED_DATASET_H
 #define TUVOK_BRICKED_DATASET_H
 
+#include "Basics/MinMaxBlock.h"
 #include "Dataset.h"
 
 namespace tuvok {
 
-/// Abstract base for IO layers which support bricked datasets.
+/// Base for data sets which split their data into blocks.  All bricks are kept
+/// into an internal table; derived classes should add to it via AddBrick.
+/// This class then handles the query of much meta data.
 class BrickedDataset : public Dataset {
 public:
   BrickedDataset();
@@ -62,6 +65,8 @@ public:
 
   /// @returns the largest brick size used for this decomposition
   virtual UINTVECTOR3 GetMaxBrickSize() const;
+  /// @returns the min/max scalar and gradient values for the given brick.
+  virtual tuvok::MinMaxBlock MaxMinForKey(const BrickKey&) const=0;
 
   virtual void Clear();
 

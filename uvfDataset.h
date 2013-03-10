@@ -122,8 +122,8 @@ public:
   /// Acceleration queries.
   virtual bool ContainsData(const BrickKey &k, double isoval) const;
   virtual bool ContainsData(const BrickKey &k, double fMin,double fMax) const;
-  virtual bool ContainsData(const BrickKey &k, double fMin,double fMax, double fMinGradient,double fMaxGradient) const;
-
+  virtual bool ContainsData(const BrickKey &k, double fMin,double fMax,
+                            double fMinGradient,double fMaxGradient) const;
   /// @returns the min/max scalar and gradient values for the given brick
   tuvok::MinMaxBlock MaxMinForKey(const BrickKey& k) const;
 
