@@ -9,13 +9,14 @@
 # include <iterator>
 #endif
 
-#include "GLVolumePool.h"
 #include "Basics/MathTools.h"
 #include "Basics/TuvokException.h"
 #include "Basics/Threads.h"
-#include "GLSLProgram.h"
-#include "IO/uvfDataset.h"
+#include "IO/LinearIndexDataset.h"
+#include "IO/UVF/ExtendedOctree/VolumeTools.h"
 #include "Renderer/VisibilityState.h"
+#include "GLSLProgram.h"
+#include "GLVolumePool.h"
 
 enum BrickIDFlags {
   BI_MISSING = 0,
@@ -111,12 +112,16 @@ static UINTVECTOR3 GetBrickLayout(const UINTVECTOR3& volumeSize,
   return GetLoDSize(baseBrickCount, iLoD);
 }
 
-GLVolumePool::GLVolumePool(const UINTVECTOR3& poolSize, UVFDataset* pDataset, GLenum filter, bool bUseGLCore)
+GLVolumePool::GLVolumePool(const UINTVECTOR3& poolSize,
+                           LinearIndexDataset* pDataset,
+                           GLenum filter,
+                           bool bUseGLCore)
   : m_pPoolMetadataTexture(NULL),
     m_pPoolDataTexture(NULL),
     m_vPoolCapacity(0,0,0),
     m_poolSize(poolSize),
-    m_maxInnerBrickSize(UINTVECTOR3(pDataset->GetMaxUsedBrickSizes())-UINTVECTOR3(pDataset->GetBrickOverlapSize())*2),
+    m_maxInnerBrickSize(UINTVECTOR3(pDataset->GetMaxUsedBrickSizes()) -
+                        UINTVECTOR3(pDataset->GetBrickOverlapSize()) * 2),
     m_maxTotalBrickSize(pDataset->GetMaxUsedBrickSizes()),
     m_volumeSize(pDataset->GetDomainSize()),
     m_iLoDCount(uint32_t(pDataset->GetLargestSingleBrickLOD(0)+1)),
@@ -1176,7 +1181,7 @@ namespace {
   }
 
   template<AbstrRenderer::ERenderMode eRenderMode>
-  uint32_t PotentiallyUploadBricksToBrickPool(VisibilityState const& visibility, UVFDataset const* pDataset, size_t iTimestep, GLVolumePool& pool,
+  uint32_t PotentiallyUploadBricksToBrickPool(VisibilityState const& visibility, LinearIndexDataset const* pDataset, size_t iTimestep, GLVolumePool& pool,
                                               std::vector<uint32_t>& vBrickMetadata, std::vector<UINTVECTOR4> const& vBrickIDs,
                                               std::vector<GLVolumePool::MinMax> const& vMinMaxScalar,
                                               std::vector<GLVolumePool::MinMax> const& vMinMaxGradient,                                          

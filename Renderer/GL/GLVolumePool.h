@@ -20,7 +20,7 @@
 
 namespace tuvok {
   class GLSLProgram;
-  class UVFDataset;
+  class LinearIndexDataset;
   class AsyncVisibilityUpdater;
   class VisibilityState;
 
@@ -72,7 +72,9 @@ namespace tuvok {
 
   class GLVolumePool : public GLObject {
     public:
-      GLVolumePool(const UINTVECTOR3& poolSize, UVFDataset* pDataset, GLenum filter, bool bUseGLCore=true); // throws tuvok::Exception on init error
+      /// @throws tuvok::Exception on init error
+      GLVolumePool(const UINTVECTOR3& poolSize, LinearIndexDataset* pDataset,
+                   GLenum filter, bool bUseGLCore=true);
       virtual ~GLVolumePool();
 
       // signals if meta texture is up-to-date including child emptiness for
@@ -153,7 +155,7 @@ namespace tuvok {
 
       UINTVECTOR2 m_metaTexSize;
       uint32_t m_iTotalBrickCount;
-      UVFDataset* m_pDataset;
+      LinearIndexDataset* m_pDataset;
 
       friend class AsyncVisibilityUpdater;
       AsyncVisibilityUpdater* m_pUpdater;
