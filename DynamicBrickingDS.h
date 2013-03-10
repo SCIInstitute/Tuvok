@@ -4,7 +4,7 @@
 #include <array>
 #include <memory>
 #include <vector>
-#include "BrickedDataset.h"
+#include "LinearIndexDataset.h"
 #include "FileBackedDataset.h"
 
 namespace tuvok {
@@ -14,9 +14,9 @@ namespace tuvok {
 
 /// During construction, you must give an already-opened data set and
 /// the desired brick size.
-class DynamicBrickingDS : public BrickedDataset, public FileBackedDataset {
+class DynamicBrickingDS : public LinearIndexDataset, public FileBackedDataset {
 public:
-  DynamicBrickingDS(std::shared_ptr<Dataset> ds,
+  DynamicBrickingDS(std::shared_ptr<LinearIndexDataset> ds,
                     std::array<size_t, 3> maxBrickSize);
   virtual ~DynamicBrickingDS();
   virtual std::shared_ptr<const Histogram1D> Get1DHistogram() const;
@@ -56,7 +56,7 @@ public:
   UINT64VECTOR3 GetEffectiveBrickSize(const BrickKey&) const;
 
   virtual UINTVECTOR3 GetMaxBrickSize() const;
-  virtual UINT64VECTOR3 GetBrickLayout(size_t lod, size_t ts) const;
+  virtual UINTVECTOR3 GetBrickLayout(size_t lod, size_t ts) const;
 
   virtual unsigned GetBitWidth() const;
   virtual uint64_t GetComponentCount() const;

@@ -33,7 +33,7 @@
 #include "Controller/Controller.h"
 #include "UVF/RasterDataBlock.h"
 #include "UVF/MaxMinDataBlock.h"
-#include "BrickedDataset.h"
+#include "LinearIndexDataset.h"
 #include "FileBackedDataset.h"
 #include "AbstrConverter.h"
 
@@ -98,7 +98,7 @@ namespace tuvok {
     const TOCBlock* GetDB() const {return dynamic_cast<const TOCBlock*>(m_pVolumeDataBlock);}
   };
 
-class UVFDataset : public BrickedDataset, public FileBackedDataset {
+class UVFDataset : public LinearIndexDataset, public FileBackedDataset {
 public:
   UVFDataset(const std::string& strFilename, uint64_t iMaxAcceptableBricksize,
              bool bVerify, bool bMustBeSameVersion = true);
@@ -136,7 +136,7 @@ public:
   ///@}
   virtual uint64_t GetNumberOfTimesteps() const;
 
-  UINT64VECTOR3 GetBrickLayout(size_t lod, size_t ts) const;
+  UINTVECTOR3 GetBrickLayout(size_t lod, size_t ts) const;
 
   // Global Data
   float MaxGradientMagnitude() const;

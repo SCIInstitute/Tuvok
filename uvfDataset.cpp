@@ -592,13 +592,14 @@ size_t UVFDataset::GetLargestSingleBrickLOD(size_t ts) const {
                          "single brick level exists.");
 }
 
-UINT64VECTOR3 UVFDataset::GetBrickLayout(const size_t lod, const size_t iTs) const {
+UINTVECTOR3 UVFDataset::GetBrickLayout(const size_t lod,
+                                       const size_t iTs) const {
   if (m_bToCBlock) {
     const TOCTimestep* ts = static_cast<TOCTimestep*>(m_timesteps[iTs]);
-    return ts->GetDB()->GetBrickCount(lod);
+    return UINTVECTOR3(ts->GetDB()->GetBrickCount(lod));
   } else {
     const RDTimestep* ts = static_cast<RDTimestep*>(m_timesteps[iTs]);
-    return ts->m_vaBrickCount[lod];
+    return UINTVECTOR3(ts->m_vaBrickCount[lod]);
   }
 }
 
@@ -985,7 +986,7 @@ UINT64VECTOR4 UVFDataset::KeyToTOCVector(const BrickKey &k) const {
 }
 
 BrickKey UVFDataset::TOCVectorToKey(const UINTVECTOR4& hash, size_t timestep) const {
-  UINT64VECTOR3 layout = GetBrickLayout(hash.w, timestep);
+  UINTVECTOR3 layout = GetBrickLayout(hash.w, timestep);
 
   return BrickKey(timestep, hash.w, hash.x+
                                     hash.y*layout.x+

@@ -1,18 +1,7 @@
-// * Dataset's "GetBitWidth" should return an unsigned or something
 // * can we chain these recursively?  e.g.:
 //      DynBrickingDS a(ds, {{128, 128, 128}});
 //      DynBrickingDS b(a, {{16, 16, 16}});
-// * tuvok::Dataset derives from boost::noncopyable... c++11 ?
-// * hack: only generate LODs which exist in source data (keep?)
-// * Dataset::GetLODLevelCount returns a uint64_t?
-// * MasterController::IOMan returns a pointer instead of a reference
-// * Dataset::GetComponentCount returns a uint64_t?
-// * dynamically generate/handle more LODs than the source data
-// * interface for this is strange: would be nicer if it took the voxel ranges
-//   we need, per-dimension, and the resolution it wants (instead of 'keys')?
-// * 'GetMaxBrickSize' needs to be moved up to Dataset
 // * rename/fix creation of the iterator functions ("begin"/"end" too general)
-// * stop dynamic_cast'ing to UVFDataset; move those methods to BrickedDataset.
 // * implement GetBrick for other bit widths!!
 // * ContainsData: deal with new metadata appropriately
 #include <algorithm>
@@ -44,10 +33,10 @@ static bool test();
 #endif
 
 struct DynamicBrickingDS::dbinfo {
-  std::shared_ptr<Dataset> ds;
+  std::shared_ptr<LinearIndexDataset> ds;
   BrickSize brickSize;
 
-  dbinfo(std::shared_ptr<Dataset> d,
+  dbinfo(std::shared_ptr<LinearIndexDataset> d,
          BrickSize bs) : ds(d), brickSize(bs) { }
 
   // assumes timestep=0
@@ -96,7 +85,7 @@ static uint64_t to1d(const std::array<unsigned,3>& loc,
   return loc[2]*size[1]*size[0] + loc[1]*size[0] + loc[0];
 }
 
-DynamicBrickingDS::DynamicBrickingDS(std::shared_ptr<Dataset> ds,
+DynamicBrickingDS::DynamicBrickingDS(std::shared_ptr<LinearIndexDataset> ds,
                                      BrickSize maxBrickSize) :
   di(new DynamicBrickingDS::dbinfo(ds, maxBrickSize))
 {
@@ -145,11 +134,9 @@ to3d(const std::array<uint64_t,3> dim, uint64_t idx) {
 
 // what is our brick layout (how many bricks in each dimension) in the
 // given source dataset?
-BrickLayout SourceBrickLayout(const std::shared_ptr<Dataset> ds,
+BrickLayout SourceBrickLayout(const std::shared_ptr<LinearIndexDataset> ds,
                               size_t lod, size_t timestep) {
-  const std::shared_ptr<UVFDataset> uvf =
-    std::dynamic_pointer_cast<UVFDataset>(ds);
-  const UINT64VECTOR3 layout = uvf->GetBrickLayout(lod, timestep);
+  const UINTVECTOR3 layout = ds->GetBrickLayout(lod, timestep);
   const BrickLayout tmp = {{
     static_cast<unsigned>(layout[0]),
     static_cast<unsigned>(layout[1]),
@@ -517,9 +504,9 @@ UINTVECTOR3 DynamicBrickingDS::GetMaxBrickSize() const {
   return UINTVECTOR3(this->di->brickSize[0], this->di->brickSize[1],
                      this->di->brickSize[2]);
 }
-UINT64VECTOR3 DynamicBrickingDS::GetBrickLayout(size_t lod, size_t ts) const {
+UINTVECTOR3 DynamicBrickingDS::GetBrickLayout(size_t lod, size_t ts) const {
   const BrickLayout lout = this->di->TargetBrickLayout(lod, ts);
-  return UINT64VECTOR3(lout[0], lout[1], lout[2]);
+  return UINTVECTOR3(lout[0], lout[1], lout[2]);
 }
 
 CFORWARDRET(unsigned, GetBitWidth)
