@@ -203,6 +203,7 @@ HEADERS += \
            IO/InveonConverter.h \
            IO/IOManager.h \
            IO/KeyValueFileParser.h \
+           IO/LinearIndexDataset.h \
            IO/VGIHeaderParser.h \
            IO/NRRDConverter.h \
            IO/Quantize.h \
@@ -537,6 +538,7 @@ SOURCES += \
            IO/InveonConverter.cpp \
            IO/IOManager.cpp \
            IO/KeyValueFileParser.cpp \
+           IO/LinearIndexDataset.cpp \
            IO/VGIHeaderParser.cpp \
            IO/NRRDConverter.cpp \
            IO/QVISConverter.cpp \
