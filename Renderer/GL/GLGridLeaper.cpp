@@ -4,7 +4,8 @@
 #include "Controller/Controller.h"
 #include "IO/TransferFunction1D.h"
 #include "IO/TransferFunction2D.h"
-#include "IO/uvfDataset.h"
+#include "IO/FileBackedDataset.h"
+#include "IO/LinearIndexDataset.h"
 #include "Renderer/GPUMemMan/GPUMemMan.h"
 
 #include "GLFBOTex.h"
@@ -75,8 +76,7 @@ GLGridLeaper::GLGridLeaper(MasterController* pMasterController,
 
 
 bool GLGridLeaper::CreateVolumePool() {
-  UVFDataset* tocDS = dynamic_cast<UVFDataset*>(m_pToCDataset);
-  m_pVolumePool = Controller::Instance().MemMan()->GetVolumePool(tocDS,
+  m_pVolumePool = Controller::Instance().MemMan()->GetVolumePool(m_pToCDataset,
     ComputeGLFilter(),  m_pContext->GetShareGroupID()
   );
 
