@@ -13,7 +13,7 @@ namespace tuvok {
 /// <0, 1,0,0> exists, than the brick <0, 0,0,0> must exist as well.
 class LinearIndexDataset : public BrickedDataset {
   public:
-    LinearIndexDataset() = default;
+    LinearIndexDataset() {}
     virtual ~LinearIndexDataset() {}
 
     /// @returns the brick layout for a given LoD.  This is the number of
