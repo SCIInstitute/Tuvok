@@ -126,7 +126,7 @@ public:
   /// The IO manager is responsible for loading data into host memory.
   ///@{
   IOManager*       IOMan()       { return m_pIOManager;}
-  const IOManager* IOMan() const { return m_pIOManager;}
+  const IOManager& IOMan() const { return *m_pIOManager;}
   ///@}
 
   /// System information is for looking up host parameters, such as the

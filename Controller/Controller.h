@@ -52,6 +52,9 @@ namespace Controller {
   inline const MasterController& ConstInstance() {
     return serial::singleton<MasterController>::get_const_instance();
   }
+  inline const MasterController& Const() { // alias for the above
+    return serial::singleton<MasterController>::get_const_instance();
+  }
 
   namespace Debug {
     inline AbstrDebugOut& Out() {

@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
     uvf_file = SysTools::RemoveExt(filename) + ".uvf";
     const std::string tmpdir = "/tmp/";
     const bool quantize8 = false;
-    Controller::Instance().IOMan()->ConvertDataset(
+    Controller::Const().IOMan().ConvertDataset(
       filename, uvf_file, tmpdir, true, 256, 4, quantize8
     );
 

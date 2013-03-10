@@ -2950,7 +2950,7 @@ bool GLRenderer::CropDataset(const std::string& strTempDir, bool bKeepOldData) {
 
   if (!m_pDataset->Crop(p.Plane(),strTempDir,bKeepOldData, 
       m_pMasterController->IOMan()->GetUseMedianFilter(), 
-      m_pMasterController->IOMan()->GetClampToEdge() )) return false;
+      m_pMasterController->IOMan()->GetClampToEdge())) return false;
 
   FileBackedDataset* fbd = dynamic_cast<FileBackedDataset*>(m_pDataset);
   if (NULL != fbd)

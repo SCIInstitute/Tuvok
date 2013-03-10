@@ -77,7 +77,7 @@ LuaDatasetProxy::~LuaDatasetProxy()
 }
 
 Dataset* LuaDatasetProxy::CreateDS(const std::string& uvf, unsigned bricksize) {
-  return Controller::Instance().IOMan()->CreateDataset(uvf,
+  return Controller::Const().IOMan().CreateDataset(uvf,
     uint64_t(bricksize), false
   );
 }

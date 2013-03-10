@@ -216,7 +216,7 @@ Dataset* GPUMemMan::LoadDataset(const string& strFilename,
   }
 
   MESSAGE("Loading %s", strFilename.c_str());
-  const IOManager& mgr = *(m_MasterController->IOMan());
+  const IOManager& mgr = *m_MasterController->IOMan();
   /// @todo fixme: just use `Dataset's here; instead of explicitly doing the
   /// IsOpen check, below, just rely on an exception being thrown.
   Dataset* dataset =
