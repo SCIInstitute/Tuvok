@@ -555,6 +555,7 @@
     <ClCompile Include="IO\AmiraConverter.cpp" />
     <ClCompile Include="IO\GeomViewConverter.cpp" />
     <ClCompile Include="IO\Images\StackExporter.cpp" />
+    <ClCompile Include="IO\LinearIndexDataset.cpp" />
     <ClCompile Include="IO\LinesGeoConverter.cpp" />
     <ClCompile Include="IO\MRCConverter.cpp" />
     <ClCompile Include="IO\StLGeoConverter.cpp" />
@@ -1400,6 +1401,7 @@
     <ClInclude Include="IO\AmiraConverter.h" />
     <ClInclude Include="IO\GeomViewConverter.h" />
     <ClInclude Include="IO\Images\StackExporter.h" />
+    <ClInclude Include="IO\LinearIndexDataset.h" />
     <ClInclude Include="IO\LinesGeoConverter.h" />
     <ClInclude Include="IO\MRCConverter.h" />
     <ClInclude Include="IO\StLGeoConverter.h" />

@@ -1094,6 +1094,9 @@
     <ClCompile Include="IO\StLGeoConverter.cpp">
       <Filter>IO\Geometry Converter</Filter>
     </ClCompile>
+    <ClCompile Include="IO\LinearIndexDataset.cpp">
+      <Filter>IO</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Basics\Appendix.h">
@@ -2226,6 +2229,9 @@
     </ClInclude>
     <ClInclude Include="IO\StLGeoConverter.h">
       <Filter>IO\Geometry Converter</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\LinearIndexDataset.h">
+      <Filter>IO</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
