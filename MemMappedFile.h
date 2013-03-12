@@ -79,7 +79,6 @@ protected:
   void*  m_pData;
   uint64_t  m_dwFileMappingSize;
   uint64_t  m_dwFileSize;
-  int    m_id;
 
   // for reopen
   std::string      m_strFilename;

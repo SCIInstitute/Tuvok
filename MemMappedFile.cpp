@@ -163,8 +163,6 @@ void* MemMappedFile::ReMap(const uint64_t& iOffset, const uint64_t& iBytesToMap)
 
 
 int MemMappedFile::OpenFile(const char* strPath, const MMFILE_ACCESS eAccesMode, const uint64_t& iLengthForNewFile, const uint64_t& iOffset, const uint64_t& iBytesToMap) {
-  m_id = rand();
-
   bool bExists = true, bGrowFile = false;
   char buffer[4096];
   int res;
@@ -248,8 +246,7 @@ int MemMappedFile::OpenFile(const char* strPath, const MMFILE_ACCESS eAccesMode,
   }
 
   // create file mapping
-  sprintf_s(buffer, sizeof(buffer), "%d", m_id);
-  m_hMem = CreateFileMappingA(hFile, &sa, flProtect, static_cast<DWORD>((m_dwFileSize & 0xFFFFFFFF00000000) >> 32), static_cast<DWORD>(m_dwFileSize & 0xFFFFFFFF), buffer);
+  m_hMem = CreateFileMappingA(hFile, &sa, flProtect, static_cast<DWORD>((m_dwFileSize & 0xFFFFFFFF00000000) >> 32), static_cast<DWORD>(m_dwFileSize & 0xFFFFFFFF), NULL);
   free(pSD);
   if (NULL == m_hMem) return -3;
 
