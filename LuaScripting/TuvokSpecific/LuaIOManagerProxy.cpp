@@ -121,8 +121,12 @@ void LuaIOManagerProxy::bind()
                                nm + "verify", "", false);
     id = mReg.registerFunction(mIO, &IOManager::GetExportDialogString,
                                nm + "getExportDialogString", "", false);
+    id = mReg.registerFunction(mIO, &IOManager::ExportDialogFilterToExt,
+                               nm + "exportDialogFilterToExt", "", false);
     id = mReg.registerFunction(mIO, &IOManager::GetImageExportDialogString,
                                nm + "getImageExportDialogString", "", false);
+    id = mReg.registerFunction(mIO, &IOManager::ImageExportDialogFilterToExt,
+                               nm + "imageExportDialogFilterToExt", "", false);
     id = mReg.registerFunction(mIO, &IOManager::MergeDatasets,
                                nm + "mergeDatasets", "", false);
     id = mReg.registerFunction(mIO, &IOManager::GetFormatList,
