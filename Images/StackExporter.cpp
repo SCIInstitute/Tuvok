@@ -235,6 +235,7 @@ bool StackExporter::WriteStacks(const std::string& strRAWFilename,
       if (!WriteSlice(data.get(), pTrans, iBitWidth, strCurrentDirTargetFilename, vSize, fRescale, iComponentCount)) {
         T_ERROR("Unable to write stack image %llu.",x);
         dataSource.Close();
+        return false;
       }
     }
 
@@ -253,6 +254,7 @@ bool StackExporter::WriteStacks(const std::string& strRAWFilename,
       if (!WriteSlice(data.get(), pTrans, iBitWidth, strCurrentDirTargetFilename, vSize, fRescale, iComponentCount)) {
         T_ERROR("Unable to write stack image %llu.",y);
         dataSource.Close();
+        return false;
       }
     }
 
@@ -271,6 +273,7 @@ bool StackExporter::WriteStacks(const std::string& strRAWFilename,
     if (!WriteSlice(data.get(), pTrans, iBitWidth, strCurrentDirTargetFilename, vSize, fRescale, iComponentCount)) {
       T_ERROR("Unable to write stack image %llu.",z);
       dataSource.Close();
+      return false;
     }
   }
 
