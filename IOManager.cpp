@@ -1651,6 +1651,18 @@ std::string IOManager::GetImageExportDialogString() const {
   return strDialog;
 }
 
+std::string IOManager::ImageExportDialogFilterToExt(const string& filter) const {
+  std::vector<std::pair<std::string,std::string>> formats = StackExporter::GetSuportedImageFormats();
+
+  for(size_t i = 0; i< formats.size(); ++i) {
+    std::string strDialog = formats[i].second + " (*." + SysTools::ToLowerCase(formats[i].first) + ")";
+    if ( filter == strDialog )
+      return SysTools::ToLowerCase(formats[i].first);
+  }
+  return "";
+}
+
+
 string IOManager::GetLoadDialogString() const {
   string strDialog = "All known Files (";
   map<string,string> descPairs;
@@ -1733,6 +1745,24 @@ string IOManager::GetExportDialogString() const {
 
   return strDialog;
 }
+
+
+std::string IOManager::ExportDialogFilterToExt(const string& filter) const {
+  std::vector<std::pair<std::string,std::string>> formats = StackExporter::GetSuportedImageFormats();
+
+  for(size_t i = 0; i< formats.size(); ++i) {
+    if (m_vpConverters[i]->CanExportData()) {
+      for (size_t j=0; j < m_vpConverters[i]->SupportedExt().size(); j++) {
+        string strExt = SysTools::ToLowerCase(m_vpConverters[i]->SupportedExt()[j]);
+        std::string  strDialog = m_vpConverters[i]->GetDesc() + " (*." + strExt + ")";
+        if ( filter == strDialog )
+          return SysTools::ToLowerCase(strExt);
+      }
+    }
+  }
+  return "";
+}
+
 
 vector<pair<string, string>> IOManager::GetExportFormatList() const {
   vector<pair<string, string>> v;

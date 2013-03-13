@@ -185,7 +185,9 @@ public:
 
   std::string GetLoadDialogString() const;
   std::string GetExportDialogString() const;
+  std::string ExportDialogFilterToExt(const std::string& filter) const;
   std::string GetImageExportDialogString() const;
+  std::string ImageExportDialogFilterToExt(const std::string& filter) const;
 
 
   std::vector<std::pair<std::string, std::string>>
