@@ -18,8 +18,7 @@ class LinearIndexDataset : public BrickedDataset {
 
     /// @returns the brick layout for a given LoD.  This is the number of
     /// bricks which exist (given per-dimension)
-    virtual UINTVECTOR3 GetBrickLayout(const size_t LoD,
-                                       const size_t timestep) const=0;
+    virtual UINTVECTOR3 GetBrickLayout(size_t LoD, size_t timestep) const=0;
 
     /// @returns the brick key (1D brick index) derived from the 4D key.
     virtual BrickKey IndexFrom4D(const UINTVECTOR4& four,
