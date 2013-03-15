@@ -9,10 +9,11 @@
 #include <cassert>
 #include <stdexcept>
 #include "Controller/Controller.h"
-#include "const-brick-iterator.h"
+#include "BrickCache.h"
 #include "DynamicBrickingDS.h"
 #include "FileBackedDataset.h"
 #include "IOManager.h"
+#include "const-brick-iterator.h"
 #include "uvfDataset.h"
 
 // This file deals with some tricky indexing.  The convention here is that a
@@ -44,12 +45,18 @@ struct GBPrelim {
 struct DynamicBrickingDS::dbinfo {
   std::shared_ptr<LinearIndexDataset> ds;
   BrickSize brickSize;
+  BrickCache cache;
 
   dbinfo(std::shared_ptr<LinearIndexDataset> d,
          BrickSize bs) : ds(d), brickSize(bs) { }
 
   // early, non-type-specific parts of GetBrick.
   GBPrelim BrickSetup(const BrickKey&, const DynamicBrickingDS& tgt);
+
+  // reads the brick + handles caching
+  template<typename T> bool Brick(const DynamicBrickingDS& ds,
+                                  const BrickKey& key,
+                                  std::vector<T>& data);
 
   // given the brick key in the dynamic DS, return the corresponding BrickKey
   // in the source data.
@@ -460,61 +467,65 @@ GBPrelim DynamicBrickingDS::dbinfo::BrickSetup(const BrickKey& k,
   return rv;
 }
 
+template<typename T>
+bool DynamicBrickingDS::dbinfo::Brick(const DynamicBrickingDS& ds,
+                                      const BrickKey& key,
+                                      std::vector<T>& data) {
+  // first: check the cache, if we've already got the data we're done!
+  if(!ds.di->cache.lookup(key, T()).empty()) {
+    data = ds.di->cache.lookup(key, T());
+    return true;
+  }
+  GBPrelim pre = ds.di->BrickSetup(key, ds);
+  if(!CopyBrick(data, pre.skey, *(ds.di->ds), pre.tgt_bs, pre.src_bs,
+                pre.tgt_index, pre.src_index, pre.src_offset)) {
+    return false;
+  }
+  ds.di->cache.add(key, data);
+  return true;
+}
+
 bool DynamicBrickingDS::GetBrick(const BrickKey& k, std::vector<uint8_t>& data) const
 {
-  GBPrelim pre = this->di->BrickSetup(k, *this);
-  return CopyBrick(data, pre.skey, *(this->di->ds), pre.tgt_bs, pre.src_bs,
-                   pre.tgt_index, pre.src_index, pre.src_offset);
+  return this->di->Brick<uint8_t>(*this, k, data);
 }
 
 bool DynamicBrickingDS::GetBrick(const BrickKey& k,
                                  std::vector<int8_t>& data) const
 {
-  GBPrelim pre = this->di->BrickSetup(k, *this);
-  return CopyBrick(data, pre.skey, *(this->di->ds), pre.tgt_bs, pre.src_bs,
-                   pre.tgt_index, pre.src_index, pre.src_offset);
+  return this->di->Brick<int8_t>(*this, k, data);
 }
 bool DynamicBrickingDS::GetBrick(const BrickKey& k,
                                  std::vector<uint16_t>& data) const
 {
-  GBPrelim pre = this->di->BrickSetup(k, *this);
-  return CopyBrick(data, pre.skey, *(this->di->ds), pre.tgt_bs, pre.src_bs,
-                   pre.tgt_index, pre.src_index, pre.src_offset);
+  return this->di->Brick<uint16_t>(*this, k, data);
 }
 bool DynamicBrickingDS::GetBrick(const BrickKey& k,
                                  std::vector<int16_t>& data) const
 {
-  GBPrelim pre = this->di->BrickSetup(k, *this);
-  return CopyBrick(data, pre.skey, *(this->di->ds), pre.tgt_bs, pre.src_bs,
-                   pre.tgt_index, pre.src_index, pre.src_offset);
+  return this->di->Brick<int16_t>(*this, k, data);
 }
 bool DynamicBrickingDS::GetBrick(const BrickKey& k,
                                  std::vector<uint32_t>& data) const
 {
-  GBPrelim pre = this->di->BrickSetup(k, *this);
-  return CopyBrick(data, pre.skey, *(this->di->ds), pre.tgt_bs, pre.src_bs,
-                   pre.tgt_index, pre.src_index, pre.src_offset);
+  return this->di->Brick<uint32_t>(*this, k, data);
 }
 bool DynamicBrickingDS::GetBrick(const BrickKey& k,
                                  std::vector<int32_t>& data) const
 {
-  GBPrelim pre = this->di->BrickSetup(k, *this);
-  return CopyBrick(data, pre.skey, *(this->di->ds), pre.tgt_bs, pre.src_bs,
-                   pre.tgt_index, pre.src_index, pre.src_offset);
+  return this->di->Brick<int32_t>(*this, k, data);
 }
 bool DynamicBrickingDS::GetBrick(const BrickKey& k,
                                  std::vector<float>& data) const
 {
-  GBPrelim pre = this->di->BrickSetup(k, *this);
-  return CopyBrick(data, pre.skey, *(this->di->ds), pre.tgt_bs, pre.src_bs,
-                   pre.tgt_index, pre.src_index, pre.src_offset);
+  return this->di->Brick<float>(*this, k, data);
 }
 bool DynamicBrickingDS::GetBrick(const BrickKey& k,
-                                 std::vector<double>& data) const
+                                 std::vector<double>&) const
 {
-  GBPrelim pre = this->di->BrickSetup(k, *this);
-  return CopyBrick(data, pre.skey, *(this->di->ds), pre.tgt_bs, pre.src_bs,
-                   pre.tgt_index, pre.src_index, pre.src_offset);
+  assert(this->bricks.find(k) != this->bricks.end());
+  assert(false && "no support for double with dynamic bricking!");
+  return false;
 }
 
 void DynamicBrickingDS::SetRescaleFactors(const DOUBLEVECTOR3& scale) {
