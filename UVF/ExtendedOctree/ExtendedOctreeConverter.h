@@ -33,83 +33,6 @@
 #include "VolumeTools.h"
 #include "Basics/MathTools.h"
 
-/*! \brief A single brick cache entry
- *
- *  This class is used in a vector/list etc. like data structure within
- *  the ExtendedOctreeConverter class it mainly stores an array with the
- *  brick data but also contains an access counter for the FIFO implementation,
- *  a dirty bool to indicate that this brick has changed in mem but has not
- *  yet written to disk, and index indicating to which brick the data belongs
- */
-class CacheEntry {
-public:
-  /**
-    default constructor, flags this CacheEntry as unused
-  */
-  CacheEntry() :
-    m_pData(NULL),
-    m_bDirty(false),
-    m_index(std::numeric_limits<size_t>::max()),
-    m_iAccess(0),
-    m_size(0)
-  {}
-
-  /**
-    cleanup memory if this cache entry was ever active
-  */
-  ~CacheEntry() {
-    delete [] m_pData;
-  }
-
-  /**
-    Specify the memory size of this cache block, does not allocate memory yet
-    but may delete memory if previous size is different, shall never be called
-    on a dirty cache entry
-
-    @param size the size of the block
-  */
-  void SetSize(size_t size) {
-    if (m_size != size) {
-      assert(!m_bDirty);
-      delete [] m_pData;
-      m_pData = NULL;
-    }
-
-    m_size = size;
-  }
-
-  /**
-    Actually allocates the memory specified with the size
-  */
-  void Allocate() {
-    delete [] m_pData;
-    m_pData = new uint8_t[m_size];
-  }
-
-  /// the data pointer
-  uint8_t* m_pData;
-
-  /// true iff the cache entry has been changed but the changes have not yet been committed
-  bool m_bDirty;
-
-  /// the ID of the data stored in this cache entry
-  size_t m_index;
-
-  /// access timestamp for the replacement strategy
-  uint64_t m_iAccess;
-
-private:
-  /// the size of the data block
-  size_t m_size;
-};
-
-/// The brick cache is nothing but a vector of cache elements, we may
-/// want to change that to a more complex data structure
-typedef std::vector<CacheEntry> BrickCache;
-
-/// Brick cache iterator
-typedef BrickCache::iterator BrickCacheIter;
-
 /*! \brief Stores brick statistics such as the minimum and maximum values
  */
 template<class T> class BrickStats {
@@ -359,6 +282,84 @@ public:
                                               const UINT64VECTOR3& vBrickOffset,
                                               void* pUserContext),
                             void* pUserContext, uint32_t iOverlap=0);
+
+public:
+  /*! \brief A single brick cache entry
+   *
+   *  This class is used in a vector/list etc. like data structure within
+   *  the ExtendedOctreeConverter class it mainly stores an array with the
+   *  brick data but also contains an access counter for the FIFO implementation,
+   *  a dirty bool to indicate that this brick has changed in mem but has not
+   *  yet written to disk, and index indicating to which brick the data belongs
+   */
+  class CacheEntry {
+  public:
+    /**
+      default constructor, flags this CacheEntry as unused
+    */
+    CacheEntry() :
+      m_pData(NULL),
+      m_bDirty(false),
+      m_index(std::numeric_limits<size_t>::max()),
+      m_iAccess(0),
+      m_size(0)
+    {}
+
+    /**
+      cleanup memory if this cache entry was ever active
+    */
+    ~CacheEntry() {
+      delete [] m_pData;
+    }
+
+    /**
+      Specify the memory size of this cache block, does not allocate memory yet
+      but may delete memory if previous size is different, shall never be called
+      on a dirty cache entry
+
+      @param size the size of the block
+    */
+    void SetSize(size_t size) {
+      if (m_size != size) {
+        assert(!m_bDirty);
+        delete [] m_pData;
+        m_pData = NULL;
+      }
+
+      m_size = size;
+    }
+
+    /**
+      Actually allocates the memory specified with the size
+    */
+    void Allocate() {
+      delete [] m_pData;
+      m_pData = new uint8_t[m_size];
+    }
+
+    /// the data pointer
+    uint8_t* m_pData;
+
+    /// true iff the cache entry has been changed but the changes have not yet been committed
+    bool m_bDirty;
+
+    /// the ID of the data stored in this cache entry
+    size_t m_index;
+
+    /// access timestamp for the replacement strategy
+    uint64_t m_iAccess;
+
+  private:
+    /// the size of the data block
+    size_t m_size;
+  };
+
+  /// The brick cache is nothing but a vector of cache elements, we may
+  /// want to change that to a more complex data structure
+  typedef std::vector<CacheEntry> BrickCache;
+
+  /// Brick cache iterator
+  typedef BrickCache::iterator BrickCacheIter;
 
 private:
   /// internal data for the progress indicator call

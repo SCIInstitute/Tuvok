@@ -1003,8 +1003,11 @@ void ExtendedOctreeConverter::WriteBrickToDisk(ExtendedOctree &tree, uint8_t* pD
 
   Function used for find_if, returns true iff a cache entry has a certain index
 */
-struct HasIndex : public std::binary_function <CacheEntry, uint64_t, bool> {
-  bool operator() (const CacheEntry& cacheEntry, uint64_t index) const {
+struct HasIndex :
+  public std::binary_function<ExtendedOctreeConverter::CacheEntry,
+                              uint64_t, bool> {
+  bool operator()(const ExtendedOctreeConverter::CacheEntry& cacheEntry,
+                  uint64_t index) const {
     return cacheEntry.m_index == index;
   }
 };
