@@ -32,6 +32,15 @@ namespace tuvok {
 static bool test();
 #endif
 
+struct GBPrelim {
+  const BrickKey skey;
+  const BrickSize tgt_bs;
+  const BrickSize src_bs;
+  VoxelIndex tgt_index;
+  VoxelIndex src_index;
+  VoxelIndex src_offset;
+};
+
 struct DynamicBrickingDS::dbinfo {
   std::shared_ptr<LinearIndexDataset> ds;
   BrickSize brickSize;
@@ -39,9 +48,9 @@ struct DynamicBrickingDS::dbinfo {
   dbinfo(std::shared_ptr<LinearIndexDataset> d,
          BrickSize bs) : ds(d), brickSize(bs) { }
 
-  // assumes timestep=0
-  std::vector<uint8_t> ReadSourceBrick(unsigned lod,
-                                       std::array<uint64_t,3> idx);
+  // early, non-type-specific parts of GetBrick.
+  GBPrelim BrickSetup(const BrickKey&, const DynamicBrickingDS& tgt);
+
   // given the brick key in the dynamic DS, return the corresponding BrickKey
   // in the source data.
   BrickKey SourceBrickKey(const BrickKey&);
@@ -369,48 +378,25 @@ DynamicBrickingDS::dbinfo::TargetBrickLayout(size_t lod, size_t ts) const {
   return tgt_blayout;
 }
 
-// Because of how we done the re-bricking, we know that all target bricks will
-// fit nicely inside a source brick: so we know we only need to read one brick.
-bool DynamicBrickingDS::GetBrick(const BrickKey& k, std::vector<uint8_t>& data) const
+namespace {
+// This is the type-dependent part of ::GetBrick.  Basically, the copying of
+// the source data into the target brick.
+template<typename T>
+bool CopyBrick(std::vector<T>& dest, const BrickKey skey, const Dataset& ds,
+               const BrickSize tgt_bs, const BrickSize src_bs,
+               const VoxelIndex tgt_index, VoxelIndex src_index,
+               VoxelIndex src_offset)
 {
-  assert(this->bricks.find(k) != this->bricks.end());
+  // read the data from disk
+  std::vector<T> srcdata;
+  if(!ds.GetBrick(skey, srcdata)) { return false; }
 
-  const BrickKey skey = this->di->SourceBrickKey(k);
-  const BrickSize tgt_bs = TargetBrickSize(*this, k);
-  const BrickSize src_bs = SourceBrickSize(*this->di->ds, skey);
-
-  // now we need to copy parts of 'srcdata' into 'data'.
+  // make space for the brick in our return value.
+  const size_t voxels_in_target = tgt_bs[0] * tgt_bs[1] * tgt_bs[2];
+  dest.resize(voxels_in_target);
 
   // our copy size/scanline size is the width of our target brick.
   const size_t scanline = tgt_bs[0];
-
-  // need to figure out the voxel index of target brick's upper left and src's
-  // bricks upper left, that tells us how many voxels to go 'in' before we
-  // start copying.
-  // these are both in the same space, because we have the same number of
-  // voxels in both data sets---just more bricks in our target DS.
-  VoxelIndex tgt_index = TargetIndex(k, *this, this->di->brickSize);
-  VoxelIndex src_index = SourceIndex(skey, *this->di->ds);
-  // it should always be the case that tgt_index >= src_index: we looked up the
-  // brick so it would do that!
-  assert(tgt_index[0] >= src_index[0]);
-  assert(tgt_index[1] >= src_index[1]);
-  assert(tgt_index[2] >= src_index[2]);
-
-  const size_t voxels_in_target = tgt_bs[0] * tgt_bs[1] * tgt_bs[2];
-  data.resize(voxels_in_target);
-
-  // unless the target brick shares a corner with the target brick, we'll need
-  // to begin reading from it offset inwards a little bit.  where, exactly?
-  VoxelIndex src_offset = {{
-    tgt_index[0] - src_index[0],
-    tgt_index[1] - src_index[1],
-    tgt_index[2] - src_index[2]
-  }};
-
-  // make sure we read the actual data from disk :-)
-  std::vector<uint8_t> srcdata;
-  this->di->ds->GetBrick(skey, srcdata);
 
   for(uint64_t z=0; z < tgt_bs[2]; ++z) {
     for(uint64_t y=0; y < tgt_bs[1]; ++y) {
@@ -422,11 +408,11 @@ bool DynamicBrickingDS::GetBrick(const BrickKey& k, std::vector<uint8_t>& data) 
 #if 0
       // memcpy-based: works fast even in debug.
       std::copy(srcdata.data()+src_o, srcdata.data()+src_o+scanline,
-                data.data()+tgt_offset);
+                dest.data()+tgt_offset);
 #else
       // iterators: gives nice error messages in debug.
       std::copy(srcdata.begin()+src_o, srcdata.begin()+src_o+scanline,
-                data.begin()+tgt_offset);
+                dest.begin()+tgt_offset);
 #endif
       src_offset[1]++; // should follow 'y' increment.
     }
@@ -435,43 +421,100 @@ bool DynamicBrickingDS::GetBrick(const BrickKey& k, std::vector<uint8_t>& data) 
   }
   return true;
 }
+}
 
-bool DynamicBrickingDS::GetBrick(const BrickKey& k, std::vector<int8_t>&) const
+// early, non-type-specific parts of GetBrick.
+// Note that because of how we do the re-bricking, we know that all the target
+// bricks will fit nicely inside a (single) source brick.  This is important,
+// becuase otherwise we'd have to read a bunch of bricks from the source, and
+// copy pieces from all of them.
+GBPrelim DynamicBrickingDS::dbinfo::BrickSetup(const BrickKey& k,
+                                               const DynamicBrickingDS& tgt) {
+  assert(tgt.bricks.find(k) != tgt.bricks.end());
+
+  const BrickKey skey = this->SourceBrickKey(k);
+  const BrickSize tgt_bs = TargetBrickSize(tgt, k);
+  const BrickSize src_bs = SourceBrickSize(*this->ds, skey);
+
+  // need to figure out the voxel index of target brick's upper left and src's
+  // bricks upper left, that tells us how many voxels to go 'in' before we
+  // start copying.
+  // these are both in the same space, because we have the same number of
+  // voxels in both data sets---just more bricks in our target DS.
+  VoxelIndex tgt_index = TargetIndex(k, tgt, this->brickSize);
+  VoxelIndex src_index = SourceIndex(skey, *this->ds);
+  // it should always be the case that tgt_index >= src_index: we looked up the
+  // brick so it would do that!
+  assert(tgt_index[0] >= src_index[0]);
+  assert(tgt_index[1] >= src_index[1]);
+  assert(tgt_index[2] >= src_index[2]);
+
+  // unless the target brick shares a corner with the target brick, we'll need
+  // to begin reading from it offset inwards a little bit.  where, exactly?
+  VoxelIndex src_offset = {{
+    tgt_index[0] - src_index[0],
+    tgt_index[1] - src_index[1],
+    tgt_index[2] - src_index[2]
+  }};
+  GBPrelim rv = { skey, tgt_bs, src_bs, tgt_index, src_index, src_offset };
+  return rv;
+}
+
+bool DynamicBrickingDS::GetBrick(const BrickKey& k, std::vector<uint8_t>& data) const
 {
-  assert(this->bricks.find(k) != this->bricks.end());
-  abort(); return false;
+  GBPrelim pre = this->di->BrickSetup(k, *this);
+  return CopyBrick(data, pre.skey, *(this->di->ds), pre.tgt_bs, pre.src_bs,
+                   pre.tgt_index, pre.src_index, pre.src_offset);
+}
+
+bool DynamicBrickingDS::GetBrick(const BrickKey& k,
+                                 std::vector<int8_t>& data) const
+{
+  GBPrelim pre = this->di->BrickSetup(k, *this);
+  return CopyBrick(data, pre.skey, *(this->di->ds), pre.tgt_bs, pre.src_bs,
+                   pre.tgt_index, pre.src_index, pre.src_offset);
 }
 bool DynamicBrickingDS::GetBrick(const BrickKey& k,
-                                 std::vector<uint16_t>&) const
+                                 std::vector<uint16_t>& data) const
 {
-  assert(this->bricks.find(k) != this->bricks.end());
-  abort(); return false;
-}
-bool DynamicBrickingDS::GetBrick(const BrickKey& k, std::vector<int16_t>&) const
-{
-  assert(this->bricks.find(k) != this->bricks.end());
-  abort(); return false;
+  GBPrelim pre = this->di->BrickSetup(k, *this);
+  return CopyBrick(data, pre.skey, *(this->di->ds), pre.tgt_bs, pre.src_bs,
+                   pre.tgt_index, pre.src_index, pre.src_offset);
 }
 bool DynamicBrickingDS::GetBrick(const BrickKey& k,
-                                 std::vector<uint32_t>&) const
+                                 std::vector<int16_t>& data) const
 {
-  assert(this->bricks.find(k) != this->bricks.end());
-  abort(); return false;
+  GBPrelim pre = this->di->BrickSetup(k, *this);
+  return CopyBrick(data, pre.skey, *(this->di->ds), pre.tgt_bs, pre.src_bs,
+                   pre.tgt_index, pre.src_index, pre.src_offset);
 }
-bool DynamicBrickingDS::GetBrick(const BrickKey& k, std::vector<int32_t>&) const
+bool DynamicBrickingDS::GetBrick(const BrickKey& k,
+                                 std::vector<uint32_t>& data) const
 {
-  assert(this->bricks.find(k) != this->bricks.end());
-  abort(); return false;
+  GBPrelim pre = this->di->BrickSetup(k, *this);
+  return CopyBrick(data, pre.skey, *(this->di->ds), pre.tgt_bs, pre.src_bs,
+                   pre.tgt_index, pre.src_index, pre.src_offset);
 }
-bool DynamicBrickingDS::GetBrick(const BrickKey& k, std::vector<float>&) const
+bool DynamicBrickingDS::GetBrick(const BrickKey& k,
+                                 std::vector<int32_t>& data) const
 {
-  assert(this->bricks.find(k) != this->bricks.end());
-  abort(); return false;
+  GBPrelim pre = this->di->BrickSetup(k, *this);
+  return CopyBrick(data, pre.skey, *(this->di->ds), pre.tgt_bs, pre.src_bs,
+                   pre.tgt_index, pre.src_index, pre.src_offset);
 }
-bool DynamicBrickingDS::GetBrick(const BrickKey& k, std::vector<double>&) const
+bool DynamicBrickingDS::GetBrick(const BrickKey& k,
+                                 std::vector<float>& data) const
 {
-  assert(this->bricks.find(k) != this->bricks.end());
-  abort(); return false;
+  GBPrelim pre = this->di->BrickSetup(k, *this);
+  return CopyBrick(data, pre.skey, *(this->di->ds), pre.tgt_bs, pre.src_bs,
+                   pre.tgt_index, pre.src_index, pre.src_offset);
+}
+bool DynamicBrickingDS::GetBrick(const BrickKey& k,
+                                 std::vector<double>& data) const
+{
+  GBPrelim pre = this->di->BrickSetup(k, *this);
+  return CopyBrick(data, pre.skey, *(this->di->ds), pre.tgt_bs, pre.src_bs,
+                   pre.tgt_index, pre.src_index, pre.src_offset);
 }
 
 void DynamicBrickingDS::SetRescaleFactors(const DOUBLEVECTOR3& scale) {
