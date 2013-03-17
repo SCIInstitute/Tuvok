@@ -465,6 +465,9 @@ class AbstrRenderer {
     /** Sends a message to the master to ask for a dataset to be loaded.
      * @param strFilename path to a file */
     virtual bool LoadDataset(const std::string& strFilename);
+    /// ditto as LoadDataset, but gives a rebricked DS
+    virtual bool LoadRebricked(const std::string& strFilename,
+                               const UINTVECTOR3 bsize);
 
     virtual bool Initialize(std::shared_ptr<Context> ctx);
 

@@ -185,8 +185,6 @@ GPUMemMan::~GPUMemMan() {
   assert(m_iAllocatedCPUMemory == 0);
 }
 
-// ******************** Datasets
-
 Dataset* GPUMemMan::LoadDataset(const string& strFilename,
                                 AbstrRenderer* requester) {
   // We want to reuse datasets which have already been loaded.  Yet

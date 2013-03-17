@@ -250,6 +250,15 @@ bool AbstrRenderer::LoadDataset(const string& strFilename) {
   return true;
 }
 
+bool AbstrRenderer::LoadRebricked(const std::string& filename,
+                                  const UINTVECTOR3 bsize) {
+  const IOManager& iomgr = Controller::Const().IOMan();
+  Dataset* ds = iomgr.LoadRebrickedDataset(filename, bsize);
+  m_pLuaDatasetPtr->bind(ds, m_pMasterController->LuaScript());
+  this->SetDataset(ds);
+  return true;
+}
+
 AbstrRenderer::~AbstrRenderer() {
   if (m_pDataset) m_pMasterController->MemMan()->FreeDataset(m_pDataset, this);
   if (m_p1DTrans) m_pMasterController->MemMan()->Free1DTrans(m_p1DTrans, this);
@@ -299,7 +308,6 @@ void AbstrRenderer::SetBlendPrecision(EBlendPrecision eBlendPrecision) {
 void AbstrRenderer::SetDataset(Dataset *vds) {
   if(m_pDataset) {
     Controller::Instance().MemMan()->FreeDataset(m_pDataset, this);
-    delete m_pDataset;
   }
   m_pDataset = vds;
   m_iMaxLODIndex = m_pDataset->GetLargestSingleBrickLOD(0);
@@ -2093,6 +2101,8 @@ void AbstrRenderer::RegisterLuaFunctions(
                     "setConsiderPrevDepthBuffer", "", true);
   id = reg.function(&AbstrRenderer::LoadDataset,
                     "loadDataset", "", true);
+  id = reg.function(&AbstrRenderer::LoadRebricked,
+                    "loadRebricked", "load a rebricked DS", true);
 
   id = reg.function(&AbstrRenderer::GetUseOnlyPowerOfTwo,
                     "getUseOnlyPowerOfTwo", "", false);
