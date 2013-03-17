@@ -128,7 +128,6 @@ struct KeyMatches {
                   const std::pair<BrickInfo,TypeErase>& a) const {
     return key == a.first.key;
   }
-  const BrickKey key;
 };
 
 // if the key doesn't exist, you get an empty vector.
