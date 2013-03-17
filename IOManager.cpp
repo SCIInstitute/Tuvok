@@ -52,6 +52,7 @@
 #include "Basics/SysTools.h"
 #include "Controller/Controller.h"
 #include "DSFactory.h"
+#include "DynamicBrickingDS.h"
 #include "exception/UnmergeableDatasets.h"
 #include "expressions/parser.h"
 #include "expressions/syntax.h"
@@ -1277,6 +1278,17 @@ Dataset* IOManager::LoadDataset(const string& strFilename,
   }
   return m_LoadDS(strFilename, requester);
 }
+
+Dataset* IOManager::LoadRebrickedDataset(const std::string& filename,
+                                         const UINTVECTOR3 bricksize) const {
+  std::shared_ptr<Dataset> ds(this->CreateDataset(filename, 256, false));
+  std::shared_ptr<LinearIndexDataset> lid =
+    std::dynamic_pointer_cast<LinearIndexDataset>(ds);
+  std::array<size_t,3> bsize = {{bricksize[0], bricksize[1], bricksize[2]}};
+  DynamicBrickingDS* dyn = new DynamicBrickingDS(lid, bsize);
+  return dyn;
+}
+
 
 Dataset* IOManager::CreateDataset(const string& filename,
                                   uint64_t max_brick_size, bool verify) const {

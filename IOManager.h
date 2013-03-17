@@ -153,6 +153,9 @@ public:
   );
   tuvok::Dataset* LoadDataset(const std::string& strFilename,
                               tuvok::AbstrRenderer* requester) const;
+
+  tuvok::Dataset* LoadRebrickedDataset(const std::string& filename,
+                                       const UINTVECTOR3 bricksize) const;
   ///@}
   tuvok::Dataset* CreateDataset(const std::string& filename,
                                 uint64_t max_brick_size, bool verify) const;
