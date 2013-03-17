@@ -187,6 +187,7 @@ HEADERS += \
            IO/AmiraConverter.h \
            IO/AnalyzeConverter.h \
            IO/BOVConverter.h \
+           IO/BrickCache.h \
            IO/BrickedDataset.h \
            IO/const-brick-iterator.h \
            IO/Dataset.h \
@@ -522,6 +523,7 @@ SOURCES += \
            IO/AmiraConverter.cpp \
            IO/AnalyzeConverter.cpp \
            IO/BOVConverter.cpp \
+           IO/BrickCache.cpp \
            IO/BrickedDataset.cpp \
            IO/const-brick-iterator.cpp \
            IO/Dataset.cpp \
