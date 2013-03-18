@@ -134,7 +134,8 @@ struct KeyMatches {
 template<typename T>
 std::vector<T> BrickCache::bcinfo::typed_lookup(const BrickKey& k) {
   using namespace std::placeholders;
-  auto func = std::bind(KeyMatches(), k, _1);
+  KeyMatches km;
+  auto func = std::bind(&KeyMatches::operator(), km, k, _1);
 
   // gcc can't seem to deduce this with 'auto'.
   typedef std::map<BrickInfo, TypeErase, CacheLRU> maptype;
