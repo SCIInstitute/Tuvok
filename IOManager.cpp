@@ -50,6 +50,7 @@
 
 #include "Basics/MC.h"
 #include "Basics/SysTools.h"
+#include "Basics/SystemInfo.h"
 #include "Controller/Controller.h"
 #include "DSFactory.h"
 #include "DynamicBrickingDS.h"
@@ -1285,7 +1286,11 @@ Dataset* IOManager::LoadRebrickedDataset(const std::string& filename,
   std::shared_ptr<LinearIndexDataset> lid =
     std::dynamic_pointer_cast<LinearIndexDataset>(ds);
   std::array<size_t,3> bsize = {{bricksize[0], bricksize[1], bricksize[2]}};
-  DynamicBrickingDS* dyn = new DynamicBrickingDS(lid, bsize);
+
+  size_t cache = static_cast<size_t>(
+    0.80f * Controller::ConstInstance().SysInfo().GetMaxUsableCPUMem()
+  );
+  DynamicBrickingDS* dyn = new DynamicBrickingDS(lid, bsize, cache);
   return dyn;
 }
 

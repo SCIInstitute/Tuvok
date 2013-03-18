@@ -83,16 +83,18 @@ bool check_for_engine() {
   return true;
 }
 
+static const size_t cacheBytes = 1024U*1024U*2048U;
+
 // just creates and destroys the object.
 void tsimple() {
   std::shared_ptr<UVFDataset> ds = mk8x8testdata();
-  DynamicBrickingDS dynamic(ds, {{8,8,8}});
+  DynamicBrickingDS dynamic(ds, {{8,8,8}}, cacheBytes);
 }
 
 // splits a 1-brick 8x8x1 volume into two bricks, of size 4x8x1 each.
 void tmake_two() {
   std::shared_ptr<UVFDataset> ds = mk8x8testdata();
-  DynamicBrickingDS dynamic(ds, {{4,8,1}});
+  DynamicBrickingDS dynamic(ds, {{4,8,1}}, cacheBytes);
   // it should be 3 bricks, not 2, because this will create a new LoD
   TS_ASSERT_EQUALS(dynamic.GetTotalBrickCount(),
                    static_cast<BrickTable::size_type>(3));
@@ -101,21 +103,21 @@ void tmake_two() {
 // does not divide the volume evenly.
 void tuneven() {
   std::shared_ptr<UVFDataset> ds = mk8x8testdata();
-  TS_ASSERT_THROWS(DynamicBrickingDS dynamic(ds, {{3,8,1}}),
+  TS_ASSERT_THROWS(DynamicBrickingDS dynamic(ds, {{3,8,1}}, cacheBytes),
                    std::runtime_error);
 }
 
 // all previous test split on X, make sure Y works too!
 void ty() {
   std::shared_ptr<UVFDataset> ds = mk8x8testdata();
-  DynamicBrickingDS dynamic(ds, {{8,4,1}});
+  DynamicBrickingDS dynamic(ds, {{8,4,1}}, cacheBytes);
   TS_ASSERT_EQUALS(dynamic.GetTotalBrickCount(),
                    static_cast<BrickTable::size_type>(3));
 }
 
 void tuneven_multiple_dims() {
   std::shared_ptr<UVFDataset> ds = mk8x8testdata();
-  TS_ASSERT_THROWS(DynamicBrickingDS dynamic(ds, {{3,8,1}}),
+  TS_ASSERT_THROWS(DynamicBrickingDS dynamic(ds, {{3,8,1}}, cacheBytes),
                    std::runtime_error);
 }
 
@@ -123,7 +125,7 @@ void tuneven_multiple_dims() {
 // uint64_t, we should recognize that we actually have 8bit data, etc.
 void tdata_type() {
   std::shared_ptr<UVFDataset> ds = mk8x8testdata();
-  DynamicBrickingDS dynamic(ds, {{8,8,8}});
+  DynamicBrickingDS dynamic(ds, {{8,8,8}}, cacheBytes);
   TS_ASSERT_EQUALS(dynamic.GetBitWidth(), 8U);
   TS_ASSERT_EQUALS(dynamic.GetComponentCount(), 1ULL);
   TS_ASSERT_EQUALS(dynamic.GetIsSigned(), false);
@@ -165,13 +167,13 @@ void tno_dynamic() {
 void tdomain_size() {
   std::shared_ptr<UVFDataset> ds = mk8x8testdata();
   {
-    DynamicBrickingDS dynamic(ds, {{8,8,8}});
+    DynamicBrickingDS dynamic(ds, {{8,8,8}}, cacheBytes);
     TS_ASSERT_EQUALS(ds->GetDomainSize(0,0)[0], dynamic.GetDomainSize(0,0)[0]);
     TS_ASSERT_EQUALS(ds->GetDomainSize(0,0)[1], dynamic.GetDomainSize(0,0)[1]);
     TS_ASSERT_EQUALS(ds->GetDomainSize(0,0)[2], dynamic.GetDomainSize(0,0)[2]);
   }
   {
-    DynamicBrickingDS dynamic(ds, {{4,4,4}});
+    DynamicBrickingDS dynamic(ds, {{4,4,4}}, cacheBytes);
     TS_ASSERT_EQUALS(ds->GetDomainSize(0,0)[0], dynamic.GetDomainSize(0,0)[0]);
     TS_ASSERT_EQUALS(ds->GetDomainSize(0,0)[1], dynamic.GetDomainSize(0,0)[1]);
     TS_ASSERT_EQUALS(ds->GetDomainSize(0,0)[2], dynamic.GetDomainSize(0,0)[2]);
@@ -181,7 +183,7 @@ void tdomain_size() {
 // very simple case: "rebrick" a dataset into the same number of bricks.
 void tdata_simple () {
   std::shared_ptr<UVFDataset> ds = mk8x8testdata();
-  DynamicBrickingDS dynamic(ds, {{8,8,8}});
+  DynamicBrickingDS dynamic(ds, {{8,8,8}}, cacheBytes);
   BrickKey bk(0,0,0); std::vector<uint8_t> d;
   if(dynamic.GetBrick(bk, d) == false) {
     TS_FAIL("getting brick data failed.");
@@ -220,7 +222,7 @@ void tdata_simple () {
 // create bricks that are half the size of the source.
 void tdata_half_split() {
   std::shared_ptr<UVFDataset> ds = mk8x8testdata();
-  DynamicBrickingDS dynamic(ds, {{4,8,1}});
+  DynamicBrickingDS dynamic(ds, {{4,8,1}}, cacheBytes);
 
   BrickKey bk(0,0,0);
   const UINTVECTOR3 bs = dynamic.GetBrickMetadata(bk).n_voxels;
@@ -248,14 +250,14 @@ void tdata_half_split() {
 void tvoxel_count() {
   std::shared_ptr<UVFDataset> ds = mk8x8testdata();
   {
-    DynamicBrickingDS dynamic(ds, {{8,8,1}});
+    DynamicBrickingDS dynamic(ds, {{8,8,1}}, cacheBytes);
     const BrickKey bk(0,0,0);
     TS_ASSERT_EQUALS(dynamic.GetBrickVoxelCounts(bk)[0], 12U);
     TS_ASSERT_EQUALS(dynamic.GetBrickVoxelCounts(bk)[1], 12U);
     TS_ASSERT_EQUALS(dynamic.GetBrickVoxelCounts(bk)[2],  5U);
   }
   {
-    DynamicBrickingDS dynamic(ds, {{4,8,1}});
+    DynamicBrickingDS dynamic(ds, {{4,8,1}}, cacheBytes);
     BrickKey bk(0,0,0);
     TS_ASSERT_EQUALS(dynamic.GetBrickVoxelCounts(bk)[0],  8U);
     TS_ASSERT_EQUALS(dynamic.GetBrickVoxelCounts(bk)[1], 12U);
@@ -273,7 +275,7 @@ void tmetadata() {
   const BrickKey bk(0,0,0);
   const BrickMD& src_md = ds->GetBrickMetadata(bk);
   { // bricks are bigger than DS -> DS unchanged -> metadata unchanged
-    DynamicBrickingDS dynamic(ds, {{8,8,1}});
+    DynamicBrickingDS dynamic(ds, {{8,8,1}}, cacheBytes);
     const BrickMD& tgt_md = dynamic.GetBrickMetadata(bk);
 
     TS_ASSERT_EQUALS(src_md.center[0], tgt_md.center[0]);
@@ -287,7 +289,7 @@ void trealdata() {
   if(!check_for_engine()) { TS_FAIL("need engine for this test"); }
   std::shared_ptr<UVFDataset> ds(new UVFDataset("engine.uvf", 256, false,
                                                 false));
-  DynamicBrickingDS dynamic(ds, {{256,256,128}});
+  DynamicBrickingDS dynamic(ds, {{256,256,128}}, cacheBytes);
   BrickKey k(0,0, 3);
   std::vector<uint8_t> data;
   dynamic.GetBrick(k, data);
@@ -297,14 +299,14 @@ void trealdata_2() {
   if(!check_for_engine()) { TS_FAIL("need engine for this test"); }
   std::shared_ptr<UVFDataset> ds(new UVFDataset("engine.uvf", 256, false,
                                                 false));
-  DynamicBrickingDS dynamic(ds, {{126,256,128}});
+  DynamicBrickingDS dynamic(ds, {{126,256,128}}, cacheBytes);
 }
 
 void trealdata_make_two_lod2() {
   if(!check_for_engine()) { TS_FAIL("need engine for this test"); }
   std::shared_ptr<UVFDataset> ds(new UVFDataset("engine.uvf", 256, false,
                                                 false));
-  DynamicBrickingDS dynamic(ds, {{126,256,128}});
+  DynamicBrickingDS dynamic(ds, {{126,256,128}}, cacheBytes);
   BrickKey k(0,2,0);
   std::vector<uint8_t> data;
   dynamic.GetBrick(k, data);
@@ -312,7 +314,7 @@ void trealdata_make_two_lod2() {
 
 void tbsizes() {
   std::shared_ptr<UVFDataset> ds = mk8x8testdata();
-  DynamicBrickingDS dynamic(ds, {{8,8,8}});
+  DynamicBrickingDS dynamic(ds, {{8,8,8}}, cacheBytes);
   TS_ASSERT_EQUALS(dynamic.GetMaxBrickSize()[0], 8U);
   TS_ASSERT_EQUALS(dynamic.GetMaxBrickSize()[1], 8U);
   TS_ASSERT_EQUALS(dynamic.GetMaxBrickSize()[2], 1U);

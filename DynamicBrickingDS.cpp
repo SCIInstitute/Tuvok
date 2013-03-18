@@ -46,9 +46,11 @@ struct DynamicBrickingDS::dbinfo {
   std::shared_ptr<LinearIndexDataset> ds;
   BrickSize brickSize;
   BrickCache cache;
+  size_t cacheBytes;
 
   dbinfo(std::shared_ptr<LinearIndexDataset> d,
-         BrickSize bs) : ds(d), brickSize(bs) { }
+         BrickSize bs, size_t bytes) : ds(d), brickSize(bs),
+                                       cacheBytes(bytes) {}
 
   // early, non-type-specific parts of GetBrick.
   GBPrelim BrickSetup(const BrickKey&, const DynamicBrickingDS& tgt);
@@ -102,8 +104,8 @@ static uint64_t to1d(const std::array<unsigned,3>& loc,
 }
 
 DynamicBrickingDS::DynamicBrickingDS(std::shared_ptr<LinearIndexDataset> ds,
-                                     BrickSize maxBrickSize) :
-  di(new DynamicBrickingDS::dbinfo(ds, maxBrickSize))
+                                     BrickSize maxBrickSize, size_t bytes) :
+  di(new DynamicBrickingDS::dbinfo(ds, maxBrickSize, bytes))
 {
   this->Rebrick();
 }

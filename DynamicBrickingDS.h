@@ -17,7 +17,8 @@ namespace tuvok {
 class DynamicBrickingDS : public LinearIndexDataset, public FileBackedDataset {
 public:
   DynamicBrickingDS(std::shared_ptr<LinearIndexDataset> ds,
-                    std::array<size_t, 3> maxBrickSize);
+                    std::array<size_t, 3> maxBrickSize,
+                    size_t cacheBytes);
   virtual ~DynamicBrickingDS();
   virtual std::shared_ptr<const Histogram1D> Get1DHistogram() const;
   virtual std::shared_ptr<const Histogram2D> Get2DHistogram() const;
