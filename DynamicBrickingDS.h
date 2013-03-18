@@ -48,7 +48,7 @@ public:
   virtual bool SaveRescaleFactors();
   ///@}
 
-  virtual uint64_t GetLODLevelCount() const;
+  virtual unsigned GetLODLevelCount() const;
   virtual uint64_t GetNumberOfTimesteps() const;
   virtual UINT64VECTOR3 GetDomainSize(const size_t lod=0,
                                       const size_t ts=0) const;

@@ -2020,7 +2020,7 @@ struct MergeableDatasets : public std::binary_function<Dataset, Dataset, bool> {
     const uint64_t timesteps = a.GetNumberOfTimesteps();
     if(timesteps != b.GetNumberOfTimesteps()) { return false; }
 
-    const uint64_t LoDs = a.GetLODLevelCount();
+    const unsigned LoDs = a.GetLODLevelCount();
     if(LoDs != b.GetLODLevelCount()) { return false; }
 
     for(uint64_t ts=0; ts < timesteps; ++ts) {

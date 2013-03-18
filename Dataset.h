@@ -123,7 +123,7 @@ public:
   /// given plane, i.e. set all values one side to zero
   virtual bool Crop( const PLANE<float>& , const std::string&, bool, bool, bool ) {return false;}
 
-  virtual uint64_t GetLODLevelCount() const = 0;
+  virtual unsigned GetLODLevelCount() const = 0;
   /// @todo FIXME, should be pure virtual && overridden in derived
   virtual uint64_t GetNumberOfTimesteps() const { return 1; }
   virtual UINT64VECTOR3 GetDomainSize(const size_t lod=0,

@@ -144,7 +144,7 @@ public:
   virtual UINTVECTOR3 GetMaxBrickSize() const;
   virtual UINTVECTOR3 GetMaxUsedBrickSizes() const;
   virtual UINTVECTOR3 GetBrickOverlapSize() const;
-  virtual uint64_t GetLODLevelCount() const;
+  virtual unsigned GetLODLevelCount() const;
   virtual unsigned GetBitWidth() const;
   virtual uint64_t GetComponentCount() const;
   virtual bool GetIsSigned() const;

@@ -538,7 +538,7 @@ CFORWARDRET(DOUBLEVECTOR3, GetRescaleFactors)
 /// scaling factors when opening the file.
 FORWARDRET(bool, SaveRescaleFactors)
 
-CFORWARDRET(uint64_t, GetLODLevelCount)
+CFORWARDRET(unsigned, GetLODLevelCount)
 CFORWARDRET(uint64_t, GetNumberOfTimesteps)
 UINT64VECTOR3 DynamicBrickingDS::GetDomainSize(const size_t lod,
                                                const size_t ts) const {

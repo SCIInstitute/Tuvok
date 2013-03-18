@@ -1043,15 +1043,17 @@ UINTVECTOR3 UVFDataset::GetBrickOverlapSize() const
     return ((RDTimestep*)(m_timesteps[0]))->m_aOverlap;
 }
 
-uint64_t UVFDataset::GetLODLevelCount() const
-{
+unsigned UVFDataset::GetLODLevelCount() const {
   /// @todo HACK fixme: should take into account the timestep, needed as arg
   assert(!m_timesteps.empty() && "no data, haven't analyzed UVF?");
 
-  if (m_bToCBlock)
-    return ((TOCTimestep*)(m_timesteps[0]))->GetDB()->GetLoDCount();
-  else
-    return ((RDTimestep*)(m_timesteps[0]))->m_vvaBrickSize.size();
+  if (m_bToCBlock) {
+    return (static_cast<const TOCTimestep*>
+                       (m_timesteps[0]))->GetDB()->GetLoDCount();
+  } else {
+    return (static_cast<const RDTimestep*>
+                       (m_timesteps[0]))->m_vvaBrickSize.size();
+  }
 }
 
 /// \todo change this if we want to support data where elements are of
