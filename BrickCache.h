@@ -22,11 +22,11 @@ class BrickCache {
     ///   std::vector<uint32_t> v = cache.lookup(key, uint32_t());
     /// i.e. just give it an empty value so it knows which one to call.
     ///@{
-    std::vector< uint8_t> lookup(const BrickKey&, uint8_t);
+    std::vector<uint8_t> lookup(const BrickKey&, uint8_t);
     std::vector<uint16_t> lookup(const BrickKey&, uint16_t);
     std::vector<uint32_t> lookup(const BrickKey&, uint32_t);
     std::vector<uint64_t> lookup(const BrickKey&, uint64_t);
-    std::vector< int8_t> lookup(const BrickKey&, int8_t);
+    std::vector<int8_t> lookup(const BrickKey&, int8_t);
     std::vector<int16_t> lookup(const BrickKey&, int16_t);
     std::vector<int32_t> lookup(const BrickKey&, int32_t);
     std::vector<int64_t> lookup(const BrickKey&, int64_t);
@@ -35,18 +35,23 @@ class BrickCache {
 
     /// These return their argument for ease of use.
     ///@{
-    std::vector< uint8_t>& add(const BrickKey&, std::vector<uint8_t>&);
+    std::vector<uint8_t>& add(const BrickKey&, std::vector<uint8_t>&);
     std::vector<uint16_t>& add(const BrickKey&, std::vector<uint16_t>&);
     std::vector<uint32_t>& add(const BrickKey&, std::vector<uint32_t>&);
     std::vector<uint64_t>& add(const BrickKey&, std::vector<uint64_t>&);
-    std::vector< int8_t>& add(const BrickKey&, std::vector<int8_t>&);
+    std::vector<int8_t>& add(const BrickKey&, std::vector<int8_t>&);
     std::vector<int16_t>& add(const BrickKey&, std::vector<int16_t>&);
     std::vector<int32_t>& add(const BrickKey&, std::vector<int32_t>&);
     std::vector<int64_t>& add(const BrickKey&, std::vector<int64_t>&);
     std::vector<float>& add(const BrickKey&, std::vector<float>&);
     ///@}
 
-    void remove(const BrickKey&);
+    /// removes the most appropriate element.
+    void remove();
+
+    /// @returns cache size currently in use (in bytes)
+    size_t size() const;
+
   private:
     struct bcinfo;
     std::unique_ptr<bcinfo> ci;

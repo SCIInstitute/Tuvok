@@ -21,8 +21,35 @@ void add() {
   TS_ASSERT(std::equal(elems.begin(), elems.end(), rv.begin()));
 }
 
+void remove() {
+  BrickCache c;
+  BrickKey k(0,0,0);
+  {
+    std::vector<uint8_t> data(1);
+    data[0] = 42;
+    c.add(k, data);
+  }
+  c.remove();
+}
+
+void sizes() {
+  BrickCache c;
+  BrickKey k(0,0,0);
+  {
+    std::vector<uint32_t> data(1); data[0] = 42U;
+    c.add(k, data);
+  }
+  TS_ASSERT_EQUALS(c.size(), sizeof(uint32_t) * 1);
+  c.remove();
+  TS_ASSERT_EQUALS(c.size(), 0U);
+  c.remove();
+  TS_ASSERT_EQUALS(c.size(), 0U);
+}
+
 class BCacheTests : public CxxTest::TestSuite {
 public:
   void test_simple() { simple(); }
   void test_add() { add(); }
+  void test_remove() { remove(); }
+  void test_sizes() { sizes(); }
 };

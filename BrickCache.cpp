@@ -8,25 +8,37 @@ namespace tuvok {
 
 // This is used to basically get rid of a type.  You can do:
 //   std::vector<TypeErase> data;
-//   MyTypeOne avar;
-//   MyTypeTwo bvar;
-//   data.push_back(TypeErase<MyObj>(avar));
-//   data.push_back(TypeErase<MyObj>(bvar));
+//   std::vector<uint8_t> foo;
+//   std::vector<uint16_t> bar;
+//   data.push_back(TypeErase<std::vector<uint8_t>>(foo));
+//   data.push_back(TypeErase<std::vector<uint16_t>>(bar));
 // with 'MyTypeOne' and 'MyTypeTwo' being completely unrelated (they do not
 // need to have a common base class)
 struct TypeErase {
   struct GenericType {
     virtual ~GenericType() {}
+    virtual size_t elems() const { return 0; }
   };
   template<typename T> struct TypeEraser : GenericType {
     TypeEraser(const T& t) : thing(t) {}
     virtual ~TypeEraser() {}
     T& get() { return thing; }
+    size_t elems() const { return thing.size(); }
     private: T thing;
   };
 
   std::shared_ptr<GenericType> gt;
-  template<typename T> TypeErase(const T& t) : gt(new TypeEraser<T>(t)) {}
+  const size_t width;
+
+  // this isn't a very good type eraser, because we require that the type has
+  // an internal typedef 'value_type' which we can use to obtain the size of
+  // it.  not to mention the '.size()' member function that TypeEraser<>
+  // requires, above.
+  // But that's fine for our usage here; we're really just using this to store
+  // vectors and erase the value_type in there anyway.
+  template<typename T> TypeErase(const T& t):
+    gt(new TypeEraser<T>(t)),
+    width(sizeof(typename T::value_type)) {}
 };
 
 struct BrickInfo {
@@ -43,7 +55,7 @@ struct CacheLRU {
 };
 
 struct BrickCache::bcinfo {
-    bcinfo() {}
+    bcinfo(): bytes(0) {}
     // this is wordy but they all just forward to a real implementation below.
     std::vector<uint8_t> lookup(const BrickKey& k, uint8_t) {
       return this->typed_lookup<uint8_t>(k);
@@ -78,49 +90,52 @@ struct BrickCache::bcinfo {
     // container.
     ///@{
     std::vector<uint8_t>& add(const BrickKey& k, std::vector<uint8_t>& data) {
-      this->cache.insert(std::make_pair(BrickInfo(k, time(NULL)), data));
-      return data;
+      return this->typed_add<uint8_t>(k, data);
     }
     std::vector<uint16_t>& add(const BrickKey& k, std::vector<uint16_t>& data) {
-      this->cache.insert(std::make_pair(BrickInfo(k, time(NULL)), data));
-      return data;
+      return this->typed_add<uint16_t>(k, data);
     }
     std::vector<uint32_t>& add(const BrickKey& k, std::vector<uint32_t>& data) {
-      this->cache.insert(std::make_pair(BrickInfo(k, time(NULL)), data));
-      return data;
+      return this->typed_add<uint32_t>(k, data);
     }
     std::vector<uint64_t>& add(const BrickKey& k, std::vector<uint64_t>& data) {
-      this->cache.insert(std::make_pair(BrickInfo(k, time(NULL)), data));
-      return data;
+      return this->typed_add<uint64_t>(k, data);
     }
     std::vector<int8_t>& add(const BrickKey& k, std::vector<int8_t>& data) {
-      this->cache.insert(std::make_pair(BrickInfo(k, time(NULL)), data));
-      return data;
+      return this->typed_add<int8_t>(k, data);
     }
     std::vector<int16_t>& add(const BrickKey& k, std::vector<int16_t>& data) {
-      this->cache.insert(std::make_pair(BrickInfo(k, time(NULL)), data));
-      return data;
+      return this->typed_add<int16_t>(k, data);
     }
     std::vector<int32_t>& add(const BrickKey& k, std::vector<int32_t>& data) {
-      this->cache.insert(std::make_pair(BrickInfo(k, time(NULL)), data));
-      return data;
+      return this->typed_add<int32_t>(k, data);
     }
     std::vector<int64_t>& add(const BrickKey& k, std::vector<int64_t>& data) {
-      this->cache.insert(std::make_pair(BrickInfo(k, time(NULL)), data));
-      return data;
+      return this->typed_add<int64_t>(k, data);
     }
     std::vector<float>& add(const BrickKey& k, std::vector<float>& data) {
-      this->cache.insert(std::make_pair(BrickInfo(k, time(NULL)), data));
-      return data;
+      return this->typed_add<float>(k, data);
     }
-    //void remove(const BrickKey& k) { this->cache->erase(k); }
     ///@}
+    void remove() {
+      if(!cache.empty()) {
+        const auto entry = this->cache.begin();
+        TypeErase::GenericType& gt = *(entry->second.gt);
+        assert((entry->second.width * gt.elems()) >= this->bytes);
+        this->bytes -= entry->second.width * gt.elems();
+        this->cache.erase(cache.begin());
+      }
+    }
+    size_t size() const { return this->bytes; }
 
   private:
     template<typename T> std::vector<T> typed_lookup(const BrickKey& k);
+    template<typename T> std::vector<T>& typed_add(const BrickKey&,
+                                                   std::vector<T>&);
 
   private:
     std::map<BrickInfo, TypeErase, CacheLRU> cache;
+    size_t bytes; ///< how much memory we're currently using for data.
 };
 
 struct KeyMatches {
@@ -146,6 +161,24 @@ std::vector<T> BrickCache::bcinfo::typed_lookup(const BrickKey& k) {
   TypeErase::GenericType& gt = *(i->second.gt);
   auto te_vec = dynamic_cast<TypeErase::TypeEraser<std::vector<T>>&>(gt);
   return te_vec.get();
+}
+
+template<typename T>
+std::vector<T>& BrickCache::bcinfo::typed_add(const BrickKey& k,
+                                              std::vector<T>& data) {
+  // maybe the case of a general case allows duplicate insert, but for our uses
+  // there should never be a duplicate entry.
+#ifndef NDEBUG
+  KeyMatches km;
+  using namespace std::placeholders;
+  auto func = std::bind(&KeyMatches::operator(), km, k, _1);
+  assert(std::find_if(this->cache.begin(), this->cache.end(), func) ==
+         this->cache.end());
+#endif
+
+  this->cache.insert(std::make_pair(BrickInfo(k, time(NULL)), data));
+  this->bytes += sizeof(T) * data.size();
+  return data;
 }
 
 BrickCache::BrickCache() : ci(new BrickCache::bcinfo) {}
@@ -215,6 +248,9 @@ std::vector<float>& BrickCache::add(const BrickKey& k,
                                     std::vector<float>& data) {
   return this->ci->add(k, data);
 }
+
+void BrickCache::remove() { this->ci->remove(); }
+size_t BrickCache::size() const { return this->ci->size(); }
 
 }
 /*
