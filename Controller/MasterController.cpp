@@ -383,6 +383,10 @@ void MasterController::RegisterLuaCommands() {
     &MasterController::SetMaxGPUMem, "tuvok.state.gpuMem",
     "sets a new max amount of GPU memory.  In megabytes.", false
   );
+  m_pMemReg->registerFunction(this,
+    &MasterController::SetMaxCPUMem, "tuvok.state.cpuMem",
+    "sets a new max amount of CPU memory.  In megabytes.", false
+  );
 
   // Register Tuvok specific math functions...
   LuaMathFunctions::registerMathFunctions(ss);
