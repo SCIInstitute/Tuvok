@@ -152,7 +152,6 @@ public:
 
   void SetMaxGPUMem(uint64_t megs);
   void SetMaxCPUMem(uint64_t megs);
-  void SetMaxCPUMem(float fractionOfMemory);
 
   /// disgusting centralized storage for state we need to record for the paper
   ///@{

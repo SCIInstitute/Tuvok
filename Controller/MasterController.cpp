@@ -292,12 +292,6 @@ void MasterController::SetMaxCPUMem(uint64_t megs) {
   m_pGPUMemMan->MemSizesChanged();
 }
 
-void MasterController::SetMaxCPUMem(float fractionOfMemory) {
-  const uint64_t exisitngMem = this->m_pSystemInfo->GetCPUMemSize();
-  m_pSystemInfo->SetMaxUsableCPUMem(uint64_t(exisitngMem*fractionOfMemory));
-  m_pGPUMemMan->MemSizesChanged();
-}
-
 void MasterController::RegisterLuaCommands() {
   std::shared_ptr<LuaScripting> ss = LuaScript();
 
