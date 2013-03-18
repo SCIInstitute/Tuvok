@@ -127,7 +127,7 @@ CFORWARDRET(std::shared_ptr<const Histogram2D>, Get2DHistogram)
 // Removes all the cache information we've made so far.
 void DynamicBrickingDS::Clear() {
   di->ds->Clear();
-  /// @todo FIXME should also clear our own internal cache here!
+  while(this->di->cache.size() > 0) { this->di->cache.remove(); }
 }
 
 // with the layout and 1D index, convert into the 3D index.
