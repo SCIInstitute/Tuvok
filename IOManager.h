@@ -154,8 +154,13 @@ public:
   tuvok::Dataset* LoadDataset(const std::string& strFilename,
                               tuvok::AbstrRenderer* requester) const;
 
+  /// @param filename the data to load
+  /// @param the bricksize we should rebrick into
+  /// @param minmaxType how we should handle brick min/maxes. 0=use the source
+  /// dataset, 1=precompute on load (big delay), 2=compute on demand
   tuvok::Dataset* LoadRebrickedDataset(const std::string& filename,
-                                       const UINTVECTOR3 bricksize) const;
+                                       const UINTVECTOR3 bricksize,
+                                       size_t minmaxType) const;
   ///@}
   tuvok::Dataset* CreateDataset(const std::string& filename,
                                 uint64_t max_brick_size, bool verify) const;

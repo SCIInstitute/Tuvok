@@ -1281,7 +1281,8 @@ Dataset* IOManager::LoadDataset(const string& strFilename,
 }
 
 Dataset* IOManager::LoadRebrickedDataset(const std::string& filename,
-                                         const UINTVECTOR3 bricksize) const {
+                                         const UINTVECTOR3 bricksize,
+                                         size_t minmaxType) const {
   std::shared_ptr<Dataset> ds(this->CreateDataset(filename, 256, false));
   std::shared_ptr<LinearIndexDataset> lid =
     std::dynamic_pointer_cast<LinearIndexDataset>(ds);
@@ -1290,7 +1291,12 @@ Dataset* IOManager::LoadRebrickedDataset(const std::string& filename,
   size_t cache = static_cast<size_t>(
     0.80f * Controller::ConstInstance().SysInfo().GetMaxUsableCPUMem()
   );
-  DynamicBrickingDS* dyn = new DynamicBrickingDS(lid, bsize, cache);
+  if(minmaxType > DynamicBrickingDS::MM_DYNAMIC) {
+    throw std::logic_error("minmaxType too large");
+  }
+  enum DynamicBrickingDS::MinMaxMode mm =
+    static_cast<enum DynamicBrickingDS::MinMaxMode>(minmaxType);
+  DynamicBrickingDS* dyn = new DynamicBrickingDS(lid, bsize, cache, mm);
   return dyn;
 }
 

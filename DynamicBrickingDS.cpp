@@ -8,6 +8,7 @@
 #include <array>
 #include <cassert>
 #include <stdexcept>
+#include <unordered_map>
 #include "Controller/Controller.h"
 #include "BrickCache.h"
 #include "DynamicBrickingDS.h"
@@ -47,10 +48,13 @@ struct DynamicBrickingDS::dbinfo {
   BrickSize brickSize;
   BrickCache cache;
   size_t cacheBytes;
+  std::unordered_map<BrickKey, MinMaxBlock, BKeyHash> minmax;
+  enum MinMaxMode mmMode;
 
   dbinfo(std::shared_ptr<LinearIndexDataset> d,
-         BrickSize bs, size_t bytes) : ds(d), brickSize(bs),
-                                       cacheBytes(bytes) {}
+         BrickSize bs, size_t bytes, enum MinMaxMode mm) :
+    ds(d), brickSize(bs), cacheBytes(bytes), mmMode(mm) {}
+
 
   // early, non-type-specific parts of GetBrick.
   GBPrelim BrickSetup(const BrickKey&, const DynamicBrickingDS& tgt);
@@ -104,8 +108,9 @@ static uint64_t to1d(const std::array<unsigned,3>& loc,
 }
 
 DynamicBrickingDS::DynamicBrickingDS(std::shared_ptr<LinearIndexDataset> ds,
-                                     BrickSize maxBrickSize, size_t bytes) :
-  di(new DynamicBrickingDS::dbinfo(ds, maxBrickSize, bytes))
+                                     BrickSize maxBrickSize, size_t bytes,
+                                     enum MinMaxMode mm) :
+  di(new DynamicBrickingDS::dbinfo(ds, maxBrickSize, bytes, mm))
 {
   this->Rebrick();
 }
@@ -599,9 +604,31 @@ bool DynamicBrickingDS::ContainsData(const BrickKey& bk,
   return di->ds->ContainsData(skey, fmin,fmax, fminGradient, fmaxGradient);
 }
 /// @todo implement this based on caching, too.
-tuvok::MinMaxBlock DynamicBrickingDS::MaxMinForKey(const BrickKey& bk) const {
-  BrickKey skey = this->di->SourceBrickKey(bk);
-  return di->ds->MaxMinForKey(skey);
+MinMaxBlock DynamicBrickingDS::MaxMinForKey(const BrickKey& bk) const {
+  switch(this->di->mmMode) {
+    case MM_SOURCE: {
+      BrickKey skey = this->di->SourceBrickKey(bk);
+      return di->ds->MaxMinForKey(skey);
+    } break;
+    case MM_DYNAMIC: {
+      std::vector<uint8_t> data;
+      if(false == this->GetBrick(bk, data)) {
+        assert(false);
+        return MinMaxBlock();
+      }
+      MinMaxBlock mm(static_cast<double>(
+                      *std::min_element(data.begin(), data.end())),
+                     static_cast<double>(
+                      *std::max_element(data.begin(), data.end())),
+                     DBL_MAX, -FLT_MAX);
+      return mm;
+    } break;
+    case MM_PRECOMPUTE: {
+      assert(this->di->minmax.find(bk) != this->di->minmax.end());
+      return this->di->minmax.find(bk)->second;
+    } break;
+  }
+  return MinMaxBlock();
 }
 ///@}
 
@@ -610,8 +637,8 @@ bool DynamicBrickingDS::Export(uint64_t lod, const std::string& to,
   return di->ds->Export(lod, to, append);
 }
 
-bool DynamicBrickingDS::ApplyFunction(uint64_t lod, 
-                        bool (*brickFunc)(void* pData, 
+bool DynamicBrickingDS::ApplyFunction(uint64_t lod,
+                        bool (*brickFunc)(void* pData,
                                           const UINT64VECTOR3& vBrickSize,
                                           const UINT64VECTOR3& vBrickOffset,
                                           void* pUserContext),

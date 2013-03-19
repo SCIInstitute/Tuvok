@@ -10,15 +10,26 @@
 namespace tuvok {
 
 /// A dataset which will dynamically break up another data set into the
-/// user-given brick sizes.
-
-/// During construction, you must give an already-opened data set and
-/// the desired brick size.
+/// user-given brick sizes.  This is constructed purely in memory!
 class DynamicBrickingDS : public LinearIndexDataset, public FileBackedDataset {
 public:
+  /// methods for handling the calculation of min/max data.
+  /// MM_SOURCE: use the min/max from the source dataset.  this is likely to
+  /// have a greater range the actual data, but might still be okay.
+  /// MM_PRECOMPUTE: precompute all the new bricks' min/max info when this
+  /// object is created.  Induces huge delays.
+  /// MM_DYNAMIC: compute the exact min/max dynamically when the brick is
+  /// requested.
+  enum MinMaxMode { MM_SOURCE=0, MM_PRECOMPUTE, MM_DYNAMIC };
+
+  /// @param ds the source data set to break up
+  /// @param maxBrickSize the brick size to use in the new data set
+  /// @param cacheBytes how many bytes to use for the brick cache
+  /// @param mm how should we handle brick min maxes?
   DynamicBrickingDS(std::shared_ptr<LinearIndexDataset> ds,
                     std::array<size_t, 3> maxBrickSize,
-                    size_t cacheBytes);
+                    size_t cacheBytes,
+                    enum MinMaxMode mm=MM_DYNAMIC);
   virtual ~DynamicBrickingDS();
   virtual std::shared_ptr<const Histogram1D> Get1DHistogram() const;
   virtual std::shared_ptr<const Histogram2D> Get2DHistogram() const;
