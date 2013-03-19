@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <ctime>
 #include <functional>
 #include <map>
 #include <memory>
@@ -158,8 +159,13 @@ std::vector<T> BrickCache::bcinfo::typed_lookup(const BrickKey& k) {
                                      func);
   if(i == this->cache.end()) { return std::vector<T>(); }
 
-  TypeErase::GenericType& gt = *(i->second.gt);
+  // we copy the element, remove it, and reinsert it, so we know it goes into
+  // the right place (w/ the updated access_time)
+  auto newentry = *i;
+  this->cache.erase(i); // remove
+  TypeErase::GenericType& gt = *(newentry.second.gt);
   auto te_vec = dynamic_cast<TypeErase::TypeEraser<std::vector<T>>&>(gt);
+  this->typed_add<T>(newentry.first.key, te_vec.get());
   return te_vec.get();
 }
 
