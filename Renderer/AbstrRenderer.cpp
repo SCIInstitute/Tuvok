@@ -251,9 +251,10 @@ bool AbstrRenderer::LoadDataset(const string& strFilename) {
 }
 
 bool AbstrRenderer::LoadRebricked(const std::string& filename,
-                                  const UINTVECTOR3 bsize) {
+                                  const UINTVECTOR3 bsize,
+                                  size_t minmaxMode) {
   const IOManager& iomgr = Controller::Const().IOMan();
-  Dataset* ds = iomgr.LoadRebrickedDataset(filename, bsize);
+  Dataset* ds = iomgr.LoadRebrickedDataset(filename, bsize, minmaxMode);
   m_pLuaDatasetPtr->bind(ds, m_pMasterController->LuaScript());
   this->SetDataset(ds);
   return true;
