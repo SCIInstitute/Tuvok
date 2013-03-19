@@ -32,18 +32,16 @@
 
 #include <vector>
 
-#include "Controller/Controller.h"
 #include "3rdParty/LUA/lua.hpp"
-#include "IO/IOManager.h"
+#include "Controller/Controller.h"
+#include "IO/DynamicBrickingDS.h"
 #include "IO/FileBackedDataset.h"
+#include "IO/IOManager.h"
 #include "IO/uvfDataset.h"
-
-#include "../LuaScripting.h"
 #include "../LuaClassRegistration.h"
-
-#include "LuaTuvokTypes.h"
-
+#include "../LuaScripting.h"
 #include "LuaDatasetProxy.h"
+#include "LuaTuvokTypes.h"
 
 using namespace std;
 
@@ -165,7 +163,7 @@ void LuaDatasetProxy::bind(Dataset* ds, shared_ptr<LuaScripting> ss)
 void LuaDatasetProxy::defineLuaInterface(
     LuaClassRegistration<LuaDatasetProxy>& reg,
     LuaDatasetProxy* me,
-    LuaScripting*)
+    LuaScripting* ss)
 {
   me->mReg = new LuaClassRegistration<LuaDatasetProxy>(reg);
 
@@ -175,6 +173,14 @@ void LuaDatasetProxy::defineLuaInterface(
   id = reg.function(&LuaDatasetProxy::getDatasetType, "getDSType", "", false);
   id = reg.function(&LuaDatasetProxy::proxyGetMetadata, "getMetadata", "",
                     false);
+
+  lua_State* L = ss->getLuaState();
+  lua_pushinteger(L, DynamicBrickingDS::MM_SOURCE);
+  lua_setglobal(L, "MM_SOURCE");
+  lua_pushinteger(L, DynamicBrickingDS::MM_PRECOMPUTE);
+  lua_setglobal(L, "MM_PRECOMPUTE");
+  lua_pushinteger(L, DynamicBrickingDS::MM_DYNAMIC);
+  lua_setglobal(L, "MM_DYNAMIC");
 }
 
 
