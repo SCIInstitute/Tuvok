@@ -324,6 +324,15 @@ void tbsizes() {
   TS_ASSERT_EQUALS(dynamic.GetMaxUsedBrickSizes()[2],  5U);
 }
 
+void tprecompute() {
+  if(!check_for_engine()) { TS_FAIL("need engine for this test"); }
+  std::shared_ptr<UVFDataset> ds(new UVFDataset("engine.uvf", 256, false,
+                                                false));
+  EnableDebugMessages edm;
+  DynamicBrickingDS dynamic(ds, {{126,256,128}}, cacheBytes,
+                            DynamicBrickingDS::MM_PRECOMPUTE);
+}
+
 class RebrickerTests : public CxxTest::TestSuite {
 public:
   void test_simple() { tsimple(); }
@@ -342,4 +351,5 @@ public:
   void test_real_2() { trealdata_2(); }
   void test_real_make_two_lod2() { trealdata_make_two_lod2(); }
   void test_brick_sizes() { tbsizes(); }
+  void test_precompute() { tprecompute(); }
 };

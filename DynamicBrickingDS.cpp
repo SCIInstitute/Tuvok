@@ -69,6 +69,9 @@ struct DynamicBrickingDS::dbinfo {
   BrickKey SourceBrickKey(const BrickKey&);
 
   BrickLayout TargetBrickLayout(size_t lod, size_t ts) const;
+
+  /// run through all of the bricks and compute min/max info.
+  void ComputeMinMaxes(BrickedDataset&);
 };
 
 BrickSize GenericSourceBrickSize(const Dataset&);
@@ -492,6 +495,72 @@ bool DynamicBrickingDS::dbinfo::Brick(const DynamicBrickingDS& ds,
   return true;
 }
 
+
+namespace {
+  template<typename T>
+  struct calc_minmax : public std::unary_function<T, std::pair<double,double>> {
+    calc_minmax() : minv(DBL_MAX), maxv(-FLT_MAX) {}
+    std::pair<double,double> operator()(const T& v) const {
+      return std::make_pair(
+        std::min<double>(static_cast<double>(v), this->minv),
+        std::max<double>(static_cast<double>(v), this->maxv)
+      );
+    }
+    double minv, maxv;
+  };
+
+  template<typename T> MinMaxBlock mm(const BrickKey& bk,
+                                      const BrickedDataset& ds) {
+    std::vector<T> data;
+    ds.GetBrick(bk, data);
+    calc_minmax<T> c;
+    std::for_each(data.begin(), data.end(), c);
+    return MinMaxBlock(c.minv, c.maxv, DBL_MAX, -FLT_MAX);
+  }
+}
+
+MinMaxBlock minmax_brick(const BrickKey& bk, const BrickedDataset& ds) {
+  // identify type (float, etc)
+  const unsigned size = ds.GetBitWidth() / 8;
+  assert(ds.GetComponentCount() == 1);
+  const bool sign = ds.GetIsSigned();
+  const bool fp = ds.GetIsFloat();
+
+  // giant if-block to simply call the right compile-time function w/ knowledge
+  // we only know at run-time.
+  if(!sign && !fp && size == 1) {
+    return mm<uint8_t>(bk, ds);
+  } else if(!sign && !fp && size == 2) {
+    return mm<uint16_t>(bk, ds);
+  } else if(!sign && !fp && size == 4) {
+    return mm<uint32_t>(bk, ds);
+  } else if(sign && !fp && size == 1) {
+    return mm<int8_t>(bk, ds);
+  } else if(sign && !fp && size == 2) {
+    return mm<int16_t>(bk, ds);
+  } else if(sign && !fp && size == 4) {
+    return mm<int32_t>(bk, ds);
+  } else if(sign && fp && size == 4) {
+    return mm<float>(bk, ds);
+  } else {
+    T_ERROR("unsupported type.");
+    assert(false);
+  }
+}
+
+/// run through all of the bricks and compute min/max info.
+void DynamicBrickingDS::dbinfo::ComputeMinMaxes(BrickedDataset& ds) {
+  unsigned i=0;
+  const unsigned len = static_cast<unsigned>(
+    std::distance(ds.BricksBegin(), ds.BricksEnd())
+  );
+  for(auto b=ds.BricksBegin(); b != ds.BricksEnd(); ++b, ++i) {
+    MESSAGE("precomputing brick %u of %u", i, len);
+    MinMaxBlock mm = minmax_brick(b->first, ds);
+    this->minmax.insert(std::make_pair(b->first, mm));
+  }
+}
+
 bool DynamicBrickingDS::GetBrick(const BrickKey& k, std::vector<uint8_t>& data) const
 {
   return this->di->Brick<uint8_t>(*this, k, data);
@@ -851,6 +920,9 @@ void DynamicBrickingDS::Rebrick() {
                       this->AddBrick(brk.first, brk.second);
                     }
                   });
+  if(this->di->mmMode == MM_PRECOMPUTE) {
+    this->di->ComputeMinMaxes(*this);
+  }
 }
 
 #if !defined(NDEBUG) && !defined(_MSC_VER)
