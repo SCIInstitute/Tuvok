@@ -278,6 +278,7 @@ HEADERS += \
            LuaScripting/TuvokSpecific/LuaTransferFun1DProxy.h \
            LuaScripting/TuvokSpecific/LuaTransferFun2DProxy.h \
            LuaScripting/TuvokSpecific/LuaTuvokTypes.h \
+           LuaScripting/TuvokSpecific/MatrixMath.h \
            Renderer/AbstrRenderer.h \
            Renderer/Context.h \
            Renderer/ContextIdentification.h \
@@ -602,6 +603,7 @@ SOURCES += \
            LuaScripting/TuvokSpecific/LuaTransferFun1DProxy.cpp \
            LuaScripting/TuvokSpecific/LuaTransferFun2DProxy.cpp \
            LuaScripting/TuvokSpecific/LuaTuvokTypes.cpp \
+           LuaScripting/TuvokSpecific/MatrixMath.cpp \
            Renderer/AbstrRenderer.cpp \
            Renderer/Context.cpp \
            Renderer/CullingLOD.cpp \

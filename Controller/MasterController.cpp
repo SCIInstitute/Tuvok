@@ -56,6 +56,7 @@
 #include "../LuaScripting/TuvokSpecific/LuaTransferFun1DProxy.h"
 #include "../LuaScripting/TuvokSpecific/LuaTransferFun2DProxy.h"
 #include "../LuaScripting/TuvokSpecific/LuaIOManagerProxy.h"
+#include "../LuaScripting/TuvokSpecific/MatrixMath.h"
 
 using namespace tuvok;
 
@@ -370,6 +371,9 @@ void MasterController::RegisterLuaCommands() {
       "should be left to the renderer.",
       LuaClassRegCallback<LuaTransferFun2DProxy>::Type(
           LuaTransferFun2DProxy::defineLuaInterface));
+
+  // register matrix math functions.
+  tuvok::registrar::matrix_math(ss);
 
   m_pMemReg->registerFunction(this,
     &MasterController::SetBrickStrategy, "tuvok.state.brickStrategy", "",
