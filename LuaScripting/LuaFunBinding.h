@@ -53,6 +53,7 @@
 #include <tuple>
 #include <memory>
 
+#include "Basics/PerfCounter.h"
 #include "LuaClassInstance.h"
 #include "LuaStackRAII.h"
 #include "LuaError.h"
@@ -320,6 +321,32 @@ public:
   }
   static std::string getTypeStr() { return "unsigned int"; }
   static Type        getDefault() { return 0; }
+};
+
+template<>
+class LuaStrictStack<enum PerfCounter>
+{
+public:
+  typedef enum PerfCounter Type;
+
+  static Type get(lua_State* L, int pos)
+  {
+    return static_cast<Type>(luaL_checknumber(L, pos));
+  }
+
+  static void push(lua_State* L, Type in)
+  {
+    lua_pushnumber(L, static_cast<double>(in));
+  }
+
+  static std::string getValStr(Type in)
+  {
+    std::ostringstream os;
+    os << in;
+    return os.str();
+  }
+  static std::string getTypeStr() { return "PerfCounter"; }
+  static Type        getDefault() { return PERF_END; }
 };
 
 template<>

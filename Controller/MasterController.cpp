@@ -405,6 +405,11 @@ void MasterController::RegisterLuaCommands() {
     "sets a new max amount of CPU memory.  In megabytes.", false
   );
 
+  m_pMemReg->registerFunction(this,
+    &MasterController::PerfQuery, "tuvok.perf",
+    "queries performance information.  meaning is query-specific.", false
+  );
+
   // Register Tuvok specific math functions...
   LuaMathFunctions::registerMathFunctions(ss);
 }
