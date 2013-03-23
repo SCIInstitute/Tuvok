@@ -40,31 +40,26 @@
 
 #include <sstream>
 #include <cstring>
+#include <functional>
 #include <iostream>
+// We are including this ourselves because we do not want dependencies
+// on Tuvok's SysTools.
+#ifndef DETECTED_OS_WINDOWS
+# include <dirent.h>
+# include <errno.h>
+#else
+/// @todo Add directory management headers for windows.
+#endif
 
 #ifndef LUASCRIPTING_NO_TUVOK
-
-#include "Controller/Controller.h"
-
+# include "Controller/Controller.h"
 #else
-
-#include <vector>
-#include <assert.h>
-
+# include <vector>
+# include <assert.h>
 #endif
 
 #include "LuaScripting.h"
 #include "LuaProvenance.h"
-
-// We are including this ourselves because we do not want dependencies on
-// Tuvok's SysTools.
-
-#ifndef DETECTED_OS_WINDOWS
-#include <dirent.h>
-#include <errno.h>
-#else
-/// @todo Add directory management headers for windows.
-#endif
 
 using namespace std;
 
@@ -457,6 +452,15 @@ bool IsParenthesesOrSpacePred(char c)
     }
 }
 
+struct FuncHelpSorter :
+  public std::binary_function<LuaScripting::FunctionDesc,
+                              LuaScripting::FunctionDesc, bool> {
+  bool operator()(const LuaScripting::FunctionDesc& a,
+                  const LuaScripting::FunctionDesc& b) {
+    return a.funcName < b.funcName;
+  }
+};
+
 //-----------------------------------------------------------------------------
 string LuaScripting::getClassHelp(int tableIndex)
 {
@@ -477,6 +481,8 @@ string LuaScripting::getClassHelp(int tableIndex)
   header += factoryName;
   header += "'";
   ret << std::endl << header << std::endl;
+
+  std::sort(funcDescs.begin(), funcDescs.end(), FuncHelpSorter());
 
   for (vector<FunctionDesc>::iterator it = funcDescs.begin();
       it != funcDescs.end(); ++it)
