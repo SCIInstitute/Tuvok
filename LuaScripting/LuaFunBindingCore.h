@@ -33,6 +33,7 @@
 
 #include <iomanip>
 #include <typeinfo>
+#include <type_traits>
 #include <sstream>
 
 #include "LuaClassInstance.h"
@@ -1167,9 +1168,7 @@ public:
 
   virtual std::string getFormattedParameterValues() const
   {
-    return
-                 LuaStrictStack<P1>::getValStr(TLUA_M_VNM(P1))
-    ;
+    return LuaStrictStack<P1>::getValStr(TLUA_M_VNM(P1));
   }
 
 #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
@@ -1181,8 +1180,10 @@ public:
   }
 #endif
 
+  static_assert(false == std::is_void<typename LuaStrictStack<P1>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P1) of this function.");
   typename LuaStrictStack<P1>::Type TLUA_M_VNM(P1);
-
 };
 
 //---------------
@@ -1247,9 +1248,14 @@ public:
   }
 #endif
 
+  static_assert(false == std::is_void<typename LuaStrictStack<P1>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P1) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P2>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P2) of this function.");
   typename LuaStrictStack<P1>::Type TLUA_M_VNM(P1);
   typename LuaStrictStack<P2>::Type TLUA_M_VNM(P2);
-
 };
 
 //---------------
@@ -1321,10 +1327,18 @@ public:
   }
 #endif
 
+  static_assert(false == std::is_void<typename LuaStrictStack<P1>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P1) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P2>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P2) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P3>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P3) of this function.");
   typename LuaStrictStack<P1>::Type TLUA_M_VNM(P1);
   typename LuaStrictStack<P2>::Type TLUA_M_VNM(P2);
   typename LuaStrictStack<P3>::Type TLUA_M_VNM(P3);
-
 };
 
 //---------------
@@ -1403,11 +1417,22 @@ public:
   }
 #endif
 
+  static_assert(false == std::is_void<typename LuaStrictStack<P1>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P1) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P2>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P2) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P3>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P3) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P4>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P4) of this function.");
   typename LuaStrictStack<P1>::Type TLUA_M_VNM(P1);
   typename LuaStrictStack<P2>::Type TLUA_M_VNM(P2);
   typename LuaStrictStack<P3>::Type TLUA_M_VNM(P3);
   typename LuaStrictStack<P4>::Type TLUA_M_VNM(P4);
-
 };
 
 //---------------
@@ -1493,12 +1518,26 @@ public:
   }
 #endif
 
+  static_assert(false == std::is_void<typename LuaStrictStack<P1>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P1) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P2>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P2) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P3>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P3) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P4>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P4) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P5>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P5) of this function.");
   typename LuaStrictStack<P1>::Type TLUA_M_VNM(P1);
   typename LuaStrictStack<P2>::Type TLUA_M_VNM(P2);
   typename LuaStrictStack<P3>::Type TLUA_M_VNM(P3);
   typename LuaStrictStack<P4>::Type TLUA_M_VNM(P4);
   typename LuaStrictStack<P5>::Type TLUA_M_VNM(P5);
-
 };
 
 //---------------
@@ -1591,13 +1630,30 @@ public:
   }
 #endif
 
+  static_assert(false == std::is_void<typename LuaStrictStack<P1>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P1) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P2>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P2) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P3>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P3) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P4>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P4) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P5>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P5) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P6>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P6) of this function.");
   typename LuaStrictStack<P1>::Type TLUA_M_VNM(P1);
   typename LuaStrictStack<P2>::Type TLUA_M_VNM(P2);
   typename LuaStrictStack<P3>::Type TLUA_M_VNM(P3);
   typename LuaStrictStack<P4>::Type TLUA_M_VNM(P4);
   typename LuaStrictStack<P5>::Type TLUA_M_VNM(P5);
   typename LuaStrictStack<P6>::Type TLUA_M_VNM(P6);
-
 };
 
 //---------------
@@ -1697,6 +1753,27 @@ public:
   }
 #endif
 
+  static_assert(false == std::is_void<typename LuaStrictStack<P1>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P1) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P2>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P2) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P3>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P3) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P4>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P4) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P5>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P5) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P6>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P6) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P7>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P7) of this function.");
   typename LuaStrictStack<P1>::Type TLUA_M_VNM(P1);
   typename LuaStrictStack<P2>::Type TLUA_M_VNM(P2);
   typename LuaStrictStack<P3>::Type TLUA_M_VNM(P3);
@@ -1704,7 +1781,6 @@ public:
   typename LuaStrictStack<P5>::Type TLUA_M_VNM(P5);
   typename LuaStrictStack<P6>::Type TLUA_M_VNM(P6);
   typename LuaStrictStack<P7>::Type TLUA_M_VNM(P7);
-
 };
 
 //---------------
@@ -1811,6 +1887,30 @@ public:
   }
 #endif
 
+  static_assert(false == std::is_void<typename LuaStrictStack<P1>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P1) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P2>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P2) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P3>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P3) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P4>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P4) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P5>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P5) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P6>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P6) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P7>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P7) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P8>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P8) of this function.");
   typename LuaStrictStack<P1>::Type TLUA_M_VNM(P1);
   typename LuaStrictStack<P2>::Type TLUA_M_VNM(P2);
   typename LuaStrictStack<P3>::Type TLUA_M_VNM(P3);
@@ -1819,7 +1919,6 @@ public:
   typename LuaStrictStack<P6>::Type TLUA_M_VNM(P6);
   typename LuaStrictStack<P7>::Type TLUA_M_VNM(P7);
   typename LuaStrictStack<P8>::Type TLUA_M_VNM(P8);
-
 };
 
 //---------------
@@ -1933,6 +2032,33 @@ public:
   }
 #endif
 
+  static_assert(false == std::is_void<typename LuaStrictStack<P1>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P1) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P2>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P2) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P3>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P3) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P4>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P4) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P5>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P5) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P6>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P6) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P7>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P7) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P8>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P8) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P9>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P9) of this function.");
   typename LuaStrictStack<P1>::Type TLUA_M_VNM(P1);
   typename LuaStrictStack<P2>::Type TLUA_M_VNM(P2);
   typename LuaStrictStack<P3>::Type TLUA_M_VNM(P3);
@@ -1942,7 +2068,6 @@ public:
   typename LuaStrictStack<P7>::Type TLUA_M_VNM(P7);
   typename LuaStrictStack<P8>::Type TLUA_M_VNM(P8);
   typename LuaStrictStack<P9>::Type TLUA_M_VNM(P9);
-
 };
 
 //---------------
@@ -2063,6 +2188,36 @@ public:
   }
 #endif
 
+  static_assert(false == std::is_void<typename LuaStrictStack<P1>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P1) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P2>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P2) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P3>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P3) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P4>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P4) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P5>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P5) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P6>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P6) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P7>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P7) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P8>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P8) of this function.");
+  static_assert(false == std::is_void<typename LuaStrictStack<P9>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P9) of this function.");
+  static_assert(false ==std::is_void<typename LuaStrictStack<P10>::Type>::value,
+                "You are missing an overload of LuaStrictStack for the "
+                "argument type (P10) of this function.");
   typename LuaStrictStack<P1>::Type TLUA_M_VNM(P1);
   typename LuaStrictStack<P2>::Type TLUA_M_VNM(P2);
   typename LuaStrictStack<P3>::Type TLUA_M_VNM(P3);
@@ -2073,7 +2228,6 @@ public:
   typename LuaStrictStack<P8>::Type TLUA_M_VNM(P8);
   typename LuaStrictStack<P9>::Type TLUA_M_VNM(P9);
   typename LuaStrictStack<P10>::Type TLUA_M_VNM(P10);
-
 };
 
 //------------------
