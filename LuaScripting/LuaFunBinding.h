@@ -331,7 +331,7 @@ public:
 
   static Type get(lua_State* L, int pos)
   {
-    return static_cast<Type>(luaL_checknumber(L, pos));
+    return static_cast<Type>(static_cast<unsigned>(luaL_checknumber(L, pos)));
   }
 
   static void push(lua_State* L, Type in)
