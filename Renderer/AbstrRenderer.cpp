@@ -1767,6 +1767,11 @@ size_t AbstrRenderer::PH_GetOptimalFrameAverageCount() const { return 0; }
 bool AbstrRenderer::PH_IsDebugViewAvailable() const { return false; }
 bool AbstrRenderer::PH_IsWorkingSetTrackerAvailable() const { return false; }
 
+std::vector<LuaClassInstance> AbstrRenderer::vecRegion(LuaClassInstance c) {
+  std::vector<LuaClassInstance> vc(1);
+  vc[0] = c;
+  return vc;
+}
 
 void AbstrRenderer::RegisterLuaFunctions(
     LuaClassRegistration<AbstrRenderer>& reg,
@@ -2229,8 +2234,10 @@ void AbstrRenderer::RegisterLuaFunctions(
 
   id = reg.function(&AbstrRenderer::CaptureSingleFrame,
                     "captureSingleFrame", "Captures current FBO state.", true);
+  reg.function(&AbstrRenderer::vecRegion, "createVecRegion", "creates a "
+               "std::vector<LuaClassInstance> from a single LuaClassInstance",
+               true);
 
   /// Register renderer specific functions.
   me->RegisterDerivedClassLuaFunctions(reg, ss);
 }
-

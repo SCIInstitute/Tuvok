@@ -648,6 +648,10 @@ class AbstrRenderer {
     virtual void FixedFunctionality() const = 0;
     virtual void SyncStateManager() = 0;
 
+    // we can't create a std::vector in Lua, but setRenderRegions needs one.
+    // this hacks around it.
+    std::vector<LuaClassInstance> vecRegion(LuaClassInstance);
+
   protected:
     /// Unsets the current transfer function, including deleting it from GPU
     /// memory.  It's expected you'll set another one directly afterwards.
