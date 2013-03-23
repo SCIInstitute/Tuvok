@@ -43,15 +43,6 @@ std::shared_ptr<UVFDataset> mk8x8testdata() {
   return ds;
 }
 
-std::array<size_t,3> idx3d(size_t idx1d,
-                           std::array<size_t,3> dim) {
-  return {{
-    idx1d % dim[0],
-    (idx1d / dim[0]) % dim[1],
-    idx1d / (dim[1]*dim[2])
-  }};
-}
-
 // number of ghost cells per dimension...
 static unsigned ghost() { return 4; }
 
@@ -328,9 +319,26 @@ void tprecompute() {
   if(!check_for_engine()) { TS_FAIL("need engine for this test"); }
   std::shared_ptr<UVFDataset> ds(new UVFDataset("engine.uvf", 256, false,
                                                 false));
-  EnableDebugMessages edm;
   DynamicBrickingDS dynamic(ds, {{126,256,128}}, cacheBytes,
                             DynamicBrickingDS::MM_PRECOMPUTE);
+}
+
+// compute the min/max info when requested, and it should be exactly right
+void tminmax_dynamic() {
+  std::shared_ptr<UVFDataset> ds = mk8x8testdata();
+  DynamicBrickingDS dynamic(ds, {{8,4,1}}, cacheBytes,
+                            DynamicBrickingDS::MM_DYNAMIC);
+  BrickKey bk(0,0,0); std::vector<uint8_t> d;
+  if(dynamic.GetBrick(bk, d) == false) {
+    TS_FAIL("getting brick data failed.");
+  }
+  TS_ASSERT_EQUALS(d.size(), 12U*8U*5U);
+  MinMaxBlock mm = dynamic.MaxMinForKey(BrickKey(0,0,0));
+  TS_ASSERT_DELTA(mm.minScalar, 0.0, 0.001);
+  TS_ASSERT_DELTA(mm.maxScalar, 47.0, 0.001); // 47: includes the ghost!
+  mm = dynamic.MaxMinForKey(BrickKey(0,0,1));
+  TS_ASSERT_DELTA(mm.minScalar, 0.0, 0.001); // likewise w/ 0: ghost.
+  TS_ASSERT_DELTA(mm.maxScalar, 63.0, 0.001);
 }
 
 class RebrickerTests : public CxxTest::TestSuite {
@@ -352,4 +360,5 @@ public:
   void test_real_make_two_lod2() { trealdata_make_two_lod2(); }
   void test_brick_sizes() { tbsizes(); }
   void test_precompute() { tprecompute(); }
+  void test_minmax_dynamic() { tminmax_dynamic(); }
 };
