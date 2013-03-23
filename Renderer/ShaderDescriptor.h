@@ -24,6 +24,11 @@ class ShaderDescriptor {
     ShaderDescriptor(const std::vector<std::string>& vertex,
                      const std::vector<std::string>& fragment);
     ShaderDescriptor(const ShaderDescriptor&);
+
+    /// @param dir list of paths
+    /// @return the list of paths which exist.
+    static std::vector<std::string> ValidPaths(std::vector<std::string> dir);
+
     /// Takes a list of directories and *two* lists of shaders.  Both lists
     /// must be terminated with a null.  The first is a list of filenames for
     /// the vertex shaders, the second is a list of filenames for fragment

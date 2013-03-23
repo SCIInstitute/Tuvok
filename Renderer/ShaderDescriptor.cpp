@@ -108,6 +108,10 @@ static std::string find_filename(const std::vector<std::string>& directories,
   return *fn + dirsep + filename;
 }
 
+std::vector<std::string>
+ShaderDescriptor::ValidPaths(std::vector<std::string> dirs) {
+  return existing(dirs);
+}
 
 ShaderDescriptor ShaderDescriptor::Create(
   std::vector<std::string> directories, 

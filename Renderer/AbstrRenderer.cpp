@@ -38,23 +38,23 @@
 #include <cmath>
 #include <sstream>
 #include <utility>
-#include "AbstrRenderer.h"
-#include "Controller/Controller.h"
-#include "IO/Tuvok_QtPlugins.h"
-#include "IO/IOManager.h"
-#include "Renderer/GPUMemMan/GPUMemMan.h"
 #include "Basics/MathTools.h"
 #include "Basics/GeometryGenerator.h"
+#include "IO/Tuvok_QtPlugins.h"
+#include "IO/IOManager.h"
 #include "IO/TransferFunction1D.h"
 #include "IO/TransferFunction2D.h"
-#include "RenderMesh.h"
-
+#include "AbstrRenderer.h"
+#include "Controller/Controller.h"
 #include "LuaScripting/LuaScripting.h"
 #include "LuaScripting/LuaClassInstance.h"
 #include "LuaScripting/TuvokSpecific/LuaTuvokTypes.h"
 #include "LuaScripting/TuvokSpecific/LuaDatasetProxy.h"
 #include "LuaScripting/TuvokSpecific/LuaTransferFun1DProxy.h"
 #include "LuaScripting/TuvokSpecific/LuaTransferFun2DProxy.h"
+#include "Renderer/GPUMemMan/GPUMemMan.h"
+#include "RenderMesh.h"
+#include "ShaderDescriptor.h"
 
 using namespace std;
 using namespace tuvok;
@@ -178,6 +178,8 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_vShaderSearchDirs.push_back("Shaders");
   m_vShaderSearchDirs.push_back("Tuvok/Shaders");
   m_vShaderSearchDirs.push_back("../Tuvok/Shaders");
+  // trim out directories which are nonsense.  Gets rid of some warnings.
+  m_vShaderSearchDirs = ShaderDescriptor::ValidPaths(m_vShaderSearchDirs);
   m_vArrowGeometry = GeometryGenerator::GenArrow(0.3f,0.8f,0.006f,0.012f,20);
 
   // Create our dataset proxy.
