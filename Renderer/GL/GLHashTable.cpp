@@ -87,9 +87,7 @@ void GLHashTable::Enable() {
 
 
 std::vector<UINTVECTOR4> GLHashTable::GetData() {
-
-  // TODO:  need to figure out if this is needed
-//  GL(glMemoryBarrier(GL_ALL_BARRIER_BITS));
+  GL(glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT));
 
   m_pHashTableTex->GetData(m_pRawData);
   std::vector<UINTVECTOR4> requests;
