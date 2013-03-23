@@ -396,7 +396,7 @@ public:
   static std::string getValStr(Type in)
   {
     std::ostringstream os;
-    os << std::setprecision(2) << in;
+    os << std::setprecision(10) << in;
     return os.str();
   }
   static std::string getTypeStr() { return "float"; }
@@ -422,7 +422,7 @@ public:
   static std::string getValStr(Type in)
   {
     std::ostringstream os;
-    os << std::setprecision(4) << in;
+    os << std::setprecision(20) << in;
     return os.str();
   }
   static std::string getTypeStr() { return "double"; }
