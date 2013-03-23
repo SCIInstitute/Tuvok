@@ -482,8 +482,8 @@ LuaClassInstance AbstrRenderer::LuaGetFirst3DRegion() {
       dynamic_cast<RenderRegion*>(GetFirst3DRegion().get()));
 }
 
-void AbstrRenderer::SetRotation(RenderRegion *renderRegion,
-                                const FLOATMATRIX4& rotation) {
+void AbstrRenderer::SetRotationRR(RenderRegion *renderRegion,
+                                  const FLOATMATRIX4& rotation) {
   renderRegion->rotation = rotation;
   ScheduleWindowRedraw(renderRegion);
 }
@@ -1767,6 +1767,12 @@ std::vector<LuaClassInstance> AbstrRenderer::vecRegion(LuaClassInstance c) {
   return vc;
 }
 
+/// sets the current rotation matrix.
+void AbstrRenderer::SetRotation(const FLOATMATRIX4& rotation) {
+  std::shared_ptr<RenderRegion> rr = GetFirst3DRegion();
+  this->SetRotationRR(rr.get(), rotation);
+}
+
 void AbstrRenderer::RegisterLuaFunctions(
     LuaClassRegistration<AbstrRenderer>& reg,
     AbstrRenderer* me,
@@ -2231,6 +2237,9 @@ void AbstrRenderer::RegisterLuaFunctions(
   reg.function(&AbstrRenderer::vecRegion, "createVecRegion", "creates a "
                "std::vector<LuaClassInstance> from a single LuaClassInstance",
                true);
+  id = reg.function(&AbstrRenderer::SetRotation, "setRotation",
+                    "sets the current rotation matrix", true);
+  ss->addParamInfo(id, 0, "matrix", "4x4 rotation matrix to set");
 
   /// Register renderer specific functions.
   me->RegisterDerivedClassLuaFunctions(reg, ss);

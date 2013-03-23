@@ -203,8 +203,8 @@ class AbstrRenderer {
 
 
 
-    virtual void SetRotation(RenderRegion * region,
-                             const FLOATMATRIX4& rotation);
+    virtual void SetRotationRR(RenderRegion * region,
+                               const FLOATMATRIX4& rotation);
     virtual const FLOATMATRIX4& GetRotation(const RenderRegion *renderRegion) const;
 
     virtual void SetTranslation(RenderRegion *renderRegion,
@@ -651,6 +651,9 @@ class AbstrRenderer {
     // we can't create a std::vector in Lua, but setRenderRegions needs one.
     // this hacks around it.
     std::vector<LuaClassInstance> vecRegion(LuaClassInstance);
+
+    /// sets the current rotation matrix.
+    virtual void SetRotation(const FLOATMATRIX4& rotation);
 
   protected:
     /// Unsets the current transfer function, including deleting it from GPU

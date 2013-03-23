@@ -132,7 +132,7 @@ void RenderRegion::defineLuaInterface(LuaClassRegistration<RenderRegion>& reg,
 //-----------------------------------------------------------------------------
 void RenderRegion::luaSetRotation4x4(FLOATMATRIX4 mat)
 {
-  mRen->SetRotation(this, mat);
+  mRen->SetRotationRR(this, mat);
 }
 
 //-----------------------------------------------------------------------------
