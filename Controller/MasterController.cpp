@@ -306,6 +306,23 @@ void MasterController::SetMaxCPUMem(uint64_t megs) {
   m_pGPUMemMan->MemSizesChanged();
 }
 
+void register_unsigned(lua_State* lua, const char* name, unsigned value) {
+  lua_pushinteger(lua, value);
+  lua_setglobal(lua, name);
+}
+
+void register_perf_enum(std::shared_ptr<LuaScripting>& ss) {
+  lua_State* lua = ss->getLuaState();
+  register_unsigned(lua, "PERF_DISK_READ", PERF_DISK_READ);
+  register_unsigned(lua, "PERF_DECOMPRESSION", PERF_DECOMPRESSION);
+  register_unsigned(lua, "PERF_COMPRESSION", PERF_COMPRESSION);
+  register_unsigned(lua, "PERF_BRICKS", PERF_BRICKS);
+  register_unsigned(lua, "PERF_READ_HTABLE", PERF_READ_HTABLE);
+  register_unsigned(lua, "PERF_CONDENSE_HTABLE", PERF_CONDENSE_HTABLE);
+  register_unsigned(lua, "PERF_RENDER", PERF_RENDER);
+  register_unsigned(lua, "PERF_UPLOAD_BRICKS", PERF_UPLOAD_BRICKS);
+}
+
 void MasterController::RegisterLuaCommands() {
   std::shared_ptr<LuaScripting> ss = LuaScript();
 
@@ -409,6 +426,7 @@ void MasterController::RegisterLuaCommands() {
     &MasterController::PerfQuery, "tuvok.perf",
     "queries performance information.  meaning is query-specific.", false
   );
+  register_perf_enum(ss);
 
   // Register Tuvok specific math functions...
   LuaMathFunctions::registerMathFunctions(ss);
