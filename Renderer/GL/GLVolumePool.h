@@ -127,11 +127,6 @@ namespace tuvok {
         double max;
       };
 
-      double PH_BrickIOTime() const { return m_BrickIOTime; }
-      void PH_SetBrickIOTime(double d) { m_BrickIOTime = d; }
-      uint64_t PH_BrickIOBytes() const { return m_BrickIOBytes; }
-      void PH_SetBrickIOBytes(uint64_t b) { m_BrickIOBytes = b; }
-
     protected:
       GLTexture2D* m_pPoolMetadataTexture;
       GLTexture3D* m_pPoolDataTexture;

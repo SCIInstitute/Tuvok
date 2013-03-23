@@ -1753,19 +1753,11 @@ bool AbstrRenderer::CaptureSingleFrame(const std::string&, bool) const {
 
 /// Hacks!  These just do nothing.
 void AbstrRenderer::PH_ClearWorkingSet() { }
-void AbstrRenderer::PH_SetPagedBricks(size_t) { }
-size_t AbstrRenderer::PH_FramePagedBricks() const { return 0; }
-size_t AbstrRenderer::PH_SubframePagedBricks() const { return 0; }
 void AbstrRenderer::PH_RecalculateVisibility() {}
 bool AbstrRenderer::PH_Converged() const {
   AbstrRenderer* ren = const_cast<AbstrRenderer*>(this);
   return ren->CheckForRedraw();
 }
-double AbstrRenderer::PH_BrickIOTime() const { return 0.0; }
-void AbstrRenderer::PH_SetBrickIOTime(double) { }
-uint64_t AbstrRenderer::PH_BrickIOBytes() const { return 0; }
-void AbstrRenderer::PH_SetBrickIOBytes(uint64_t) { }
-double AbstrRenderer::PH_RenderingTime() const { return 0.0; }
 bool AbstrRenderer::PH_OpenBrickAccessLogfile(const std::string&) { return false; }
 bool AbstrRenderer::PH_CloseBrickAccessLogfile() { return false; }
 bool AbstrRenderer::PH_OpenLogfile(const std::string&) { return false; }
@@ -2195,13 +2187,6 @@ void AbstrRenderer::RegisterLuaFunctions(
 
   id = reg.function(&AbstrRenderer::PH_ClearWorkingSet,
                     "clearWorkingSet", "clears pool data", false);
-  // set the number of paged bricks; useful to reset it to 0 when timing stuff.
-  id = reg.function(&AbstrRenderer::PH_SetPagedBricks,
-                    "setPagedBricks", "useful for resetting", false);
-  id = reg.function(&AbstrRenderer::PH_FramePagedBricks,
-                    "framePagedBricks", "paged bricks so far this frame", false);
-  id = reg.function(&AbstrRenderer::PH_SubframePagedBricks,
-                    "subframePagedBricks", "# this SUBframe", false);
   id = reg.function(&AbstrRenderer::PH_RecalculateVisibility,
                     "recalcVisibility", "synchronous!", false);
   id = reg.function(&AbstrRenderer::PH_Converged, "converged",
@@ -2222,16 +2207,6 @@ void AbstrRenderer::RegisterLuaFunctions(
                     "checks if debug view can be toggled", false);
   id = reg.function(&AbstrRenderer::PH_IsWorkingSetTrackerAvailable, "isWorkingSetTrackerAvailable",
                     "checks if working set is being tracked (bad performance)", false);
-  reg.function(&AbstrRenderer::PH_BrickIOTime, "brickIOTime",
-               "time spent reading bricks", false);
-  reg.function(&AbstrRenderer::PH_SetBrickIOTime, "setBrickIOTime",
-               "reset time", false);
-  reg.function(&AbstrRenderer::PH_BrickIOBytes, "brickIOBytes",
-               "bytes read", false);
-  reg.function(&AbstrRenderer::PH_SetBrickIOBytes, "setBrickIOBytes",
-               "reset # of bytes read", false);
-  reg.function(&AbstrRenderer::PH_RenderingTime, "renderingTime",
-               "rendering time for last paint", false);
 
   id = reg.function(&AbstrRenderer::GetSubFrameProgress, "getSubFrameProgress",
                     "", false);

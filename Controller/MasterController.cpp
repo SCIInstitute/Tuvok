@@ -86,6 +86,7 @@ MasterController::MasterController() :
   LuaScript()->cexec("provenance.enable", false);
 
   PHState.BStrategy = PH_HackyState::BS_SkipTwoLevels;
+  std::fill(m_Perf, m_Perf+PERF_END, 0.0);
 }
 
 
@@ -279,6 +280,18 @@ void MasterController::SetBrickStrategy(size_t strat) {
 }
 void MasterController::SetRehashCount(uint32_t n) {
   this->PHState.RehashCount = n;
+}
+
+double MasterController::PerfQuery(enum PerfCounter pc) {
+  assert(pc < PERF_END_RENDER);
+  double tmp = m_Perf[pc];
+  m_Perf[pc] = 0.0;
+  return tmp;
+}
+void MasterController::IncrementPerfCounter(enum PerfCounter pc,
+                                            double amount) {
+  assert(pc < PERF_END_RENDER);
+  m_Perf[pc] += amount;
 }
 
 void MasterController::SetMaxGPUMem(uint64_t megs) {

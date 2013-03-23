@@ -6,15 +6,16 @@
 #include <sstream>
 #include <stdexcept>
 #include <GL/glew.h>
+#include "Basics/nonstd.h"
+#include "IO/UVF/ExtendedOctree/VolumeTools.h"
+#include "Controller/StackTimer.h"
 #include "GLHashTable.h"
 #include "GLInclude.h"
 #include "GLSLProgram.h"
 #include "GLFBOTex.h"
 #include "GLTexture1D.h"
 #include "GLTexture2D.h"
-#include "../ShaderDescriptor.h"
-#include "Basics/nonstd.h"
-#include "IO/UVF/ExtendedOctree/VolumeTools.h"
+#include "Renderer/ShaderDescriptor.h"
 
 using namespace tuvok;
 
@@ -89,8 +90,9 @@ void GLHashTable::Enable() {
 std::vector<UINTVECTOR4> GLHashTable::GetData() {
   GL(glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT));
 
-  m_pHashTableTex->GetData(m_pRawData);
+  TimedStatement(PERF_READ_HTABLE, m_pHashTableTex->GetData(m_pRawData));
   std::vector<UINTVECTOR4> requests;
+  StackTimer condense(PERF_CONDENSE_HTABLE);
   for (size_t i = 0;i<m_iTableSize;++i) {
     uint32_t elem = m_pRawData.get()[i];
     if (elem != 0) requests.push_back(Int2Vector(elem-1));

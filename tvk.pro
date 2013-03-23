@@ -105,6 +105,7 @@ HEADERS += \
            Basics/MC.h \
            Basics/Mesh.h \
            Basics/nonstd.h \
+           Basics/PerfCounter.h \
            Basics/Plane.h \
            Basics/ProgressTimer.h \
            Basics/SysTools.h \

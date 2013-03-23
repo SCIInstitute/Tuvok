@@ -37,6 +37,7 @@
 #include <string>
 #include <vector>
 
+#include "Basics/PerfCounter.h"
 #include "Basics/Vectors.h"
 #include "../DebugOut/MultiplexOut.h"
 #include "../DebugOut/ConsoleOut.h"
@@ -73,7 +74,7 @@ struct PH_HackyState {
  * as opposed to directly with other modules.
  * You probably don't want to create an instance directly.  Use the singleton
  * provided by Controller::Instance(). */
-class MasterController {
+class MasterController : public PerfQueryable {
 public:
   enum EVolumeRendererType {
     OPENGL_SBVR = 0,
@@ -160,6 +161,11 @@ public:
   PH_HackyState PHState;
   ///@}
 
+  /// Performance query interface.  Each id is a separate performance metric.
+  /// @warning Querying a metric resets it!
+  double PerfQuery(enum PerfCounter);
+  void IncrementPerfCounter(enum PerfCounter, double amount);
+
 private:
   /// Initializer; add all our builtin commands.
   void RegisterLuaCommands();
@@ -203,6 +209,9 @@ private:
   AbstrRendererList m_vVolumeRenderer;
   // The active renderer should point into a member of the renderer list.
   AbstrRenderer*   m_pActiveRenderer;
+
+  /// for PerfCounter tracking.
+  double m_Perf[PERF_END];
 };
 
 }

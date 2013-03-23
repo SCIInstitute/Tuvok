@@ -14,6 +14,7 @@
 #include "Basics/Threads.h"
 #include "IO/LinearIndexDataset.h"
 #include "IO/UVF/ExtendedOctree/VolumeTools.h"
+#include "Controller/StackTimer.h"
 #include "Renderer/VisibilityState.h"
 #include "GLSLProgram.h"
 #include "GLVolumePool.h"
@@ -1206,8 +1207,6 @@ namespace {
         if (bContainsData) {
           t.Start();
           pDataset->GetBrick(key, vUploadMem);
-          pool.PH_SetBrickIOTime(pool.PH_BrickIOTime() + t.Elapsed());
-          pool.PH_SetBrickIOBytes(pool.PH_BrickIOBytes() + vUploadMem.size());
           if (!pool.UploadBrick(BrickElemInfo(vBrickID, vVoxelSize), &vUploadMem[0]))
             return iPagedBricks;
           else
@@ -1347,6 +1346,7 @@ uint32_t GLVolumePool::UploadBricks(const std::vector<UINTVECTOR4>& vBrickIDs,
   bool const bBusy = m_pUpdater && m_pUpdater->Pause();
   uint32_t iPagedBricks = 0;
 
+  StackTimer brick_upload(PERF_UPLOAD_BRICKS);
   if (!vBrickIDs.empty())
   {
     PrepareForPaging();

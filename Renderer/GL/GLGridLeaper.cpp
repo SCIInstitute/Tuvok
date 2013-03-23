@@ -2,6 +2,7 @@
 #include "Basics/Plane.h"
 #include "Basics/SysTools.h" // for Paper Hack file log 
 #include "Controller/Controller.h"
+#include "Controller/StackTimer.h"
 #include "IO/TransferFunction1D.h"
 #include "IO/TransferFunction2D.h"
 #include "IO/FileBackedDataset.h"
@@ -725,6 +726,7 @@ void GLGridLeaper::SetupRaycastShader(GLSLProgram* shaderProgram, RenderRegion3D
 }
 
 void GLGridLeaper::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
+  StackTimer rendering(PERF_RENDER);
   GLSLProgram* shaderProgram = NULL;
   switch (m_eRenderMode) {
     default: 
@@ -1063,35 +1065,11 @@ void GLGridLeaper::SetInterpolant(Interpolant eInterpolant) {
 void GLGridLeaper::PH_ClearWorkingSet() {
   m_pVolumePool->PH_Reset(m_VisibilityState, m_iTimestep);
 }
-void GLGridLeaper::PH_SetPagedBricks(size_t bricks) {
-  m_iPagedBricks = bricks;
-}
-size_t GLGridLeaper::PH_FramePagedBricks() const {
-  return static_cast<size_t>(m_iPagedBricks);
-}
-size_t GLGridLeaper::PH_SubframePagedBricks() const {
-  return 0; /// @todo fixme this info isn't stored now.
-}
 void GLGridLeaper::PH_RecalculateVisibility() {
   RecomputeBrickVisibility(true);
 }
 bool GLGridLeaper::PH_Converged() const {
   return m_bConverged;
-}
-double GLGridLeaper::PH_BrickIOTime() const {
-  return m_pVolumePool->PH_BrickIOTime();
-}
-void GLGridLeaper::PH_SetBrickIOTime(double d) {
-  m_pVolumePool->PH_SetBrickIOTime(d);
-}
-uint64_t GLGridLeaper::PH_BrickIOBytes() const {
-  return m_pVolumePool->PH_BrickIOBytes();
-}
-void GLGridLeaper::PH_SetBrickIOBytes(uint64_t b) {
-  m_pVolumePool->PH_SetBrickIOBytes(b);
-}
-double GLGridLeaper::PH_RenderingTime() const {
-  return m_RenderingTime;
 }
 
 bool GLGridLeaper::PH_OpenBrickAccessLogfile(const std::string& filename) {
