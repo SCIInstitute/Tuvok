@@ -38,6 +38,7 @@
           the bottom of LuaMemberReg.cpp and LuaScripting.cpp.
  */
 
+#include "StdTuvokDefines.h"
 #include <sstream>
 #include <cstring>
 #include <functional>
