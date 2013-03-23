@@ -850,7 +850,7 @@ bool GLGridLeaper::CheckForRedraw() {
   if (!m_bConverged) return true; 
 
   for (size_t i=0; i < renderRegions.size(); ++i) {
-    const RenderRegion* region = renderRegions[i];
+    const std::shared_ptr<RenderRegion> region = renderRegions[i];
     if (region->isBlank) return true;
   }
 

@@ -39,6 +39,7 @@
 #include <sstream>
 #include <utility>
 #include "Basics/MathTools.h"
+#include "Basics/nonstd.h"
 #include "Basics/GeometryGenerator.h"
 #include "IO/Tuvok_QtPlugins.h"
 #include "IO/IOManager.h"
@@ -156,7 +157,7 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_fZNear(s_fZNear),
   m_fZFar(s_fZFar),
   m_bFirstPersonMode(false),
-  simpleRenderRegion3D(this),
+  simpleRenderRegion3D(new RenderRegion3D(this)),
   m_cAmbient(1.0f,1.0f,1.0f,0.1f),
   m_cDiffuse(1.0f,1.0f,1.0f,1.0f),
   m_cSpecular(1.0f,1.0f,1.0f,1.0f),
@@ -170,8 +171,8 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_vBackgroundColors[0] = FLOATVECTOR3(0,0,0);
   m_vBackgroundColors[1] = FLOATVECTOR3(0,0,0);
 
-  simpleRenderRegion3D.minCoord = UINTVECTOR2(0,0); // maxCoord is updated in Paint().
-  renderRegions.push_back(&simpleRenderRegion3D);
+  simpleRenderRegion3D->minCoord = UINTVECTOR2(0,0); // maxCoord is updated in Paint().
+  renderRegions.push_back(simpleRenderRegion3D);
 
   RestartTimers();
 
@@ -436,7 +437,7 @@ bool AbstrRenderer::CheckForRedraw() {
   redrawRequired = m_bPerformReCompose;
 
   for (size_t i=0; i < renderRegions.size(); ++i) {
-    const RenderRegion* region = renderRegions[i];
+    const std::shared_ptr<RenderRegion> region = renderRegions[i];
     // need to redraw for 1 of three reasons:
     //   didn't finish last paint call; bricks remain.
     //   haven't rendered the finest LOD for the current view
@@ -467,17 +468,18 @@ void AbstrRenderer::Resize(const UINTVECTOR2& vWinSize) {
   ScheduleCompleteRedraw();
 }
 
-RenderRegion3D* AbstrRenderer::GetFirst3DRegion() {
+std::shared_ptr<RenderRegion3D> AbstrRenderer::GetFirst3DRegion() {
   for (size_t i=0; i < renderRegions.size(); ++i) {
-    if (renderRegions[i]->is3D())
-      return dynamic_cast<RenderRegion3D*>(renderRegions[i]);
+    if (renderRegions[i]->is3D()) {
+      return std::dynamic_pointer_cast<RenderRegion3D>(renderRegions[i]);
+    }
   }
   return NULL;
 }
 
 LuaClassInstance AbstrRenderer::LuaGetFirst3DRegion() {
   return m_pMasterController->LuaScript()->getLuaClassInstance(
-      dynamic_cast<RenderRegion*>(GetFirst3DRegion()));
+      dynamic_cast<RenderRegion*>(GetFirst3DRegion().get()));
 }
 
 void AbstrRenderer::SetRotation(RenderRegion *renderRegion,
@@ -513,8 +515,6 @@ void AbstrRenderer::SetClipPlane(RenderRegion *renderRegion,
 }
 
 bool AbstrRenderer::IsClipPlaneEnabled(RenderRegion *renderRegion) {
-  if (!renderRegion)
-    renderRegion = GetFirst3DRegion();
   if (renderRegion)
     return m_bClipPlaneOn; /// @todo: Make this per RenderRegion.
   else
@@ -522,8 +522,6 @@ bool AbstrRenderer::IsClipPlaneEnabled(RenderRegion *renderRegion) {
 }
 
 void AbstrRenderer::EnableClipPlane(RenderRegion *renderRegion) {
-  if (!renderRegion)
-    renderRegion = GetFirst3DRegion();
   if (renderRegion) {
     if(!m_bClipPlaneOn) {
       m_bClipPlaneOn = true; /// @todo: Make this per RenderRegion.
@@ -533,8 +531,6 @@ void AbstrRenderer::EnableClipPlane(RenderRegion *renderRegion) {
 }
 
 void AbstrRenderer::DisableClipPlane(RenderRegion *renderRegion) {
-  if (!renderRegion)
-    renderRegion = GetFirst3DRegion();
   if (renderRegion) {
     if(m_bClipPlaneOn) {
       m_bClipPlaneOn = false; /// @todo: Make this per RenderRegion.
@@ -544,8 +540,6 @@ void AbstrRenderer::DisableClipPlane(RenderRegion *renderRegion) {
 }
 void AbstrRenderer::ShowClipPlane(bool bShown,
                                   RenderRegion *renderRegion) {
-  if (!renderRegion)
-    renderRegion = GetFirst3DRegion();
   if (renderRegion) {
     m_bClipPlaneDisplayed = bShown; /// @todo: Make this per RenderRegion.
     if(m_bClipPlaneOn) {
@@ -628,8 +622,7 @@ void AbstrRenderer::ScheduleWindowRedraw(RenderRegion *renderRegion) {
 }
 
 void AbstrRenderer::ScheduleRecompose(RenderRegion *renderRegion) {
-  if (!renderRegion)
-    renderRegion = GetFirst3DRegion();
+  assert(renderRegion);
   if (renderRegion) {
     // ensure we've finished the current frame:
     if(m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) {
@@ -1028,8 +1021,7 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
 #endif
 
     bool needed = false;
-    for(std::vector<RenderRegion*>::const_iterator reg = renderRegions.begin();
-        reg != renderRegions.end(); ++reg) {
+    for(auto reg = renderRegions.cbegin(); reg != renderRegions.cend(); ++reg) {
       if(RegionNeedsBrick(**reg, brick->first, brick->second, b.bIsEmpty)) {
         needed = true;
         break;
@@ -1280,8 +1272,7 @@ void AbstrRenderer::SetRenderCoordArrows(bool bRenderCoordArrows) {
 
 void AbstrRenderer::Set2DPlanesIn3DView(bool bRenderPlanesIn3D,
                                         RenderRegion *renderRegion) {
-  if (!renderRegion)
-    renderRegion = GetFirst3DRegion();
+  assert(renderRegion);
   if (renderRegion) {
     if (m_bRenderPlanesIn3D != bRenderPlanesIn3D) {
       m_bRenderPlanesIn3D = bRenderPlanesIn3D;
@@ -1488,8 +1479,9 @@ FLOATVECTOR3 AbstrRenderer::GetLightDir()const {
 }
 
 void
-AbstrRenderer::SetRenderRegions(const std::vector<RenderRegion*> &regions)
-{
+AbstrRenderer::SetRenderRegions(
+  const std::vector<std::shared_ptr<RenderRegion>> &regions
+) {
   this->renderRegions = regions;
 
   this->RestartTimers();
@@ -1507,7 +1499,10 @@ AbstrRenderer::LuaSetRenderRegions(std::vector<LuaClassInstance> regions)
   for (std::vector<LuaClassInstance>::iterator it = regions.begin();
       it != regions.end(); ++it)
   {
-    this->renderRegions.push_back((*it).getRawPointer<RenderRegion>(ss));
+    std::shared_ptr<RenderRegion> rr(it->getRawPointer<RenderRegion>(ss),
+      nonstd::null_deleter()
+    );
+    this->renderRegions.push_back(rr);
   }
 
   this->RestartTimers();
@@ -1519,10 +1514,9 @@ std::vector<LuaClassInstance> AbstrRenderer::LuaGetRenderRegions()
   shared_ptr<LuaScripting> ss = m_pMasterController->LuaScript();
   std::vector<LuaClassInstance> ret;
   ret.reserve(this->renderRegions.size());
-  for (std::vector<RenderRegion*>::iterator it = this->renderRegions.begin();
-      it != this->renderRegions.end(); ++it)
-  {
-    ret.push_back(ss->getLuaClassInstance(*it));
+  for(auto it = this->renderRegions.begin();
+      it != this->renderRegions.end(); ++it) {
+    ret.push_back(ss->getLuaClassInstance(it->get()));
   }
   return ret;
 }

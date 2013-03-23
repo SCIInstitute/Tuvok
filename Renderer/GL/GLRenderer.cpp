@@ -631,7 +631,7 @@ bool GLRenderer::Paint() {
 
         if (renderRegions[i]->is3D()) {
           RenderRegion3D &region3D = *static_cast<RenderRegion3D*>
-                                                 (renderRegions[i]);
+                                                 (renderRegions[i].get());
           if (!region3D.isBlank && m_bPerformReCompose){
             Recompose3DView(region3D);
             justCompletedRegions[i] = true;
@@ -641,7 +641,8 @@ bool GLRenderer::Paint() {
           // are we done rendering or do we need to render at higher quality?
           region3D.redrawMask = Continue3DDraw();
         } else if (renderRegions[i]->is2D()) {  // in a 2D view mode
-          RenderRegion2D& region2D = *static_cast<RenderRegion2D*>(renderRegions[i]);
+          RenderRegion2D& region2D =
+            *static_cast<RenderRegion2D*>(renderRegions[i].get());
           justCompletedRegions[i] = Render2DView(region2D);
           region2D.redrawMask = false;
           if(this->decreaseScreenResNow) {
@@ -679,7 +680,7 @@ void GLRenderer::FullscreenQuad() const {
 
 void GLRenderer::FullscreenQuadRegions() const {
   for (size_t i=0; i < renderRegions.size(); ++i) {
-    FullscreenQuadRegion(renderRegions[i], this->decreaseScreenResNow);
+    FullscreenQuadRegion(renderRegions[i].get(), this->decreaseScreenResNow);
   }
 }
 
@@ -812,25 +813,25 @@ void GLRenderer::EndFrame(const vector<char>& justCompletedRegions) {
       }
 
       for (size_t i=0; i < renderRegions.size(); ++i) {
-        if(!OnlyRecomposite(renderRegions[i])) {
-          CompletedASubframe(renderRegions[i]);
+        if(!OnlyRecomposite(renderRegions[i].get())) {
+          CompletedASubframe(renderRegions[i].get());
         }
       }
     } else {
       if (!renderRegions[0]->isBlank && renderRegions[0]->isTargetBlank) {
-        TargetIsBlankButFrameIsNotFinished(renderRegions[0]);
+        TargetIsBlankButFrameIsNotFinished(renderRegions[0].get());
       }
     }
   } else {
     for (size_t i=0; i < renderRegions.size(); ++i) {
       if(justCompletedRegions[i]) {
-        if (!OnlyRecomposite(renderRegions[i])) {
-          CompletedASubframe(renderRegions[i]);
+        if (!OnlyRecomposite(renderRegions[i].get())) {
+          CompletedASubframe(renderRegions[i].get());
         }
-        CopyOverCompletedRegion(renderRegions[i]);
+        CopyOverCompletedRegion(renderRegions[i].get());
       } else {
         if (!renderRegions[i]->isBlank && renderRegions[i]->isTargetBlank) {
-          TargetIsBlankButFrameIsNotFinished(renderRegions[i]);
+          TargetIsBlankButFrameIsNotFinished(renderRegions[i].get());
         }
       }
     }
@@ -1561,7 +1562,7 @@ void GLRenderer::CopyImageToDisplayBuffer() {
   m_pProgramTrans->Enable();
 
   if (decreaseRes)
-    FullscreenQuadRegion(renderRegions[0], decreaseRes);
+    FullscreenQuadRegion(renderRegions[0].get(), decreaseRes);
   else
     FullscreenQuad();
 

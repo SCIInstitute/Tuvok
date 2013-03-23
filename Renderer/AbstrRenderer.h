@@ -375,7 +375,7 @@ class AbstrRenderer {
                                   const FLOATVECTOR3& vfExtent, 
                                   const UINTVECTOR3& viVoxelCount) const;
 
-    RenderRegion3D* GetFirst3DRegion();
+    std::shared_ptr<RenderRegion3D> GetFirst3DRegion();
 
     virtual void SetRenderCoordArrows(bool bRenderCoordArrows);
     virtual bool GetRenderCoordArrows() const {return m_bRenderCoordArrows;}
@@ -434,10 +434,10 @@ class AbstrRenderer {
       if (m_bDatasetIsInvalid) return true;
 
       if (renderRegions.empty()) {
-        renderRegions.push_back(&simpleRenderRegion3D);
+        renderRegions.push_back(simpleRenderRegion3D);
       }
-      if (renderRegions.size() == 1 && renderRegions[0] == &simpleRenderRegion3D) {
-        simpleRenderRegion3D.maxCoord = m_vWinSize; //minCoord is always (0,0)
+      if (renderRegions.size() == 1) {
+        renderRegions[0]->maxCoord = m_vWinSize; //minCoord is always (0,0)
       }
 
       // check if we are rendering a stereo frame
@@ -524,10 +524,10 @@ class AbstrRenderer {
 
     EBlendPrecision GetBlendPrecision() {return m_eBlendPrecision;}
 
-    void SetRenderRegions(const std::vector<RenderRegion*>&);
+    void SetRenderRegions(const std::vector<std::shared_ptr<RenderRegion>>&);
     void LuaSetRenderRegions(std::vector<LuaClassInstance>);
 
-    const std::vector<RenderRegion*>& GetRenderRegions() const {
+    const std::vector<std::shared_ptr<RenderRegion>>& GetRenderRegions() const {
       return renderRegions;
     }
     std::vector<LuaClassInstance> LuaGetRenderRegions();
@@ -801,11 +801,11 @@ class AbstrRenderer {
     bool                m_bFirstPersonMode;
     ///@}
 
-    std::vector<RenderRegion*> renderRegions;
+    std::vector<std::shared_ptr<RenderRegion>> renderRegions;
 
     // For displaying a full single 3D view without the client needing to know
     // about RenderRegions.
-    RenderRegion3D simpleRenderRegion3D;
+    std::shared_ptr<RenderRegion3D> simpleRenderRegion3D;
 
     // colors for the volume light
     FLOATVECTOR4        m_cAmbient;
