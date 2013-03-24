@@ -1283,7 +1283,7 @@ Dataset* IOManager::LoadDataset(const string& strFilename,
 Dataset* IOManager::LoadRebrickedDataset(const std::string& filename,
                                          const UINTVECTOR3 bricksize,
                                          size_t minmaxType) const {
-  std::shared_ptr<Dataset> ds(this->CreateDataset(filename, 256, false));
+  std::shared_ptr<Dataset> ds(this->CreateDataset(filename, 1024, false));
   std::shared_ptr<LinearIndexDataset> lid =
     std::dynamic_pointer_cast<LinearIndexDataset>(ds);
   std::array<size_t,3> bsize = {{bricksize[0], bricksize[1], bricksize[2]}};
