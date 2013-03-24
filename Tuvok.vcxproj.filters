@@ -1100,6 +1100,9 @@
     <ClCompile Include="IO\BrickCache.cpp">
       <Filter>IO</Filter>
     </ClCompile>
+    <ClCompile Include="LuaScripting\TuvokSpecific\MatrixMath.cpp">
+      <Filter>LuaScripting\TuvokSpecific</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Basics\Appendix.h">
@@ -2238,6 +2241,9 @@
     </ClInclude>
     <ClInclude Include="IO\BrickCache.h">
       <Filter>IO</Filter>
+    </ClInclude>
+    <ClInclude Include="LuaScripting\TuvokSpecific\MatrixMath.h">
+      <Filter>LuaScripting\TuvokSpecific</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

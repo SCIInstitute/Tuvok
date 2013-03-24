@@ -585,6 +585,7 @@
     <ClCompile Include="LuaScripting\TuvokSpecific\LuaTransferFun1DProxy.cpp" />
     <ClCompile Include="LuaScripting\TuvokSpecific\LuaTransferFun2DProxy.cpp" />
     <ClCompile Include="LuaScripting\TuvokSpecific\LuaTuvokTypes.cpp" />
+    <ClCompile Include="LuaScripting\TuvokSpecific\MatrixMath.cpp" />
     <ClCompile Include="Renderer\AbstrRenderer.cpp" />
     <ClCompile Include="Renderer\Context.cpp" />
     <ClCompile Include="Renderer\CullingLOD.cpp" />
@@ -1436,6 +1437,7 @@
     <ClInclude Include="LuaScripting\TuvokSpecific\LuaTransferFun1DProxy.h" />
     <ClInclude Include="LuaScripting\TuvokSpecific\LuaTransferFun2DProxy.h" />
     <ClInclude Include="LuaScripting\TuvokSpecific\LuaTuvokTypes.h" />
+    <ClInclude Include="LuaScripting\TuvokSpecific\MatrixMath.h" />
     <ClInclude Include="Renderer\AbstrRenderer.h" />
     <ClInclude Include="Renderer\Context.h" />
     <ClInclude Include="Renderer\ContextIdentification.h" />
