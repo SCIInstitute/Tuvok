@@ -72,9 +72,11 @@ class DXRenderer : public AbstrRenderer {
     /** Paint the image */
     virtual bool Paint();
 
-    /** Sends a message to the master to ask for a dataset to be loaded.
-     * @param strFilename path to a file */
-    virtual bool LoadDataset(const std::string& strFilename);
+    /// creates a dataset and registers it with this renderer.
+    virtual bool LoadFile(const std::string& filename);
+    /// registers the dataset with this renderer.  this renderer then 'owns' it
+    /// and will handle deletion.
+    virtual bool RegisterDataset(Dataset* ds);
 
     /** Change the size of the FBO we render to.  Any previous image is
      * destroyed, causing a full redraw on the next render.

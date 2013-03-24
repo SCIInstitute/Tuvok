@@ -323,8 +323,15 @@ void DXRenderer::PlaneIn3DPreRender() {
 void DXRenderer::PlaneIn3DPostRender() {
 }
 
-bool DXRenderer::LoadDataset(const string& strFilename) {
-  if (AbstrRenderer::LoadDataset(strFilename)) {
+bool DXRenderer::LoadFile(const string& strFilename) {
+  if (AbstrRenderer::LoadFile(strFilename)) {
+    // TODO
+    return true;
+  } else return false;
+}
+
+bool DXRenderer::RegisterDataset(Dataset* ds) {
+  if (AbstrRenderer::RegisterDataset(ds)) {
     // TODO
     return true;
   } else return false;
