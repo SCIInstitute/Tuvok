@@ -143,7 +143,7 @@ namespace tuvok {
       /** Deallocates GPU memory allocated during the rendering process. */
       virtual void Cleanup();
 
-      bool LoadDataset(const std::string& strFilename);
+      bool RegisterDataset(tuvok::Dataset*);
 
       bool CreateVolumePool();
       uint32_t UpdateToVolumePool(const UINTVECTOR4& brick);

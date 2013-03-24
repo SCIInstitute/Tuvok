@@ -210,28 +210,30 @@ bool AbstrRenderer::Initialize(std::shared_ptr<Context> ctx) {
   return m_pDataset != NULL;
 }
 
-bool AbstrRenderer::LoadDataset(const string& strFilename) {
-  if (m_pMasterController == NULL) return false;
-
-  if (m_pMasterController->IOMan() == NULL) {
-    T_ERROR("Cannot load dataset because IOManager is NULL");
+bool AbstrRenderer::LoadFile(const std::string& filename) {
+  if(NULL == m_pMasterController) { return false; }
+  if(NULL == m_pMasterController->IOMan()) {
+    T_ERROR("no IOManager!  can't load DS");
     return false;
   }
+  Dataset* ds = m_pMasterController->IOMan()->LoadDataset(filename, this);
+  if(NULL == ds) {
+    T_ERROR("IOManager could not load '%s', giving up", filename.c_str());
+    return false;
+  }
+  MESSAGE("Load successful, initializing renderer!");
 
-  if (m_pDataset)
-  {
+  return this->RegisterDataset(ds);
+}
+
+bool AbstrRenderer::RegisterDataset(Dataset* ds) {
+  if(m_pDataset) {
     m_pMasterController->MemMan()->FreeDataset(m_pDataset, this);
     m_pLuaDatasetPtr->bind(NULL, m_pMasterController->LuaScript());
   }
 
-  m_pDataset = m_pMasterController->IOMan()->LoadDataset(strFilename,this);
-  if (m_pDataset == NULL) {
-    T_ERROR("IOManager call to load dataset failed.");
-    return false;
-  }
+  m_pDataset = ds;
   m_pLuaDatasetPtr->bind(m_pDataset, m_pMasterController->LuaScript());
-
-  MESSAGE("Load successful, initializing renderer!");
 
   // find the maximum LOD index
   m_iMaxLODIndex = m_pDataset->GetLargestSingleBrickLOD(0);
@@ -258,9 +260,7 @@ bool AbstrRenderer::LoadRebricked(const std::string& filename,
                                   size_t minmaxMode) {
   const IOManager& iomgr = Controller::Const().IOMan();
   Dataset* ds = iomgr.LoadRebrickedDataset(filename, bsize, minmaxMode);
-  m_pLuaDatasetPtr->bind(ds, m_pMasterController->LuaScript());
-  this->SetDataset(ds);
-  return true;
+  return this->RegisterDataset(ds);
 }
 
 AbstrRenderer::~AbstrRenderer() {
@@ -2099,7 +2099,7 @@ void AbstrRenderer::RegisterLuaFunctions(
 
   id = reg.function(&AbstrRenderer::SetConsiderPreviousDepthbuffer,
                     "setConsiderPrevDepthBuffer", "", true);
-  id = reg.function(&AbstrRenderer::LoadDataset,
+  id = reg.function(&AbstrRenderer::LoadFile,
                     "loadDataset", "", true);
   id = reg.function(&AbstrRenderer::LoadRebricked,
                     "loadRebricked", "load a rebricked DS", true);

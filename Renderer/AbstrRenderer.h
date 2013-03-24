@@ -453,9 +453,11 @@ class AbstrRenderer {
       return m_bConsiderPreviousDepthbuffer;
     }
 
-    /** Sends a message to the master to ask for a dataset to be loaded.
-     * @param strFilename path to a file */
-    virtual bool LoadDataset(const std::string& strFilename);
+    /// creates a dataset and registers it with this renderer.
+    virtual bool LoadFile(const std::string& filename);
+    /// registers the dataset with this renderer.  this renderer then 'owns' it
+    /// and will handle deletion.
+    virtual bool RegisterDataset(Dataset* ds);
     /// ditto as LoadDataset, but gives a rebricked DS
     virtual bool LoadRebricked(const std::string& strFilename,
                                const UINTVECTOR3 bsize,

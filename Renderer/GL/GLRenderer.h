@@ -87,9 +87,8 @@ class GLRenderer : public AbstrRenderer {
 
     virtual bool CropDataset(const std::string& strTempDir, bool bKeepOldData);
 
-    /** Sends a message to the master to ask for a dataset to be loaded.
-     * @param strFilename path to a file */
-    virtual bool LoadDataset(const std::string& strFilename);
+    /// registers a data set with this renderer.  this renderer then 'owns' it.
+    virtual bool RegisterDataset(tuvok::Dataset*);
 
     /** Change the size of the FBO we render to.  Any previous image is
      * destroyed, causing a full redraw on the next render.

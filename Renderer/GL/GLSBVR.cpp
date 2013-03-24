@@ -462,15 +462,17 @@ void GLSBVR::RenderHQMIPInLoop(const RenderRegion2D &, const Brick& b) {
   RenderProxyGeometry();
 }
 
-bool GLSBVR::LoadDataset(const string& strFilename) {
-  if (GLRenderer::LoadDataset(strFilename)) {
+bool GLSBVR::RegisterDataset(Dataset* ds) {
+  if(GLRenderer::RegisterDataset(ds)) {
     UINTVECTOR3    vSize = UINTVECTOR3(m_pDataset->GetDomainSize());
     FLOATVECTOR3 vAspect = FLOATVECTOR3(m_pDataset->GetScale());
     vAspect /= vAspect.maxVal();
 
     m_SBVRGeogen.SetVolumeData(vAspect, vSize);
     return true;
-  } else return false;
+  } else {
+    return false;
+  }
 }
 
 void GLSBVR::UpdateLightParamsInShaders() {

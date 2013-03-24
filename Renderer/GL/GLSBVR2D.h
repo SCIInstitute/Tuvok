@@ -62,10 +62,8 @@ namespace tuvok {
                bool bDisableBorder);
       virtual ~GLSBVR2D();
 
-      /** Sends a message to the master to ask for a dataset to be loaded.
-       * The dataset is converted to UVF if it is not one already.
-       * @param strFilename path to a file */
-      virtual bool LoadDataset(const std::string& strFilename);
+      /// registers a data set with this renderer
+      virtual bool RegisterDataset(tuvok::Dataset*);
 
       virtual bool SupportsClearView() {
         return m_pDataset->GetComponentCount() == 1;

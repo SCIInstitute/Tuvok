@@ -2609,8 +2609,8 @@ void GLRenderer::SyncStateManager() {
   m_pContext->GetStateManager()->Apply(m_BaseState, true);  
 }
 
-bool GLRenderer::LoadDataset(const string& strFilename) {
-  if(!AbstrRenderer::LoadDataset(strFilename)) {
+bool GLRenderer::RegisterDataset(Dataset* ds) {
+  if(!AbstrRenderer::RegisterDataset(ds)) {
     return false;
   }
 
@@ -2956,7 +2956,7 @@ bool GLRenderer::CropDataset(const std::string& strTempDir, bool bKeepOldData) {
   FileBackedDataset* fbd = dynamic_cast<FileBackedDataset*>(m_pDataset);
   if (NULL != fbd)
   {
-    LoadDataset(fbd->Filename());	
+    LoadFile(fbd->Filename());
   }
   
   return true;

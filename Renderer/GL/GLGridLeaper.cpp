@@ -110,8 +110,8 @@ bool GLGridLeaper::CreateVolumePool() {
   return true;
 }
 
-bool GLGridLeaper::LoadDataset(const string& strFilename) {
-  if(!AbstrRenderer::LoadDataset(strFilename)) {
+bool GLGridLeaper::RegisterDataset(Dataset* ds) {
+  if(!AbstrRenderer::RegisterDataset(ds)) {
     return false;
   }
 
@@ -126,6 +126,7 @@ bool GLGridLeaper::LoadDataset(const string& strFilename) {
 
   return true;
 }
+
 GLGridLeaper::~GLGridLeaper() {
   PH_CloseLogfile();
   PH_CloseBrickAccessLogfile();
