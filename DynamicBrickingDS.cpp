@@ -546,6 +546,7 @@ MinMaxBlock minmax_brick(const BrickKey& bk, const BrickedDataset& ds) {
     T_ERROR("unsupported type.");
     assert(false);
   }
+  return MinMaxBlock();
 }
 
 /// run through all of the bricks and compute min/max info.
