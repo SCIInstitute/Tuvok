@@ -103,6 +103,10 @@ void LuaDatasetProxy::bind(Dataset* ds, shared_ptr<LuaScripting> ss)
                              "getNumberOfTimesteps", "", false);
     id = mReg->functionProxy(ds, &Dataset::GetMeshes,
                              "getMeshes", "", false);
+    // We do NOT want the return values from GetMeshes stuck in the provenance
+    // system (Okay, so the provenance system doesn't store return values, just
+    // function parameters. But it's best to be safe).
+    ss->setProvenanceExempt(id);
     id = mReg->functionProxy(ds, &Dataset::GetBitWidth,
                              "getBitWidth", "", false);
     id = mReg->functionProxy(ds, &Dataset::Get1DHistogram,
@@ -113,10 +117,6 @@ void LuaDatasetProxy::bind(Dataset* ds, shared_ptr<LuaScripting> ss)
                              "saveRescaleFactors", "", false);
     id = mReg->functionProxy(ds, &Dataset::GetRescaleFactors,
                              "getRescaleFactors", "", false);
-    // We do NOT want the return values from GetMeshes stuck in the provenance
-    // system (Okay, so the provenance system doesn't store return values, just
-    // function parameters. But it's best to be safe).
-    ss->setProvenanceExempt(id);
 
     // Attempt to cast the dataset to a file backed dataset.
     FileBackedDataset* fileDataset = dynamic_cast<FileBackedDataset*>(ds);
