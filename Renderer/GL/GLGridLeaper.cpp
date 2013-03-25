@@ -132,6 +132,7 @@ bool GLGridLeaper::RegisterDataset(Dataset* ds) {
   if (bReinit) {
     m_VisibilityState = VisibilityState(); // reset visibility state to force update
     InitHashTable();
+    FillBBoxVBO();
     CreateVolumePool();
     LoadTraversalShaders();
   }
