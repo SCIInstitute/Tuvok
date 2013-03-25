@@ -29,7 +29,7 @@ struct TypeErase {
   };
 
   std::shared_ptr<GenericType> gt;
-  const size_t width;
+  size_t width;
 
   // this isn't a very good type eraser, because we require that the type has
   // an internal typedef 'value_type' which we can use to obtain the size of
@@ -43,15 +43,16 @@ struct TypeErase {
 };
 
 struct BrickInfo {
-  const BrickKey& key;
+  BrickKey key;
   uint64_t access_time;
   BrickInfo(const BrickKey& k, time_t t) : key(k),
                                            access_time(uint64_t(t)) {}
 };
 
 struct CacheLRU {
-  bool operator()(const BrickInfo& a, const BrickInfo& b) const {
-    return a.access_time > b.access_time;
+  typedef std::pair<BrickInfo, TypeErase> CacheElem;
+  bool operator()(const CacheElem& a, const CacheElem& b) const {
+    return a.first.access_time > b.first.access_time;
   }
 };
 
@@ -120,12 +121,15 @@ struct BrickCache::bcinfo {
     ///@}
     void remove() {
       if(!cache.empty()) {
-        const auto entry = this->cache.begin();
+        std::pop_heap(this->cache.begin(), this->cache.end(), CacheLRU());
+
+        const auto entry = this->cache.end()-1;
         TypeErase::GenericType& gt = *(entry->second.gt);
         assert((entry->second.width * gt.elems()) <= this->bytes);
         this->bytes -= entry->second.width * gt.elems();
-        this->cache.erase(cache.begin());
+        this->cache.erase(entry);
       }
+      assert(this->size() == this->bytes);
     }
     size_t size() const { return this->bytes; }
 
@@ -135,7 +139,8 @@ struct BrickCache::bcinfo {
                                                    std::vector<T>&);
 
   private:
-    std::map<BrickInfo, TypeErase, CacheLRU> cache;
+    typedef std::pair<BrickInfo, TypeErase> CacheElem;
+    std::vector<CacheElem> cache;
     size_t bytes; ///< how much memory we're currently using for data.
 };
 
@@ -154,19 +159,15 @@ std::vector<T> BrickCache::bcinfo::typed_lookup(const BrickKey& k) {
   auto func = std::bind(&KeyMatches::operator(), km, k, _1);
 
   // gcc can't seem to deduce this with 'auto'.
-  typedef std::map<BrickInfo, TypeErase, CacheLRU> maptype;
+  typedef std::vector<CacheElem> maptype;
   maptype::iterator i = std::find_if(this->cache.begin(), this->cache.end(),
                                      func);
   if(i == this->cache.end()) { return std::vector<T>(); }
 
-  // we copy the element, remove it, and reinsert it, so we know it goes into
-  // the right place (w/ the updated access_time)
-  auto newentry = *i;
-  TypeErase::GenericType& gt = *(newentry.second.gt);
-  this->cache.erase(i); // remove
-  this->bytes -= newentry.second.width * gt.elems();
+  i->first.access_time = time(NULL);
+  TypeErase::GenericType& gt = *(i->second.gt);
   auto te_vec = dynamic_cast<TypeErase::TypeEraser<std::vector<T>>&>(gt);
-  this->typed_add<T>(newentry.first.key, te_vec.get());
+  assert(this->size() == this->bytes);
   return te_vec.get();
 }
 
@@ -182,9 +183,11 @@ std::vector<T>& BrickCache::bcinfo::typed_add(const BrickKey& k,
   assert(std::find_if(this->cache.begin(), this->cache.end(), func) ==
          this->cache.end());
 #endif
+  this->cache.push_back(std::make_pair(BrickInfo(k, time(NULL)), data));
+  std::push_heap(this->cache.begin(), this->cache.end(), CacheLRU());
 
-  this->cache.insert(std::make_pair(BrickInfo(k, time(NULL)), data));
   this->bytes += sizeof(T) * data.size();
+  assert(this->size() == this->bytes);
   return data;
 }
 
