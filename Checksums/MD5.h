@@ -3,8 +3,9 @@
 #ifndef MD5_H
 #define MD5_H
 
-#include <vector>
 #include "../StdDefines.h"
+#include <array>
+#include <vector>
 
 class MD5
 {
@@ -34,4 +35,20 @@ private:
         uint32_t m_nCount[2] ;        // bitcount, modulo 2^64 (lsb first)
         uint32_t m_lMD5[4] ;          // MD5 sum
 };
+
+template<typename Iter, typename T>
+std::array<uint8_t,16> md5(Iter begin, Iter end) {
+  MD5 md;
+  int error = 0;
+  while(begin != end) {
+    md.Update(&*begin, sizeof(T), error);
+    ++begin;
+  }
+  std::vector<uint8_t> final = md.Final(error);
+
+  std::array<uint8_t,16> rv;
+  std::copy(final.begin(), final.end(), rv.begin());
+  return rv;
+}
+
 #endif // MD5_H
