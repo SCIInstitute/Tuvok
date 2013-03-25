@@ -2,10 +2,15 @@
 #define TUVOK_RENDERER_WRITEBRICK_H
 
 #include <array>
+#include <cstdio>
 #include <fstream>
 #include <vector>
 #include "Basics/Checksums/MD5.h"
 #include "IO/Brick.h"
+
+#ifndef _MSC_VER
+# define snprintf _snprintf
+#endif
 
 // Debug code: write data's md5 hash to a file.
 
