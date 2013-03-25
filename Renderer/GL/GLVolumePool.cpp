@@ -1218,7 +1218,11 @@ namespace {
         if (bContainsData) {
           t.Start();
           pDataset->GetBrick(key, vUploadMem);
-          if(brickDebug) { writeBrick(key, vUploadMem); }
+          if(brickDebug) {
+            const uint64_t iByteWidth = pDataset->GetBitWidth()/8;
+            const uint64_t iCompCount = pDataset->GetComponentCount();
+            writeBrickT<std::vector<uint8_t>::iterator, uint8_t>(key, vUploadMem.begin(), vUploadMem.begin() + (vVoxelSize.volume() * iByteWidth * iCompCount));
+          }
           if (!pool.UploadBrick(BrickElemInfo(vBrickID, vVoxelSize), &vUploadMem[0]))
             return iPagedBricks;
           else
@@ -1405,9 +1409,13 @@ uint32_t GLVolumePool::UploadBricks(const std::vector<UINTVECTOR4>& vBrickIDs,
 
         t.Start();
         m_pDataset->GetBrick(key, vUploadMem);
-        if(brickDebug) { writeBrick(key, vUploadMem); }
+        if(brickDebug) {
+          const uint64_t iByteWidth = m_pDataset->GetBitWidth()/8;
+          const uint64_t iCompCount = m_pDataset->GetComponentCount();
+          writeBrickT<std::vector<uint8_t>::iterator, uint8_t>(key, vUploadMem.begin(), vUploadMem.begin() + (vVoxelSize.volume() * iByteWidth * iCompCount));
+        }
         m_BrickIOTime += t.Elapsed();
-        m_BrickIOBytes += vUploadMem.size();
+        m_BrickIOBytes += vUploadMem.size(); // TODO: use real size!
         if (!UploadBrick(BrickElemInfo(vBrickID, vVoxelSize), &vUploadMem[0]))
           break;
         else
