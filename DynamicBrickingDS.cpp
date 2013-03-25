@@ -74,6 +74,9 @@ struct DynamicBrickingDS::dbinfo {
 
   // sets the cache size (bytes)
   void SetCacheSize(size_t bytes);
+
+  /// @returns true if 'bytes' bytes will fit into the current cache
+  bool FitsInCache(size_t bytes) const;
 };
 
 BrickSize GenericSourceBrickSize(const Dataset&);
@@ -493,6 +496,10 @@ bool DynamicBrickingDS::dbinfo::Brick(const DynamicBrickingDS& ds,
                                       std::vector<T>& data) {
   // first: check the cache, if we've already got the data we're done!
   if(!ds.di->cache.lookup(key, T()).empty()) {
+    MESSAGE("found <%u,%u,%u> in the cache!",
+            static_cast<unsigned>(std::get<0>(key)),
+            static_cast<unsigned>(std::get<1>(key)),
+            static_cast<unsigned>(std::get<2>(key)));
     data = ds.di->cache.lookup(key, T());
     return true;
   }
@@ -501,7 +508,14 @@ bool DynamicBrickingDS::dbinfo::Brick(const DynamicBrickingDS& ds,
                 pre.tgt_index, pre.src_index, pre.src_offset)) {
     return false;
   }
-  ds.di->cache.add(key, data);
+  if(ds.di->FitsInCache(data.size()*sizeof(T))) {
+    MESSAGE("Adding <%u,%u,%u> (%u bytes) to the cache.",
+            static_cast<unsigned>(std::get<0>(key)),
+            static_cast<unsigned>(std::get<1>(key)),
+            static_cast<unsigned>(std::get<2>(key)),
+            static_cast<unsigned>(data.size()*sizeof(T)));
+    ds.di->cache.add(key, data);
+  }
   return true;
 }
 
@@ -576,6 +590,11 @@ void DynamicBrickingDS::dbinfo::SetCacheSize(size_t bytes) {
   this->cacheBytes = bytes;
   // shrink the cache to fit.
   while(this->cache.size() > this->cacheBytes) { this->cache.remove(); }
+}
+
+/// @returns true if 'bytes' bytes will fit into the current cache
+bool DynamicBrickingDS::dbinfo::FitsInCache(size_t bytes) const {
+  return bytes < this->cacheBytes;
 }
 
 bool DynamicBrickingDS::GetBrick(const BrickKey& k, std::vector<uint8_t>& data) const
