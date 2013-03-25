@@ -117,6 +117,8 @@ void LuaDatasetProxy::bind(Dataset* ds, shared_ptr<LuaScripting> ss)
                              "saveRescaleFactors", "", false);
     id = mReg->functionProxy(ds, &Dataset::GetRescaleFactors,
                              "getRescaleFactors", "", false);
+    id = mReg->functionProxy(ds, &Dataset::Clear,
+                             "clear", "clears cache data", false);
 
     // Attempt to cast the dataset to a file backed dataset.
     FileBackedDataset* fileDataset = dynamic_cast<FileBackedDataset*>(ds);
@@ -143,7 +145,19 @@ void LuaDatasetProxy::bind(Dataset* ds, shared_ptr<LuaScripting> ss)
       );
       ss->setProvenanceExempt(id);
     } catch(const std::bad_cast&) {
-      WARNING("Not a uvf; not binding advanced functions.");
+      WARNING("Not a uvf; not binding mesh functions.");
+    }
+
+    try {
+      DynamicBrickingDS& dynDS = dynamic_cast<DynamicBrickingDS&>(*ds);
+      MESSAGE("Binding dynamic bricking cache control functions");
+      id = mReg->functionProxy(&dynDS, &DynamicBrickingDS::SetCacheSize,
+                               "setCacheSize",
+                               "sets the size of the cache, in megabytes.",
+                               false);
+      ss->addParamInfo(id, 0, "cacheMB", "cache size (megabytes)");
+    } catch(const std::bad_cast&) {
+      MESSAGE("Not dynamically bricked; not adding cache control functions.");
     }
 
     /// @todo Expose 1D/2D histogram? Currently, it is being transfered
