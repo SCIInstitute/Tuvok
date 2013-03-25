@@ -90,7 +90,9 @@ void GLHashTable::Enable() {
 std::vector<UINTVECTOR4> GLHashTable::GetData() {
   GL(glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT));
 
-  TimedStatement(PERF_READ_HTABLE, m_pHashTableTex->GetData(m_pRawData));
+  TimedStatement(PERF_READ_HTABLE,
+    m_pRawData = std::static_pointer_cast<uint32_t>(m_pHashTableTex->GetData())
+  );
   std::vector<UINTVECTOR4> requests;
   StackTimer condense(PERF_CONDENSE_HTABLE);
   for (size_t i = 0;i<m_iTableSize;++i) {

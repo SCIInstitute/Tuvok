@@ -81,10 +81,10 @@ class GLTexture : public GLObject {
     GLuint GetGLID() const {return m_iGLID;}
 
     /// expensive read back of texture data
-    virtual void GetData(std::shared_ptr<void> data) = 0;
+    virtual std::shared_ptr<void> GetData() = 0;
 
   protected:
-    GLuint  m_iGLID;
+    GLuint m_iGLID;
     GLint  m_iMagFilter;
     GLint  m_iMinFilter;
     GLint  m_internalformat;
@@ -92,7 +92,6 @@ class GLTexture : public GLObject {
     GLenum m_type;
 
     size_t SizePerElement() const;
-
 };
 }
 #endif // TUVOK_GLTEXTURE_H

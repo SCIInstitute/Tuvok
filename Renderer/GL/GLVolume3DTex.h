@@ -37,6 +37,7 @@
 #ifndef GLVOLUME3DTEX_H
 #define GLVOLUME3DTEX_H
 
+#include <memory>
 #include "GLVolume.h"
 
 namespace tuvok {
@@ -58,6 +59,7 @@ namespace tuvok {
 
       virtual void Bind(uint32_t iUnit=0);
       virtual void SetData(const void *voxels);
+      virtual std::shared_ptr<void> GetData();
 
       virtual uint64_t GetCPUSize() const;
       virtual uint64_t GetGPUSize() const;

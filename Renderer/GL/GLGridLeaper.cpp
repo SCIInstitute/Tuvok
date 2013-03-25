@@ -877,7 +877,7 @@ uint32_t GLGridLeaper::UpdateToVolumePool(std::vector<UINTVECTOR4>& hash) {
   // DEBUG Code End
 */
   
-  return m_pVolumePool->UploadBricks(hash, m_vUploadMem);
+  return m_pVolumePool->UploadBricks(hash, m_vUploadMem, m_bDebugBricks);
 }
 
 bool GLGridLeaper::Render3DRegion(RenderRegion3D& rr) {

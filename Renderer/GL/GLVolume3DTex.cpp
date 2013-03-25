@@ -84,6 +84,10 @@ void GLVolume3DTex::FreeGLResources() {
 void GLVolume3DTex::SetData(const void *voxels) {
   if (m_pTexture) m_pTexture->SetData(voxels);
 }
+std::shared_ptr<void> GLVolume3DTex::GetData() {
+  if(m_pTexture) { return m_pTexture->GetData(); }
+  return std::shared_ptr<void>();
+}
 
 uint64_t GLVolume3DTex::GetCPUSize() const {
   return (m_pTexture) ? m_pTexture->GetCPUSize() : 0;

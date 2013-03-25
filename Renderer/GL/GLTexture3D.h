@@ -39,6 +39,7 @@
 #define GLTEXTURE3D_H
 
 #include "../../StdTuvokDefines.h"
+#include <memory>
 #include "GLTexture.h"
 #include "../../Basics/Vectors.h"
 
@@ -73,7 +74,7 @@ class GLTexture3D : public GLTexture {
     void SetData(const UINTVECTOR3& offset, const UINTVECTOR3& size,
                  const void *pixels, bool bRestoreBinding=true);
 
-    virtual void GetData(std::shared_ptr<void> data);
+    virtual std::shared_ptr<void> GetData();
 
     virtual uint64_t GetCPUSize() const {
       return uint64_t(m_iSizeX*m_iSizeY*m_iSizeZ*SizePerElement());
@@ -92,5 +93,5 @@ class GLTexture3D : public GLTexture {
     GLuint m_iSizeY;
     GLuint m_iSizeZ;
 };
-};
+}
 #endif // GLTEXTURE3D_H

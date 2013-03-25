@@ -165,6 +165,7 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_cDiffuseM(1.0f,1.0f,1.0f,1.0f),
   m_cSpecularM(1.0f,1.0f,1.0f,1.0f),
   m_vLightDir(0.0f,0.0f,-1.0f),
+  m_bDebugBricks(false),
   m_fIsovalue(0.5f),
   m_fCVIsovalue(0.8f)
 {
@@ -1699,6 +1700,8 @@ LuaClassInstance AbstrRenderer::LuaGet2DTrans() {
   return m_pLua2DTrans;
 }
 
+void AbstrRenderer::BrickDebugging(bool b) { this->m_bDebugBricks = b; }
+
 void
 AbstrRenderer::SetFrustumCullingModelMatrix(const FLOATMATRIX4& modelMatrix) {
   m_FrustumCullingLOD.SetModelMatrix(modelMatrix);
@@ -2240,6 +2243,11 @@ void AbstrRenderer::RegisterLuaFunctions(
   id = reg.function(&AbstrRenderer::SetRotation, "setRotation",
                     "sets the current rotation matrix", true);
   ss->addParamInfo(id, 0, "matrix", "4x4 rotation matrix to set");
+
+  id = reg.function(&AbstrRenderer::BrickDebugging, "setBrickDebugging",
+                    "enables a debug mode in which we write out brick md5sums",
+                    true);
+  ss->addParamInfo(id, 0, "boolean", "true to enable, false to disable");
 
   /// Register renderer specific functions.
   me->RegisterDerivedClassLuaFunctions(reg, ss);

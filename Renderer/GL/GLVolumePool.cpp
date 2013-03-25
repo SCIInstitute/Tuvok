@@ -1,5 +1,7 @@
 #include "StdTuvokDefines.h"
 #include <algorithm>
+#include <cstdio>
+#include <fstream>
 #include <iomanip>
 #include <limits>
 #include <stdexcept>
@@ -16,6 +18,7 @@
 #include "IO/UVF/ExtendedOctree/VolumeTools.h"
 #include "Controller/StackTimer.h"
 #include "Renderer/VisibilityState.h"
+#include "Renderer/writebrick.h"
 #include "GLSLProgram.h"
 #include "GLVolumePool.h"
 
@@ -1182,12 +1185,18 @@ namespace {
   }
 
   template<AbstrRenderer::ERenderMode eRenderMode>
-  uint32_t PotentiallyUploadBricksToBrickPool(VisibilityState const& visibility, LinearIndexDataset const* pDataset, size_t iTimestep, GLVolumePool& pool,
-                                              std::vector<uint32_t>& vBrickMetadata, std::vector<UINTVECTOR4> const& vBrickIDs,
-                                              std::vector<GLVolumePool::MinMax> const& vMinMaxScalar,
-                                              std::vector<GLVolumePool::MinMax> const& vMinMaxGradient,                                          
-                                              std::vector<unsigned char>& vUploadMem)
-  {
+  uint32_t PotentiallyUploadBricksToBrickPool(
+    const VisibilityState& visibility,
+    const LinearIndexDataset* pDataset,
+    size_t iTimestep,
+    GLVolumePool& pool,
+    std::vector<uint32_t>& vBrickMetadata,
+    const std::vector<UINTVECTOR4>& vBrickIDs,
+    const std::vector<GLVolumePool::MinMax>& vMinMaxScalar,
+    const std::vector<GLVolumePool::MinMax>& vMinMaxGradient,
+    std::vector<unsigned char>& vUploadMem,
+    bool brickDebug
+  ) {
     uint32_t iPagedBricks = 0;
 
     // now iterate over the missing bricks and upload them to the GPU
@@ -1207,6 +1216,7 @@ namespace {
         if (bContainsData) {
           t.Start();
           pDataset->GetBrick(key, vUploadMem);
+          if(brickDebug) { writeBrick(key, vUploadMem); }
           if (!pool.UploadBrick(BrickElemInfo(vBrickID, vVoxelSize), &vUploadMem[0]))
             return iPagedBricks;
           else
@@ -1340,7 +1350,8 @@ void GLVolumePool::RecomputeVisibility(VisibilityState const& visibility, size_t
 }
 
 uint32_t GLVolumePool::UploadBricks(const std::vector<UINTVECTOR4>& vBrickIDs,
-                                    std::vector<unsigned char>& vUploadMem)
+                                    std::vector<unsigned char>& vUploadMem,
+                                    bool brickDebug)
 {
   // pause async updater because we will touch the meta data
   bool const bBusy = m_pUpdater && m_pUpdater->Pause();
@@ -1355,13 +1366,28 @@ uint32_t GLVolumePool::UploadBricks(const std::vector<UINTVECTOR4>& vBrickIDs,
       VisibilityState const& visibility = m_pUpdater->GetVisibility();
       switch (visibility.GetRenderMode()) {
       case AbstrRenderer::RM_1DTRANS:
-        iPagedBricks = PotentiallyUploadBricksToBrickPool<AbstrRenderer::RM_1DTRANS>(visibility, m_pDataset, m_iMinMaxScalarTimestep, *this, m_vBrickMetadata, vBrickIDs, m_vMinMaxScalar, m_vMinMaxGradient, vUploadMem);
+        iPagedBricks =
+          PotentiallyUploadBricksToBrickPool<AbstrRenderer::RM_1DTRANS>(
+            visibility, m_pDataset, m_iMinMaxScalarTimestep, *this,
+            m_vBrickMetadata, vBrickIDs, m_vMinMaxScalar, m_vMinMaxGradient,
+            vUploadMem, brickDebug
+          );
         break;
       case AbstrRenderer::RM_2DTRANS:
-        iPagedBricks = PotentiallyUploadBricksToBrickPool<AbstrRenderer::RM_2DTRANS>(visibility, m_pDataset, m_iMinMaxScalarTimestep, *this, m_vBrickMetadata, vBrickIDs, m_vMinMaxScalar, m_vMinMaxGradient, vUploadMem);
+        iPagedBricks =
+          PotentiallyUploadBricksToBrickPool<AbstrRenderer::RM_2DTRANS>(
+            visibility, m_pDataset, m_iMinMaxScalarTimestep, *this,
+            m_vBrickMetadata, vBrickIDs, m_vMinMaxScalar, m_vMinMaxGradient,
+            vUploadMem, brickDebug
+          );
         break;
       case AbstrRenderer::RM_ISOSURFACE:
-        iPagedBricks = PotentiallyUploadBricksToBrickPool<AbstrRenderer::RM_ISOSURFACE>(visibility, m_pDataset, m_iMinMaxScalarTimestep, *this, m_vBrickMetadata, vBrickIDs, m_vMinMaxScalar, m_vMinMaxGradient, vUploadMem);
+        iPagedBricks =
+          PotentiallyUploadBricksToBrickPool<AbstrRenderer::RM_ISOSURFACE>(
+            visibility, m_pDataset, m_iMinMaxScalarTimestep, *this,
+            m_vBrickMetadata, vBrickIDs, m_vMinMaxScalar, m_vMinMaxGradient,
+            vUploadMem, brickDebug
+          );
         break;
       default:
         T_ERROR("Unhandled rendering mode.");
@@ -1377,6 +1403,7 @@ uint32_t GLVolumePool::UploadBricks(const std::vector<UINTVECTOR4>& vBrickIDs,
 
         t.Start();
         m_pDataset->GetBrick(key, vUploadMem);
+        if(brickDebug) { writeBrick(key, vUploadMem); }
         m_BrickIOTime += t.Elapsed();
         m_BrickIOBytes += vUploadMem.size();
         if (!UploadBrick(BrickElemInfo(vBrickID, vVoxelSize), &vUploadMem[0]))

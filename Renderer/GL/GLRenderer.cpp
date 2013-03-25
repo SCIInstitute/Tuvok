@@ -55,6 +55,7 @@
 #include "Renderer/SBVRGeogen.h"
 #include "Renderer/GPUMemMan/GPUMemMan.h"
 #include "Renderer/ShaderDescriptor.h"
+#include "Renderer/writebrick.h"
 #include "GLFBOTex.h"
 #include "GLSLProgram.h"
 #include "GLTexture1D.h"
@@ -1029,6 +1030,13 @@ bool GLRenderer::BindVolumeTex(const BrickKey& bkey,
   if(m_pGLVolume) {
     m_pGLVolume->SetFilter(ComputeGLFilter(), ComputeGLFilter());
     static_cast<GLVolume3DTex*>(m_pGLVolume)->Bind(0);
+    if(m_bDebugBricks) {
+      const std::shared_ptr<uint8_t> data = std::static_pointer_cast<uint8_t>(
+        static_cast<GLVolume3DTex*>(m_pGLVolume)->GetData()
+      );
+      const size_t sz = m_pDataset->GetBrickVoxelCounts(bkey).volume();
+      writeBrickT<uint8_t*,uint8_t>(bkey, data.get(),data.get()+sz);
+    }
 
     return true;
   } else {

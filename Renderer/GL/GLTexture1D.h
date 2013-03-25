@@ -67,7 +67,7 @@ class GLTexture1D : public GLTexture {
     void SetData(uint32_t offset, uint32_t size, const void *pixels,
                  bool bRestoreBinding=true);
 
-    virtual void GetData(std::shared_ptr<void> data);
+    virtual std::shared_ptr<void> GetData();
 
     virtual uint64_t GetCPUSize() const {
       return uint64_t(m_iSize*SizePerElement());

@@ -859,6 +859,8 @@ class AbstrRenderer {
     LuaTransferFun2DProxy* m_pLua2DTransPtr; /// Used by GLRenderer.
     LuaClassInstance LuaGet2DTrans();
 
+    bool m_bDebugBricks; /// write out md5sums of bricks.
+
   private:
     float               m_fIsovalue;
     float               m_fCVIsovalue;
@@ -874,6 +876,8 @@ class AbstrRenderer {
     LuaClassInstance m_pLua1DTrans;
     LuaTransferFun1DProxy* m_pLua1DTransPtr;
     LuaClassInstance LuaGet1DTrans();
+
+    void BrickDebugging(bool);
 };
 
 }; //namespace tuvok

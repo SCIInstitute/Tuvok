@@ -84,7 +84,10 @@ namespace tuvok {
       // returns number of bricks paged in that must not be equal to given
       // number of brick IDs especially if async updater is busy we'll get
       // requests for empty bricks too that won't be paged in
-      uint32_t UploadBricks(const std::vector<UINTVECTOR4>& vBrickIDs, std::vector<unsigned char>& vUploadMem);
+      /// @param brickDebug write out md5sums of bricks as we read them.
+      uint32_t UploadBricks(const std::vector<UINTVECTOR4>& vBrickIDs,
+                            std::vector<unsigned char>& vUploadMem,
+                            bool brickDebug);
 
       bool UploadBrick(const BrickElemInfo& metaData, void* pData); // TODO: we could use the 1D-index here too
       void UploadFirstBrick(const UINTVECTOR3& m_vVoxelSize, void* pData);

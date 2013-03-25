@@ -323,6 +323,7 @@ HEADERS += \
            Renderer/StateManager.h \
            Renderer/TFScaling.h \
            Renderer/VisibilityState.h \
+           Renderer/writebrick.h \
            StdTuvokDefines.h
 
 unix:HEADERS += \
