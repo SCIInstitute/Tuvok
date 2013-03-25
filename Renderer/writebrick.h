@@ -8,7 +8,7 @@
 #include "Basics/Checksums/MD5.h"
 #include "IO/Brick.h"
 
-#ifndef _MSC_VER
+#ifdef _MSC_VER
 # define snprintf _snprintf
 #endif
 
