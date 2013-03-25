@@ -874,8 +874,10 @@ void DynamicBrickingDS::Rebrick() {
     di->ds->GetDomainSize(0,0)[1],
     di->ds->GetDomainSize(0,0)[2]
   }};
-  MESSAGE("Rebricking %llux%llux%llu data set with %ux%ux%u bricks.",
+  MESSAGE("Rebricking %llux%llux%llu dataset (with %ux%ux%u source bricks) "
+          "with %ux%ux%u bricks.",
           nvoxels[0], nvoxels[1], nvoxels[2],
+          src_bs[0], src_bs[1], src_bs[2],
           this->di->brickSize[0], this->di->brickSize[1],
           this->di->brickSize[2]);
 
