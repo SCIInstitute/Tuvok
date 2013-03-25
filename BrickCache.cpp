@@ -122,7 +122,7 @@ struct BrickCache::bcinfo {
       if(!cache.empty()) {
         const auto entry = this->cache.begin();
         TypeErase::GenericType& gt = *(entry->second.gt);
-        assert((entry->second.width * gt.elems()) >= this->bytes);
+        assert((entry->second.width * gt.elems()) <= this->bytes);
         this->bytes -= entry->second.width * gt.elems();
         this->cache.erase(cache.begin());
       }
@@ -162,8 +162,9 @@ std::vector<T> BrickCache::bcinfo::typed_lookup(const BrickKey& k) {
   // we copy the element, remove it, and reinsert it, so we know it goes into
   // the right place (w/ the updated access_time)
   auto newentry = *i;
-  this->cache.erase(i); // remove
   TypeErase::GenericType& gt = *(newentry.second.gt);
+  this->cache.erase(i); // remove
+  this->bytes -= newentry.second.width * gt.elems();
   auto te_vec = dynamic_cast<TypeErase::TypeEraser<std::vector<T>>&>(gt);
   this->typed_add<T>(newentry.first.key, te_vec.get());
   return te_vec.get();
