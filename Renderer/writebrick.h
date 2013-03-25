@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <fstream>
 #include <vector>
+#include <iterator>
 #include "Basics/Checksums/MD5.h"
 #include "IO/Brick.h"
 
@@ -23,6 +24,7 @@ namespace {
              static_cast<unsigned>(std::get<1>(k)),
              static_cast<unsigned>(std::get<2>(k)));
     std::ofstream ofs(filename, std::ios::trunc);
+    ofs << "bytes: " << data.size() * sizeof(T) << std::endl;
     ofs << std::hex;
     std::array<uint8_t,16> checksum =
       md5<typename std::vector<T>::const_iterator,T>(data.begin(), data.end());
@@ -41,6 +43,7 @@ namespace {
              static_cast<unsigned>(std::get<1>(k)),
              static_cast<unsigned>(std::get<2>(k)));
     std::ofstream ofs(filename, std::ios::trunc);
+    ofs << "bytes: " << std::distance(begin, end) * sizeof(T) << std::endl;
     ofs << std::hex;
     std::array<uint8_t,16> checksum = md5<Iter,T>(begin, end);
     for(auto i = checksum.begin(); i != checksum.end(); ++i) {
