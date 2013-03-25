@@ -261,6 +261,7 @@ bool AbstrRenderer::LoadRebricked(const std::string& filename,
                                   size_t minmaxMode) {
   const IOManager& iomgr = Controller::Const().IOMan();
   Dataset* ds = iomgr.LoadRebrickedDataset(filename, bsize, minmaxMode);
+  Controller::Instance().MemMan()->AddDataset(ds, this);
   return this->RegisterDataset(ds);
 }
 
