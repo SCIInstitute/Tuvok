@@ -152,7 +152,6 @@ namespace tuvok {
 
       size_t m_iInsertPos;
 
-      UINTVECTOR2 m_metaTexSize;
       uint32_t m_iTotalBrickCount;
       LinearIndexDataset* m_pDataset;
 
