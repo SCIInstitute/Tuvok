@@ -227,11 +227,13 @@ GLVolumePool::GLVolumePool(const UINTVECTOR3& poolSize,
     m_vMinMaxScalar[i].max = imme.maxScalar;
   }
 
+#ifndef GLVOLUMEPOOL_SYNC // if we want to disable the async updater we just don't instantiate it
 #ifndef GLVOLUMEPOOL_BUSY // if we want to simulate a busy async updater we need to make sure to instantiate it
   uint32_t const iAsyncUpdaterThreshold = 7500 * 5; // we can process 7500 bricks/ms (1500 running debug build)
   if (m_iTotalBrickCount > iAsyncUpdaterThreshold)
 #endif
     m_pUpdater = new AsyncVisibilityUpdater(*this);
+#endif
 }
 
 void GLVolumePool::PH_Reset(const VisibilityState& visibility, size_t iTimestep) {

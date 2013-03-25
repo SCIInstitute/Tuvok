@@ -13,6 +13,7 @@
 
 //#define GLVOLUMEPOOL_PROFILE // define to measure some timings
 //#define GLVOLUMEPOOL_BUSY    // define to prevent the async worker from doing anything useful
+//#define GLVOLUMEPOOL_SYNC    // define to disable the async worker
 
 #ifdef GLVOLUMEPOOL_PROFILE
 #include "Basics/AvgMinMaxTracker.h"
