@@ -122,21 +122,26 @@ bool GLGridLeaper::RegisterDataset(Dataset* ds) {
     return false;
   }
 
+  bool const bReinit = (m_pVolumePool != NULL);
+  if (bReinit) {
+    CleanupTraversalShaders();
+    Controller::Instance().MemMan()->DeleteVolumePool(&m_pVolumePool);
+    CleanupHashTable();
+  }
   m_pToCDataset = pLinDataset;
-
+  if (bReinit) {
+    m_VisibilityState = VisibilityState(); // reset visibility state to force update
+    InitHashTable();
+    CreateVolumePool();
+    LoadTraversalShaders();
+  }
   return true;
 }
 
 GLGridLeaper::~GLGridLeaper() {
   PH_CloseLogfile();
   PH_CloseBrickAccessLogfile();
-  delete m_pglHashTable; m_pglHashTable = NULL;
-#ifdef GLGRIDLEAPER_WORKINGSET
-  delete m_pWorkingSetTable; m_pWorkingSetTable = NULL;
-#endif
-  Controller::Instance().MemMan()->DeleteVolumePool(&m_pVolumePool);
 }
-
 
 void GLGridLeaper::CleanupShaders() {
   GLGPURayTraverser::CleanupShaders();
@@ -170,6 +175,11 @@ void GLGridLeaper::Cleanup() {
   deleteFBO(m_pFBODebugNext);
 #endif
 
+  CleanupHashTable();
+  Controller::Instance().MemMan()->DeleteVolumePool(&m_pVolumePool);
+}
+
+void GLGridLeaper::CleanupHashTable() {
   if (m_pglHashTable) {
     m_pglHashTable->FreeGL();
     delete m_pglHashTable;
@@ -236,24 +246,7 @@ bool GLGridLeaper::Initialize(std::shared_ptr<Context> ctx) {
     return false;
   }
 
-  UINTVECTOR3 const finestBrickLayout(m_pToCDataset->GetBrickLayout(0, 0));
-  
-  m_pglHashTable = new GLHashTable(finestBrickLayout,
-    std::max<uint32_t>(15,
-      uint32_t(511 / (m_pToCDataset->GetMaxBrickSize().volume() / 32768.))),
-
-    Controller::ConstInstance().PHState.RehashCount
-  );
-  m_pglHashTable->InitGL();
-
-#ifdef GLGRIDLEAPER_WORKINGSET
-  m_pWorkingSetTable = new GLHashTable(
-    finestBrickLayout, finestBrickLayout.volume() *
-                       uint32_t(m_pToCDataset->GetLargestSingleBrickLOD(0)),
-    Controller::ConstInstance().PHState.RehashCount, true, "workingSet"
-  );
-  m_pWorkingSetTable->InitGL();
-#endif
+  InitHashTable();
 
   FillBBoxVBO();
 
@@ -264,6 +257,27 @@ bool GLGridLeaper::Initialize(std::shared_ptr<Context> ctx) {
   if (!LoadTraversalShaders()) return false;
 
   return true;
+}
+
+void GLGridLeaper::InitHashTable() {
+  UINTVECTOR3 const finestBrickLayout(m_pToCDataset->GetBrickLayout(0, 0));
+
+  m_pglHashTable = new GLHashTable(finestBrickLayout,
+    std::max<uint32_t>(15,
+    uint32_t(511 / (m_pToCDataset->GetMaxBrickSize().volume() / 32768.))),
+
+    Controller::ConstInstance().PHState.RehashCount
+    );
+  m_pglHashTable->InitGL();
+
+#ifdef GLGRIDLEAPER_WORKINGSET
+  m_pWorkingSetTable = new GLHashTable(
+    finestBrickLayout, finestBrickLayout.volume() *
+    uint32_t(m_pToCDataset->GetLargestSingleBrickLOD(0)),
+    Controller::ConstInstance().PHState.RehashCount, true, "workingSet"
+    );
+  m_pWorkingSetTable->InitGL();
+#endif
 }
 
 bool GLGridLeaper::LoadCheckShader(GLSLProgram** shader, ShaderDescriptor& sd, std::string name)  {
@@ -570,7 +584,7 @@ void GLGridLeaper::FillRayEntryBuffer(RenderRegion3D& rr, EStereoID eStereoID) {
   localState.enableBlend = false;
   localState.depthMask = false;
   localState.enableDepthTest  = false;
-  m_pContext->GetStateManager()->Apply(localState);  
+  m_pContext->GetStateManager()->Apply(localState);
 
   m_pProgramRenderFrontFacesNearPlane->Enable();
   m_pProgramRenderFrontFacesNearPlane->Set("mEyeToModel", ComputeEyeToModelMatrix(rr, eStereoID), 4, false); 
@@ -1065,6 +1079,7 @@ void GLGridLeaper::SetInterpolant(Interpolant eInterpolant) {
 
 void GLGridLeaper::PH_ClearWorkingSet() {
   m_pVolumePool->PH_Reset(m_VisibilityState, m_iTimestep);
+  ScheduleWindowRedraw(GetFirst3DRegion().get());
 }
 void GLGridLeaper::PH_RecalculateVisibility() {
   RecomputeBrickVisibility(true);

@@ -127,6 +127,7 @@ namespace tuvok {
 
       /** Called once at startup to initialize constant GL data*/
       bool Initialize(std::shared_ptr<Context> ctx);
+      void InitHashTable();
 
       bool Continue3DDraw();
 
@@ -142,6 +143,7 @@ namespace tuvok {
   
       /** Deallocates GPU memory allocated during the rendering process. */
       virtual void Cleanup();
+      void CleanupHashTable();
 
       bool RegisterDataset(tuvok::Dataset*);
 
