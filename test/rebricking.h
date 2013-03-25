@@ -211,10 +211,7 @@ void tdata_simple () {
 }
 
 // create bricks that are half the size of the source.
-void tdata_half_split() {
-  std::shared_ptr<UVFDataset> ds = mk8x8testdata();
-  DynamicBrickingDS dynamic(ds, {{4,8,1}}, cacheBytes);
-
+static void verify_half_split(DynamicBrickingDS& dynamic) {
   BrickKey bk(0,0,0);
   const UINTVECTOR3 bs = dynamic.GetBrickMetadata(bk).n_voxels;
   TS_ASSERT_EQUALS(bs[0], 8ULL);
@@ -235,6 +232,13 @@ void tdata_half_split() {
       TS_ASSERT_EQUALS(d[idx], data[y-offset][x-offset]);
     }
   }
+}
+
+void tdata_half_split() {
+  std::shared_ptr<UVFDataset> ds = mk8x8testdata();
+  DynamicBrickingDS dynamic(ds, {{4,8,1}}, cacheBytes);
+
+  verify_half_split(dynamic);
 }
 
 // tests GetBrickVoxelCount API.
@@ -341,6 +345,14 @@ void tminmax_dynamic() {
   TS_ASSERT_DELTA(mm.maxScalar, 63.0, 0.001);
 }
 
+void tcache_disable() {
+  std::shared_ptr<UVFDataset> ds = mk8x8testdata();
+  DynamicBrickingDS dynamic(ds, {{4,8,1}}, cacheBytes);
+  verify_half_split(dynamic);
+  dynamic.SetCacheSize(0);
+  verify_half_split(dynamic);
+}
+
 class RebrickerTests : public CxxTest::TestSuite {
 public:
   void test_simple() { tsimple(); }
@@ -361,4 +373,5 @@ public:
   void test_brick_sizes() { tbsizes(); }
   void test_precompute() { tprecompute(); }
   void test_minmax_dynamic() { tminmax_dynamic(); }
+  void test_cache_disable() { tcache_disable(); }
 };

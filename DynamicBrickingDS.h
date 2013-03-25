@@ -34,6 +34,9 @@ public:
   virtual std::shared_ptr<const Histogram1D> Get1DHistogram() const;
   virtual std::shared_ptr<const Histogram2D> Get2DHistogram() const;
 
+  /// modifies the cache size used for holding large bricks.
+  void SetCacheSize(size_t megabytes);
+
   virtual float MaxGradientMagnitude() const;
   /// Removes all the cache information we've made so far.
   virtual void Clear();

@@ -55,7 +55,6 @@ struct DynamicBrickingDS::dbinfo {
          BrickSize bs, size_t bytes, enum MinMaxMode mm) :
     ds(d), brickSize(bs), cacheBytes(bytes), mmMode(mm) {}
 
-
   // early, non-type-specific parts of GetBrick.
   GBPrelim BrickSetup(const BrickKey&, const DynamicBrickingDS& tgt);
 
@@ -72,6 +71,9 @@ struct DynamicBrickingDS::dbinfo {
 
   /// run through all of the bricks and compute min/max info.
   void ComputeMinMaxes(BrickedDataset&);
+
+  // sets the cache size (bytes)
+  void SetCacheSize(size_t bytes);
 };
 
 BrickSize GenericSourceBrickSize(const Dataset&);
@@ -134,10 +136,18 @@ CFORWARDRET(float, MaxGradientMagnitude)
 CFORWARDRET(std::shared_ptr<const Histogram1D>, Get1DHistogram)
 CFORWARDRET(std::shared_ptr<const Histogram2D>, Get2DHistogram)
 
+void DynamicBrickingDS::SetCacheSize(size_t megabytes) {
+  /// they give us megabytes, but our internal class deals with bytes!
+  const size_t bytes = megabytes * 1024 * 1024;
+  this->di->SetCacheSize(bytes);
+}
+
 // Removes all the cache information we've made so far.
 void DynamicBrickingDS::Clear() {
   di->ds->Clear();
   while(this->di->cache.size() > 0) { this->di->cache.remove(); }
+  BrickedDataset::Clear();
+  this->Rebrick();
 }
 
 // with the layout and 1D index, convert into the 3D index.
@@ -560,6 +570,12 @@ void DynamicBrickingDS::dbinfo::ComputeMinMaxes(BrickedDataset& ds) {
     MinMaxBlock mm = minmax_brick(b->first, ds);
     this->minmax.insert(std::make_pair(b->first, mm));
   }
+}
+
+void DynamicBrickingDS::dbinfo::SetCacheSize(size_t bytes) {
+  this->cacheBytes = bytes;
+  // shrink the cache to fit.
+  while(this->cache.size() > this->cacheBytes) { this->cache.remove(); }
 }
 
 bool DynamicBrickingDS::GetBrick(const BrickKey& k, std::vector<uint8_t>& data) const
