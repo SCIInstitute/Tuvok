@@ -877,7 +877,8 @@ void DynamicBrickingDS::Rebrick() {
   MESSAGE("Rebricking %llux%llux%llu dataset (with %ux%ux%u source bricks) "
           "with %ux%ux%u bricks.",
           nvoxels[0], nvoxels[1], nvoxels[2],
-          src_bs[0], src_bs[1], src_bs[2],
+          static_cast<unsigned>(src_bs[0]), static_cast<unsigned>(src_bs[1]),
+          static_cast<unsigned>(src_bs[2]),
           this->di->brickSize[0], this->di->brickSize[1],
           this->di->brickSize[2]);
 
