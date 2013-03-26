@@ -41,7 +41,7 @@ std::array<uint8_t,16> md5(Iter begin, Iter end) {
   MD5 md;
   int error = 0;
   while(begin != end) {
-    md.Update(&*begin, sizeof(T), error);
+    md.Update((const uint8_t*)&*begin, sizeof(T), error);
     ++begin;
   }
   std::vector<uint8_t> final = md.Final(error);
