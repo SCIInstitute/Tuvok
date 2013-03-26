@@ -85,25 +85,13 @@ bool GLGridLeaper::CreateVolumePool() {
   // upload a brick that covers the entire domain to make sure have
   // something to render
 
-  if (m_vUploadMem.empty()) {
-  // if loading a brick for the first time, prepare upload mem
-    const UINTVECTOR3 vSize = m_pToCDataset->GetMaxBrickSize();
-    const uint64_t iByteWidth = m_pToCDataset->GetBitWidth()/8;
-    const uint64_t iCompCount = m_pToCDataset->GetComponentCount();
-    const uint64_t iBrickSize = vSize.volume() * iByteWidth * iCompCount;
-    m_vUploadMem.resize(static_cast<size_t>(iBrickSize));
-  }
-
   // find lowest LoD with only a single brick
   const BrickKey bkey = m_pToCDataset->IndexFrom4D(
     UINTVECTOR4(0,0,0,
         uint32_t(m_pToCDataset->GetLargestSingleBrickLOD(m_iTimestep))),
     m_iTimestep
   );
-
-  m_pToCDataset->GetBrick(bkey, m_vUploadMem);
-  m_pVolumePool->UploadFirstBrick(m_pToCDataset->GetBrickVoxelCounts(bkey),
-                                  &m_vUploadMem[0]);
+  m_pVolumePool->UploadFirstBrick(bkey);
 
   RecomputeBrickVisibility();
 
@@ -892,7 +880,7 @@ uint32_t GLGridLeaper::UpdateToVolumePool(std::vector<UINTVECTOR4>& hash) {
   // DEBUG Code End
 */
   
-  return m_pVolumePool->UploadBricks(hash, m_vUploadMem, m_bDebugBricks);
+  return m_pVolumePool->UploadBricks(hash, m_bDebugBricks);
 }
 
 bool GLGridLeaper::Render3DRegion(RenderRegion3D& rr) {
@@ -979,7 +967,7 @@ bool GLGridLeaper::Render3DRegion(RenderRegion3D& rr) {
       << " Average of the last " << m_FrameTimes.GetHistroryLength()
       << " frame times: " << m_FrameTimes.GetAvgMinMax() << "   "
       << " Total paged bricks: " << m_iPagedBricks << " ("
-      << m_vUploadMem.size() * m_iPagedBricks / 1024.f / 1024.f << " MB)   ";
+      << m_pVolumePool->GetMaxUsedBrickBytes() * m_iPagedBricks / 1024.f / 1024.f << " MB)   ";
 
     bool const bWriteToLogFileForEveryFrame = m_pLogFile && !m_iAveragingFrameCount;
     if (bWriteToLogFileForEveryFrame) {
@@ -990,7 +978,7 @@ bool GLGridLeaper::Render3DRegion(RenderRegion3D& rr) {
                   << fFrameTime << ";\t" // max frame time (ms)
                   << m_iSubframes << ";\t" // subframe count
                   << m_iPagedBricks << ";\t" // paged in brick count
-                  << m_vUploadMem.size() * m_iPagedBricks / 1024.f / 1024.f << ";\t"; // paged in memory (MB)
+                  << m_pVolumePool->GetMaxUsedBrickBytes() * m_iPagedBricks / 1024.f / 1024.f << ";\t"; // paged in memory (MB)
     }
     if (m_pBrickAccess) {
       *m_pBrickAccess << " Frame=" << ++m_iFrameCount;
@@ -1003,11 +991,11 @@ bool GLGridLeaper::Render3DRegion(RenderRegion3D& rr) {
 
     // debug output
     ss << "Working set bricks for optimal frame: " << vUsedBricks.size() << " ("
-       << m_vUploadMem.size() * vUsedBricks.size() / 1024.f / 1024.f << " MB)";
+       << m_pVolumePool->GetMaxUsedBrickBytes() * vUsedBricks.size() / 1024.f / 1024.f << " MB)";
 
     if (bWriteToLogFileForEveryFrame) {
       *m_pLogFile << vUsedBricks.size() << ";\t" // working set brick count
-                  << m_vUploadMem.size() * vUsedBricks.size() / 1024.f / 1024.f << ";\t"; // working set memory (MB)
+                  << m_pVolumePool->GetMaxUsedBrickBytes() * vUsedBricks.size() / 1024.f / 1024.f << ";\t"; // working set memory (MB)
     }
 #endif
 
@@ -1039,11 +1027,11 @@ bool GLGridLeaper::Render3DRegion(RenderRegion3D& rr) {
                     << m_FrameTimes.GetMax() << ";\t" // max frame time (ms)
                     << m_iSubframes << ";\t" // subframe count
                     << m_iPagedBricks << ";\t" // paged in brick count
-                    << m_vUploadMem.size() * m_iPagedBricks / 1024.f / 1024.f << ";\t"; // paged in memory (MB)
+                    << m_pVolumePool->GetMaxUsedBrickBytes() * m_iPagedBricks / 1024.f / 1024.f << ";\t"; // paged in memory (MB)
 #ifdef GLGRIDLEAPER_WORKINGSET
         std::vector<UINTVECTOR4> vUsedBricks = m_pWorkingSetTable->GetData();
         *m_pLogFile << vUsedBricks.size() << ";\t" // working set brick count
-                    << m_vUploadMem.size() * vUsedBricks.size() / 1024.f / 1024.f << ";\t"; // working set memory (MB)
+                    << m_pVolumePool->GetMaxUsedBrickBytes() * vUsedBricks.size() / 1024.f / 1024.f << ";\t"; // working set memory (MB)
 #endif
         *m_pLogFile << std::endl;
       }

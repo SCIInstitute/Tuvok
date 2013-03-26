@@ -87,9 +87,11 @@ namespace tuvok {
       // requests for empty bricks too that won't be paged in
       /// @param brickDebug write out md5sums of bricks as we read them.
       uint32_t UploadBricks(const std::vector<UINTVECTOR4>& vBrickIDs,
-                            std::vector<unsigned char>& vUploadMem,
                             bool brickDebug);
 
+      void UploadFirstBrick(const BrickKey& bkey);
+
+      // returns false if we need to render first before we can continue to upload further bricks
       bool UploadBrick(const BrickElemInfo& metaData, void* pData); // TODO: we could use the 1D-index here too
       void UploadFirstBrick(const UINTVECTOR3& m_vVoxelSize, void* pData);
       void UploadMetadataTexture();
@@ -130,6 +132,8 @@ namespace tuvok {
         double min;
         double max;
       };
+
+      uint64_t GetMaxUsedBrickBytes() const { return m_iMaxUsedBrickBytes; }
 
     protected:
       GLTexture2D* m_pPoolMetadataTexture;
@@ -176,6 +180,10 @@ namespace tuvok {
       std::vector<MinMax> m_vMinMaxGradient; // accelerates access to minmax gradient information, gets constructed on first access to safe some mem
       double m_BrickIOTime;
       uint64_t m_BrickIOBytes;
+
+      // time savers, derived from Dataset::GetMaxUsedBrickSize()
+      uint64_t m_iMaxUsedBrickVoxelCount;
+      uint64_t m_iMaxUsedBrickBytes;
 
       void CreateGLResources();
       void FreeGLResources();

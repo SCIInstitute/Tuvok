@@ -79,7 +79,6 @@ namespace tuvok {
     protected:
       GLHashTable*    m_pglHashTable;
       GLVolumePool*   m_pVolumePool;
-      std::vector<unsigned char> m_vUploadMem;
       std::array<GLFBOTex*,2> m_pFBORayStart;
       std::array<GLFBOTex*,2> m_pFBORayStartNext;
       std::array<GLFBOTex*,2> m_pFBOStartColor;
