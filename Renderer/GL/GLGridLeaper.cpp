@@ -260,9 +260,12 @@ void GLGridLeaper::InitHashTable() {
   m_pglHashTable->InitGL();
 
 #ifdef GLGRIDLEAPER_WORKINGSET
+  uint32_t maxBrickCount = 0;
+  for (size_t lod=0; lod<=m_pToCDataset->GetLargestSingleBrickLOD(0); lod++) {
+    maxBrickCount += m_pToCDataset->GetBrickLayout(lod, 0).volume();
+  }
   m_pWorkingSetTable = new GLHashTable(
-    finestBrickLayout, finestBrickLayout.volume() *
-    uint32_t(m_pToCDataset->GetLargestSingleBrickLOD(0)),
+    finestBrickLayout, maxBrickCount,
     Controller::ConstInstance().PHState.RehashCount, true, "workingSet"
     );
   m_pWorkingSetTable->InitGL();
@@ -988,14 +991,21 @@ bool GLGridLeaper::Render3DRegion(RenderRegion3D& rr) {
 
 #ifdef GLGRIDLEAPER_WORKINGSET
     std::vector<UINTVECTOR4> vUsedBricks = m_pWorkingSetTable->GetData();
-
+    // compute accurate working set size
+    const uint64_t iBytesPerVoxel = (m_pDataset->GetBitWidth() / 8) * m_pDataset->GetComponentCount();
+    uint64_t iAccurateGpuWorkingSetBytes = 0;
+    for (auto usedBrick=vUsedBricks.cbegin(); usedBrick!=vUsedBricks.cend(); usedBrick++) {
+      BrickKey const key = m_pToCDataset->IndexFrom4D(*usedBrick, 0);
+      UINTVECTOR3 const vVoxels = m_pToCDataset->GetBrickVoxelCounts(key);
+      iAccurateGpuWorkingSetBytes += vVoxels.volume() * iBytesPerVoxel;
+    }
     // debug output
     ss << "Working set bricks for optimal frame: " << vUsedBricks.size() << " ("
-       << m_pVolumePool->GetMaxUsedBrickBytes() * vUsedBricks.size() / 1024.f / 1024.f << " MB)";
+       << iAccurateGpuWorkingSetBytes / 1024.f / 1024.f << " MB)";
 
     if (bWriteToLogFileForEveryFrame) {
       *m_pLogFile << vUsedBricks.size() << ";\t" // working set brick count
-                  << m_pVolumePool->GetMaxUsedBrickBytes() * vUsedBricks.size() / 1024.f / 1024.f << ";\t"; // working set memory (MB)
+                  << iAccurateGpuWorkingSetBytes / 1024.f / 1024.f << ";\t"; // working set memory (MB)
     }
 #endif
 
@@ -1030,8 +1040,16 @@ bool GLGridLeaper::Render3DRegion(RenderRegion3D& rr) {
                     << m_pVolumePool->GetMaxUsedBrickBytes() * m_iPagedBricks / 1024.f / 1024.f << ";\t"; // paged in memory (MB)
 #ifdef GLGRIDLEAPER_WORKINGSET
         std::vector<UINTVECTOR4> vUsedBricks = m_pWorkingSetTable->GetData();
+        // compute accurate working set size
+        const uint64_t iBytesPerVoxel = (m_pDataset->GetBitWidth() / 8) * m_pDataset->GetComponentCount();
+        uint64_t iAccurateGpuWorkingSetBytes = 0;
+        for (auto usedBrick=vUsedBricks.cbegin(); usedBrick!=vUsedBricks.cend(); usedBrick++) {
+          BrickKey const key = m_pToCDataset->IndexFrom4D(*usedBrick, 0);
+          UINTVECTOR3 const vVoxels = m_pToCDataset->GetBrickVoxelCounts(key);
+          iAccurateGpuWorkingSetBytes += vVoxels.volume() * iBytesPerVoxel;
+        }
         *m_pLogFile << vUsedBricks.size() << ";\t" // working set brick count
-                    << m_pVolumePool->GetMaxUsedBrickBytes() * vUsedBricks.size() / 1024.f / 1024.f << ";\t"; // working set memory (MB)
+                    << iAccurateGpuWorkingSetBytes / 1024.f / 1024.f << ";\t"; // working set memory (MB)
 #endif
         *m_pLogFile << std::endl;
       }
