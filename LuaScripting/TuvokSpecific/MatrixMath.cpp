@@ -31,7 +31,7 @@ static FLOATMATRIX4 Identity() {
 }
 static std::string VecToString(const FLOATVECTOR3& v) {
   std::ostringstream s;
-  s << "{ " << v.x << ", " << v.y << ", " << v.z << "}";
+  s << "{ " << v.x << ", " << v.y << ", " << v.z << " }";
   return s.str();
 }
 static FLOATMATRIX4 MulMatrices(const FLOATMATRIX4& a,
