@@ -216,7 +216,6 @@ void MasterController::ReleaseVolumeRenderer(LuaClassInstance pRenderer)
 }
 
 void MasterController::ReleaseVolumeRenderer(AbstrRenderer* pVolumeRenderer) {
-
   // Note: Even if this function is called from deleteClass inside lua, it is
   // still safe to check whether the pointer exists inside of lua. The pointer
   // in the pointer lookup table is always removed before deletion of the

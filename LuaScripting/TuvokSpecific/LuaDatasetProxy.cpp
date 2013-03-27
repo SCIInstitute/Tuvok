@@ -132,6 +132,15 @@ void LuaDatasetProxy::bind(Dataset* ds, shared_ptr<LuaScripting> ss)
     }
 
     try {
+      BrickedDataset& bds = dynamic_cast<BrickedDataset&>(*ds);
+      id = mReg->functionProxy(&bds, &BrickedDataset::GetMaxUsedBrickSizes,
+                               "maxUsedBrickSize",
+                               "the size of the largest brick", false);
+    } catch(const std::bad_cast&) {
+      WARNING("Not binding BrickedDataset functions.");
+    }
+
+    try {
       UVFDataset& uvfDataset = dynamic_cast<UVFDataset&>(*ds);
       MESSAGE("Binding extra UVF functions.");
       mDatasetType = UVF;
