@@ -11,6 +11,7 @@ namespace tuvok {
 
 /// A dataset which will dynamically break up another data set into the
 /// user-given brick sizes.  This is constructed purely in memory!
+/// @note The brick size you give this data set *includes* the brick overlap!
 class DynamicBrickingDS : public LinearIndexDataset, public FileBackedDataset {
 public:
   /// methods for handling the calculation of min/max data.
@@ -131,7 +132,7 @@ private:
 
    The MIT License
 
-   Copyright (c) 2012 Thomas Fogal
+   Copyright (c) 2012 IVDA group
 
 
    Permission is hereby granted, free of charge, to any person obtaining a

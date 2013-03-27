@@ -265,11 +265,14 @@ void UVFDataset::ComputeMetadataTOC(size_t timestep) {
           const BrickKey k = BrickKey(timestep, j,
             static_cast<size_t>(z*bc.x*bc.y+y*bc.x + x));
 
-          FLOATVECTOR3 vNormalizedDomainSize = FLOATVECTOR3(GetDomainSize(j, timestep)) * FLOATVECTOR3(pVolumeDataBlock->GetBrickAspect(coords));
+          FLOATVECTOR3 vNormalizedDomainSize =
+            FLOATVECTOR3(GetDomainSize(j, timestep)) *
+            FLOATVECTOR3(pVolumeDataBlock->GetBrickAspect(coords));
           float maxVal = vNormalizedDomainSize.maxVal();
           vNormalizedDomainSize /= maxVal;
 
-          bmd.extents  = FLOATVECTOR3(GetEffectiveBrickSize(k)) * FLOATVECTOR3(pVolumeDataBlock->GetBrickAspect(coords)) / maxVal;
+          bmd.extents  = FLOATVECTOR3(GetEffectiveBrickSize(k)) *
+            FLOATVECTOR3(pVolumeDataBlock->GetBrickAspect(coords)) / maxVal;
           bmd.center   = FLOATVECTOR3(vBrickCorner + bmd.extents/2.0f) -
                          vNormalizedDomainSize * 0.5f;
           bmd.n_voxels = UINTVECTOR3(pVolumeDataBlock->GetBrickSize(coords));

@@ -38,14 +38,12 @@ struct GBPrelim {
   const BrickKey skey;
   const BrickSize tgt_bs;
   const BrickSize src_bs;
-  VoxelIndex tgt_index;
-  VoxelIndex src_index;
   VoxelIndex src_offset;
 };
 
 struct DynamicBrickingDS::dbinfo {
   std::shared_ptr<LinearIndexDataset> ds;
-  BrickSize brickSize;
+  const BrickSize brickSize;
   BrickCache cache;
   size_t cacheBytes;
   std::unordered_map<BrickKey, MinMaxBlock, BKeyHash> minmax;
@@ -56,7 +54,7 @@ struct DynamicBrickingDS::dbinfo {
     ds(d), brickSize(bs), cacheBytes(bytes), mmMode(mm) {}
 
   // early, non-type-specific parts of GetBrick.
-  GBPrelim BrickSetup(const BrickKey&, const DynamicBrickingDS& tgt);
+  GBPrelim BrickSetup(const BrickKey&, const DynamicBrickingDS& tgt) const;
 
   // reads the brick + handles caching
   template<typename T> bool Brick(const DynamicBrickingDS& ds,
@@ -65,7 +63,7 @@ struct DynamicBrickingDS::dbinfo {
 
   // given the brick key in the dynamic DS, return the corresponding BrickKey
   // in the source data.
-  BrickKey SourceBrickKey(const BrickKey&);
+  BrickKey SourceBrickKey(const BrickKey&) const;
 
   BrickLayout TargetBrickLayout(size_t lod, size_t ts) const;
 
@@ -77,13 +75,30 @@ struct DynamicBrickingDS::dbinfo {
 
   /// @returns true if 'bytes' bytes will fit into the current cache
   bool FitsInCache(size_t bytes) const;
+
+  void VerifyBrick(const std::pair<BrickKey, BrickMD>& brk) const;
+
+  /// @returns the size of the brick, minus any ghost voxels.
+  BrickSize BrickSansGhost() const;
+
+  template<typename T>
+  bool CopyBrick(std::vector<T>& dest, const std::vector<T>& src,
+                 const BrickSize tgt_bs, const BrickSize src_bs,
+                 VoxelIndex src_offset);
 };
 
-BrickSize GenericSourceBrickSize(const Dataset&);
+BrickSize SourceMaxBrickSize(const BrickedDataset&);
+
+BrickSize ComputedTargetBrickSize(BrickIndex idx, VoxelLayout voxels,
+                                  BrickSize bsize);
 
 // gives the number of ghost voxels (per dimension) in a brick.  must be the
 // same for both source and target.
-static unsigned ghost() { return 4; }
+static unsigned ghost(const Dataset& ds) {
+  assert(ds.GetBrickOverlapSize()[0] == ds.GetBrickOverlapSize()[1] &&
+         ds.GetBrickOverlapSize()[1] == ds.GetBrickOverlapSize()[2]);
+  return ds.GetBrickOverlapSize()[0]*2;
+}
 
 /// gives the brick layout for a given decomposition. i.e. the number of bricks
 /// in each dimension
@@ -184,17 +199,40 @@ BrickLayout SourceBrickLayout(const std::shared_ptr<LinearIndexDataset> ds,
   return tmp;
 }
 
+BrickSize BrickSansGhost(BrickSize bsize) {
+#if 0
+  bsize[0] = bsize[0] > ghost() ? bsize[0]-ghost() : bsize[0];
+  bsize[1] = bsize[1] > ghost() ? bsize[1]-ghost() : bsize[1];
+  bsize[2] = bsize[2] > ghost() ? bsize[2]-ghost() : bsize[2];
+#else
+  bsize[0] = bsize[0] > 4 ? bsize[0]-4 : bsize[0];
+  bsize[1] = bsize[1] > 4 ? bsize[1]-4 : bsize[1];
+  bsize[2] = bsize[2] > 4 ? bsize[2]-4 : bsize[2];
+#endif
+  return bsize;
+}
+BrickSize DynamicBrickingDS::dbinfo::BrickSansGhost() const {
+  const size_t gh = ghost(*this->ds);
+  BrickSize bsize = {{ this->brickSize[0] - gh, this->brickSize[1] - gh,
+                       this->brickSize[2] - gh }};
+  return bsize;
+}
+
 // gives the number of bricks in each dimension.
+// @param bsize the brick size to use WITHOUT ghost voxels!
 static const BrickLayout GenericBrickLayout(
   const VoxelLayout voxels,
   const BrickSize bsize
 ) {
-  const BrickLayout tgt_layout = {{
+  const BrickLayout blayout = {{
     static_cast<unsigned>(layout(voxels, bsize)[0]),
     static_cast<unsigned>(layout(voxels, bsize)[1]),
     static_cast<unsigned>(layout(voxels, bsize)[2])
   }};
-  return tgt_layout;
+  assert(blayout[0] > 0);
+  assert(blayout[1] > 0);
+  assert(blayout[2] > 0);
+  return blayout;
 }
 
 // identifies the number of bricks we have in the target dataset for
@@ -202,34 +240,11 @@ static const BrickLayout GenericBrickLayout(
 // stuffing into one brick.
 // this fits in integer numbers because we enforce that rebricking subdivides
 // the original volume/bricks nicely.
-std::array<unsigned,3> TargetBricksPerSource(
-  const std::shared_ptr<Dataset> ds, const size_t lod,
-  const BrickSize bsize
-) {
-  const size_t timestep = 0; /// @fixme support time..
-  const VoxelLayout voxels = {{
-    ds->GetDomainSize(lod, timestep)[0],
-    ds->GetDomainSize(lod, timestep)[1],
-    ds->GetDomainSize(lod, timestep)[2]
-  }};
-  BrickLayout tgt_blayout = GenericBrickLayout(voxels, bsize);
-  BrickLayout src_blayout = GenericBrickLayout(
-    voxels, GenericSourceBrickSize(*ds)
-  );
-  // the rebricked data set can't have *fewer* bricks:
-  assert(tgt_blayout[0] >= src_blayout[0]);
-  assert(tgt_blayout[1] >= src_blayout[1]);
-  assert(tgt_blayout[2] >= src_blayout[2]);
+std::array<unsigned,3> TargetBricksPerSource(BrickSize src, BrickSize tgt) {
   std::array<unsigned,3> rv = {{
-    static_cast<unsigned>(
-      ((static_cast<double>(tgt_blayout[0]) / src_blayout[0]) + 0.5)
-    ),
-    static_cast<unsigned>(
-      ((static_cast<double>(tgt_blayout[1]) / src_blayout[1]) + 0.5)
-    ),
-    static_cast<unsigned>(
-      ((static_cast<double>(tgt_blayout[2]) / src_blayout[2]) + 0.5)
-    )
+    static_cast<unsigned>(src[0] / tgt[0]),
+    static_cast<unsigned>(src[1] / tgt[1]),
+    static_cast<unsigned>(src[2] / tgt[2])
   }};
   return rv;
 }
@@ -246,34 +261,67 @@ std::array<unsigned,3> TargetBricksPerSource(
 //      in the source dataset.
 //   5. divide the computed index (3) by our ratio (4).  lop off any remainder.
 BrickIndex SourceBrickIndex(const BrickKey& k,
-                            const std::shared_ptr<Dataset> ds,
+                            const BrickedDataset& ds,
                             const BrickSize bsize)
 {
   // See the comment Rebrick: we shouldn't have more LODs than the source data.
-  assert(std::get<1>(k) < ds->GetLODLevelCount());
+  assert(std::get<1>(k) < ds.GetLODLevelCount());
   const size_t lod = std::min(std::get<1>(k),
-                              static_cast<size_t>(ds->GetLODLevelCount()));
+                              static_cast<size_t>(ds.GetLODLevelCount()));
   const size_t timestep = std::get<0>(k);
   // identify how many voxels we've got
   const VoxelLayout voxels = {{
-    ds->GetDomainSize(lod, timestep)[0],
-    ds->GetDomainSize(lod, timestep)[1],
-    ds->GetDomainSize(lod, timestep)[2]
+    ds.GetDomainSize(lod, timestep)[0],
+    ds.GetDomainSize(lod, timestep)[1],
+    ds.GetDomainSize(lod, timestep)[2]
   }};
   // now we know how many voxels we've got.  we can use that to convert the 1D
   // index we have back into the 3D index.
   const size_t idx1d = std::get<2>(k);
-  BrickIndex idx = to3d(layout(voxels, bsize), idx1d);
+  BrickIndex idx = to3d(layout(voxels, BrickSansGhost(bsize)), idx1d);
 
+  const BrickSize tgt_bs = BrickSansGhost(bsize);
+  const BrickSize src_bs = SourceMaxBrickSize(ds);
   const std::array<unsigned,3> bricks_per_src =
-    TargetBricksPerSource(ds, lod, bsize);
+    TargetBricksPerSource(src_bs, tgt_bs);
+  BrickIndex rv = {{
+    idx[0] / bricks_per_src[0],
+    idx[1] / bricks_per_src[1],
+    idx[2] / bricks_per_src[2]
+  }};
+  return rv;
+}
 
-  BrickIndex tmp = {{0}};
-  for(size_t i=0; i < 3; ++i) {
-    double rio = static_cast<double>(idx[i] / bricks_per_src[i]);
-    tmp[i] = static_cast<unsigned>(floor(rio));
-  }
-  return tmp;
+VoxelIndex OffsetIntoSource(const BrickedDataset& src,
+                            const BrickKey& tgtkey,
+                            const BrickSize bsize /* target */)
+{
+  // See the comment Rebrick: we shouldn't have more LODs than the source data.
+  assert(std::get<1>(tgtkey) < src.GetLODLevelCount());
+  const size_t lod = std::min(std::get<1>(tgtkey),
+                              static_cast<size_t>(src.GetLODLevelCount()));
+  const size_t timestep = std::get<0>(tgtkey);
+  // identify how many voxels we've got
+  const VoxelLayout voxels = {{
+    src.GetDomainSize(lod, timestep)[0],
+    src.GetDomainSize(lod, timestep)[1],
+    src.GetDomainSize(lod, timestep)[2]
+  }};
+  // now we know how many voxels we've got.  we can use that to convert the 1D
+  // index we have back into the 3D index.
+  const size_t idx1d = std::get<2>(tgtkey);
+  BrickIndex idx = to3d(layout(voxels, BrickSansGhost(bsize)), idx1d);
+
+  const BrickSize tgt_bs = BrickSansGhost(bsize);
+  const BrickSize src_bs = SourceMaxBrickSize(src);
+  const std::array<unsigned,3> bricks_per_src =
+    TargetBricksPerSource(src_bs, tgt_bs);
+  VoxelIndex rv = {{
+    (idx[0] % bricks_per_src[0]) * tgt_bs[0],
+    (idx[1] % bricks_per_src[1]) * tgt_bs[1],
+    (idx[2] % bricks_per_src[2]) * tgt_bs[2]
+  }};
+  return rv;
 }
 
 // @returns the number of voxels in the given level of detail.
@@ -287,12 +335,11 @@ VoxelLayout VoxelsInLOD(const Dataset& ds, size_t lod) {
 // @return the brick size which the given dataset *tries* to use.  Of course,
 // if the bricks don't fit evenly, there will be some bricks on the edge which
 // are smaller.
-BrickSize GenericSourceBrickSize(const Dataset& ds) {
-  const UVFDataset& uvf = dynamic_cast<const UVFDataset&>(ds);
-  const BrickSize src_bs = {{
-    static_cast<size_t>(uvf.GetMaxUsedBrickSizes()[0] - ghost()),
-    static_cast<size_t>(uvf.GetMaxUsedBrickSizes()[1] - ghost()),
-    static_cast<size_t>(uvf.GetMaxUsedBrickSizes()[2] - ghost())
+BrickSize SourceMaxBrickSize(const BrickedDataset& ds) {
+  BrickSize src_bs = {{
+    static_cast<size_t>(ds.GetMaxBrickSize()[0])-ghost(ds),
+    static_cast<size_t>(ds.GetMaxBrickSize()[1])-ghost(ds),
+    static_cast<size_t>(ds.GetMaxBrickSize()[2])-ghost(ds),
   }};
   assert(src_bs[0] > 0 && src_bs[0] < 65535); // must make sense.
   assert(src_bs[1] > 0 && src_bs[1] < 65535);
@@ -302,9 +349,9 @@ BrickSize GenericSourceBrickSize(const Dataset& ds) {
 
 // with the source brick index, give a brick key for the source dataset.
 BrickKey SourceKey(const BrickIndex brick_idx, size_t lod,
-                   const Dataset& ds) {
+                   const BrickedDataset& ds) {
   const VoxelLayout src_voxels = VoxelsInLOD(ds, lod);
-  const BrickSize src_bricksize = GenericSourceBrickSize(ds);
+  const BrickSize src_bricksize = SourceMaxBrickSize(ds);
   const size_t timestep = 0; /// @todo properly implement
   return BrickKey(timestep, lod,
                   to1d(brick_idx, layout(src_voxels, src_bricksize)));
@@ -315,16 +362,25 @@ static VoxelIndex Index(
   const Dataset& ds, size_t lod, uint64_t idx1d,
   const BrickSize bricksize
 ) {
+  const VoxelLayout voxels = VoxelsInLOD(ds, lod);
   const BrickIndex idx3d = to3d(
-    layout(VoxelsInLOD(ds, lod), bricksize), idx1d
+    layout(voxels, BrickSansGhost(bricksize)), idx1d
   );
+  VoxelIndex idx = {{ 0, 0, 0 }};
 
-  VoxelIndex tmp = {{
-    idx3d[0] * bricksize[0],
-    idx3d[1] * bricksize[1],
-    idx3d[2] * bricksize[2]
-  }};
-  return tmp;
+  for(size_t x=0; x < idx3d[0]; ++x) {
+    BrickIndex i = {{ unsigned(x), 0, 0 }};
+    idx[0] += ComputedTargetBrickSize(i, voxels, bricksize)[0] - ghost(ds);
+  }
+  for(size_t y=0; y < idx3d[1]; ++y) {
+    BrickIndex i = {{ 0, unsigned(y), 0 }};
+    idx[1] += ComputedTargetBrickSize(i, voxels, bricksize)[1] - ghost(ds);
+  }
+  for(size_t z=0; z < idx3d[2]; ++z) {
+    BrickIndex i = {{ 0, 0, unsigned(z) }};
+    idx[2] += ComputedTargetBrickSize(i, voxels, bricksize)[2] - ghost(ds);
+  }
+  return idx;
 }
 
 // index of the first voxel of the given brick, among the whole level.
@@ -343,17 +399,37 @@ std::array<unsigned,3> ua(const UINTVECTOR3& v) {
 }
 
 // index of the first voxel in the current brick, among the whole level
-VoxelIndex SourceIndex(const BrickKey& k, const Dataset& ds) {
+VoxelIndex SourceIndex(const BrickKey& k, const BrickedDataset& ds) {
   const size_t lod = std::get<1>(k);
   const size_t idx1d = std::get<2>(k);
 
-  const BrickSize src_bs = GenericSourceBrickSize(ds);
+  const BrickSize src_bs = SourceMaxBrickSize(ds);
   return Index(ds, lod, idx1d, src_bs);
 }
 
+BrickSize ComputedTargetBrickSize(BrickIndex idx, VoxelLayout voxels,
+                                  BrickSize bsize) {
+  const VoxelIndex bl = layout(voxels, BrickSansGhost(bsize));
+  std::array<bool,3> last = {{
+    idx[0] == bl[0]-1,
+    idx[1] == bl[1]-1,
+    idx[2] == bl[2]-1,
+  }};
+  const BrickSize no_ghost = BrickSansGhost(bsize);
+  const BrickSize rv = {{
+    last[0] && (voxels[0] % no_ghost[0]) ? 4 + (voxels[0]%no_ghost[0])
+                                         : bsize[0],
+    last[1] && (voxels[1] % no_ghost[1]) ? 4 + (voxels[1]%no_ghost[1])
+                                         : bsize[1],
+    last[2] && (voxels[2] % no_ghost[2]) ? 4 + (voxels[2]%no_ghost[2])
+                                         : bsize[2]
+  }};
+  return rv;
+}
+
 // gives the size of the given brick from the target DS
-BrickSize TargetBrickSize(const Dataset& ds, const BrickKey& k) {
-  const BrickedDataset& b = dynamic_cast<const BrickedDataset&>(ds);
+BrickSize TargetBrickSize(const Dataset& tgt, const BrickKey& k) {
+  const BrickedDataset& b = dynamic_cast<const BrickedDataset&>(tgt);
   UINTVECTOR3 sz = b.GetBrickMetadata(k).n_voxels;
   BrickSize tmp = {{
     static_cast<size_t>(sz[0]),
@@ -363,8 +439,8 @@ BrickSize TargetBrickSize(const Dataset& ds, const BrickKey& k) {
   return tmp;
 }
 // gives the size of the given brick from the source DS
-BrickSize SourceBrickSize(const Dataset& ds, const BrickKey& k) {
-  const BrickedDataset& b = dynamic_cast<const BrickedDataset&>(ds);
+BrickSize SourceBrickSize(const BrickedDataset& src, const BrickKey& k) {
+  const BrickedDataset& b = dynamic_cast<const BrickedDataset&>(src);
   UINTVECTOR3 sz = b.GetBrickMetadata(k).n_voxels;
   BrickSize tmp = {{
     static_cast<size_t>(sz[0]),
@@ -376,16 +452,16 @@ BrickSize SourceBrickSize(const Dataset& ds, const BrickKey& k) {
 
 // given the brick key in the dynamic DS, return the corresponding BrickKey
 // in the source data.
-BrickKey DynamicBrickingDS::dbinfo::SourceBrickKey(const BrickKey& k) {
+BrickKey DynamicBrickingDS::dbinfo::SourceBrickKey(const BrickKey& k) const {
   const size_t lod = std::get<1>(k);
-  const BrickIndex src_bidx = SourceBrickIndex(k, this->ds, this->brickSize);
+  const BrickIndex src_bidx = SourceBrickIndex(k, *this->ds, this->brickSize);
   BrickKey skey = SourceKey(src_bidx, lod, *(this->ds));
 #ifndef NDEBUG
   // brick key should make sense.
-  std::shared_ptr<BrickedDataset> fbds =
+  std::shared_ptr<BrickedDataset> bds =
     std::dynamic_pointer_cast<BrickedDataset>(this->ds);
-  assert(std::get<0>(skey) < fbds->GetNumberOfTimesteps());
-  assert(std::get<2>(skey) < fbds->GetTotalBrickCount());
+  assert(std::get<0>(skey) < bds->GetNumberOfTimesteps());
+  assert(std::get<2>(skey) < bds->GetTotalBrickCount());
 #endif
   MESSAGE("keymap query: <%u,%u,%u> -> <%u,%u,%u>",
           static_cast<unsigned>(std::get<0>(k)),
@@ -404,26 +480,27 @@ DynamicBrickingDS::dbinfo::TargetBrickLayout(size_t lod, size_t ts) const {
     this->ds->GetDomainSize(lod, ts)[1],
     this->ds->GetDomainSize(lod, ts)[2]
   }};
-  BrickLayout tgt_blayout = GenericBrickLayout(voxels, this->brickSize);
+  BrickLayout tgt_blayout = GenericBrickLayout(voxels, this->BrickSansGhost());
   return tgt_blayout;
 }
 
-namespace {
 // This is the type-dependent part of ::GetBrick.  Basically, the copying of
 // the source data into the target brick.
 template<typename T>
-bool CopyBrick(std::vector<T>& dest, const BrickKey skey, const Dataset& ds,
-               const BrickSize tgt_bs, const BrickSize src_bs,
-               const VoxelIndex tgt_index, VoxelIndex src_index,
-               VoxelIndex src_offset)
-{
-  // read the data from disk
-  std::vector<T> srcdata;
-  if(!ds.GetBrick(skey, srcdata)) { return false; }
+bool DynamicBrickingDS::dbinfo::CopyBrick(
+  std::vector<T>& dest, const std::vector<T>& srcdata,
+  const BrickSize tgt_bs, const BrickSize src_bs,
+  VoxelIndex src_offset
+) {
+  assert(tgt_bs[0] <= src_bs[0] && "target can't be larger than source");
+  assert(tgt_bs[1] <= src_bs[1] && "target can't be larger than source");
+  assert(tgt_bs[2] <= src_bs[2] && "target can't be larger than source");
 
   // make space for the brick in our return value.
   const size_t voxels_in_target = tgt_bs[0] * tgt_bs[1] * tgt_bs[2];
   dest.resize(voxels_in_target);
+
+  const VoxelIndex orig_offset = src_offset;
 
   // our copy size/scanline size is the width of our target brick.
   const size_t scanline = tgt_bs[0];
@@ -446,11 +523,10 @@ bool CopyBrick(std::vector<T>& dest, const BrickKey skey, const Dataset& ds,
 #endif
       src_offset[1]++; // should follow 'y' increment.
     }
-    src_offset[1] = tgt_index[1]-src_index[1]; // reset y ..
+    src_offset[1] = orig_offset[1];
     src_offset[2]++; // .. and increment z
   }
   return true;
-}
 }
 
 // early, non-type-specific parts of GetBrick.
@@ -458,65 +534,52 @@ bool CopyBrick(std::vector<T>& dest, const BrickKey skey, const Dataset& ds,
 // bricks will fit nicely inside a (single) source brick.  This is important,
 // becuase otherwise we'd have to read a bunch of bricks from the source, and
 // copy pieces from all of them.
-GBPrelim DynamicBrickingDS::dbinfo::BrickSetup(const BrickKey& k,
-                                               const DynamicBrickingDS& tgt) {
+GBPrelim
+DynamicBrickingDS::dbinfo::BrickSetup(const BrickKey& k,
+                                      const DynamicBrickingDS& tgt) const {
   assert(tgt.bricks.find(k) != tgt.bricks.end());
 
   const BrickKey skey = this->SourceBrickKey(k);
   const BrickSize tgt_bs = TargetBrickSize(tgt, k);
   const BrickSize src_bs = SourceBrickSize(*this->ds, skey);
 
-  // need to figure out the voxel index of target brick's upper left and src's
-  // bricks upper left, that tells us how many voxels to go 'in' before we
-  // start copying.
-  // these are both in the same space, because we have the same number of
-  // voxels in both data sets---just more bricks in our target DS.
-  VoxelIndex tgt_index = TargetIndex(k, tgt, this->brickSize);
-  VoxelIndex src_index = SourceIndex(skey, *this->ds);
-  // it should always be the case that tgt_index >= src_index: we looked up the
-  // brick so it would do that!
-  assert(tgt_index[0] >= src_index[0]);
-  assert(tgt_index[1] >= src_index[1]);
-  assert(tgt_index[2] >= src_index[2]);
+  assert(tgt_bs[0] <= src_bs[0] && "target can't be larger than source");
+  assert(tgt_bs[1] <= src_bs[1] && "target can't be larger than source");
+  assert(tgt_bs[2] <= src_bs[2] && "target can't be larger than source");
 
-  // unless the target brick shares a corner with the target brick, we'll need
-  // to begin reading from it offset inwards a little bit.  where, exactly?
-  VoxelIndex src_offset = {{
-    tgt_index[0] - src_index[0],
-    tgt_index[1] - src_index[1],
-    tgt_index[2] - src_index[2]
-  }};
-  GBPrelim rv = { skey, tgt_bs, src_bs, tgt_index, src_index, src_offset };
+  // Unless this (target) brick sits at the bottom corner of the source brick,
+  // we'll need to start reading from the source brick at an offset.  What is
+  // that offset?
+  VoxelIndex src_offset = OffsetIntoSource(*this->ds, k, this->brickSize);
+  GBPrelim rv = { skey, tgt_bs, src_bs, src_offset };
   return rv;
 }
 
+// Looks for the brick in the cache; if so, uses it.  Otherwise, grab the brick
 template<typename T>
 bool DynamicBrickingDS::dbinfo::Brick(const DynamicBrickingDS& ds,
                                       const BrickKey& key,
                                       std::vector<T>& data) {
-  // first: check the cache, if we've already got the data we're done!
-  if(!ds.di->cache.lookup(key, T()).empty()) {
-    MESSAGE("found <%u,%u,%u> in the cache!",
-            static_cast<unsigned>(std::get<0>(key)),
-            static_cast<unsigned>(std::get<1>(key)),
-            static_cast<unsigned>(std::get<2>(key)));
-    data = ds.di->cache.lookup(key, T());
-    return true;
-  }
   GBPrelim pre = ds.di->BrickSetup(key, ds);
-  if(!CopyBrick(data, pre.skey, *(ds.di->ds), pre.tgt_bs, pre.src_bs,
-                pre.tgt_index, pre.src_index, pre.src_offset)) {
-    return false;
+
+  // first: check the cache and see if we can get the data easy.
+  std::vector<T> srcdata;
+  if(!ds.di->cache.lookup(pre.skey, T()).empty()) {
+    MESSAGE("found <%u,%u,%u> in the cache!",
+            static_cast<unsigned>(std::get<0>(pre.skey)),
+            static_cast<unsigned>(std::get<1>(pre.skey)),
+            static_cast<unsigned>(std::get<2>(pre.skey)));
+    srcdata = ds.di->cache.lookup(pre.skey, T());
+  } else { // nope?  oh well.  read it.
+    if(!this->ds->GetBrick(pre.skey, srcdata)) { return false; }
+
+    // add it to the cache.
+    if(this->FitsInCache(srcdata.size()*sizeof(T))) {
+      this->cache.add(pre.skey, srcdata);
+    }
   }
-  if(ds.di->FitsInCache(data.size()*sizeof(T))) {
-    MESSAGE("Adding <%u,%u,%u> (%u bytes) to the cache.",
-            static_cast<unsigned>(std::get<0>(key)),
-            static_cast<unsigned>(std::get<1>(key)),
-            static_cast<unsigned>(std::get<2>(key)),
-            static_cast<unsigned>(data.size()*sizeof(T)));
-    ds.di->cache.add(key, data);
-  }
-  return true;
+  return this->CopyBrick<T>(data, srcdata, pre.tgt_bs, pre.src_bs,
+                            pre.src_offset);
 }
 
 
@@ -641,7 +704,7 @@ bool DynamicBrickingDS::GetBrick(const BrickKey& k,
 }
 
 void DynamicBrickingDS::SetRescaleFactors(const DOUBLEVECTOR3& scale) {
-  di->ds->SetRescaleFactors(scale);
+  this->di->ds->SetRescaleFactors(scale);
 }
 CFORWARDRET(DOUBLEVECTOR3, GetRescaleFactors)
 
@@ -654,7 +717,7 @@ CFORWARDRET(unsigned, GetLODLevelCount)
 CFORWARDRET(uint64_t, GetNumberOfTimesteps)
 UINT64VECTOR3 DynamicBrickingDS::GetDomainSize(const size_t lod,
                                                const size_t ts) const {
-  return di->ds->GetDomainSize(lod, ts);
+  return this->di->ds->GetDomainSize(lod, ts);
 }
 CFORWARDRET(UINTVECTOR3, GetBrickOverlapSize)
 /// @return the number of voxels for the given brick, per dimension, taking
@@ -708,7 +771,7 @@ bool DynamicBrickingDS::ContainsData(const BrickKey& bk,
   BrickKey skey = this->di->SourceBrickKey(bk);
   return di->ds->ContainsData(skey, fmin,fmax, fminGradient, fmaxGradient);
 }
-/// @todo implement this based on caching, too.
+
 MinMaxBlock DynamicBrickingDS::MaxMinForKey(const BrickKey& bk) const {
   switch(this->di->mmMode) {
     case MM_SOURCE: {
@@ -853,30 +916,121 @@ DatasetExtents(const std::shared_ptr<Dataset>& ds) {
   vf elow =  {{ -(extents[0]/2.0f), -(extents[1]/2.0f), -(extents[2]/2.0f) }};
   vf ehigh = {{  (extents[0]/2.0f),  (extents[1]/2.0f),  (extents[2]/2.0f) }};
   rv[0] = elow; rv[1] = ehigh;
+
+  assert(rv[1][0] >= rv[0][0]);
+  assert(rv[1][1] >= rv[0][1]);
+  assert(rv[1][2] >= rv[0][2]);
+  return rv;
+}
+
+void DynamicBrickingDS::dbinfo::VerifyBrick(
+  const std::pair<BrickKey, BrickMD>& brk) const
+{
+  const BrickKey srckey = this->SourceBrickKey(brk.first);
+  const BrickSize src_bs = SourceMaxBrickSize(*this->ds);
+
+  if(this->brickSize[0] == src_bs[0] &&
+     this->brickSize[1] == src_bs[1] &&
+     this->brickSize[2] == src_bs[2]) {
+    // if we "Re"brick to the same size bricks, then all
+    // the bricks we create should also exist in the source
+    // dataset.
+    assert(brk.first == srckey);
+  }
+  const BrickSize sbsize =
+    SourceBrickSize(*this->ds, srckey);
+  // brick we're creating can't be larger than the brick it reads from.
+  assert(brk.second.n_voxels[0] <= sbsize[0]);
+  assert(brk.second.n_voxels[1] <= sbsize[1]);
+  assert(brk.second.n_voxels[2] <= sbsize[2]);
+
+  std::array<std::array<float,3>,2> extents = DatasetExtents(this->ds);
+  const FLOATVECTOR3 fullexts(
+    extents[1][0] - extents[0][0],
+    extents[1][1] - extents[0][1],
+    extents[1][2] - extents[0][2]
+  );
+  assert(brk.second.extents[0] <= fullexts[0]);
+  assert(brk.second.extents[1] <= fullexts[1]);
+  assert(brk.second.extents[2] <= fullexts[2]);
+}
+
+struct ExtCenter { FLOATVECTOR3 exts, center; };
+ExtCenter BrickMetadata(size_t x, size_t y, size_t z,
+                        const BrickSize& size,
+                        const BrickSize& bsize,
+                        const VoxelLayout voxels,
+                        const std::array<std::array<float,3>,2>& extents) {
+  // lower left coordinate of the brick, in voxels
+  const UINT64VECTOR3 voxlow(x*bsize[0], y*bsize[1], z*bsize[2]);
+  // the high coord is the low coord + the number of voxels in the brick
+  const UINT64VECTOR3 voxhigh(voxlow[0]+size[0], voxlow[1]+size[1],
+                              voxlow[2]+size[2]);
+  // where the center of this brick would be, in voxels.  note this is FP:
+  // the 'center' could be a half-voxel in, if the brick has an odd number of
+  // voxels.
+  const std::array<float,3> vox_center = {{
+    ((voxhigh[0] - voxlow[0]) / 2.0f) + voxlow[0],
+    ((voxhigh[1] - voxlow[1]) / 2.0f) + voxlow[1],
+    ((voxhigh[2] - voxlow[2]) / 2.0f) + voxlow[2],
+  }};
+  // for interpolation purposes we need the # of voxels in floating point.
+  const FLOATVECTOR3 voxelsf(static_cast<float>(voxels[0]),
+                             static_cast<float>(voxels[1]),
+                             static_cast<float>(voxels[2]));
+  assert(vox_center[0] < voxelsf[0]);
+  assert(vox_center[1] < voxelsf[1]);
+  assert(vox_center[2] < voxelsf[2]);
+
+  ExtCenter rv;
+  rv.center = FLOATVECTOR3(
+    MathTools::lerp(vox_center[0], 0.0f,voxelsf[0], extents[0][0],
+                                                    extents[1][0]),
+    MathTools::lerp(vox_center[1], 0.0f,voxelsf[1], extents[0][1],
+                                                    extents[1][1]),
+    MathTools::lerp(vox_center[2], 0.0f,voxelsf[2], extents[0][2],
+                                                    extents[1][2])
+  );
+  assert(extents[0][0] <= rv.center[0] && rv.center[0] <= extents[1][0]);
+  assert(extents[0][1] <= rv.center[1] && rv.center[1] <= extents[1][1]);
+  assert(extents[0][2] <= rv.center[2] && rv.center[2] <= extents[1][2]);
+  const uint64_t zero = 0ULL; // for type purposes.
+  const FLOATVECTOR3 wlow(
+    MathTools::lerp(voxlow[0], zero,voxels[0], extents[0][0],extents[1][0]),
+    MathTools::lerp(voxlow[1], zero,voxels[1], extents[0][1],extents[1][1]),
+    MathTools::lerp(voxlow[2], zero,voxels[2], extents[0][2],extents[1][2])
+  );
+  const FLOATVECTOR3 whigh(
+    MathTools::lerp(voxhigh[0], zero,voxels[0], extents[0][0],extents[1][0]),
+    MathTools::lerp(voxhigh[1], zero,voxels[1], extents[0][1],extents[1][1]),
+    MathTools::lerp(voxhigh[2], zero,voxels[2], extents[0][2],extents[1][2])
+  );
+  rv.exts = whigh - wlow;
+  assert(rv.exts[0] <= (extents[1][0] - extents[0][0]));
+  assert(rv.exts[1] <= (extents[1][1] - extents[0][1]));
+  assert(rv.exts[2] <= (extents[1][2] - extents[0][2]));
   return rv;
 }
 
 void DynamicBrickingDS::Rebrick() {
   // first make sure this makes sense.
-  const BrickSize src_bs = GenericSourceBrickSize(*this->di->ds);
-  this->di->brickSize[0] = std::min(this->di->brickSize[0], src_bs[0]);
-  this->di->brickSize[1] = std::min(this->di->brickSize[1], src_bs[1]);
-  this->di->brickSize[2] = std::min(this->di->brickSize[2], src_bs[2]);
-  if(!integer_multiple(this->di->brickSize[0], src_bs[0])) {
+  const BrickSize src_bs = SourceMaxBrickSize(*this->di->ds);
+
+  if(!integer_multiple(this->di->brickSize[0]-ghost(*this), src_bs[0])) {
     T_ERROR("x dimension (%u) is not an integer multiple of the brick size "
-            "(%u)", static_cast<unsigned>(this->di->brickSize[0]),
+            "(%u)", static_cast<unsigned>(this->di->brickSize[0]-ghost(*this)),
             static_cast<unsigned>(src_bs[0]));
     throw std::runtime_error("x dimension is not an integer multiple of "
                              "original brick size.");
   }
-  if(!integer_multiple(this->di->brickSize[1], src_bs[1])) {
+  if(!integer_multiple(this->di->brickSize[1]-ghost(*this), src_bs[1])) {
     T_ERROR("y dimension (%u) is not an integer multiple of the brick size "
             "(%u)", static_cast<unsigned>(this->di->brickSize[1]),
             static_cast<unsigned>(src_bs[1]));
     throw std::runtime_error("y dimension is not an integer multiple of "
                              "original brick size.");
   }
-  if(!integer_multiple(this->di->brickSize[2], src_bs[2])) {
+  if(!integer_multiple(this->di->brickSize[2]-ghost(*this), src_bs[2])) {
     T_ERROR("z dimension (%u) is not an integer multiple of the brick size "
             "(%u)", static_cast<unsigned>(this->di->brickSize[2]),
             static_cast<unsigned>(src_bs[2]));
@@ -898,76 +1052,62 @@ void DynamicBrickingDS::Rebrick() {
           nvoxels[0], nvoxels[1], nvoxels[2],
           static_cast<unsigned>(src_bs[0]), static_cast<unsigned>(src_bs[1]),
           static_cast<unsigned>(src_bs[2]),
-          this->di->brickSize[0], this->di->brickSize[1],
-          this->di->brickSize[2]);
+          this->di->brickSize[0] - ghost(*this),
+          this->di->brickSize[1] - ghost(*this),
+          this->di->brickSize[2] - ghost(*this));
 
   assert(nvoxels[0] > 0 && nvoxels[1] > 0 && nvoxels[2] > 0);
-
-  std::array<std::array<float,3>,2> extents = DatasetExtents(this->di->ds);
-  MESSAGE("Extents are: [%g:%g x %g:%g x %g:%g]", extents[0][0],extents[1][0],
-          extents[0][1],extents[1][0], extents[0][2],extents[1][2]);
-  assert(extents[1][0] >= extents[0][0]);
-  assert(extents[1][1] >= extents[0][1]);
-  assert(extents[1][2] >= extents[0][2]);
+  assert(this->di->brickSize[0] > 0);
+  assert(this->di->brickSize[1] > 0);
+  assert(this->di->brickSize[2] > 0);
 
   // give a hint as to how many bricks we'll have total.
   assert(nbricks(nvoxels, di->brickSize) > 0);
   this->NBricksHint(nbricks(nvoxels, di->brickSize));
-  std::for_each(begin(nvoxels, di->brickSize, extents), end(),
-                [&](const std::pair<BrickKey,BrickMD>& b) {
-                    const size_t lod = std::get<1>(b.first);
-                    assert(this->di->brickSize[0] > 0);
-                    assert(this->di->brickSize[1] > 0);
-                    assert(this->di->brickSize[2] > 0);
-                    assert(std::get<0>(b.first) == 0); // timestep unused
+
+  std::array<std::array<float,3>,2> extents = DatasetExtents(this->di->ds);
+  MESSAGE("Extents are: [%g:%g x %g:%g x %g:%g]", extents[0][0],extents[1][0],
+          extents[0][1],extents[1][0], extents[0][2],extents[1][2]);
+
+  // don't create more LODs than the source data set (otherwise reading
+  // the data is hard, we'd have to subsample on the fly)
+  for(size_t lod=0; lod < di->ds->GetLODLevelCount(); ++lod) {
+    const VoxelLayout voxels = {{
+      this->di->ds->GetDomainSize(lod, 0)[0],
+      this->di->ds->GetDomainSize(lod, 0)[1],
+      this->di->ds->GetDomainSize(lod, 0)[2]
+    }};
+    const std::array<unsigned,3> blayout =
+      GenericBrickLayout(voxels, this->di->BrickSansGhost());
+
+    for(size_t x=0; x < blayout[0]; ++x) {
+      for(size_t y=0; y < blayout[1]; ++y) {
+        for(size_t z=0; z < blayout[2]; ++z) {
+          const size_t idx = z*blayout[1]*blayout[0] + y*blayout[0] + x;
+
+          BrickIndex bidx = {{unsigned(x), unsigned(y), unsigned(z)}};
+          BrickSize cur_bs = ComputedTargetBrickSize(bidx,
+            VoxelsInLOD(*this->di->ds.get(), lod), this->di->brickSize
+          );
+          BrickMD bmd;
+          bmd.n_voxels = UINTVECTOR3(cur_bs[0], cur_bs[1], cur_bs[2]);
+          const ExtCenter ec = BrickMetadata(x,y,z, BrickSansGhost(cur_bs),
+            BrickSansGhost(this->di->brickSize), voxels, extents
+          );
+
+          bmd.extents = ec.exts;
+          bmd.center = ec.center;
+
+          const BrickKey key(0, lod, idx);
 #ifndef NDEBUG
-                    const FLOATVECTOR3 fullexts(
-                      extents[1][0] - extents[0][0],
-                      extents[1][1] - extents[0][1],
-                      extents[1][2] - extents[0][2]
-                    );
-                    assert(b.second.extents[0] <= fullexts[0]);
-                    assert(b.second.extents[1] <= fullexts[1]);
-                    assert(b.second.extents[2] <= fullexts[2]);
+          this->di->VerifyBrick(std::make_pair(key, bmd));
 #endif
-                    // since our brick sizes are smaller, and in both our
-                    // DS and the DS we use we continue creating LODs
-                    // until we get to a single brick, we could have
-                    // more LODs in our Dataset than we do in the source
-                    // Dataset.
-                    // We could dynamically generate that lower-res data.  We
-                    // probably do want to do that eventually.  But for now,
-                    // let's just stop generating data when we hit the source
-                    // data's LOD.
-                    if(lod < di->ds->GetLODLevelCount()) {
-                      // add in the ghost data.
-                      std::pair<BrickKey, BrickMD> brk = b;
-                      brk.second.n_voxels[0] += ghost();
-                      brk.second.n_voxels[1] += ghost();
-                      brk.second.n_voxels[2] += ghost();
-#ifndef NDEBUG
-                      BrickKey srckey = this->di->SourceBrickKey(b.first);
-                      MESSAGE("adding brick w/ srckey: <%u,%u,%u>",
-                              static_cast<unsigned>(std::get<0>(srckey)),
-                              static_cast<unsigned>(std::get<1>(srckey)),
-                              static_cast<unsigned>(std::get<2>(srckey)));
-                      if(this->di->brickSize[0] == src_bs[0] &&
-                         this->di->brickSize[1] == src_bs[1] &&
-                         this->di->brickSize[2] == src_bs[2]) {
-                        // if we "Re"brick to the same size bricks, then all
-                        // the bricks we create should also exist in the source
-                        // dataset.
-                        assert(b.first == srckey);
-                      }
-                      const BrickSize sbsize =
-                        SourceBrickSize(*this->di->ds, srckey);
-                      assert(b.second.n_voxels[0] <= sbsize[0]);
-                      assert(b.second.n_voxels[1] <= sbsize[1]);
-                      assert(b.second.n_voxels[2] <= sbsize[2]);
-#endif
-                      this->AddBrick(brk.first, brk.second);
-                    }
-                  });
+          this->AddBrick(key, bmd);
+        }
+      }
+    }
+  }
+
   if(this->di->mmMode == MM_PRECOMPUTE) {
     this->di->ComputeMinMaxes(*this);
   }
@@ -992,9 +1132,6 @@ static bool test() {
   assert(to3d(sz, 192)[1] == 1);
   assert(to3d(sz, 192)[2] == 0);
 
-  // 'floor' is giving absurd results in gdb; make sure it's sane here.
-  assert(unsigned(floor(1.2)) == 1);
-  assert(unsigned(floor(1.8)) == 1);
   {
     std::array<uint64_t, 3> voxels = {{8,8,1}};
     BrickSize bsize = {{4,8,1}};
