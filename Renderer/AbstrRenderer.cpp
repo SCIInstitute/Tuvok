@@ -41,6 +41,7 @@
 #include "Basics/MathTools.h"
 #include "Basics/nonstd.h"
 #include "Basics/GeometryGenerator.h"
+#include "Basics/SysTools.h"
 #include "IO/Tuvok_QtPlugins.h"
 #include "IO/IOManager.h"
 #include "IO/TransferFunction1D.h"
@@ -177,9 +178,15 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
 
   RestartTimers();
 
-  m_vShaderSearchDirs.push_back("Shaders");
-  m_vShaderSearchDirs.push_back("Tuvok/Shaders");
-  m_vShaderSearchDirs.push_back("../Tuvok/Shaders");
+  if(SysTools::FileExists("Shaders")) {
+    m_vShaderSearchDirs.push_back("Shaders");
+  }
+  if(SysTools::FileExists("Tuvok/Shaders")) {
+    m_vShaderSearchDirs.push_back("Tuvok/Shaders");
+  }
+  if(SysTools::FileExists("../Tuvok/Shaders")) {
+    m_vShaderSearchDirs.push_back("../Tuvok/Shaders");
+  }
   // trim out directories which are nonsense.  Gets rid of some warnings.
   m_vShaderSearchDirs = ShaderDescriptor::ValidPaths(m_vShaderSearchDirs);
   m_vArrowGeometry = GeometryGenerator::GenArrow(0.3f,0.8f,0.006f,0.012f,20);
