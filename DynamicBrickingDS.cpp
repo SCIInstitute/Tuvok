@@ -10,6 +10,7 @@
 #include <stdexcept>
 #include <unordered_map>
 #include "Controller/Controller.h"
+#include "Controller/StackTimer.h"
 #include "BrickCache.h"
 #include "DynamicBrickingDS.h"
 #include "FileBackedDataset.h"
@@ -496,9 +497,9 @@ bool DynamicBrickingDS::dbinfo::CopyBrick(
   assert(tgt_bs[1] <= src_bs[1] && "target can't be larger than source");
   assert(tgt_bs[2] <= src_bs[2] && "target can't be larger than source");
 
-  // make space for the brick in our return value.
-  const size_t voxels_in_target = tgt_bs[0] * tgt_bs[1] * tgt_bs[2];
-  dest.resize(voxels_in_target);
+  // make sure the vector is big enough.
+  //assert(dest.size() >= (tgt_bs[0]*tgt_bs[1]*tgt_bs[2])); // be sure!
+  dest.resize(tgt_bs[0]*tgt_bs[1]*tgt_bs[2]);
 
   const VoxelIndex orig_offset = src_offset;
 
@@ -582,6 +583,7 @@ bool DynamicBrickingDS::dbinfo::Brick(const DynamicBrickingDS& ds,
       this->cache.add(pre.skey, srcdata);
     }
   }
+  StackTimer copies(PERF_BRICK_COPY);
   return this->CopyBrick<T>(data, srcdata, pre.tgt_bs, pre.src_bs,
                             pre.src_offset);
 }
@@ -590,7 +592,7 @@ bool DynamicBrickingDS::dbinfo::Brick(const DynamicBrickingDS& ds,
 namespace {
   template<typename T> MinMaxBlock mm(const BrickKey& bk,
                                       const BrickedDataset& ds) {
-    std::vector<T> data;
+    std::vector<T> data(ds.GetMaxBrickSize().volume());
     ds.GetBrick(bk, data);
     auto mmax = std::minmax_element(data.begin(), data.end());
     return MinMaxBlock(*mmax.first, *mmax.second, DBL_MAX, -FLT_MAX);
@@ -629,6 +631,7 @@ MinMaxBlock minmax_brick(const BrickKey& bk, const BrickedDataset& ds) {
 
 /// run through all of the bricks and compute min/max info.
 void DynamicBrickingDS::dbinfo::ComputeMinMaxes(BrickedDataset& ds) {
+  StackTimer precompute(PERF_MM_PRECOMPUTE);
   unsigned i=0;
   const unsigned len = static_cast<unsigned>(
     std::distance(ds.BricksBegin(), ds.BricksEnd())
@@ -686,10 +689,9 @@ bool DynamicBrickingDS::GetBrick(const BrickKey& k,
 {
   return this->di->Brick<float>(*this, k, data);
 }
-bool DynamicBrickingDS::GetBrick(const BrickKey& k,
+bool DynamicBrickingDS::GetBrick(const BrickKey&,
                                  std::vector<double>&) const
 {
-  assert(this->bricks.find(k) != this->bricks.end());
   assert(false && "no support for double with dynamic bricking!");
   return false;
 }
@@ -713,10 +715,9 @@ UINT64VECTOR3 DynamicBrickingDS::GetDomainSize(const size_t lod,
 CFORWARDRET(UINTVECTOR3, GetBrickOverlapSize)
 /// @return the number of voxels for the given brick, per dimension, taking
 ///         into account any brick overlaps.
-UINT64VECTOR3 DynamicBrickingDS::GetEffectiveBrickSize(const BrickKey& k) const
+UINT64VECTOR3 DynamicBrickingDS::GetEffectiveBrickSize(const BrickKey&) const
 {
-  assert(this->bricks.find(k) != this->bricks.end());
-  abort();
+  assert(false); // unused.
   return UINT64VECTOR3(0,0,0);
 }
 
@@ -903,9 +904,12 @@ DatasetExtents(const std::shared_ptr<Dataset>& ds) {
 }
 
 void DynamicBrickingDS::dbinfo::VerifyBrick(
+#ifndef NDEBUG
   const std::pair<BrickKey, BrickMD>& brk) const
+#else
+  const std::pair<BrickKey, BrickMD>&) const
+#endif
 {
-  const BrickKey srckey = this->SourceBrickKey(brk.first);
   const BrickSize src_bs = SourceMaxBrickSize(*this->ds);
 
   if(this->brickSize[0] == src_bs[0] &&
@@ -914,14 +918,15 @@ void DynamicBrickingDS::dbinfo::VerifyBrick(
     // if we "Re"brick to the same size bricks, then all
     // the bricks we create should also exist in the source
     // dataset.
-    assert(brk.first == srckey);
+    assert(brk.first == this->SourceBrickKey(brk.first));
   }
-  const BrickSize sbsize =
-    SourceBrickSize(*this->ds, srckey);
+#ifndef NDEBUG
+  const BrickKey& srckey = this->SourceBrickKey(brk.first);
+#endif
   // brick we're creating can't be larger than the brick it reads from.
-  assert(brk.second.n_voxels[0] <= sbsize[0]);
-  assert(brk.second.n_voxels[1] <= sbsize[1]);
-  assert(brk.second.n_voxels[2] <= sbsize[2]);
+  assert(brk.second.n_voxels[0] <= SourceBrickSize(*this->ds, srckey)[0]);
+  assert(brk.second.n_voxels[1] <= SourceBrickSize(*this->ds, srckey)[1]);
+  assert(brk.second.n_voxels[2] <= SourceBrickSize(*this->ds, srckey)[2]);
 
   std::array<std::array<float,3>,2> extents = DatasetExtents(this->ds);
   const FLOATVECTOR3 fullexts(
@@ -1061,7 +1066,7 @@ void DynamicBrickingDS::Rebrick() {
           );
           BrickMD bmd;
           bmd.n_voxels = UINTVECTOR3(cur_bs[0], cur_bs[1], cur_bs[2]);
-          const ExtCenter ec = BrickMetadata(x,y,z, BrickSansGhost(cur_bs),
+          const ExtCenter ec = BrickMetadata(x,y,z, this->di->BrickSansGhost(),
             BrickSansGhost(this->di->brickSize), voxels, extents
           );
 
