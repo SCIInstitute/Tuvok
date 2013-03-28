@@ -260,12 +260,11 @@ void GLGridLeaper::InitHashTable() {
   m_pglHashTable->InitGL();
 
 #ifdef GLGRIDLEAPER_WORKINGSET
-  uint32_t maxBrickCount = 0;
-  for (size_t lod=0; lod<=m_pToCDataset->GetLargestSingleBrickLOD(0); lod++) {
-    maxBrickCount += m_pToCDataset->GetBrickLayout(lod, 0).volume();
-  }
+  // the HT needs to have the full 4D volume size here in order to guarantee
+  // a 1:1 mapping with the hash function
   m_pWorkingSetTable = new GLHashTable(
-    finestBrickLayout, maxBrickCount,
+    finestBrickLayout, finestBrickLayout.volume() *
+    uint32_t(m_pToCDataset->GetLargestSingleBrickLOD(0)),
     Controller::ConstInstance().PHState.RehashCount, true, "workingSet"
     );
   m_pWorkingSetTable->InitGL();
