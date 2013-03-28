@@ -688,9 +688,9 @@ namespace {
     GLVolumePool& pool,
     const LinearIndexDataset* pDataset
   ) {
-    std::vector<T> vUploadMem; // gets resized by Dataset::GetBrick()
-    pDataset->GetBrick(bkey, vUploadMem);
     const UINTVECTOR3 vVoxelCount = pDataset->GetBrickVoxelCounts(bkey);
+    std::vector<T> vUploadMem(vVoxelCount.volume());
+    pDataset->GetBrick(bkey, vUploadMem);
     pool.UploadFirstBrick(vVoxelCount, &vUploadMem[0]);
   }
 
@@ -1243,8 +1243,7 @@ namespace {
     uint64_t& perfBrickIOBytes
   ) {
     uint32_t iPagedBricks = 0;
-    std::vector<T> vUploadMem; // upload buffer gets resized by Dataset::GetBrick()
-    vUploadMem.reserve(maxUsedBrickVoxelCount); // reserve the max used brick size to avoid reallocations
+    std::vector<T> vUploadMem(maxUsedBrickVoxelCount);
     Timer t;
     for (auto missingBrick = vBrickIDs.cbegin(); missingBrick < vBrickIDs.cend(); missingBrick++) {
       UINTVECTOR4 const& vBrickID = *missingBrick;
@@ -1343,8 +1342,7 @@ namespace {
     uint64_t& perfBrickIOBytes
   ) {
     uint32_t iPagedBricks = 0;
-    std::vector<T> vUploadMem; // upload buffer gets resized by Dataset::GetBrick()
-    vUploadMem.reserve(maxUsedBrickVoxelCount); // reserve the max used brick size to avoid reallocations
+    std::vector<T> vUploadMem(maxUsedBrickVoxelCount);
 
     // now iterate over the missing bricks and upload them to the GPU
     // todo: consider batching this if it turns out to make a difference
