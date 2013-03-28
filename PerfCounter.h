@@ -5,10 +5,12 @@
 /// When adding a new counter, please add a (units) clause so we know how to
 /// interpret the value!
 enum PerfCounter {
-  PERF_DISK_READ=0,    // reading bricks from disk (seconds)
-  PERF_DECOMPRESSION,  // decompressing brick data (seconds)
-  PERF_COMPRESSION,    // compressing brick data (seconds)
-  PERF_BRICKS,         // number of bricks read/processed (counter)
+  PERF_DISK_READ=0,   // reading bricks from disk (seconds)
+  PERF_DECOMPRESSION, // decompressing brick data (seconds)
+  PERF_COMPRESSION,   // compressing brick data (seconds)
+  PERF_BRICKS,        // number of bricks read/processed (counter)
+  PERF_BRICK_COPY,    // copying data into rebricked bricks (seconds)
+  PERF_MM_PRECOMPUTE, // computing min/max for new bricks (seconds)
   PERF_END_IO, // invalid; end of IO-based metrics
 
   PERF_READ_HTABLE=1000, // reading hash table from GPU (seconds)
