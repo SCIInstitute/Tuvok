@@ -574,7 +574,11 @@ bool DynamicBrickingDS::dbinfo::Brick(const DynamicBrickingDS& ds,
     if(!this->ds->GetBrick(pre.skey, srcdata)) { return false; }
 
     // add it to the cache.
-    if(this->FitsInCache(srcdata.size()*sizeof(T))) {
+    if(this->cacheBytes > 0) {
+      // is the cache full?  find room.
+      while(!this->FitsInCache(srcdata.size() * sizeof(T))) {
+        this->cache.remove();
+      }
       this->cache.add(pre.skey, srcdata);
     }
   }

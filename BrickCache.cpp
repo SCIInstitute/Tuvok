@@ -121,13 +121,15 @@ struct BrickCache::bcinfo {
     ///@}
     void remove() {
       if(!cache.empty()) {
-        std::pop_heap(this->cache.begin(), this->cache.end(), CacheLRU());
+        // libstdc++ complains it's not a heap otherwise.. somehow.  bug?
+        std::make_heap(this->cache.begin(), this->cache.end(), CacheLRU());
+        const auto entry = this->cache.front();
+        TypeErase::GenericType& gt = *(entry.second.gt);
+        assert((entry.second.width * gt.elems()) <= this->bytes);
+        this->bytes -= entry.second.width * gt.elems();
 
-        const auto entry = this->cache.end()-1;
-        TypeErase::GenericType& gt = *(entry->second.gt);
-        assert((entry->second.width * gt.elems()) <= this->bytes);
-        this->bytes -= entry->second.width * gt.elems();
-        this->cache.erase(entry);
+        std::pop_heap(this->cache.begin(), this->cache.end(), CacheLRU());
+        this->cache.erase(this->cache.end()-1);
       }
       assert(this->size() == this->bytes);
     }
