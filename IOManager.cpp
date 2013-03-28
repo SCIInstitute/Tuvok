@@ -1286,20 +1286,41 @@ Dataset* IOManager::LoadRebrickedDataset(const std::string& filename,
   std::shared_ptr<Dataset> ds(this->CreateDataset(filename, 1024, false));
   std::shared_ptr<LinearIndexDataset> lid =
     std::dynamic_pointer_cast<LinearIndexDataset>(ds);
-  std::array<size_t,3> bsize = {{bricksize[0], bricksize[1], bricksize[2]}};
-
-  size_t cache = static_cast<size_t>(
-    0.80f * Controller::ConstInstance().SysInfo().GetMaxUsableCPUMem()
-  );
+  if(!lid) {
+    T_ERROR("Can only rebrick a LinearIndexDataset, sorry.");
+    return NULL;
+  }
   if(minmaxType > DynamicBrickingDS::MM_DYNAMIC) {
     throw std::logic_error("minmaxType too large");
   }
+  if(bricksize.volume() == 0) { T_ERROR("null brick size"); return NULL; }
+
+  // make sure the subdivision works; we need to be able to fit bricks within
+  // the source bricks.  but make sure not to include ghost data when we
+  // calculate that!
+  const UINTVECTOR3 overlap = lid->GetBrickOverlapSize() * 2;
+  const UINTVECTOR3 src_bsize = lid->GetMaxBrickSize();
+  std::array<size_t,3> tgt_bsize = {{
+    std::min(bricksize[0], src_bsize[0]),
+    std::min(bricksize[1], src_bsize[1]),
+    std::min(bricksize[2], src_bsize[2])
+  }};
+  for(unsigned i=0; i < 3; ++i) {
+    if(((src_bsize[i]-overlap[i]) % (tgt_bsize[i]-overlap[i])) != 0) {
+      T_ERROR("%u dimension target brick size (%u) is not a multiple of source "
+              "brick size (%u)", i, tgt_bsize[i] - overlap[i],
+              src_bsize[i] - overlap[i]);
+      return NULL;
+    }
+  }
+
+  const size_t cache_size = static_cast<size_t>(
+    0.80f * Controller::ConstInstance().SysInfo().GetMaxUsableCPUMem()
+  );
   enum DynamicBrickingDS::MinMaxMode mm =
     static_cast<enum DynamicBrickingDS::MinMaxMode>(minmaxType);
-  DynamicBrickingDS* dyn = new DynamicBrickingDS(lid, bsize, cache, mm);
-  return dyn;
+  return new DynamicBrickingDS(lid, tgt_bsize, cache_size, mm);
 }
-
 
 Dataset* IOManager::CreateDataset(const string& filename,
                                   uint64_t max_brick_size, bool verify) const {

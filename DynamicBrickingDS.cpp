@@ -1017,23 +1017,14 @@ void DynamicBrickingDS::Rebrick() {
   const BrickSize src_bs = SourceMaxBrickSize(*this->di->ds);
 
   if(!integer_multiple(this->di->brickSize[0]-ghost(*this), src_bs[0])) {
-    T_ERROR("x dimension (%u) is not an integer multiple of the brick size "
-            "(%u)", static_cast<unsigned>(this->di->brickSize[0]-ghost(*this)),
-            static_cast<unsigned>(src_bs[0]));
     throw std::runtime_error("x dimension is not an integer multiple of "
                              "original brick size.");
   }
   if(!integer_multiple(this->di->brickSize[1]-ghost(*this), src_bs[1])) {
-    T_ERROR("y dimension (%u) is not an integer multiple of the brick size "
-            "(%u)", static_cast<unsigned>(this->di->brickSize[1]),
-            static_cast<unsigned>(src_bs[1]));
     throw std::runtime_error("y dimension is not an integer multiple of "
                              "original brick size.");
   }
   if(!integer_multiple(this->di->brickSize[2]-ghost(*this), src_bs[2])) {
-    T_ERROR("z dimension (%u) is not an integer multiple of the brick size "
-            "(%u)", static_cast<unsigned>(this->di->brickSize[2]),
-            static_cast<unsigned>(src_bs[2]));
     throw std::runtime_error("z dimension is not an integer multiple of "
                              "original brick size.");
   }
