@@ -584,25 +584,12 @@ bool DynamicBrickingDS::dbinfo::Brick(const DynamicBrickingDS& ds,
 
 
 namespace {
-  template<typename T>
-  struct calc_minmax : public std::unary_function<T, std::pair<double,double>> {
-    calc_minmax() : minv(DBL_MAX), maxv(-FLT_MAX) {}
-    std::pair<double,double> operator()(const T& v) const {
-      return std::make_pair(
-        std::min<double>(static_cast<double>(v), this->minv),
-        std::max<double>(static_cast<double>(v), this->maxv)
-      );
-    }
-    double minv, maxv;
-  };
-
   template<typename T> MinMaxBlock mm(const BrickKey& bk,
                                       const BrickedDataset& ds) {
     std::vector<T> data;
     ds.GetBrick(bk, data);
-    calc_minmax<T> c;
-    std::for_each(data.begin(), data.end(), c);
-    return MinMaxBlock(c.minv, c.maxv, DBL_MAX, -FLT_MAX);
+    auto mmax = std::minmax_element(data.begin(), data.end());
+    return MinMaxBlock(*mmax.first, *mmax.second, DBL_MAX, -FLT_MAX);
   }
 }
 
@@ -778,19 +765,7 @@ MinMaxBlock DynamicBrickingDS::MaxMinForKey(const BrickKey& bk) const {
       BrickKey skey = this->di->SourceBrickKey(bk);
       return di->ds->MaxMinForKey(skey);
     } break;
-    case MM_DYNAMIC: {
-      std::vector<uint8_t> data;
-      if(false == this->GetBrick(bk, data)) {
-        assert(false);
-        return MinMaxBlock();
-      }
-      MinMaxBlock mm(static_cast<double>(
-                      *std::min_element(data.begin(), data.end())),
-                     static_cast<double>(
-                      *std::max_element(data.begin(), data.end())),
-                     DBL_MAX, -FLT_MAX);
-      return mm;
-    } break;
+    case MM_DYNAMIC: return minmax_brick(bk, *this); break;
     case MM_PRECOMPUTE: {
       assert(this->di->minmax.find(bk) != this->di->minmax.end());
       return this->di->minmax.find(bk)->second;
