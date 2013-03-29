@@ -1066,7 +1066,7 @@ void DynamicBrickingDS::Rebrick() {
           );
           BrickMD bmd;
           bmd.n_voxels = UINTVECTOR3(cur_bs[0], cur_bs[1], cur_bs[2]);
-          const ExtCenter ec = BrickMetadata(x,y,z, this->di->BrickSansGhost(),
+          const ExtCenter ec = BrickMetadata(x,y,z, BrickSansGhost(cur_bs),
             BrickSansGhost(this->di->brickSize), voxels, extents
           );
 
