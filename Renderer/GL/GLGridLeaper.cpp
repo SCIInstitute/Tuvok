@@ -251,12 +251,16 @@ bool GLGridLeaper::Initialize(std::shared_ptr<Context> ctx) {
 void GLGridLeaper::InitHashTable() {
   UINTVECTOR3 const finestBrickLayout(m_pToCDataset->GetBrickLayout(0, 0));
 
-  m_pglHashTable = new GLHashTable(finestBrickLayout,
-    std::max<uint32_t>(15,
-    uint32_t(511 / (m_pToCDataset->GetMaxBrickSize().volume() / 32768.))),
+  unsigned ht_size = Controller::Const().RState.HashTableSize;
+  if(ht_size == 0) {
+    const float rmax = m_pToCDataset->GetMaxBrickSize().volume() / 32768.;
+    ht_size = std::max<unsigned>(15, static_cast<unsigned>(509 / rmax));
+  }
+  MESSAGE("Using %u-element hash table.", ht_size);
 
-    Controller::ConstInstance().PHState.RehashCount
-    );
+  m_pglHashTable = new GLHashTable(finestBrickLayout, uint32_t(ht_size),
+    Controller::Const().RState.RehashCount
+  );
   m_pglHashTable->InitGL();
 
 #ifdef GLGRIDLEAPER_WORKINGSET
@@ -265,7 +269,7 @@ void GLGridLeaper::InitHashTable() {
   m_pWorkingSetTable = new GLHashTable(
     finestBrickLayout, finestBrickLayout.volume() *
     uint32_t(m_pToCDataset->GetLargestSingleBrickLOD(0)),
-    Controller::ConstInstance().PHState.RehashCount, true, "workingSet"
+    Controller::ConstInstance().RState.RehashCount, true, "workingSet"
     );
   m_pWorkingSetTable->InitGL();
 #endif
@@ -284,13 +288,13 @@ bool GLGridLeaper::LoadCheckShader(GLSLProgram** shader, ShaderDescriptor& sd, s
 }
 
 static GLVolumePool::MissingBrickStrategy MCStrategyToVPoolStrategy(
-  PH_HackyState::BrickStrategy bs
+  RendererState::BrickStrategy bs
 ) {
   switch(bs) {
-    case PH_HackyState::BS_OnlyNeeded: return GLVolumePool::OnlyNeeded;
-    case PH_HackyState::BS_RequestAll: return GLVolumePool::RequestAll;
-    case PH_HackyState::BS_SkipOneLevel: return GLVolumePool::SkipOneLevel;
-    case PH_HackyState::BS_SkipTwoLevels: return GLVolumePool::SkipTwoLevels;
+    case RendererState::BS_OnlyNeeded: return GLVolumePool::OnlyNeeded;
+    case RendererState::BS_RequestAll: return GLVolumePool::RequestAll;
+    case RendererState::BS_SkipOneLevel: return GLVolumePool::SkipOneLevel;
+    case RendererState::BS_SkipTwoLevels: return GLVolumePool::SkipTwoLevels;
   }
   return GLVolumePool::MissingBrickStrategy(0);
 }
@@ -302,12 +306,12 @@ bool GLGridLeaper::LoadTraversalShaders(const std::vector<std::string>& vDefines
   const std::string infoFragment = m_pWorkingSetTable->GetShaderFragment(7);
   const std::string poolFragment = m_pVolumePool->GetShaderFragment(
     3, 4,
-    MCStrategyToVPoolStrategy(Controller::ConstInstance().PHState.BStrategy),
+    MCStrategyToVPoolStrategy(Controller::ConstInstance().RState.BStrategy),
     m_pWorkingSetTable->GetPrefixName());
 #else
   const std::string poolFragment = m_pVolumePool->GetShaderFragment(
     3, 4,
-    MCStrategyToVPoolStrategy(Controller::ConstInstance().PHState.BStrategy)
+    MCStrategyToVPoolStrategy(Controller::ConstInstance().RState.BStrategy)
   );
 #endif
   const std::string hashFragment = m_pglHashTable->GetShaderFragment(5);

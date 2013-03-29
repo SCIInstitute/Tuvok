@@ -15,7 +15,7 @@ class GLTexture;
 
 class GLHashTable : public GLObject {
   public:
-    GLHashTable(const UINTVECTOR3& maxBrickCount, uint32_t iTableSize=511, uint32_t iRehashCount=10, bool bUseGLCore=true, std::string const& strPrefixName = "");
+    GLHashTable(const UINTVECTOR3& maxBrickCount, uint32_t iTableSize=509, uint32_t iRehashCount=10, bool bUseGLCore=true, std::string const& strPrefixName = "");
     virtual ~GLHashTable();
 
     void InitGL(); // might throw

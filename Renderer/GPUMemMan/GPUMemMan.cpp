@@ -830,7 +830,10 @@ GLVolumePool* GPUMemMan::GetVolumePool(LinearIndexDataset* dataSet,
                                     : maxBricksForGPU;
   GLVolumePool* pPool = NULL;
   try {
-    pPool = new GLVolumePool(poolSize, dataSet, filter);
+    const unsigned md_up = Controller::Const().RState.MDUpdateBehavior;
+    GLVolumePool::DebugMode mdupdate =
+      static_cast<GLVolumePool::DebugMode>(md_up);
+    pPool = new GLVolumePool(poolSize, dataSet, filter, true, mdupdate);
   } catch (tuvok::Exception const& e) {
     pPool = NULL;
     T_ERROR(e.what());

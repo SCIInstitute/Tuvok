@@ -58,12 +58,19 @@ class RenderRegion;
 
 typedef std::deque<AbstrRenderer*> AbstrRendererList;
 
-struct PH_HackyState {
+struct RendererState {
   enum BrickStrategy {
     BS_OnlyNeeded=0, BS_RequestAll, BS_SkipOneLevel, BS_SkipTwoLevels
   };
   BrickStrategy BStrategy;
   uint32_t RehashCount;
+  unsigned MDUpdateBehavior;
+  unsigned HashTableSize;
+  RendererState() :
+    BStrategy(BS_RequestAll),
+    RehashCount(10),
+    MDUpdateBehavior(0),
+    HashTableSize(509) {}
 };
 
 /** \class MasterController
@@ -154,11 +161,13 @@ public:
   void SetMaxGPUMem(uint64_t megs);
   void SetMaxCPUMem(uint64_t megs);
 
-  /// disgusting centralized storage for state we need to record for the paper
+  /// centralized storage for renderer parameters
   ///@{
   void SetBrickStrategy(size_t strat);
   void SetRehashCount(uint32_t count);
-  PH_HackyState PHState;
+  void SetMDUpdateStrategy(unsigned); ///< takes DM_* enum
+  void SetHTSize(unsigned); ///< hash table size
+  RendererState RState;
   ///@}
 
   /// Performance query interface.  Each id is a separate performance metric.

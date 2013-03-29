@@ -85,7 +85,7 @@ MasterController::MasterController() :
   // TEMPORARY -- Disable the provenance system.
   LuaScript()->cexec("provenance.enable", false);
 
-  PHState.BStrategy = PH_HackyState::BS_SkipTwoLevels;
+  RState.BStrategy = RendererState::BS_SkipTwoLevels;
   std::fill(m_Perf, m_Perf+PERF_END, 0.0);
 }
 
@@ -274,11 +274,17 @@ void MasterController::AddLuaRendererType(const std::string& rendererLoc,
 }
 
 void MasterController::SetBrickStrategy(size_t strat) {
-  assert(strat <= PH_HackyState::BS_SkipTwoLevels); // hack
-  this->PHState.BStrategy = static_cast<PH_HackyState::BrickStrategy>(strat);
+  assert(strat <= RendererState::BS_SkipTwoLevels); // hack
+  this->RState.BStrategy = static_cast<RendererState::BrickStrategy>(strat);
 }
 void MasterController::SetRehashCount(uint32_t n) {
-  this->PHState.RehashCount = n;
+  this->RState.RehashCount = n;
+}
+void MasterController::SetMDUpdateStrategy(unsigned strat) {
+  this->RState.MDUpdateBehavior = strat;
+}
+void MasterController::SetHTSize(unsigned size) {
+  this->RState.HashTableSize = size;
 }
 
 double MasterController::PerfQuery(enum PerfCounter pc) {
@@ -422,6 +428,15 @@ void MasterController::RegisterLuaCommands() {
     &MasterController::SetMaxCPUMem, "tuvok.state.cpuMem",
     "sets a new max amount of CPU memory.  In megabytes.", false
   );
+  m_pMemReg->registerFunction(this, &MasterController::SetMDUpdateStrategy,
+    "tuvok.state.mdUpdateStrategy", "control the background metadata update "
+    "thread.\n  0: enabled (default)\n  1: async thread does nothing\n  2: "
+    "async thread is never even created.\n  3: skip all metadata computations;"
+    " effectively disables empty space leaping.", false);
+  m_pMemReg->registerFunction(this, &MasterController::SetHTSize,
+    "tuvok.state.hashTableSize", "sets the size of the hash table.  Larger "
+    "values give better raw performance; smaller values make the system more "
+    " responsive.  default: 509", false);
 
   m_pMemReg->registerFunction(this,
     &MasterController::PerfQuery, "tuvok.perf",
