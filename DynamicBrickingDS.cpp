@@ -7,8 +7,12 @@
 #include <algorithm>
 #include <array>
 #include <cassert>
+#include <fstream>
+#include <sstream>
 #include <stdexcept>
+#include <string>
 #include <unordered_map>
+#include "Basics/SysTools.h"
 #include "Controller/Controller.h"
 #include "Controller/StackTimer.h"
 #include "BrickCache.h"
@@ -67,6 +71,13 @@ struct DynamicBrickingDS::dbinfo {
   BrickKey SourceBrickKey(const BrickKey&) const;
 
   BrickLayout TargetBrickLayout(size_t lod, size_t ts) const;
+
+  /// since ComputeMinMaxes is soooo absurdly slow, we try to cache the
+  /// results.  These load/save all our min/maxes to a stream.
+  ///@{
+  void LoadMinMax(std::istream&);
+  void SaveMinMax(std::ostream&) const;
+  ///@}
 
   /// run through all of the bricks and compute min/max info.
   void ComputeMinMaxes(BrickedDataset&);
@@ -247,6 +258,9 @@ std::array<unsigned,3> TargetBricksPerSource(BrickSize src, BrickSize tgt) {
     static_cast<unsigned>(src[1] / tgt[1]),
     static_cast<unsigned>(src[2] / tgt[2])
   }};
+  assert(rv[0] > 0);
+  assert(rv[1] > 0);
+  assert(rv[2] > 0);
   return rv;
 }
 
@@ -629,18 +643,103 @@ MinMaxBlock minmax_brick(const BrickKey& bk, const BrickedDataset& ds) {
   return MinMaxBlock();
 }
 
+/// we can cache the precomputed brick min/maxes in a file, and then
+/// just read those. this can be a big win, since the calculation is
+/// veeeery slow.
+/// @return the file we would save for this case.
+static std::string precomputed_filename(const BrickedDataset& ds,
+                                        const BrickSize bsize)
+{
+  try {
+    std::ostringstream fname;
+    const FileBackedDataset& fbds = dynamic_cast<const FileBackedDataset&>(ds);
+    fname << "." << bsize[0] << "x" << bsize[1] << "x" << bsize[2] << "-"
+          << SysTools::GetFilename(fbds.Filename()) << ".cached";
+    return fname.str();
+  } catch(const std::bad_cast&) {
+    WARNING("Data doesn't come from a file.  We can't save minmaxes.");
+  }
+  return "";
+}
+
+void DynamicBrickingDS::dbinfo::LoadMinMax(std::istream& is) {
+  if(!is) { T_ERROR("could not open min/max cache!"); return; }
+
+  uint64_t n_elems;
+  is.read(reinterpret_cast<char*>(&n_elems), sizeof(uint64_t));
+
+  for(uint64_t i=0; i < n_elems; ++i) {
+    uint64_t timestep, lod, brick;
+    is.read(reinterpret_cast<char*>(&timestep), sizeof(uint64_t));
+    is.read(reinterpret_cast<char*>(&lod), sizeof(uint64_t));
+    is.read(reinterpret_cast<char*>(&brick), sizeof(uint64_t));
+    const BrickKey key(timestep, lod, brick);
+    MinMaxBlock mm;
+    is.read(reinterpret_cast<char*>(&mm.minScalar), sizeof(double));
+    is.read(reinterpret_cast<char*>(&mm.maxScalar), sizeof(double));
+    if(!is) {
+      T_ERROR("read failed?  cache is broken.  ignoring it.");
+      this->minmax.clear();
+      return;
+    }
+    this->minmax.insert(std::make_pair(key, mm));
+  }
+}
+
+void DynamicBrickingDS::dbinfo::SaveMinMax(std::ostream& os) const {
+  if(!os) { T_ERROR("could not create min/max cache."); return; }
+
+  const uint64_t n_elems = this->minmax.size();
+  MESSAGE("Saving %llu brick min/maxes", n_elems);
+  os.write(reinterpret_cast<const char*>(&n_elems), sizeof(uint64_t));
+
+  for(auto b=this->minmax.cbegin(); b != this->minmax.cend(); ++b) {
+    uint64_t timestep, lod, brick;
+    timestep = std::get<0>(b->first);
+    lod = std::get<1>(b->first);
+    brick = std::get<2>(b->first);
+    os.write(reinterpret_cast<const char*>(&timestep), sizeof(uint64_t));
+    os.write(reinterpret_cast<const char*>(&lod), sizeof(uint64_t));
+    os.write(reinterpret_cast<const char*>(&brick), sizeof(uint64_t));
+    MinMaxBlock mm = b->second;
+    os.write(reinterpret_cast<const char*>(&mm.minScalar), sizeof(double));
+    os.write(reinterpret_cast<const char*>(&mm.maxScalar), sizeof(double));
+  }
+}
+
 /// run through all of the bricks and compute min/max info.
 void DynamicBrickingDS::dbinfo::ComputeMinMaxes(BrickedDataset& ds) {
-  StackTimer precompute(PERF_MM_PRECOMPUTE);
-  unsigned i=0;
-  const unsigned len = static_cast<unsigned>(
-    std::distance(ds.BricksBegin(), ds.BricksEnd())
-  );
-  for(auto b=ds.BricksBegin(); b != ds.BricksEnd(); ++b, ++i) {
-    MESSAGE("precomputing brick %u of %u", i, len);
-    MinMaxBlock mm = minmax_brick(b->first, ds);
-    this->minmax.insert(std::make_pair(b->first, mm));
+  // first, check if we have this cached.
+  const std::string fname = precomputed_filename(ds, this->brickSize);
+  if(SysTools::FileExists(fname)) {
+    MESSAGE("Brick min/maxes are precomputed.  Reloading from file...");
+    std::ifstream mmfile(fname, std::ios::binary);
+    this->LoadMinMax(mmfile);
+    mmfile.close();
+    return;
   }
+
+  {
+    StackTimer precompute(PERF_MM_PRECOMPUTE);
+    unsigned i=0;
+    const unsigned len = static_cast<unsigned>(
+      std::distance(ds.BricksBegin(), ds.BricksEnd())
+    );
+    for(auto b=ds.BricksBegin(); b != ds.BricksEnd(); ++b, ++i) {
+      MESSAGE("precomputing brick %u of %u", i, len);
+      MinMaxBlock mm = minmax_brick(b->first, ds);
+      this->minmax.insert(std::make_pair(b->first, mm));
+    }
+  }
+  // try to cache that data to a file, now.
+  std::ofstream mmcache(fname, std::ios::binary);
+  if(!mmcache) {
+    WARNING("could not open min/max cache file (%s); ignoring cache.",
+            fname.c_str());
+    return;
+  }
+  this->SaveMinMax(mmcache);
+  mmcache.close();
 }
 
 void DynamicBrickingDS::dbinfo::SetCacheSize(size_t bytes) {
