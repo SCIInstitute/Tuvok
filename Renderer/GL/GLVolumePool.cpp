@@ -119,7 +119,8 @@ static UINTVECTOR3 GetBrickLayout(const UINTVECTOR3& volumeSize,
 GLVolumePool::GLVolumePool(const UINTVECTOR3& poolSize,
                            LinearIndexDataset* pDataset,
                            GLenum filter,
-                           bool bUseGLCore)
+                           bool bUseGLCore,
+                           DebugMode dm)
   : m_pPoolMetadataTexture(NULL),
     m_pPoolDataTexture(NULL),
     m_vPoolCapacity(0,0,0),
@@ -150,6 +151,7 @@ GLVolumePool::GLVolumePool(const UINTVECTOR3& poolSize,
     , m_BrickIOBytes(0)
     , m_iMaxUsedBrickVoxelCount(0)
     , m_iMaxUsedBrickBytes(0)
+    , m_eDebugMode(dm)
 {
   const uint64_t iBitWidth  = m_pDataset->GetBitWidth();
   const uint64_t iCompCount = m_pDataset->GetComponentCount();
@@ -232,13 +234,25 @@ GLVolumePool::GLVolumePool(const UINTVECTOR3& poolSize,
     m_vMinMaxScalar[i].max = imme.maxScalar;
   }
 
-#ifndef GLVOLUMEPOOL_SYNC // if we want to disable the async updater we just don't instantiate it
-#ifndef GLVOLUMEPOOL_BUSY // if we want to simulate a busy async updater we need to make sure to instantiate it
-  uint32_t const iAsyncUpdaterThreshold = 7500 * 5; // we can process 7500 bricks/ms (1500 running debug build)
-  if (m_iTotalBrickCount > iAsyncUpdaterThreshold)
-#endif
+  switch (m_eDebugMode) {
+  default:
+  case DM_NONE:
+    {
+      uint32_t const iAsyncUpdaterThreshold = 7500 * 5; // we can process 7500 bricks/ms (1500 running debug build)
+      if (m_iTotalBrickCount > iAsyncUpdaterThreshold)
+        m_pUpdater = new AsyncVisibilityUpdater(*this);
+    }
+    break;
+  case DM_BUSY:
+    // if we want to simulate a busy async updater we need to make sure to instantiate it
+    WARNING("Async worker simulates to be busy without doing anything useful, forcing the renderer to figure out the metadata on its own.");
     m_pUpdater = new AsyncVisibilityUpdater(*this);
-#endif
+    break;
+  case DM_SYNC:
+    // if we want to disable the async updater we just don't instantiate it
+    WARNING("Forcing always synchronous metadata updates, async worker is disabled.");
+    break;
+  }
 }
 
 void GLVolumePool::PH_Reset(const VisibilityState& visibility, size_t iTimestep) {
@@ -1658,10 +1672,10 @@ void AsyncVisibilityUpdater::Restart(VisibilityState const& visibility)
   SCOPEDLOCK(m_StateGuard);
   Pause();
   m_Visibility = visibility;
-#ifndef GLVOLUMEPOOL_BUSY
-  m_eState = RestartRequested;
-  Resume(); // restart worker
-#endif
+  if (m_Pool.m_eDebugMode != GLVolumePool::DM_BUSY) {
+    m_eState = RestartRequested;
+    Resume(); // restart worker
+  }
 }
 
 bool AsyncVisibilityUpdater::Pause()
@@ -1672,11 +1686,11 @@ bool AsyncVisibilityUpdater::Pause()
     Resume(); // wake up worker to update its state if necessary
     m_Parent.Wait(m_StateGuard); // wait until worker is paused
   }
-#ifndef GLVOLUMEPOOL_BUSY
-  return m_eState != Idle;
-#else
-  return true;
-#endif
+  if (m_Pool.m_eDebugMode != GLVolumePool::DM_BUSY) {
+    return m_eState != Idle;
+  } else {
+    return true;
+  }
 }
 
 void AsyncVisibilityUpdater::Resume()

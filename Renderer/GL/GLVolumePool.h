@@ -12,8 +12,6 @@
 #include "GLTexture3D.h"
 
 //#define GLVOLUMEPOOL_PROFILE // define to measure some timings
-//#define GLVOLUMEPOOL_BUSY    // define to prevent the async worker from doing anything useful
-//#define GLVOLUMEPOOL_SYNC    // define to disable the async worker
 
 #ifdef GLVOLUMEPOOL_PROFILE
 #include "Basics/AvgMinMaxTracker.h"
@@ -73,9 +71,15 @@ namespace tuvok {
 
   class GLVolumePool : public GLObject {
     public:
+      enum DebugMode {
+        DM_NONE = 0, // no debugging
+        DM_BUSY,     // prevent the async worker from doing anything useful forcing the situation when the async updater has not yet updated the metadata but should
+        DM_SYNC      // disables the async worker and forces synchronous metadata updates all the time
+      };
+
       /// @throws tuvok::Exception on init error
       GLVolumePool(const UINTVECTOR3& poolSize, LinearIndexDataset* pDataset,
-                   GLenum filter, bool bUseGLCore=true);
+                   GLenum filter, bool bUseGLCore=true, DebugMode dm=DM_NONE);
       virtual ~GLVolumePool();
 
       // signals if meta texture is up-to-date including child emptiness for
@@ -192,6 +196,8 @@ namespace tuvok {
 
       void UploadBrick(uint32_t iBrickID, const UINTVECTOR3& vVoxelSize, void* pData, 
                        size_t iInsertPos, uint64_t iTimeOfCreation);
+
+      DebugMode const m_eDebugMode;
   };
 }
 #endif // GLVOLUMEPOOL_H
