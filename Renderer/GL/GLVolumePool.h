@@ -74,7 +74,8 @@ namespace tuvok {
       enum DebugMode {
         DM_NONE = 0, // no debugging
         DM_BUSY,     // prevent the async worker from doing anything useful forcing the situation when the async updater has not yet updated the metadata but should
-        DM_SYNC      // disables the async worker and forces synchronous metadata updates all the time
+        DM_SYNC,     // disables the async worker and forces synchronous metadata updates all the time
+        DM_NOEMPTYSPACELEAPING // prevent all visibility computations and thus never ever skip/leap empty space
       };
 
       /// @throws tuvok::Exception on init error

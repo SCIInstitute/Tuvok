@@ -252,6 +252,9 @@ GLVolumePool::GLVolumePool(const UINTVECTOR3& poolSize,
     // if we want to disable the async updater we just don't instantiate it
     WARNING("Forcing always synchronous metadata updates, async worker is disabled.");
     break;
+  case DM_NOEMPTYSPACELEAPING:
+    WARNING("Visibility computation is DISABLED, disabling empty space leaping.");
+    break;
   }
 }
 
@@ -1471,6 +1474,9 @@ namespace {
 
 void GLVolumePool::RecomputeVisibility(VisibilityState const& visibility, size_t iTimestep, bool bForceSynchronousUpdate)
 {
+  if (m_eDebugMode == DM_NOEMPTYSPACELEAPING)
+    return;
+
 #ifdef GLVOLUMEPOOL_PROFILE
   m_Timer.Start();
 #endif
