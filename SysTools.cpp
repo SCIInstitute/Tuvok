@@ -385,6 +385,9 @@ namespace SysTools {
     return name;
   }
 
+  std::string basename(const std::string& f) { return GetFilename(f); }
+  std::string dirname(const std::string& f) { return GetPath(f); }
+
 #ifdef DETECTED_OS_WINDOWS
 # define MAX_PATH_LENGTH MAX_PATH
 #else

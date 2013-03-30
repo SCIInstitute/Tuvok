@@ -151,6 +151,9 @@ namespace SysTools {
   std::string GetFilename(const std::string& fileName);
   std::wstring GetFilename(const std::wstring& fileName);
 
+  std::string basename(const std::string& f);
+  std::string dirname(const std::string& f);
+
   std::string CanonicalizePath(const std::string& path);
 
   std::string FindPath(const std::string& fileName, const std::string& path);
