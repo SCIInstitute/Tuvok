@@ -1619,12 +1619,12 @@ UINTVECTOR3 GLVolumePool::RecomputeVisibility(VisibilityState const& visibility,
     if (vEmptyBrickCount.x != m_iTotalBrickCount) {
       WARNING("%u of %u bricks were processed during synchronous visibility recomputation!");
     }
-    MESSAGE("Synchronously recomputed brick visibility: %u bricks processed, "
-            "%u bricks are EMPTY (%.2f%%), %u bricks are CHILD_EMPTY (%.2f%%)",
-            vEmptyBrickCount.x, vEmptyBrickCount.y,
-            (static_cast<float>(vEmptyBrickCount.y)/vEmptyBrickCount.x)*100.0f,
-            vEmptyBrickCount.z,
-            (static_cast<float>(vEmptyBrickCount.z)/vEmptyBrickCount.x)*100.0f);
+    OTHER("Synchronously recomputed brick visibility: %u bricks processed, "
+          "%u bricks are EMPTY (%.2f%%), %u bricks are CHILD_EMPTY (%.2f%%)",
+          vEmptyBrickCount.x, vEmptyBrickCount.y,
+          (static_cast<float>(vEmptyBrickCount.y)/vEmptyBrickCount.x)*100.0f,
+          vEmptyBrickCount.z,
+          (static_cast<float>(vEmptyBrickCount.z)/vEmptyBrickCount.x)*100.0f);
   }
 
   // upload new metadata to GPU

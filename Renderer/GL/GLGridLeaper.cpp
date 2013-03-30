@@ -642,7 +642,7 @@ UINTVECTOR3 GLGridLeaper::RecomputeBrickVisibility(bool bForceSynchronousUpdate)
     double const fMin = double(m_p1DTrans->GetNonZeroLimits().x) * fRescaleFactor;
     double const fMax = double(m_p1DTrans->GetNonZeroLimits().y) * fRescaleFactor;
     if (m_VisibilityState.NeedsUpdate(fMin, fMax) ||
-        (bForceSynchronousUpdate && !m_pVolumePool->IsVisibilityUpdated())) {
+        bForceSynchronousUpdate) {
       vEmptyBrickCount = m_pVolumePool->RecomputeVisibility(m_VisibilityState, m_iTimestep, bForceSynchronousUpdate);
     }
     break; }
@@ -652,14 +652,14 @@ UINTVECTOR3 GLGridLeaper::RecomputeBrickVisibility(bool bForceSynchronousUpdate)
     double const fMinGradient = double(m_p2DTrans->GetNonZeroLimits().z);
     double const fMaxGradient = double(m_p2DTrans->GetNonZeroLimits().w);
     if (m_VisibilityState.NeedsUpdate(fMin, fMax, fMinGradient, fMaxGradient) ||
-        (bForceSynchronousUpdate && !m_pVolumePool->IsVisibilityUpdated())) {
+        bForceSynchronousUpdate) {
       vEmptyBrickCount = m_pVolumePool->RecomputeVisibility(m_VisibilityState, m_iTimestep, bForceSynchronousUpdate);
     }
     break; }
   case RM_ISOSURFACE: {
     double const fIsoValue = GetIsoValue();
     if (m_VisibilityState.NeedsUpdate(fIsoValue) ||
-        (bForceSynchronousUpdate && !m_pVolumePool->IsVisibilityUpdated())) {
+        bForceSynchronousUpdate) {
       vEmptyBrickCount = m_pVolumePool->RecomputeVisibility(m_VisibilityState, m_iTimestep, bForceSynchronousUpdate);
     }
     break; }
