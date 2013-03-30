@@ -86,7 +86,8 @@ namespace tuvok {
       // signals if meta texture is up-to-date including child emptiness for
       // the whole hierarchy
       bool IsVisibilityUpdated() const { return m_bVisibilityUpdated; }
-      void RecomputeVisibility(const VisibilityState& visibility, size_t iTimestep, bool bForceSynchronousUpdate = false);
+      // @return (totalProcessedBrickCount, emptyBrickCount, childEmptyBrickCount)
+      UINTVECTOR3 RecomputeVisibility(const VisibilityState& visibility, size_t iTimestep, bool bForceSynchronousUpdate = false);
       // returns number of bricks paged in that must not be equal to given
       // number of brick IDs especially if async updater is busy we'll get
       // requests for empty bricks too that won't be paged in

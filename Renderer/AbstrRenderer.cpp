@@ -1758,7 +1758,9 @@ bool AbstrRenderer::CaptureSingleFrame(const std::string&, bool) const {
 
 /// Hacks!  These just do nothing.
 void AbstrRenderer::PH_ClearWorkingSet() { }
-void AbstrRenderer::PH_RecalculateVisibility() {}
+UINTVECTOR3 AbstrRenderer::PH_RecalculateVisibility() {
+  return UINTVECTOR3(0, 0, 0);
+}
 bool AbstrRenderer::PH_Converged() const {
   AbstrRenderer* ren = const_cast<AbstrRenderer*>(this);
   return ren->CheckForRedraw();
@@ -2204,7 +2206,9 @@ void AbstrRenderer::RegisterLuaFunctions(
   id = reg.function(&AbstrRenderer::PH_ClearWorkingSet,
                     "clearWorkingSet", "clears pool data", false);
   id = reg.function(&AbstrRenderer::PH_RecalculateVisibility,
-                    "recalcVisibility", "synchronous!", false);
+                    "recalcVisibility", "force to recompute the brick visibility"
+                    " synchronously! returns: (totalProcessedBrickCount, "
+                    "emptyBrickCount, childEmptyBrickCount)", false);
   id = reg.function(&AbstrRenderer::PH_Converged, "converged",
                     "checks if rendering converged", false);
   id = reg.function(&AbstrRenderer::PH_OpenBrickAccessLogfile, "openBALogfile",

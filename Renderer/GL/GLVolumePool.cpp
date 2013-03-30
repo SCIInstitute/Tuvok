@@ -929,10 +929,11 @@ namespace {
   }
 
   template<AbstrRenderer::ERenderMode eRenderMode>
-  void RecomputeVisibilityForBrickPool(VisibilityState const& visibility, GLVolumePool const& pool,
-                                       std::vector<uint32_t>& vBrickMetadata, std::vector<PoolSlotData>& vBrickPool,
-                                       std::vector<GLVolumePool::MinMax> const& vMinMaxScalar,
-                                       std::vector<GLVolumePool::MinMax> const& vMinMaxGradient)
+  void RecomputeVisibilityForBrickPool(
+    VisibilityState const& visibility, GLVolumePool const& pool,
+    std::vector<uint32_t>& vBrickMetadata, std::vector<PoolSlotData>& vBrickPool,
+    std::vector<GLVolumePool::MinMax> const& vMinMaxScalar,
+    std::vector<GLVolumePool::MinMax> const& vMinMaxGradient)
   {
     assert(eRenderMode == visibility.GetRenderMode());
     for (auto slot = vBrickPool.begin(); slot < vBrickPool.end(); slot++) {
@@ -957,12 +958,14 @@ namespace {
   }
 
   template<bool bInterruptable, AbstrRenderer::ERenderMode eRenderMode>
-  void RecomputeVisibilityForOctree(VisibilityState const& visibility, GLVolumePool const& pool,
-                                    std::vector<uint32_t>& vBrickMetadata,
-                                    std::vector<GLVolumePool::MinMax> const& vMinMaxScalar,
-                                    std::vector<GLVolumePool::MinMax> const& vMinMaxGradient,
-                                    tuvok::ThreadClass::PredicateFunction pContinue = tuvok::ThreadClass::PredicateFunction())
+  UINTVECTOR3 RecomputeVisibilityForOctree(
+    VisibilityState const& visibility, GLVolumePool const& pool,
+    std::vector<uint32_t>& vBrickMetadata,
+    std::vector<GLVolumePool::MinMax> const& vMinMaxScalar,
+    std::vector<GLVolumePool::MinMax> const& vMinMaxGradient,
+    tuvok::ThreadClass::PredicateFunction pContinue = tuvok::ThreadClass::PredicateFunction())
   {
+    UINTVECTOR3 vEmptyBrickCount(0, 0, 0);
 #ifndef _DEBUG
     uint32_t const iContinue = 375; // we approximately process 7500 bricks/ms, checking for interruption every 375 bricks allows us to pause in 0.05 ms (worst case)
 #else
@@ -978,15 +981,19 @@ namespace {
 
           if (bInterruptable && !(x % iContinue)/* && pContinue*/)
             if (!pContinue())
-              return;
+              return vEmptyBrickCount;
+
+          vEmptyBrickCount.x++; // increment total brick count
 
           UINTVECTOR4 const vBrickID(x, y, z, 0);
           uint32_t const brickIndex = pool.GetIntegerBrickID(vBrickID);
           if (vBrickMetadata[brickIndex] < BI_FLAG_COUNT) // only check bricks that are not cached in the pool
           {
             bool const bContainsData = ContainsData<eRenderMode>(visibility, brickIndex, vMinMaxScalar, vMinMaxGradient);
-            if (!bContainsData)
+            if (!bContainsData) {
               vBrickMetadata[brickIndex] = BI_CHILD_EMPTY; // finest level bricks are all child empty by definition
+              vEmptyBrickCount.z++; // increment child empty brick count
+            }
           }
         } // for x
       } // for y
@@ -1005,7 +1012,9 @@ namespace {
 
             if (bInterruptable && !(x % iContinue)/* && pContinue*/)
               if (!pContinue())
-                return;
+                return vEmptyBrickCount;
+
+            vEmptyBrickCount.x++; // increment total brick count
 
             UINTVECTOR4 const vBrickID(x, y, z, iLoD);
             uint32_t const brickIndex = pool.GetIntegerBrickID(vBrickID);
@@ -1026,6 +1035,9 @@ namespace {
                     (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(1, 1, 1, 0))] != BI_CHILD_EMPTY))
                 {
                   vBrickMetadata[brickIndex] = BI_EMPTY; // downgrade parent brick if we found a non child empty child
+                  vEmptyBrickCount.y++; // increment empty brick count
+                } else {
+                  vEmptyBrickCount.z++; // increment child empty brick count
                 }
               }
             }
@@ -1042,7 +1054,9 @@ namespace {
 
             if (bInterruptable && !(y % iContinue)/* && pContinue*/)
               if (!pContinue())
-                return;
+                return vEmptyBrickCount;
+
+            vEmptyBrickCount.x++; // increment total brick count
 
             uint32_t const x = iLayout.x - 1;
             UINTVECTOR4 const vBrickID(x, y, z, iLoD);
@@ -1060,6 +1074,9 @@ namespace {
                     (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(0, 1, 1, 0))] != BI_CHILD_EMPTY))
                 {
                   vBrickMetadata[brickIndex] = BI_EMPTY; // downgrade parent brick if we found a non child empty child
+                  vEmptyBrickCount.y++; // increment empty brick count
+                } else {
+                  vEmptyBrickCount.z++; // increment child empty brick count
                 }
               }
             }
@@ -1074,7 +1091,9 @@ namespace {
 
             if (bInterruptable && !(x % iContinue)/* && pContinue*/)
               if (!pContinue())
-                return;
+                return vEmptyBrickCount;
+
+            vEmptyBrickCount.x++; // increment total brick count
 
             uint32_t const y = iLayout.y - 1;
             UINTVECTOR4 const vBrickID(x, y, z, iLoD);
@@ -1092,6 +1111,9 @@ namespace {
                     (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(1, 0, 1, 0))] != BI_CHILD_EMPTY))
                 {
                   vBrickMetadata[brickIndex] = BI_EMPTY; // downgrade parent brick if we found a non-empty child
+                  vEmptyBrickCount.y++; // increment empty brick count
+                } else {
+                  vEmptyBrickCount.z++; // increment child empty brick count
                 }
               }
             }
@@ -1106,7 +1128,9 @@ namespace {
 
             if (bInterruptable && !(x % iContinue)/* && pContinue*/)
               if (!pContinue())
-                return;
+                return vEmptyBrickCount;
+
+            vEmptyBrickCount.x++; // increment total brick count
 
             uint32_t const z = iLayout.z - 1;
             UINTVECTOR4 const vBrickID(x, y, z, iLoD);
@@ -1124,6 +1148,9 @@ namespace {
                     (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(1, 1, 0, 0))] != BI_CHILD_EMPTY))
                 {
                   vBrickMetadata[brickIndex] = BI_EMPTY; // downgrade parent brick if we found a non-empty child
+                  vEmptyBrickCount.y++; // increment empty brick count
+                } else {
+                  vEmptyBrickCount.z++; // increment child empty brick count
                 }
               }
             }
@@ -1137,7 +1164,9 @@ namespace {
 
           if (bInterruptable && !(z % iContinue)/* && pContinue*/)
             if (!pContinue())
-              return;
+              return vEmptyBrickCount;
+
+          vEmptyBrickCount.x++; // increment total brick count
 
           uint32_t const y = iLayout.y - 1;
           uint32_t const x = iLayout.x - 1;
@@ -1154,6 +1183,9 @@ namespace {
                   (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(0, 0, 1, 0))] != BI_CHILD_EMPTY))
               {
                 vBrickMetadata[brickIndex] = BI_EMPTY; // downgrade parent brick if we found a non-empty child
+                vEmptyBrickCount.y++; // increment empty brick count
+              } else {
+                vEmptyBrickCount.z++; // increment child empty brick count
               }
             }
           }
@@ -1166,7 +1198,9 @@ namespace {
 
           if (bInterruptable && !(y % iContinue)/* && pContinue*/)
             if (!pContinue())
-              return;
+              return vEmptyBrickCount;
+
+          vEmptyBrickCount.x++; // increment total brick count
 
           uint32_t const z = iLayout.z - 1;
           uint32_t const x = iLayout.x - 1;
@@ -1183,6 +1217,9 @@ namespace {
                   (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(0, 1, 0, 0))] != BI_CHILD_EMPTY))
               {
                 vBrickMetadata[brickIndex] = BI_EMPTY; // downgrade parent brick if we found a non-empty child
+                vEmptyBrickCount.y++; // increment empty brick count
+              } else {
+                vEmptyBrickCount.z++; // increment child empty brick count
               }
             }
           }
@@ -1195,7 +1232,9 @@ namespace {
 
           if (bInterruptable && !(x % iContinue)/* && pContinue*/)
             if (!pContinue())
-              return;
+              return vEmptyBrickCount;
+
+          vEmptyBrickCount.x++; // increment total brick count
 
           uint32_t const z = iLayout.z - 1;
           uint32_t const y = iLayout.y - 1;
@@ -1212,6 +1251,9 @@ namespace {
                   (vBrickMetadata[pool.GetIntegerBrickID(childPosition + UINTVECTOR4(1, 0, 0, 0))] != BI_CHILD_EMPTY))
               {
                 vBrickMetadata[brickIndex] = BI_EMPTY; // downgrade parent brick if we found a non-empty child
+                vEmptyBrickCount.y++; // increment empty brick count
+              } else {
+                vEmptyBrickCount.z++; // increment child empty brick count
               }
             }
           }
@@ -1223,7 +1265,9 @@ namespace {
 
         if (bInterruptable /* && pContinue*/)
           if (!pContinue())
-            return;
+            return vEmptyBrickCount;
+
+        vEmptyBrickCount.x++; // increment total brick count
 
         uint32_t const z = iLayout.z - 1;
         uint32_t const y = iLayout.y - 1;
@@ -1240,6 +1284,9 @@ namespace {
             if (vBrickMetadata[pool.GetIntegerBrickID(childPosition)] != BI_CHILD_EMPTY)
             {
               vBrickMetadata[brickIndex] = BI_EMPTY; // downgrade parent brick if we found a non-empty child
+              vEmptyBrickCount.y++; // increment empty brick count
+            } else {
+              vEmptyBrickCount.z++; // increment child empty brick count
             }
           }
         }
@@ -1247,6 +1294,8 @@ namespace {
 
       iChildLayout = iLayout;
     } // for all levels
+
+    return vEmptyBrickCount;
   }
 
   template<typename T, bool brickDebug>
@@ -1472,10 +1521,12 @@ namespace {
 
 } // anonymous namespace
 
-void GLVolumePool::RecomputeVisibility(VisibilityState const& visibility, size_t iTimestep, bool bForceSynchronousUpdate)
+UINTVECTOR3 GLVolumePool::RecomputeVisibility(VisibilityState const& visibility, size_t iTimestep, bool bForceSynchronousUpdate)
 {
+  // (totalProcessedBrickCount, emptyBrickCount, childEmptyBrickCount)
+  UINTVECTOR3 vEmptyBrickCount(0, 0, 0);
   if (m_eDebugMode == DM_NOEMPTYSPACELEAPING)
-    return;
+    return vEmptyBrickCount;
 
 #ifdef GLVOLUMEPOOL_PROFILE
   m_Timer.Start();
@@ -1542,7 +1593,7 @@ void GLVolumePool::RecomputeVisibility(VisibilityState const& visibility, size_t
     break;
   default:
     T_ERROR("Unhandled rendering mode.");
-    return;
+    return vEmptyBrickCount;
   }
 #ifdef GLVOLUMEPOOL_PROFILE
   m_TimesRecomputeVisibilityForBrickPool.Push(m_Timer.Elapsed() - t);
@@ -1552,19 +1603,28 @@ void GLVolumePool::RecomputeVisibility(VisibilityState const& visibility, size_t
     // recompute visibility for the entire hierarchy immediately
     switch (visibility.GetRenderMode()) {
     case AbstrRenderer::RM_1DTRANS:
-      RecomputeVisibilityForOctree<false, AbstrRenderer::RM_1DTRANS>(visibility, *this, m_vBrickMetadata, m_vMinMaxScalar, m_vMinMaxGradient);
+      vEmptyBrickCount = RecomputeVisibilityForOctree<false, AbstrRenderer::RM_1DTRANS>(visibility, *this, m_vBrickMetadata, m_vMinMaxScalar, m_vMinMaxGradient);
       break;
     case AbstrRenderer::RM_2DTRANS:
-      RecomputeVisibilityForOctree<false, AbstrRenderer::RM_2DTRANS>(visibility, *this, m_vBrickMetadata, m_vMinMaxScalar, m_vMinMaxGradient);
+      vEmptyBrickCount = RecomputeVisibilityForOctree<false, AbstrRenderer::RM_2DTRANS>(visibility, *this, m_vBrickMetadata, m_vMinMaxScalar, m_vMinMaxGradient);
       break;
     case AbstrRenderer::RM_ISOSURFACE:
-      RecomputeVisibilityForOctree<false, AbstrRenderer::RM_ISOSURFACE>(visibility, *this, m_vBrickMetadata, m_vMinMaxScalar, m_vMinMaxGradient);
+      vEmptyBrickCount = RecomputeVisibilityForOctree<false, AbstrRenderer::RM_ISOSURFACE>(visibility, *this, m_vBrickMetadata, m_vMinMaxScalar, m_vMinMaxGradient);
       break;
     default:
       T_ERROR("Unhandled rendering mode.");
-      return;
+      return vEmptyBrickCount;
     }
     m_bVisibilityUpdated = true; // will be true after we uploaded the metadata texture in the next line
+    if (vEmptyBrickCount.x != m_iTotalBrickCount) {
+      WARNING("%u of %u bricks were processed during synchronous visibility recomputation!");
+    }
+    MESSAGE("Synchronously recomputed brick visibility: %u bricks processed, "
+            "%u bricks are EMPTY (%.2f%%), %u bricks are CHILD_EMPTY (%.2f%%)",
+            vEmptyBrickCount.x, vEmptyBrickCount.y,
+            (static_cast<float>(vEmptyBrickCount.y)/vEmptyBrickCount.x)+100.0f,
+            vEmptyBrickCount.z,
+            (static_cast<float>(vEmptyBrickCount.z)/vEmptyBrickCount.x)+100.0f);
   }
 
   // upload new metadata to GPU
@@ -1585,6 +1645,7 @@ void GLVolumePool::RecomputeVisibility(VisibilityState const& visibility, size_t
   OTHER("recompute visibility cost [avg: %.2f, min: %.2f, max: %.2f, samples: %d]"
     , m_TimesRecomputeVisibility.GetAvg(), m_TimesRecomputeVisibility.GetMin(), m_TimesRecomputeVisibility.GetMax(), m_TimesRecomputeVisibility.GetHistroryLength());
 #endif
+  return vEmptyBrickCount;
 }
 
 uint32_t GLVolumePool::UploadBricks(const std::vector<UINTVECTOR4>& vBrickIDs,

@@ -61,7 +61,8 @@ namespace tuvok {
       /// "PH" == "paper hacks".  sorry.  delete these after pacvis.
       ///@{
       virtual void PH_ClearWorkingSet();
-      virtual void PH_RecalculateVisibility();
+      // @return (totalProcessedBrickCount, emptyBrickCount, childEmptyBrickCount)
+      virtual UINTVECTOR3 PH_RecalculateVisibility();
       virtual bool PH_Converged() const;
       virtual bool PH_OpenBrickAccessLogfile(const std::string&);
       virtual bool PH_CloseBrickAccessLogfile();
@@ -149,7 +150,8 @@ namespace tuvok {
       bool CreateVolumePool();
       uint32_t UpdateToVolumePool(const UINTVECTOR4& brick);
       uint32_t UpdateToVolumePool(std::vector<UINTVECTOR4>& hash);
-      void RecomputeBrickVisibility(bool bForceSynchronousUpdate = false);
+      // @return (totalProcessedBrickCount, emptyBrickCount, childEmptyBrickCount)
+      UINTVECTOR3 RecomputeBrickVisibility(bool bForceSynchronousUpdate = false);
 
       // catch all circumstances that change the visibility of a brick
       virtual void SetIsoValue(float fIsovalue);
