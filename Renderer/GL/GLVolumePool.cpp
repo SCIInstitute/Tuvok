@@ -958,14 +958,14 @@ namespace {
   }
 
   template<bool bInterruptable, AbstrRenderer::ERenderMode eRenderMode>
-  UINTVECTOR3 RecomputeVisibilityForOctree(
+  UINTVECTOR4 RecomputeVisibilityForOctree(
     VisibilityState const& visibility, GLVolumePool const& pool,
     std::vector<uint32_t>& vBrickMetadata,
     std::vector<GLVolumePool::MinMax> const& vMinMaxScalar,
     std::vector<GLVolumePool::MinMax> const& vMinMaxGradient,
     tuvok::ThreadClass::PredicateFunction pContinue = tuvok::ThreadClass::PredicateFunction())
   {
-    UINTVECTOR3 vEmptyBrickCount(0, 0, 0);
+    UINTVECTOR4 vEmptyBrickCount(0, 0, 0, 0);
 #ifndef _DEBUG
     uint32_t const iContinue = 375; // we approximately process 7500 bricks/ms, checking for interruption every 375 bricks allows us to pause in 0.05 ms (worst case)
 #else
@@ -992,7 +992,7 @@ namespace {
             bool const bContainsData = ContainsData<eRenderMode>(visibility, brickIndex, vMinMaxScalar, vMinMaxGradient);
             if (!bContainsData) {
               vBrickMetadata[brickIndex] = BI_CHILD_EMPTY; // finest level bricks are all child empty by definition
-              vEmptyBrickCount.z++; // increment child empty brick count
+              vEmptyBrickCount.w++; // increment leaf empty brick count
             }
           }
         } // for x
@@ -1521,10 +1521,10 @@ namespace {
 
 } // anonymous namespace
 
-UINTVECTOR3 GLVolumePool::RecomputeVisibility(VisibilityState const& visibility, size_t iTimestep, bool bForceSynchronousUpdate)
+UINTVECTOR4 GLVolumePool::RecomputeVisibility(VisibilityState const& visibility, size_t iTimestep, bool bForceSynchronousUpdate)
 {
   // (totalProcessedBrickCount, emptyBrickCount, childEmptyBrickCount)
-  UINTVECTOR3 vEmptyBrickCount(0, 0, 0);
+  UINTVECTOR4 vEmptyBrickCount(0, 0, 0, 0);
   if (m_eDebugMode == DM_NOEMPTYSPACELEAPING)
     return vEmptyBrickCount;
 
@@ -1619,12 +1619,22 @@ UINTVECTOR3 GLVolumePool::RecomputeVisibility(VisibilityState const& visibility,
     if (vEmptyBrickCount.x != m_iTotalBrickCount) {
       WARNING("%u of %u bricks were processed during synchronous visibility recomputation!");
     }
+    uint32_t const iLeafBrickCount = m_pDataset->GetBrickLayout(0, 0).volume();
+    uint32_t const iInternalBrickCount = m_iTotalBrickCount - iLeafBrickCount;
     OTHER("Synchronously recomputed brick visibility: %u bricks processed, "
-          "%u bricks are EMPTY (%.2f%%), %u bricks are CHILD_EMPTY (%.2f%%)",
-          vEmptyBrickCount.x, vEmptyBrickCount.y,
-          (static_cast<float>(vEmptyBrickCount.y)/vEmptyBrickCount.x)*100.0f,
+          "%u bricks are EMPTY (%.2f%% of internal bricks, %.2f%% of total bricks),"
+          "%u bricks are CHILD_EMPTY (%.2f%% of internal bricks, %.2f%% of total bricks)",
+          "%u leaf bricks are empty (%.2f%% of leaf bricks, %.2f%% of total bricks)",
+          vEmptyBrickCount.x,
+          vEmptyBrickCount.y,
+          (static_cast<float>(vEmptyBrickCount.y)/iInternalBrickCount)*100.0f,
+          (static_cast<float>(vEmptyBrickCount.y)/m_iTotalBrickCount)*100.0f,
           vEmptyBrickCount.z,
-          (static_cast<float>(vEmptyBrickCount.z)/vEmptyBrickCount.x)*100.0f);
+          (static_cast<float>(vEmptyBrickCount.z)/iInternalBrickCount)*100.0f,
+          (static_cast<float>(vEmptyBrickCount.z)/m_iTotalBrickCount)*100.0f,
+          vEmptyBrickCount.w,
+          (static_cast<float>(vEmptyBrickCount.w)/iLeafBrickCount)*100.0f,
+          (static_cast<float>(vEmptyBrickCount.w)/m_iTotalBrickCount)*100.0f);
   }
 
   // upload new metadata to GPU

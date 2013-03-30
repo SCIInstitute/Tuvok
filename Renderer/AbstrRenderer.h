@@ -292,7 +292,7 @@ class AbstrRenderer {
     /// "PH" == "paper hacks".  sorry.  delete these after pacvis.
     ///@{
     virtual void PH_ClearWorkingSet();
-    virtual UINTVECTOR3 PH_RecalculateVisibility();
+    virtual UINTVECTOR4 PH_RecalculateVisibility();
     virtual bool PH_Converged() const;
 
     virtual bool PH_OpenBrickAccessLogfile(const std::string&);

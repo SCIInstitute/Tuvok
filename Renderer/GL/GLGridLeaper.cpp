@@ -628,9 +628,9 @@ void GLGridLeaper::SetRendermode(AbstrRenderer::ERenderMode eRenderMode) {
   RecomputeBrickVisibility();
 }
 
-UINTVECTOR3 GLGridLeaper::RecomputeBrickVisibility(bool bForceSynchronousUpdate) {
+UINTVECTOR4 GLGridLeaper::RecomputeBrickVisibility(bool bForceSynchronousUpdate) {
   // (totalProcessedBrickCount, emptyBrickCount, childEmptyBrickCount)
-  UINTVECTOR3 vEmptyBrickCount(0, 0, 0);
+  UINTVECTOR4 vEmptyBrickCount(0, 0, 0, 0);
   if (!m_pVolumePool) return vEmptyBrickCount;
 
   double const fMaxValue = (m_pDataset->GetRange().first > m_pDataset->GetRange().second) ? m_p1DTrans->GetSize() : m_pDataset->GetRange().second;
@@ -1092,7 +1092,7 @@ void GLGridLeaper::PH_ClearWorkingSet() {
   m_pVolumePool->PH_Reset(m_VisibilityState, m_iTimestep);
   ScheduleWindowRedraw(GetFirst3DRegion().get());
 }
-UINTVECTOR3 GLGridLeaper::PH_RecalculateVisibility() {
+UINTVECTOR4 GLGridLeaper::PH_RecalculateVisibility() {
   return RecomputeBrickVisibility(true);
 }
 bool GLGridLeaper::PH_Converged() const {
