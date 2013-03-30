@@ -323,6 +323,9 @@ void register_perf_enum(std::shared_ptr<LuaScripting>& ss) {
   register_unsigned(lua, "PERF_DECOMPRESSION", PERF_DECOMPRESSION);
   register_unsigned(lua, "PERF_COMPRESSION", PERF_COMPRESSION);
   register_unsigned(lua, "PERF_BRICKS", PERF_BRICKS);
+  register_unsigned(lua, "PERF_CACHE_LOOKUP", PERF_CACHE_LOOKUP);
+  register_unsigned(lua, "PERF_CACHE_ADD", PERF_CACHE_ADD);
+  register_unsigned(lua, "PERF_SOMETHING", PERF_SOMETHING);
   register_unsigned(lua, "PERF_BRICK_COPY", PERF_BRICK_COPY);
   register_unsigned(lua, "PERF_MM_PRECOMPUTE", PERF_MM_PRECOMPUTE);
   register_unsigned(lua, "PERF_READ_HTABLE", PERF_READ_HTABLE);
