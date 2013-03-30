@@ -17,20 +17,18 @@ class BrickCache {
     BrickCache();
     ~BrickCache();
 
-    /// the second arguments here aren't used, they are just a type tag.
-    /// so, for example:
-    ///   std::vector<uint32_t> v = cache.lookup(key, uint32_t());
-    /// i.e. just give it an empty value so it knows which one to call.
+    /// looks up a value in the cache, and fills the second argument if it
+    /// exists.
     ///@{
-    std::vector<uint8_t> lookup(const BrickKey&, uint8_t);
-    std::vector<uint16_t> lookup(const BrickKey&, uint16_t);
-    std::vector<uint32_t> lookup(const BrickKey&, uint32_t);
-    std::vector<uint64_t> lookup(const BrickKey&, uint64_t);
-    std::vector<int8_t> lookup(const BrickKey&, int8_t);
-    std::vector<int16_t> lookup(const BrickKey&, int16_t);
-    std::vector<int32_t> lookup(const BrickKey&, int32_t);
-    std::vector<int64_t> lookup(const BrickKey&, int64_t);
-    std::vector<float> lookup(const BrickKey&, float);
+    void lookup(const BrickKey&, std::vector<uint8_t>&);
+    void lookup(const BrickKey&, std::vector<uint16_t>&);
+    void lookup(const BrickKey&, std::vector<uint32_t>&);
+    void lookup(const BrickKey&, std::vector<uint64_t>&);
+    void lookup(const BrickKey&, std::vector<int8_t>&);
+    void lookup(const BrickKey&, std::vector<int16_t>&);
+    void lookup(const BrickKey&, std::vector<int32_t>&);
+    void lookup(const BrickKey&, std::vector<int64_t>&);
+    void lookup(const BrickKey&, std::vector<float>&);
     ///@}
 
     /// These return their argument for ease of use.

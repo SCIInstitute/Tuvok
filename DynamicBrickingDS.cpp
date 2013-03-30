@@ -577,7 +577,8 @@ bool DynamicBrickingDS::dbinfo::Brick(const DynamicBrickingDS& ds,
                                       std::vector<T>& data) {
   GBPrelim pre = this->BrickSetup(key, ds);
 
-  auto lookup = this->cache.lookup(pre.skey, T());
+  std::vector<T> lookup;
+  this->cache.lookup(pre.skey, lookup);
   // first: check the cache and see if we can get the data easy.
   if(!lookup.empty()) {
     StackTimer cc(PERF_CACHE_LOOKUP);
@@ -585,9 +586,8 @@ bool DynamicBrickingDS::dbinfo::Brick(const DynamicBrickingDS& ds,
             static_cast<unsigned>(std::get<0>(pre.skey)),
             static_cast<unsigned>(std::get<1>(pre.skey)),
             static_cast<unsigned>(std::get<2>(pre.skey)));
-    std::vector<T> srcdata = std::move(lookup);
     StackTimer copies(PERF_BRICK_COPY);
-    return this->CopyBrick<T>(data, srcdata, pre.tgt_bs, pre.src_bs,
+    return this->CopyBrick<T>(data, lookup, pre.tgt_bs, pre.src_bs,
                               pre.src_offset);
   } else { // nope?  oh well.  read it.
     std::vector<T> srcdata(this->ds->GetMaxBrickSize().volume());

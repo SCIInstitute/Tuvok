@@ -4,6 +4,7 @@
 #include <map>
 #include <memory>
 #include "BrickCache.h"
+#include "Controller/StackTimer.h"
 
 namespace tuvok {
 
@@ -59,32 +60,32 @@ struct CacheLRU {
 struct BrickCache::bcinfo {
     bcinfo(): bytes(0) {}
     // this is wordy but they all just forward to a real implementation below.
-    std::vector<uint8_t> lookup(const BrickKey& k, uint8_t) {
-      return this->typed_lookup<uint8_t>(k);
+    void lookup(const BrickKey& k, std::vector<uint8_t>& d) {
+      this->typed_lookup<uint8_t>(k, d);
     }
-    std::vector<uint16_t> lookup(const BrickKey& k, uint16_t) {
-      return this->typed_lookup<uint16_t>(k);
+    void lookup(const BrickKey& k, std::vector<uint16_t>& d) {
+      this->typed_lookup<uint16_t>(k, d);
     }
-    std::vector<uint32_t> lookup(const BrickKey& k, uint32_t) {
-      return this->typed_lookup<uint32_t>(k);
+    void lookup(const BrickKey& k, std::vector<uint32_t>& d) {
+      this->typed_lookup<uint32_t>(k, d);
     }
-    std::vector<uint64_t> lookup(const BrickKey& k, uint64_t) {
-      return this->typed_lookup<uint64_t>(k);
+    void lookup(const BrickKey& k, std::vector<uint64_t>& d) {
+      this->typed_lookup<uint64_t>(k, d);
     }
-    std::vector<int8_t> lookup(const BrickKey& k, int8_t) {
-      return this->typed_lookup<int8_t>(k);
+    void lookup(const BrickKey& k, std::vector<int8_t>& d) {
+      this->typed_lookup<int8_t>(k, d);
     }
-    std::vector<int16_t> lookup(const BrickKey& k, int16_t) {
-      return this->typed_lookup<int16_t>(k);
+    void lookup(const BrickKey& k, std::vector<int16_t>& d) {
+      this->typed_lookup<int16_t>(k, d);
     }
-    std::vector<int32_t> lookup(const BrickKey& k, int32_t) {
-      return this->typed_lookup<int32_t>(k);
+    void lookup(const BrickKey& k, std::vector<int32_t>& d) {
+      this->typed_lookup<int32_t>(k, d);
     }
-    std::vector<int64_t> lookup(const BrickKey& k, int64_t) {
-      return this->typed_lookup<int64_t>(k);
+    void lookup(const BrickKey& k, std::vector<int64_t>& d) {
+      this->typed_lookup<int64_t>(k, d);
     }
-    std::vector<float> lookup(const BrickKey& k, float) {
-      return this->typed_lookup<float>(k);
+    void lookup(const BrickKey& k, std::vector<float>& d) {
+      this->typed_lookup<float>(k, d);
     }
 
     // the erasure means we can just do the insert with the thing we already
@@ -136,7 +137,7 @@ struct BrickCache::bcinfo {
     size_t size() const { return this->bytes; }
 
   private:
-    template<typename T> std::vector<T> typed_lookup(const BrickKey& k);
+    template<typename T> void typed_lookup(const BrickKey& k, std::vector<T>&);
     template<typename T> std::vector<T>& typed_add(const BrickKey&,
                                                    std::vector<T>&);
 
@@ -155,7 +156,7 @@ struct KeyMatches {
 
 // if the key doesn't exist, you get an empty vector.
 template<typename T>
-std::vector<T> BrickCache::bcinfo::typed_lookup(const BrickKey& k) {
+void BrickCache::bcinfo::typed_lookup(const BrickKey& k, std::vector<T>& data) {
   using namespace std::placeholders;
   KeyMatches km;
   auto func = std::bind(&KeyMatches::operator(), km, k, _1);
@@ -164,13 +165,13 @@ std::vector<T> BrickCache::bcinfo::typed_lookup(const BrickKey& k) {
   typedef std::vector<CacheElem> maptype;
   maptype::iterator i = std::find_if(this->cache.begin(), this->cache.end(),
                                      func);
-  if(i == this->cache.end()) { return std::vector<T>(); }
+  if(i == this->cache.end()) { return; }
 
+  StackTimer st(PERF_SOMETHING);
   i->first.access_time = time(NULL);
   TypeErase::GenericType& gt = *(i->second.gt);
-  auto te_vec = dynamic_cast<TypeErase::TypeEraser<std::vector<T>>&>(gt);
+  data = dynamic_cast<TypeErase::TypeEraser<std::vector<T>>&>(gt).get();
   assert(this->size() == this->bytes);
-  return te_vec.get();
 }
 
 template<typename T>
@@ -195,32 +196,32 @@ std::vector<T>& BrickCache::bcinfo::typed_add(const BrickKey& k,
 BrickCache::BrickCache() : ci(new BrickCache::bcinfo) {}
 BrickCache::~BrickCache() {}
 
-std::vector< uint8_t> BrickCache::lookup(const BrickKey& k, uint8_t) {
-  return this->ci->lookup(k, uint8_t());
+void BrickCache::lookup(const BrickKey& k, std::vector<uint8_t>& data) {
+  return this->ci->lookup(k, data);
 }
-std::vector<uint16_t> BrickCache::lookup(const BrickKey& k, uint16_t) {
-  return this->ci->lookup(k, uint16_t());
+void BrickCache::lookup(const BrickKey& k, std::vector<uint16_t>& data) {
+  return this->ci->lookup(k, data);
 }
-std::vector<uint32_t> BrickCache::lookup(const BrickKey& k, uint32_t) {
-  return this->ci->lookup(k, uint32_t());
+void BrickCache::lookup(const BrickKey& k, std::vector<uint32_t>& data) {
+  return this->ci->lookup(k, data);
 }
-std::vector<uint64_t> BrickCache::lookup(const BrickKey& k, uint64_t) {
-  return this->ci->lookup(k, uint64_t());
+void BrickCache::lookup(const BrickKey& k, std::vector<uint64_t>& data) {
+  return this->ci->lookup(k, data);
 }
-std::vector< int8_t> BrickCache::lookup(const BrickKey& k, int8_t) {
-  return this->ci->lookup(k, int8_t());
+void BrickCache::lookup(const BrickKey& k, std::vector<int8_t>& data) {
+  return this->ci->lookup(k, data);
 }
-std::vector<int16_t> BrickCache::lookup(const BrickKey& k, int16_t) {
-  return this->ci->lookup(k, int16_t());
+void BrickCache::lookup(const BrickKey& k, std::vector<int16_t>& data) {
+  return this->ci->lookup(k, data);
 }
-std::vector<int32_t> BrickCache::lookup(const BrickKey& k, int32_t) {
-  return this->ci->lookup(k, int32_t());
+void BrickCache::lookup(const BrickKey& k, std::vector<int32_t>& data) {
+  return this->ci->lookup(k, data);
 }
-std::vector<int64_t> BrickCache::lookup(const BrickKey& k, int64_t) {
-  return this->ci->lookup(k, int64_t());
+void BrickCache::lookup(const BrickKey& k, std::vector<int64_t>& data) {
+  return this->ci->lookup(k, data);
 }
-std::vector<float> BrickCache::lookup(const BrickKey& k, float) {
-  return this->ci->lookup(k, float());
+void BrickCache::lookup(const BrickKey& k, std::vector<float>& data) {
+  return this->ci->lookup(k, data);
 }
 
 std::vector<uint8_t>& BrickCache::add(const BrickKey& k,
