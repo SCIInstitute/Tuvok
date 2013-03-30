@@ -11,6 +11,7 @@ enum PerfCounter {
   PERF_BRICKS,        // number of bricks read/processed (counter)
   PERF_BRICK_COPY,    // copying data into rebricked bricks (seconds)
   PERF_MM_PRECOMPUTE, // computing min/max for new bricks (seconds)
+  PERF_RAYCAST,       // raycasting part of rendering (seconds)
   PERF_END_IO, // invalid; end of IO-based metrics
 
   PERF_READ_HTABLE=1000, // reading hash table from GPU (seconds)
