@@ -1069,14 +1069,14 @@ bool GLGridLeaper::Render3DRegion(RenderRegion3D& rr) {
   }
   m_RenderingTime = renTime.Elapsed();
 
-    if (m_eRenderMode == RM_ISOSURFACE) {
-        for (size_t i = 0;i<iStereoBufferCount;i++) {
-          m_TargetBinder.Bind(m_pFBO3DImageNext[i]);
-          glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-          ComposeSurfaceImage(rr, EStereoID(i));
-        } 
-        m_TargetBinder.Unbind();
-    }
+  if (m_eRenderMode == RM_ISOSURFACE) {
+      for (size_t i = 0;i<iStereoBufferCount;i++) {
+        m_TargetBinder.Bind(m_pFBO3DImageNext[i]);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        ComposeSurfaceImage(rr, EStereoID(i));
+      }
+      m_TargetBinder.Unbind();
+  }
 
   // always display intermediate results
   return true;
