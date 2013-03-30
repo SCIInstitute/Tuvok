@@ -1621,20 +1621,21 @@ UINTVECTOR4 GLVolumePool::RecomputeVisibility(VisibilityState const& visibility,
     }
     uint32_t const iLeafBrickCount = m_pDataset->GetBrickLayout(0, 0).volume();
     uint32_t const iInternalBrickCount = m_iTotalBrickCount - iLeafBrickCount;
-    OTHER("Synchronously recomputed brick visibility: %u bricks processed, "
-          "%u bricks are EMPTY (%.2f%% of internal bricks, %.2f%% of total bricks),"
-          "%u bricks are CHILD_EMPTY (%.2f%% of internal bricks, %.2f%% of total bricks)",
-          "%u leaf bricks are empty (%.2f%% of leaf bricks, %.2f%% of total bricks)",
-          vEmptyBrickCount.x,
-          vEmptyBrickCount.y,
-          (static_cast<float>(vEmptyBrickCount.y)/iInternalBrickCount)*100.0f,
-          (static_cast<float>(vEmptyBrickCount.y)/m_iTotalBrickCount)*100.0f,
-          vEmptyBrickCount.z,
-          (static_cast<float>(vEmptyBrickCount.z)/iInternalBrickCount)*100.0f,
-          (static_cast<float>(vEmptyBrickCount.z)/m_iTotalBrickCount)*100.0f,
-          vEmptyBrickCount.w,
-          (static_cast<float>(vEmptyBrickCount.w)/iLeafBrickCount)*100.0f,
-          (static_cast<float>(vEmptyBrickCount.w)/m_iTotalBrickCount)*100.0f);
+
+    MESSAGE("Synchronously recomputed brick visibility for %u bricks",
+      vEmptyBrickCount.x);
+    MESSAGE("%u inner bricks are EMPTY (%.2f%% of inner bricks, %.2f%% of all bricks)",
+      vEmptyBrickCount.y,
+      (static_cast<float>(vEmptyBrickCount.y)/iInternalBrickCount)*100.0f,
+      (static_cast<float>(vEmptyBrickCount.y)/m_iTotalBrickCount)*100.0f);
+    MESSAGE("%u inner bricks are CHILD_EMPTY (%.2f%% of inner bricks, %.2f%% of all bricks)",
+      vEmptyBrickCount.z,
+      (static_cast<float>(vEmptyBrickCount.z)/iInternalBrickCount)*100.0f,
+      (static_cast<float>(vEmptyBrickCount.z)/m_iTotalBrickCount)*100.0f);
+    MESSAGE("%u leaf bricks are empty  (%.2f%% of leaf bricks, %.2f%% of all bricks)",
+      vEmptyBrickCount.w,
+      (static_cast<float>(vEmptyBrickCount.w)/iLeafBrickCount)*100.0f,
+      (static_cast<float>(vEmptyBrickCount.w)/m_iTotalBrickCount)*100.0f);
   }
 
   // upload new metadata to GPU
