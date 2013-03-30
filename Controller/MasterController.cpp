@@ -39,6 +39,7 @@
 #include <functional>
 #include "MasterController.h"
 #include "../Basics/SystemInfo.h"
+#include "../Basics/SysTools.h"
 #include "../IO/IOManager.h"
 #include "../IO/TransferFunction1D.h"
 #include "../IO/Dataset.h"
@@ -443,6 +444,10 @@ void MasterController::RegisterLuaCommands() {
     &MasterController::PerfQuery, "tuvok.perf",
     "queries performance information.  meaning is query-specific.", false
   );
+  ss->registerFunction(&SysTools::basename, "basename",
+                       "basename for the given filename", false);
+  ss->registerFunction(&SysTools::dirname, "dirname",
+                       "dirname for the given filename", false);
   register_perf_enum(ss);
 
   // Register Tuvok specific math functions...
