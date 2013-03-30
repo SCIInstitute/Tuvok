@@ -327,6 +327,7 @@ void register_perf_enum(std::shared_ptr<LuaScripting>& ss) {
   register_unsigned(lua, "PERF_READ_HTABLE", PERF_READ_HTABLE);
   register_unsigned(lua, "PERF_CONDENSE_HTABLE", PERF_CONDENSE_HTABLE);
   register_unsigned(lua, "PERF_RENDER", PERF_RENDER);
+  register_unsigned(lua, "PERF_RAYCAST", PERF_RAYCAST);
   register_unsigned(lua, "PERF_UPLOAD_BRICKS", PERF_UPLOAD_BRICKS);
 }
 

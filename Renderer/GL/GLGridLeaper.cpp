@@ -736,7 +736,7 @@ void GLGridLeaper::SetupRaycastShader(GLSLProgram* shaderProgram, RenderRegion3D
 }
 
 void GLGridLeaper::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
-  StackTimer rendering(PERF_RENDER);
+  StackTimer rendering(PERF_RAYCAST);
   GLSLProgram* shaderProgram = NULL;
   switch (m_eRenderMode) {
     default: 
@@ -891,6 +891,7 @@ uint32_t GLGridLeaper::UpdateToVolumePool(std::vector<UINTVECTOR4>& hash) {
 
 bool GLGridLeaper::Render3DRegion(RenderRegion3D& rr) {
   Timer renTime; renTime.Start();
+  StackTimer overall(PERF_RENDER);
   glClearColor(0,0,0,0);
 
   size_t iStereoBufferCount = (m_bDoStereoRendering) ? 2 : 1;
