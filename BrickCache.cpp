@@ -186,7 +186,6 @@ std::vector<T>& BrickCache::bcinfo::typed_add(const BrickKey& k,
          this->cache.end());
 #endif
   this->cache.push_back(std::make_pair(BrickInfo(k, time(NULL)), data));
-  std::push_heap(this->cache.begin(), this->cache.end(), CacheLRU());
 
   this->bytes += sizeof(T) * data.size();
   assert(this->size() == this->bytes);

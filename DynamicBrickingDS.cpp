@@ -575,31 +575,38 @@ template<typename T>
 bool DynamicBrickingDS::dbinfo::Brick(const DynamicBrickingDS& ds,
                                       const BrickKey& key,
                                       std::vector<T>& data) {
-  GBPrelim pre = ds.di->BrickSetup(key, ds);
+  GBPrelim pre = this->BrickSetup(key, ds);
 
+  auto lookup = this->cache.lookup(pre.skey, T());
   // first: check the cache and see if we can get the data easy.
-  std::vector<T> srcdata;
-  if(!ds.di->cache.lookup(pre.skey, T()).empty()) {
+  if(!lookup.empty()) {
+    StackTimer cc(PERF_CACHE_LOOKUP);
     MESSAGE("found <%u,%u,%u> in the cache!",
             static_cast<unsigned>(std::get<0>(pre.skey)),
             static_cast<unsigned>(std::get<1>(pre.skey)),
             static_cast<unsigned>(std::get<2>(pre.skey)));
-    srcdata = ds.di->cache.lookup(pre.skey, T());
+    std::vector<T> srcdata = std::move(lookup);
+    StackTimer copies(PERF_BRICK_COPY);
+    return this->CopyBrick<T>(data, srcdata, pre.tgt_bs, pre.src_bs,
+                              pre.src_offset);
   } else { // nope?  oh well.  read it.
+    std::vector<T> srcdata(this->ds->GetMaxBrickSize().volume());
+
     if(!this->ds->GetBrick(pre.skey, srcdata)) { return false; }
 
     // add it to the cache.
     if(this->cacheBytes > 0) {
+      StackTimer cc(PERF_CACHE_ADD);
       // is the cache full?  find room.
       while(!this->FitsInCache(srcdata.size() * sizeof(T))) {
         this->cache.remove();
       }
       this->cache.add(pre.skey, srcdata);
     }
+    StackTimer copies(PERF_BRICK_COPY);
+    return this->CopyBrick<T>(data, srcdata, pre.tgt_bs, pre.src_bs,
+                              pre.src_offset);
   }
-  StackTimer copies(PERF_BRICK_COPY);
-  return this->CopyBrick<T>(data, srcdata, pre.tgt_bs, pre.src_bs,
-                            pre.src_offset);
 }
 
 
