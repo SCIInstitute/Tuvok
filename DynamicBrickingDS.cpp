@@ -575,39 +575,43 @@ template<typename T>
 bool DynamicBrickingDS::dbinfo::Brick(const DynamicBrickingDS& ds,
                                       const BrickKey& key,
                                       std::vector<T>& data) {
+  StackTimer gbrick(PERF_DY_GETBRICK);
   GBPrelim pre = this->BrickSetup(key, ds);
 
-  const void* lookup = this->cache.lookup(pre.skey);
+  const void* lookup;
+  {
+    StackTimer cc(PERF_CACHE_LOOKUP);
+    lookup = this->cache.lookup(pre.skey);
+  }
   // first: check the cache and see if we can get the data easy.
   if(NULL != lookup) {
-    StackTimer cc(PERF_CACHE_LOOKUP);
+    StackTimer copies(PERF_BRICK_COPY);
     MESSAGE("found <%u,%u,%u> in the cache!",
             static_cast<unsigned>(std::get<0>(pre.skey)),
             static_cast<unsigned>(std::get<1>(pre.skey)),
             static_cast<unsigned>(std::get<2>(pre.skey)));
-    StackTimer copies(PERF_BRICK_COPY);
     const T* srcdata = static_cast<const T*>(lookup);
     return this->CopyBrick<T>(data, srcdata, pre.tgt_bs, pre.src_bs,
                               pre.src_offset);
-  } else { // nope?  oh well.  read it.
-    std::vector<T> srcdata(this->ds->GetMaxBrickSize().volume());
-
-    if(!this->ds->GetBrick(pre.skey, srcdata)) { return false; }
-
-    // add it to the cache.
-    const T* sdata = static_cast<const T*>(srcdata.data());
-    if(this->cacheBytes > 0) {
-      StackTimer cc(PERF_CACHE_ADD);
-      // is the cache full?  find room.
-      while(!this->FitsInCache(srcdata.size() * sizeof(T))) {
-        this->cache.remove();
-      }
-      sdata = static_cast<const T*>(this->cache.add(pre.skey, srcdata));
-    }
-    StackTimer copies(PERF_BRICK_COPY);
-    return this->CopyBrick<T>(data, sdata, pre.tgt_bs, pre.src_bs,
-                              pre.src_offset);
   }
+  // nope?  oh well.  read it.
+  std::vector<T> srcdata(this->ds->GetMaxBrickSize().volume());
+
+  if(!this->ds->GetBrick(pre.skey, srcdata)) { return false; }
+
+  // add it to the cache.
+  const T* sdata = static_cast<const T*>(srcdata.data());
+  if(this->cacheBytes > 0) {
+    StackTimer cc(PERF_CACHE_ADD);
+    // is the cache full?  find room.
+    while(!this->FitsInCache(srcdata.size() * sizeof(T))) {
+      this->cache.remove();
+    }
+    sdata = static_cast<const T*>(this->cache.add(pre.skey, srcdata));
+  }
+  StackTimer copies(PERF_BRICK_COPY);
+  return this->CopyBrick<T>(data, sdata, pre.tgt_bs, pre.src_bs,
+                            pre.src_offset);
 }
 
 
