@@ -152,7 +152,7 @@ const void* BrickCache::bcinfo::typed_lookup(const BrickKey& k) {
 template<typename T>
 const void* BrickCache::bcinfo::typed_add(const BrickKey& k,
                                           std::vector<T>& data) {
-  // maybe the case of a general case allows duplicate insert, but for our uses
+  // maybe the case of a general cache allows duplicate insert, but for our uses
   // there should never be a duplicate entry.
 #ifndef NDEBUG
   KeyMatches km;
@@ -161,11 +161,11 @@ const void* BrickCache::bcinfo::typed_add(const BrickKey& k,
   assert(std::find_if(this->cache.begin(), this->cache.end(), func) ==
          this->cache.end());
 #endif
+  this->bytes += sizeof(T) * data.size();
   this->cache.push_back(std::make_pair(BrickInfo(k, time(NULL)),
                         std::move(data)));
 
   StackTimer st(PERF_SOMETHING);
-  this->bytes += sizeof(T) * data.size();
   assert(this->size() == this->bytes);
   return this->typed_lookup<T>(k);
 }
