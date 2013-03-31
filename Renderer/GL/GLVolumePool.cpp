@@ -655,6 +655,7 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit,
 void GLVolumePool::UploadBrick(uint32_t iBrickID, const UINTVECTOR3& vVoxelSize, void* pData, 
                                size_t iInsertPos, uint64_t iTimeOfCreation)
 {
+  StackTimer ubrick(PERF_POOL_BRICK);
   PoolSlotData& slot = m_vPoolSlotData[iInsertPos];
 
   if (slot.ContainsVisibleBrick()) {
@@ -847,13 +848,13 @@ void GLVolumePool::CreateGLResources() {
 }
 
 struct {
-  bool operator() (const PoolSlotData& i, const PoolSlotData& j) { 
+  bool operator() (const PoolSlotData& i, const PoolSlotData& j) const {
     return (i.m_iTimeOfCreation < j.m_iTimeOfCreation);
   }
 } PoolSorter;
 
 void GLVolumePool::UploadMetadataTexture() {
-
+  StackTimer poolmd(PERF_POOL_METADATA);
   // DEBUG code
 /*  MESSAGE("Brickpool Metadata entries:");
   for (size_t i = 0; i<m_iTotalBrickCount;++i) {
@@ -885,7 +886,7 @@ void GLVolumePool::UploadMetadataTexture() {
 }
 
 void GLVolumePool::UploadMetadataTexel(uint32_t iBrickID) {
-
+  StackTimer pooltexel(PERF_POOL_TEXEL);
   uint32_t const iMetaTextureWidth = m_pPoolMetadataTexture->GetSize().x;
   UINTVECTOR2 const vSize(1, 1); // size of single texel
   UINTVECTOR2 const vOffset(iBrickID % iMetaTextureWidth, iBrickID / iMetaTextureWidth);
@@ -893,13 +894,12 @@ void GLVolumePool::UploadMetadataTexel(uint32_t iBrickID) {
 }
 
 void GLVolumePool::PrepareForPaging() {
-
+  StackTimer ppage(PERF_POOL_SORT);
   std::sort(m_vPoolSlotData.begin(), m_vPoolSlotData.end(), PoolSorter);
   m_iInsertPos = 0;
 }
 
 namespace {
-
   template<AbstrRenderer::ERenderMode eRenderMode>
   bool ContainsData(VisibilityState const& visibility, uint32_t iBrickID,
                     std::vector<GLVolumePool::MinMax> const& vMinMaxScalar,
