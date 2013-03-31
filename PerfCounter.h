@@ -13,6 +13,7 @@ enum PerfCounter {
   PERF_MM_PRECOMPUTE, // computing min/max for new bricks (seconds)
   PERF_CACHE_LOOKUP,  // looking up/copying from cache (seconds)
   PERF_CACHE_ADD,     // adding/copying into the brick cache (seconds)
+  PERF_DY_GETBRICK,   // overall operation of GetBrick call (seconds)
   PERF_SOMETHING,     // ad hoc, always changing (seconds)
   PERF_END_IO, // invalid; end of IO-based metrics
 
