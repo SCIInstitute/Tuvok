@@ -1525,8 +1525,10 @@ UINTVECTOR4 GLVolumePool::RecomputeVisibility(VisibilityState const& visibility,
 {
   // (totalProcessedBrickCount, emptyBrickCount, childEmptyBrickCount)
   UINTVECTOR4 vEmptyBrickCount(0, 0, 0, 0);
-  if (m_eDebugMode == DM_NOEMPTYSPACELEAPING)
+  if (m_eDebugMode == DM_NOEMPTYSPACELEAPING) {
+    m_bVisibilityUpdated = true;
     return vEmptyBrickCount;
+  }
 
 #ifdef GLVOLUMEPOOL_PROFILE
   m_Timer.Start();
