@@ -14,6 +14,10 @@ enum PerfCounter {
   PERF_CACHE_LOOKUP,  // looking up/copying from cache (seconds)
   PERF_CACHE_ADD,     // adding/copying into the brick cache (seconds)
   PERF_DY_GETBRICK,   // overall operation of GetBrick call (seconds)
+  PERF_POOL_SORT,     // sorting the brick pool info (seconds)
+  PERF_POOL_METADATA, // updating (uploading) pool metadata (seconds)
+  PERF_POOL_BRICK,    // pool upload of a single brick (seconds)
+  PERF_POOL_TEXEL,    // uploading single texel of pool (seconds)
   PERF_SOMETHING,     // ad hoc, always changing (seconds)
   PERF_END_IO, // invalid; end of IO-based metrics
 
