@@ -167,9 +167,9 @@ void BrickCache::bcinfo::typed_lookup(const BrickKey& k, std::vector<T>& data) {
                                      func);
   if(i == this->cache.end()) { return; }
 
-  StackTimer st(PERF_SOMETHING);
   i->first.access_time = time(NULL);
   TypeErase::GenericType& gt = *(i->second.gt);
+  StackTimer st(PERF_SOMETHING);
   data = dynamic_cast<TypeErase::TypeEraser<std::vector<T>>&>(gt).get();
   assert(this->size() == this->bytes);
 }
