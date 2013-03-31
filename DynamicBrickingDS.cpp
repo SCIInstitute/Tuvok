@@ -93,8 +93,8 @@ struct DynamicBrickingDS::dbinfo {
   /// @returns the size of the brick, minus any ghost voxels.
   BrickSize BrickSansGhost() const;
 
-  template<typename T>
-  bool CopyBrick(std::vector<T>& dest, const std::vector<T>& src,
+  template<typename T, typename Iter>
+  bool CopyBrick(std::vector<T>& dest, Iter src,
                  const BrickSize tgt_bs, const BrickSize src_bs,
                  VoxelIndex src_offset);
 };
@@ -501,9 +501,9 @@ DynamicBrickingDS::dbinfo::TargetBrickLayout(size_t lod, size_t ts) const {
 
 // This is the type-dependent part of ::GetBrick.  Basically, the copying of
 // the source data into the target brick.
-template<typename T>
+template<typename T, typename Iter>
 bool DynamicBrickingDS::dbinfo::CopyBrick(
-  std::vector<T>& dest, const std::vector<T>& srcdata,
+  std::vector<T>& dest, const Iter srcdata,
   const BrickSize tgt_bs, const BrickSize src_bs,
   VoxelIndex src_offset
 ) {
@@ -533,7 +533,7 @@ bool DynamicBrickingDS::dbinfo::CopyBrick(
                 dest.data()+tgt_offset);
 #else
       // iterators: gives nice error messages in debug.
-      std::copy(srcdata.begin()+src_o, srcdata.begin()+src_o+scanline,
+      std::copy(srcdata+src_o, srcdata+src_o+scanline,
                 dest.begin()+tgt_offset);
 #endif
       src_offset[1]++; // should follow 'y' increment.
@@ -577,17 +577,17 @@ bool DynamicBrickingDS::dbinfo::Brick(const DynamicBrickingDS& ds,
                                       std::vector<T>& data) {
   GBPrelim pre = this->BrickSetup(key, ds);
 
-  std::vector<T> lookup;
-  this->cache.lookup(pre.skey, lookup);
+  const void* lookup = this->cache.lookup(pre.skey);
   // first: check the cache and see if we can get the data easy.
-  if(!lookup.empty()) {
+  if(NULL != lookup) {
     StackTimer cc(PERF_CACHE_LOOKUP);
     MESSAGE("found <%u,%u,%u> in the cache!",
             static_cast<unsigned>(std::get<0>(pre.skey)),
             static_cast<unsigned>(std::get<1>(pre.skey)),
             static_cast<unsigned>(std::get<2>(pre.skey)));
     StackTimer copies(PERF_BRICK_COPY);
-    return this->CopyBrick<T>(data, lookup, pre.tgt_bs, pre.src_bs,
+    const T* srcdata = static_cast<const T*>(lookup);
+    return this->CopyBrick<T>(data, srcdata, pre.tgt_bs, pre.src_bs,
                               pre.src_offset);
   } else { // nope?  oh well.  read it.
     std::vector<T> srcdata(this->ds->GetMaxBrickSize().volume());
@@ -604,7 +604,7 @@ bool DynamicBrickingDS::dbinfo::Brick(const DynamicBrickingDS& ds,
       this->cache.add(pre.skey, srcdata);
     }
     StackTimer copies(PERF_BRICK_COPY);
-    return this->CopyBrick<T>(data, srcdata, pre.tgt_bs, pre.src_bs,
+    return this->CopyBrick<T>(data, srcdata.data(), pre.tgt_bs, pre.src_bs,
                               pre.src_offset);
   }
 }

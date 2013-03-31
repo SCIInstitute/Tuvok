@@ -20,15 +20,7 @@ class BrickCache {
     /// looks up a value in the cache, and fills the second argument if it
     /// exists.
     ///@{
-    void lookup(const BrickKey&, std::vector<uint8_t>&);
-    void lookup(const BrickKey&, std::vector<uint16_t>&);
-    void lookup(const BrickKey&, std::vector<uint32_t>&);
-    void lookup(const BrickKey&, std::vector<uint64_t>&);
-    void lookup(const BrickKey&, std::vector<int8_t>&);
-    void lookup(const BrickKey&, std::vector<int16_t>&);
-    void lookup(const BrickKey&, std::vector<int32_t>&);
-    void lookup(const BrickKey&, std::vector<int64_t>&);
-    void lookup(const BrickKey&, std::vector<float>&);
+    const void* lookup(const BrickKey&);
     ///@}
 
     /// These return their argument for ease of use.

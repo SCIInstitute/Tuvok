@@ -60,32 +60,8 @@ struct CacheLRU {
 struct BrickCache::bcinfo {
     bcinfo(): bytes(0) {}
     // this is wordy but they all just forward to a real implementation below.
-    void lookup(const BrickKey& k, std::vector<uint8_t>& d) {
-      this->typed_lookup<uint8_t>(k, d);
-    }
-    void lookup(const BrickKey& k, std::vector<uint16_t>& d) {
-      this->typed_lookup<uint16_t>(k, d);
-    }
-    void lookup(const BrickKey& k, std::vector<uint32_t>& d) {
-      this->typed_lookup<uint32_t>(k, d);
-    }
-    void lookup(const BrickKey& k, std::vector<uint64_t>& d) {
-      this->typed_lookup<uint64_t>(k, d);
-    }
-    void lookup(const BrickKey& k, std::vector<int8_t>& d) {
-      this->typed_lookup<int8_t>(k, d);
-    }
-    void lookup(const BrickKey& k, std::vector<int16_t>& d) {
-      this->typed_lookup<int16_t>(k, d);
-    }
-    void lookup(const BrickKey& k, std::vector<int32_t>& d) {
-      this->typed_lookup<int32_t>(k, d);
-    }
-    void lookup(const BrickKey& k, std::vector<int64_t>& d) {
-      this->typed_lookup<int64_t>(k, d);
-    }
-    void lookup(const BrickKey& k, std::vector<float>& d) {
-      this->typed_lookup<float>(k, d);
+    const void* lookup(const BrickKey& k) {
+      return this->typed_lookup<uint8_t>(k);
     }
 
     // the erasure means we can just do the insert with the thing we already
@@ -130,14 +106,14 @@ struct BrickCache::bcinfo {
         this->bytes -= entry.second.width * gt.elems();
 
         std::pop_heap(this->cache.begin(), this->cache.end(), CacheLRU());
-        this->cache.erase(this->cache.end()-1);
+        this->cache.pop_back();
       }
       assert(this->size() == this->bytes);
     }
     size_t size() const { return this->bytes; }
 
   private:
-    template<typename T> void typed_lookup(const BrickKey& k, std::vector<T>&);
+    template<typename T> const void* typed_lookup(const BrickKey& k);
     template<typename T> std::vector<T>& typed_add(const BrickKey&,
                                                    std::vector<T>&);
 
@@ -156,7 +132,7 @@ struct KeyMatches {
 
 // if the key doesn't exist, you get an empty vector.
 template<typename T>
-void BrickCache::bcinfo::typed_lookup(const BrickKey& k, std::vector<T>& data) {
+const void* BrickCache::bcinfo::typed_lookup(const BrickKey& k) {
   using namespace std::placeholders;
   KeyMatches km;
   auto func = std::bind(&KeyMatches::operator(), km, k, _1);
@@ -165,13 +141,12 @@ void BrickCache::bcinfo::typed_lookup(const BrickKey& k, std::vector<T>& data) {
   typedef std::vector<CacheElem> maptype;
   maptype::iterator i = std::find_if(this->cache.begin(), this->cache.end(),
                                      func);
-  if(i == this->cache.end()) { return; }
+  if(i == this->cache.end()) { return NULL; }
 
   i->first.access_time = time(NULL);
   TypeErase::GenericType& gt = *(i->second.gt);
-  StackTimer st(PERF_SOMETHING);
-  data = dynamic_cast<TypeErase::TypeEraser<std::vector<T>>&>(gt).get();
   assert(this->size() == this->bytes);
+  return dynamic_cast<TypeErase::TypeEraser<std::vector<T>>&>(gt).get().data();
 }
 
 template<typename T>
@@ -188,6 +163,7 @@ std::vector<T>& BrickCache::bcinfo::typed_add(const BrickKey& k,
 #endif
   this->cache.push_back(std::make_pair(BrickInfo(k, time(NULL)), data));
 
+  StackTimer st(PERF_SOMETHING);
   this->bytes += sizeof(T) * data.size();
   assert(this->size() == this->bytes);
   return data;
@@ -196,9 +172,10 @@ std::vector<T>& BrickCache::bcinfo::typed_add(const BrickKey& k,
 BrickCache::BrickCache() : ci(new BrickCache::bcinfo) {}
 BrickCache::~BrickCache() {}
 
-void BrickCache::lookup(const BrickKey& k, std::vector<uint8_t>& data) {
-  return this->ci->lookup(k, data);
+const void* BrickCache::lookup(const BrickKey& k) {
+  return this->ci->lookup(k);
 }
+#if 0
 void BrickCache::lookup(const BrickKey& k, std::vector<uint16_t>& data) {
   return this->ci->lookup(k, data);
 }
@@ -223,6 +200,7 @@ void BrickCache::lookup(const BrickKey& k, std::vector<int64_t>& data) {
 void BrickCache::lookup(const BrickKey& k, std::vector<float>& data) {
   return this->ci->lookup(k, data);
 }
+#endif
 
 std::vector<uint8_t>& BrickCache::add(const BrickKey& k,
                                       std::vector<uint8_t>& data) {
