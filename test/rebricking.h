@@ -401,6 +401,27 @@ void tengine_four() {
                             DynamicBrickingDS::MM_SOURCE);
 }
 
+void rmi_bench() {
+  std::shared_ptr<UVFDataset> ds(new UVFDataset("rmi.uvf", 1024, false, false));
+  DynamicBrickingDS dynamic(ds, {{68,68,68}}, cacheBytes,
+                            DynamicBrickingDS::MM_SOURCE);
+
+  std::vector<uint8_t> data;
+
+  for(size_t rep=0; rep < 4; ++rep) {
+    size_t i=0;
+    for(auto b=dynamic.BricksBegin(); i < 32 && b != dynamic.BricksEnd(); ++b) {
+      dynamic.GetBrick(b->first, data);
+      ++i;
+    }
+  }
+  double cache_add = Controller::Instance().PerfQuery(PERF_CACHE_ADD);
+  double cache_lookup = Controller::Instance().PerfQuery(PERF_CACHE_LOOKUP);
+  double something = Controller::Instance().PerfQuery(PERF_SOMETHING);
+  fprintf(stderr, "\ncache add: %g\ncache lookup: %g\nsomething: %g\n",
+          cache_add, cache_lookup, something);
+}
+
 class RebrickerTests : public CxxTest::TestSuite {
 public:
   void test_simple() { tsimple(); }
@@ -423,4 +444,5 @@ public:
   void test_minmax_dynamic() { tminmax_dynamic(); }
   void test_cache_disable() { tcache_disable(); }
   void test_engine_four() { tengine_four(); }
+//  void test_rmi_bench() { rmi_bench(); }
 };
