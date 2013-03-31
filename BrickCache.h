@@ -25,15 +25,15 @@ class BrickCache {
 
     /// These return their argument for ease of use.
     ///@{
-    std::vector<uint8_t>& add(const BrickKey&, std::vector<uint8_t>&);
-    std::vector<uint16_t>& add(const BrickKey&, std::vector<uint16_t>&);
-    std::vector<uint32_t>& add(const BrickKey&, std::vector<uint32_t>&);
-    std::vector<uint64_t>& add(const BrickKey&, std::vector<uint64_t>&);
-    std::vector<int8_t>& add(const BrickKey&, std::vector<int8_t>&);
-    std::vector<int16_t>& add(const BrickKey&, std::vector<int16_t>&);
-    std::vector<int32_t>& add(const BrickKey&, std::vector<int32_t>&);
-    std::vector<int64_t>& add(const BrickKey&, std::vector<int64_t>&);
-    std::vector<float>& add(const BrickKey&, std::vector<float>&);
+    const void* add(const BrickKey&, std::vector<uint8_t>&);
+    const void* add(const BrickKey&, std::vector<uint16_t>&);
+    const void* add(const BrickKey&, std::vector<uint32_t>&);
+    const void* add(const BrickKey&, std::vector<uint64_t>&);
+    const void* add(const BrickKey&, std::vector<int8_t>&);
+    const void* add(const BrickKey&, std::vector<int16_t>&);
+    const void* add(const BrickKey&, std::vector<int32_t>&);
+    const void* add(const BrickKey&, std::vector<int64_t>&);
+    const void* add(const BrickKey&, std::vector<float>&);
     ///@}
 
     /// removes the most appropriate element.

@@ -68,31 +68,31 @@ struct BrickCache::bcinfo {
     // have: it'll make a shared_ptr out of it and insert it into the
     // container.
     ///@{
-    std::vector<uint8_t>& add(const BrickKey& k, std::vector<uint8_t>& data) {
+    const void* add(const BrickKey& k, std::vector<uint8_t>& data) {
       return this->typed_add<uint8_t>(k, data);
     }
-    std::vector<uint16_t>& add(const BrickKey& k, std::vector<uint16_t>& data) {
+    const void* add(const BrickKey& k, std::vector<uint16_t>& data) {
       return this->typed_add<uint16_t>(k, data);
     }
-    std::vector<uint32_t>& add(const BrickKey& k, std::vector<uint32_t>& data) {
+    const void* add(const BrickKey& k, std::vector<uint32_t>& data) {
       return this->typed_add<uint32_t>(k, data);
     }
-    std::vector<uint64_t>& add(const BrickKey& k, std::vector<uint64_t>& data) {
+    const void* add(const BrickKey& k, std::vector<uint64_t>& data) {
       return this->typed_add<uint64_t>(k, data);
     }
-    std::vector<int8_t>& add(const BrickKey& k, std::vector<int8_t>& data) {
+    const void* add(const BrickKey& k, std::vector<int8_t>& data) {
       return this->typed_add<int8_t>(k, data);
     }
-    std::vector<int16_t>& add(const BrickKey& k, std::vector<int16_t>& data) {
+    const void* add(const BrickKey& k, std::vector<int16_t>& data) {
       return this->typed_add<int16_t>(k, data);
     }
-    std::vector<int32_t>& add(const BrickKey& k, std::vector<int32_t>& data) {
+    const void* add(const BrickKey& k, std::vector<int32_t>& data) {
       return this->typed_add<int32_t>(k, data);
     }
-    std::vector<int64_t>& add(const BrickKey& k, std::vector<int64_t>& data) {
+    const void* add(const BrickKey& k, std::vector<int64_t>& data) {
       return this->typed_add<int64_t>(k, data);
     }
-    std::vector<float>& add(const BrickKey& k, std::vector<float>& data) {
+    const void* add(const BrickKey& k, std::vector<float>& data) {
       return this->typed_add<float>(k, data);
     }
     ///@}
@@ -114,8 +114,8 @@ struct BrickCache::bcinfo {
 
   private:
     template<typename T> const void* typed_lookup(const BrickKey& k);
-    template<typename T> std::vector<T>& typed_add(const BrickKey&,
-                                                   std::vector<T>&);
+    template<typename T> const void* typed_add(const BrickKey&,
+                                               std::vector<T>&);
 
   private:
     typedef std::pair<BrickInfo, TypeErase> CacheElem;
@@ -150,8 +150,8 @@ const void* BrickCache::bcinfo::typed_lookup(const BrickKey& k) {
 }
 
 template<typename T>
-std::vector<T>& BrickCache::bcinfo::typed_add(const BrickKey& k,
-                                              std::vector<T>& data) {
+const void* BrickCache::bcinfo::typed_add(const BrickKey& k,
+                                          std::vector<T>& data) {
   // maybe the case of a general case allows duplicate insert, but for our uses
   // there should never be a duplicate entry.
 #ifndef NDEBUG
@@ -161,12 +161,13 @@ std::vector<T>& BrickCache::bcinfo::typed_add(const BrickKey& k,
   assert(std::find_if(this->cache.begin(), this->cache.end(), func) ==
          this->cache.end());
 #endif
-  this->cache.push_back(std::make_pair(BrickInfo(k, time(NULL)), data));
+  this->cache.push_back(std::make_pair(BrickInfo(k, time(NULL)),
+                        std::move(data)));
 
   StackTimer st(PERF_SOMETHING);
   this->bytes += sizeof(T) * data.size();
   assert(this->size() == this->bytes);
-  return data;
+  return this->typed_lookup<T>(k);
 }
 
 BrickCache::BrickCache() : ci(new BrickCache::bcinfo) {}
@@ -202,40 +203,40 @@ void BrickCache::lookup(const BrickKey& k, std::vector<float>& data) {
 }
 #endif
 
-std::vector<uint8_t>& BrickCache::add(const BrickKey& k,
-                                      std::vector<uint8_t>& data) {
+const void* BrickCache::add(const BrickKey& k,
+                            std::vector<uint8_t>& data) {
   return this->ci->add(k, data);
 }
-std::vector<uint16_t>& BrickCache::add(const BrickKey& k,
-                                      std::vector<uint16_t>& data) {
+const void* BrickCache::add(const BrickKey& k,
+                            std::vector<uint16_t>& data) {
   return this->ci->add(k, data);
 }
-std::vector<uint32_t>& BrickCache::add(const BrickKey& k,
-                                      std::vector<uint32_t>& data) {
+const void* BrickCache::add(const BrickKey& k,
+                            std::vector<uint32_t>& data) {
   return this->ci->add(k, data);
 }
-std::vector<uint64_t>& BrickCache::add(const BrickKey& k,
-                                      std::vector<uint64_t>& data) {
+const void* BrickCache::add(const BrickKey& k,
+                            std::vector<uint64_t>& data) {
   return this->ci->add(k, data);
 }
-std::vector<int8_t>& BrickCache::add(const BrickKey& k,
-                                     std::vector<int8_t>& data) {
+const void* BrickCache::add(const BrickKey& k,
+                           std::vector<int8_t>& data) {
   return this->ci->add(k, data);
 }
-std::vector<int16_t>& BrickCache::add(const BrickKey& k,
-                                      std::vector<int16_t>& data) {
+const void* BrickCache::add(const BrickKey& k,
+                            std::vector<int16_t>& data) {
   return this->ci->add(k, data);
 }
-std::vector<int32_t>& BrickCache::add(const BrickKey& k,
-                                      std::vector<int32_t>& data) {
+const void* BrickCache::add(const BrickKey& k,
+                            std::vector<int32_t>& data) {
   return this->ci->add(k, data);
 }
-std::vector<int64_t>& BrickCache::add(const BrickKey& k,
-                                      std::vector<int64_t>& data) {
+const void* BrickCache::add(const BrickKey& k,
+                            std::vector<int64_t>& data) {
   return this->ci->add(k, data);
 }
-std::vector<float>& BrickCache::add(const BrickKey& k,
-                                    std::vector<float>& data) {
+const void* BrickCache::add(const BrickKey& k,
+                          std::vector<float>& data) {
   return this->ci->add(k, data);
 }
 

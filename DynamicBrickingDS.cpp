@@ -595,16 +595,17 @@ bool DynamicBrickingDS::dbinfo::Brick(const DynamicBrickingDS& ds,
     if(!this->ds->GetBrick(pre.skey, srcdata)) { return false; }
 
     // add it to the cache.
+    const T* sdata = static_cast<const T*>(srcdata.data());
     if(this->cacheBytes > 0) {
       StackTimer cc(PERF_CACHE_ADD);
       // is the cache full?  find room.
       while(!this->FitsInCache(srcdata.size() * sizeof(T))) {
         this->cache.remove();
       }
-      this->cache.add(pre.skey, srcdata);
+      sdata = static_cast<const T*>(this->cache.add(pre.skey, srcdata));
     }
     StackTimer copies(PERF_BRICK_COPY);
-    return this->CopyBrick<T>(data, srcdata.data(), pre.tgt_bs, pre.src_bs,
+    return this->CopyBrick<T>(data, sdata, pre.tgt_bs, pre.src_bs,
                               pre.src_offset);
   }
 }

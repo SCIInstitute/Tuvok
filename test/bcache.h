@@ -18,10 +18,8 @@ void add() {
     c.add(k, data);
   }
   // what we put in should be the same coming out!
-  std::vector<uint8_t> rv;
-  c.lookup(k, rv);
-  TS_ASSERT_EQUALS(elems.size(), rv.size());
-  TS_ASSERT(std::equal(elems.begin(), elems.end(), rv.begin()));
+  const uint8_t* rv = static_cast<const uint8_t*>(c.lookup(k));
+  TS_ASSERT(std::equal(elems.begin(), elems.end(), rv));
 }
 
 // once had a bug that lookup would re-insert every entry!
@@ -34,13 +32,12 @@ void lookup_bug() {
     std::copy(elems.begin(), elems.end(), data.begin());
     c.add(k, data);
   }
-  std::vector<uint8_t> dummy;
   TS_ASSERT_EQUALS(c.size(), sizeof(uint8_t)*4);
-  c.lookup(k, dummy);
+  c.lookup(k);
   TS_ASSERT_EQUALS(c.size(), sizeof(uint8_t)*4);
-  c.lookup(k, dummy);
+  c.lookup(k);
   TS_ASSERT_EQUALS(c.size(), sizeof(uint8_t)*4);
-  c.lookup(k, dummy);
+  c.lookup(k);
   TS_ASSERT_EQUALS(c.size(), sizeof(uint8_t)*4);
   c.remove();
   TS_ASSERT_EQUALS(c.size(), 0U);
@@ -55,13 +52,12 @@ void lookup_bug16() {
     std::copy(elems.begin(), elems.end(), data.begin());
     c.add(k, data);
   }
-  std::vector<uint16_t> dummy;
   TS_ASSERT_EQUALS(c.size(), sizeof(uint16_t)*4);
-  c.lookup(k, dummy);
+  c.lookup(k);
   TS_ASSERT_EQUALS(c.size(), sizeof(uint16_t)*4);
-  c.lookup(k, dummy);
+  c.lookup(k);
   TS_ASSERT_EQUALS(c.size(), sizeof(uint16_t)*4);
-  c.lookup(k, dummy);
+  c.lookup(k);
   TS_ASSERT_EQUALS(c.size(), sizeof(uint16_t)*4);
   c.remove();
   TS_ASSERT_EQUALS(c.size(), 0U);
