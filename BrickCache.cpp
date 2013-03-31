@@ -165,7 +165,6 @@ const void* BrickCache::bcinfo::typed_add(const BrickKey& k,
   this->cache.push_back(std::make_pair(BrickInfo(k, time(NULL)),
                         std::move(data)));
 
-  StackTimer st(PERF_SOMETHING);
   assert(this->size() == this->bytes);
   return this->typed_lookup<T>(k);
 }
