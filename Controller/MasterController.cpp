@@ -325,6 +325,7 @@ void register_perf_enum(std::shared_ptr<LuaScripting>& ss) {
   register_unsigned(lua, "PERF_BRICKS", PERF_BRICKS);
   register_unsigned(lua, "PERF_CACHE_LOOKUP", PERF_CACHE_LOOKUP);
   register_unsigned(lua, "PERF_CACHE_ADD", PERF_CACHE_ADD);
+  register_unsigned(lua, "PERF_DY_GETBRICK", PERF_DY_GETBRICK);
   register_unsigned(lua, "PERF_SOMETHING", PERF_SOMETHING);
   register_unsigned(lua, "PERF_BRICK_COPY", PERF_BRICK_COPY);
   register_unsigned(lua, "PERF_MM_PRECOMPUTE", PERF_MM_PRECOMPUTE);
