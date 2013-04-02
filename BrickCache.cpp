@@ -22,7 +22,7 @@ struct TypeErase {
     virtual size_t elems() const { return 0; }
   };
   template<typename T> struct TypeEraser : GenericType {
-    TypeEraser(const T& t) : thing(t) {}
+    TypeEraser(T& t) : thing(std::forward<T>(t)) {}
     virtual ~TypeEraser() {}
     T& get() { return thing; }
     size_t elems() const { return thing.size(); }
@@ -38,7 +38,7 @@ struct TypeErase {
   // requires, above.
   // But that's fine for our usage here; we're really just using this to store
   // vectors and erase the value_type in there anyway.
-  template<typename T> TypeErase(const T& t):
+  template<typename T> TypeErase(T& t):
     gt(new TypeEraser<T>(t)),
     width(sizeof(typename T::value_type)) {}
 };
@@ -100,7 +100,7 @@ struct BrickCache::bcinfo {
       if(!cache.empty()) {
         // libstdc++ complains it's not a heap otherwise.. somehow.  bug?
         std::make_heap(this->cache.begin(), this->cache.end(), CacheLRU());
-        const auto entry = this->cache.front();
+        const CacheElem& entry = this->cache.front();
         TypeErase::GenericType& gt = *(entry.second.gt);
         assert((entry.second.width * gt.elems()) <= this->bytes);
         this->bytes -= entry.second.width * gt.elems();
