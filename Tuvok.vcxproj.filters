@@ -2245,6 +2245,9 @@
     <ClInclude Include="LuaScripting\TuvokSpecific\MatrixMath.h">
       <Filter>LuaScripting\TuvokSpecific</Filter>
     </ClInclude>
+    <ClInclude Include="Basics\PerfCounter.h">
+      <Filter>Basics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Basics\MC.inl">

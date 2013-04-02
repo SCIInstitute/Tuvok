@@ -1324,6 +1324,7 @@
     <ClInclude Include="Basics\MathTools.h" />
     <ClInclude Include="Basics\MC.h" />
     <ClInclude Include="Basics\MemMappedFile.h" />
+    <ClInclude Include="Basics\PerfCounter.h" />
     <ClInclude Include="Basics\Plane.h" />
     <ClInclude Include="Basics\ProgressTimer.h" />
     <ClInclude Include="Basics\StdDefines.h" />
