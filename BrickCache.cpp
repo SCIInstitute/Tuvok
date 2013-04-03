@@ -72,7 +72,7 @@ struct TypeErase {
 
   template<typename T> TypeErase(T&& t)
     : gt(new TypeEraser<T>(std::forward<T>(t)))
-    , width(sizeof(std::remove_reference<T>::type::value_type))
+    , width(sizeof(typename std::remove_reference<T>::type::value_type))
   {}
 };
 
