@@ -22,6 +22,7 @@ struct TypeErase {
     virtual size_t elems() const { return 0; }
   };
   template<typename T> struct TypeEraser : GenericType {
+    TypeEraser(const T& t) : thing(t) {}
     TypeEraser(T&& t) : thing(std::forward<T>(t)) {}
     virtual ~TypeEraser() {}
     T& get() { return thing; }
@@ -32,10 +33,23 @@ struct TypeErase {
   std::shared_ptr<GenericType> gt;
   size_t width;
 
+  TypeErase(const TypeErase& other)
+    : gt(other.gt)
+    , width(other.width)
+  {}
+
   TypeErase(TypeErase&& other)
     : gt(std::move(other.gt))
     , width(other.width) // width should stay the same right?
   {}
+
+  TypeErase& operator=(const TypeErase& other) {
+    if (this != &other) {
+      gt = other.gt;
+      width = other.width;
+    }
+    return *this;
+  }
 
   TypeErase& operator=(TypeErase&& other) {
     if (this != &other) {
@@ -51,6 +65,11 @@ struct TypeErase {
   // requires, above.
   // But that's fine for our usage here; we're really just using this to store
   // vectors and erase the value_type in there anyway.
+  template<typename T> TypeErase(const T& t)
+    : gt(new TypeEraser<T>(t))
+    , width(sizeof(typename T::value_type))
+  {}
+
   template<typename T> TypeErase(T&& t)
     : gt(new TypeEraser<T>(std::forward<T>(t)))
     , width(sizeof(typename std::remove_reference<T>::type::value_type))
