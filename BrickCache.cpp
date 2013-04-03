@@ -32,15 +32,26 @@ struct TypeErase {
   std::shared_ptr<GenericType> gt;
   size_t width;
 
+  TypeErase(const TypeErase& other)
+    : gt(other.gt)
+    , width(other.width)
+  {}
+
+  TypeErase(TypeErase&& other)
+    : gt(std::move(other.gt))
+    , width(other.width) // width should stay the same right?
+  {}
+
   // this isn't a very good type eraser, because we require that the type has
   // an internal typedef 'value_type' which we can use to obtain the size of
   // it.  not to mention the '.size()' member function that TypeEraser<>
   // requires, above.
   // But that's fine for our usage here; we're really just using this to store
   // vectors and erase the value_type in there anyway.
-  template<typename T> TypeErase(T& t):
-    gt(new TypeEraser<T>(std::forward<T>(t))),
-    width(sizeof(typename T::value_type)) {}
+  template<typename T> TypeErase(T&& t)
+    : gt(new TypeEraser<T>(std::forward<T>(t)))
+    , width(sizeof(typename T::value_type))
+  {}
 };
 
 struct BrickInfo {
