@@ -22,7 +22,7 @@ struct TypeErase {
     virtual size_t elems() const { return 0; }
   };
   template<typename T> struct TypeEraser : GenericType {
-    TypeEraser(T& t) : thing(std::forward<T>(t)) {}
+    TypeEraser(T&& t) : thing(std::forward<T>(t)) {}
     virtual ~TypeEraser() {}
     T& get() { return thing; }
     size_t elems() const { return thing.size(); }
@@ -39,7 +39,7 @@ struct TypeErase {
   // But that's fine for our usage here; we're really just using this to store
   // vectors and erase the value_type in there anyway.
   template<typename T> TypeErase(T& t):
-    gt(new TypeEraser<T>(t)),
+    gt(new TypeEraser<T>(std::forward<T>(t))),
     width(sizeof(typename T::value_type)) {}
 };
 
