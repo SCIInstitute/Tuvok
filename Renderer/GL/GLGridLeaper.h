@@ -103,6 +103,7 @@ namespace tuvok {
       // profiling
       uint32_t        m_iSubframes;
       size_t          m_iPagedBricks;
+      uint64_t        m_iPagedBytes;
       AvgMinMaxTracker<float> m_FrameTimes;
       size_t          m_iAveragingFrameCount;
       bool            m_bAveragingFrameTimes;

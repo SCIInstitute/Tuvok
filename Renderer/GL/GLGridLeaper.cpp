@@ -51,6 +51,7 @@ GLGridLeaper::GLGridLeaper(MasterController* pMasterController,
   m_VisibilityState()
   , m_iSubframes(0)
   , m_iPagedBricks(0)
+  , m_iPagedBytes(0)
   , m_FrameTimes(100)
   , m_iAveragingFrameCount(0)
   , m_bAveragingFrameTimes(false)
@@ -268,8 +269,8 @@ void GLGridLeaper::InitHashTable() {
   // a 1:1 mapping with the hash function
   m_pWorkingSetTable = new GLHashTable(
     finestBrickLayout, finestBrickLayout.volume() *
-    uint32_t(m_pToCDataset->GetLargestSingleBrickLOD(0) + 1),
-    Controller::ConstInstance().RState.RehashCount, true, "workingSet"
+    uint32_t(m_pToCDataset->GetLargestSingleBrickLOD(0)) + 1,
+    0, true, "workingSet"
     );
   m_pWorkingSetTable->InitGL();
 #endif
@@ -904,6 +905,7 @@ bool GLGridLeaper::Render3DRegion(RenderRegion3D& rr) {
     //OTHER("Preparing new view");
     m_iSubframes = 0;
     m_iPagedBricks = 0;
+    m_iPagedBytes = 0;
 
 #ifdef GLGRIDLEAPER_WORKINGSET
     // clear the info hash table at the beginning of every frame
@@ -950,6 +952,18 @@ bool GLGridLeaper::Render3DRegion(RenderRegion3D& rr) {
       }
       *m_pBrickAccess << std::endl;
     }
+    if (m_pLogFile) {
+      // compute accurate paged in memory size
+      // we assume that all bricks in "hash" get really paged in, that is true if the visibility is up to date
+      const uint64_t iBytesPerVoxel = (m_pDataset->GetBitWidth() / 8) * m_pDataset->GetComponentCount();
+      uint64_t iAccuratePagedInBytes = 0;
+      for (auto pagedInBrick=hash.cbegin(); pagedInBrick!=hash.cend(); pagedInBrick++) {
+        BrickKey const key = m_pToCDataset->IndexFrom4D(*pagedInBrick, 0);
+        UINTVECTOR3 const vVoxels = m_pToCDataset->GetBrickVoxelCounts(key);
+        iAccuratePagedInBytes += vVoxels.volume() * iBytesPerVoxel;
+      }
+      m_iPagedBytes += iAccuratePagedInBytes;
+    }
     OTHER("subframe %d took %.2f ms and %d bricks were paged in",
       m_iSubframes, t, m_iPagedBricks);
     m_iSubframes++;
@@ -973,19 +987,18 @@ bool GLGridLeaper::Render3DRegion(RenderRegion3D& rr) {
       << " ms to render (" << 1000.f / fFrameTime << " FPS)   "
       << " Average of the last " << m_FrameTimes.GetHistroryLength()
       << " frame times: " << m_FrameTimes.GetAvgMinMax() << "   "
-      << " Total paged bricks: " << m_iPagedBricks << " ("
-      << m_pVolumePool->GetMaxUsedBrickBytes() * m_iPagedBricks / 1024.f / 1024.f << " MB)   ";
+      << " Total paged bricks: " << m_iPagedBricks << "   ";
 
     bool const bWriteToLogFileForEveryFrame = m_pLogFile && !m_iAveragingFrameCount;
     if (bWriteToLogFileForEveryFrame) {
-      *m_pLogFile << 1000.f/fFrameTime << ";\t" // avg FPS
-                  << "1;\t" // avg sample count
-                  << fFrameTime << ";\t" // avg frame time (ms)
-                  << fFrameTime << ";\t" // min frame time (ms)
-                  << fFrameTime << ";\t" // max frame time (ms)
-                  << m_iSubframes << ";\t" // subframe count
-                  << m_iPagedBricks << ";\t" // paged in brick count
-                  << m_pVolumePool->GetMaxUsedBrickBytes() * m_iPagedBricks / 1024.f / 1024.f << ";\t"; // paged in memory (MB)
+      *m_pLogFile << 1000.f/fFrameTime << ";" // avg FPS
+                  << "1;" // avg sample count
+                  << fFrameTime << ";" // avg frame time (ms)
+                  << fFrameTime << ";" // min frame time (ms)
+                  << fFrameTime << ";" // max frame time (ms)
+                  << m_iSubframes << ";" // subframe count
+                  << m_iPagedBricks << ";" // paged in brick count
+                  << m_iPagedBytes / 1024.f / 1024.f << ";"; // paged in memory (MB)
     }
     if (m_pBrickAccess) {
       *m_pBrickAccess << " Frame=" << ++m_iFrameCount;
@@ -1008,8 +1021,8 @@ bool GLGridLeaper::Render3DRegion(RenderRegion3D& rr) {
        << iAccurateGpuWorkingSetBytes / 1024.f / 1024.f << " MB)";
 
     if (bWriteToLogFileForEveryFrame) {
-      *m_pLogFile << vUsedBricks.size() << ";\t" // working set brick count
-                  << iAccurateGpuWorkingSetBytes / 1024.f / 1024.f << ";\t"; // working set memory (MB)
+      *m_pLogFile << vUsedBricks.size() << ";" // working set brick count
+                  << iAccurateGpuWorkingSetBytes / 1024.f / 1024.f << ";"; // working set memory (MB)
     }
 #endif
 
@@ -1034,14 +1047,14 @@ bool GLGridLeaper::Render3DRegion(RenderRegion3D& rr) {
     // re-render a couple of times after we converged and write averaged stats to log file
     if (m_FrameTimes.GetHistroryLength() >= m_iAveragingFrameCount) {
       if (m_pLogFile) {
-        *m_pLogFile << 1000.f/m_FrameTimes.GetAvg() << ";\t" // avg FPS
-                    << m_FrameTimes.GetHistroryLength() << ";\t" // avg sample count
-                    << m_FrameTimes.GetAvg() << ";\t" // avg frame time (ms)
-                    << m_FrameTimes.GetMin() << ";\t" // min frame time (ms)
-                    << m_FrameTimes.GetMax() << ";\t" // max frame time (ms)
-                    << m_iSubframes << ";\t" // subframe count
-                    << m_iPagedBricks << ";\t" // paged in brick count
-                    << m_pVolumePool->GetMaxUsedBrickBytes() * m_iPagedBricks / 1024.f / 1024.f << ";\t"; // paged in memory (MB)
+        *m_pLogFile << 1000.f/m_FrameTimes.GetAvg() << ";" // avg FPS
+                    << m_FrameTimes.GetHistroryLength() << ";" // avg sample count
+                    << m_FrameTimes.GetAvg() << ";" // avg frame time (ms)
+                    << m_FrameTimes.GetMin() << ";" // min frame time (ms)
+                    << m_FrameTimes.GetMax() << ";" // max frame time (ms)
+                    << m_iSubframes << ";" // subframe count
+                    << m_iPagedBricks << ";" // paged in brick count
+                    << m_iPagedBytes / 1024.f / 1024.f << ";"; // paged in memory (MB)
 #ifdef GLGRIDLEAPER_WORKINGSET
         std::vector<UINTVECTOR4> vUsedBricks = m_pWorkingSetTable->GetData();
         // compute accurate working set size
@@ -1052,8 +1065,8 @@ bool GLGridLeaper::Render3DRegion(RenderRegion3D& rr) {
           UINTVECTOR3 const vVoxels = m_pToCDataset->GetBrickVoxelCounts(key);
           iAccurateGpuWorkingSetBytes += vVoxels.volume() * iBytesPerVoxel;
         }
-        *m_pLogFile << vUsedBricks.size() << ";\t" // working set brick count
-                    << iAccurateGpuWorkingSetBytes / 1024.f / 1024.f << ";\t"; // working set memory (MB)
+        *m_pLogFile << vUsedBricks.size() << ";" // working set brick count
+                    << iAccurateGpuWorkingSetBytes / 1024.f / 1024.f << ";"; // working set memory (MB)
 #endif
         *m_pLogFile << std::endl;
       }
@@ -1179,17 +1192,17 @@ bool GLGridLeaper::PH_OpenLogfile(const std::string& filename) {
 
   // write header
   *m_pLogFile << std::fixed << std::setprecision(5);
-  *m_pLogFile << "avg FPS;\t"
-              << "avg sample count;\t"
-              << "avg frame time (ms);\t"
-              << "min frame time (ms);\t"
-              << "max frame time (ms);\t"
-              << "subframe count;\t"
-              << "paged in brick count;\t"
-              << "paged in memory (MB);\t";
+  *m_pLogFile << "avg FPS;"
+              << "avg sample count;"
+              << "avg frame time (ms);"
+              << "min frame time (ms);"
+              << "max frame time (ms);"
+              << "subframe count;"
+              << "paged in brick count;"
+              << "paged in memory (MB);";
 #ifdef GLGRIDLEAPER_WORKINGSET
-  *m_pLogFile << "working set brick count;\t"
-              << "working set memory (MB);\t";
+  *m_pLogFile << "working set brick count;"
+              << "working set memory (MB);";
 #endif
   *m_pLogFile << std::endl;
 
