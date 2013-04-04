@@ -268,7 +268,7 @@ void GLGridLeaper::InitHashTable() {
   // a 1:1 mapping with the hash function
   m_pWorkingSetTable = new GLHashTable(
     finestBrickLayout, finestBrickLayout.volume() *
-    uint32_t(m_pToCDataset->GetLargestSingleBrickLOD(0)),
+    uint32_t(m_pToCDataset->GetLargestSingleBrickLOD(0) + 1),
     Controller::ConstInstance().RState.RehashCount, true, "workingSet"
     );
   m_pWorkingSetTable->InitGL();
