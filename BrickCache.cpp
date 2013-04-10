@@ -93,8 +93,34 @@ struct CacheLRU {
 struct BrickCache::bcinfo {
     bcinfo(): bytes(0) {}
     // this is wordy but they all just forward to a real implementation below.
-    const void* lookup(const BrickKey& k) {
+    const void* lookup(const BrickKey& k, uint8_t) {
       return this->typed_lookup<uint8_t>(k);
+    }
+    const void* lookup(const BrickKey& k, uint16_t) {
+      return this->typed_lookup<uint16_t>(k);
+    }
+    const void* lookup(const BrickKey& k, uint32_t) {
+      return this->typed_lookup<uint32_t>(k);
+    }
+    const void* lookup(const BrickKey& k, uint64_t) {
+      return this->typed_lookup<uint64_t>(k);
+    }
+
+    const void* lookup(const BrickKey& k, int8_t) {
+      return this->typed_lookup<int8_t>(k);
+    }
+    const void* lookup(const BrickKey& k, int16_t) {
+      return this->typed_lookup<int16_t>(k);
+    }
+    const void* lookup(const BrickKey& k, int32_t) {
+      return this->typed_lookup<int32_t>(k);
+    }
+    const void* lookup(const BrickKey& k, int64_t) {
+      return this->typed_lookup<int64_t>(k);
+    }
+
+    const void* lookup(const BrickKey& k, float) {
+      return this->typed_lookup<float>(k);
     }
 
     // the erasure means we can just do the insert with the thing we already
@@ -206,35 +232,36 @@ const void* BrickCache::bcinfo::typed_add(const BrickKey& k,
 BrickCache::BrickCache() : ci(new BrickCache::bcinfo) {}
 BrickCache::~BrickCache() {}
 
-const void* BrickCache::lookup(const BrickKey& k) {
-  return this->ci->lookup(k);
+const void* BrickCache::lookup(const BrickKey& k, uint8_t value) {
+  return this->ci->lookup(k, value);
 }
-#if 0
-void BrickCache::lookup(const BrickKey& k, std::vector<uint16_t>& data) {
-  return this->ci->lookup(k, data);
+const void* BrickCache::lookup(const BrickKey& k, uint16_t value) {
+  return this->ci->lookup(k, value);
 }
-void BrickCache::lookup(const BrickKey& k, std::vector<uint32_t>& data) {
-  return this->ci->lookup(k, data);
+const void* BrickCache::lookup(const BrickKey& k, uint32_t value) {
+  return this->ci->lookup(k, value);
 }
-void BrickCache::lookup(const BrickKey& k, std::vector<uint64_t>& data) {
-  return this->ci->lookup(k, data);
+const void* BrickCache::lookup(const BrickKey& k, uint64_t value) {
+  return this->ci->lookup(k, value);
 }
-void BrickCache::lookup(const BrickKey& k, std::vector<int8_t>& data) {
-  return this->ci->lookup(k, data);
+
+const void* BrickCache::lookup(const BrickKey& k, int8_t value) {
+  return this->ci->lookup(k, value);
 }
-void BrickCache::lookup(const BrickKey& k, std::vector<int16_t>& data) {
-  return this->ci->lookup(k, data);
+const void* BrickCache::lookup(const BrickKey& k, int16_t value) {
+  return this->ci->lookup(k, value);
 }
-void BrickCache::lookup(const BrickKey& k, std::vector<int32_t>& data) {
-  return this->ci->lookup(k, data);
+const void* BrickCache::lookup(const BrickKey& k, int32_t value) {
+  return this->ci->lookup(k, value);
 }
-void BrickCache::lookup(const BrickKey& k, std::vector<int64_t>& data) {
-  return this->ci->lookup(k, data);
+const void* BrickCache::lookup(const BrickKey& k, int64_t value) {
+  return this->ci->lookup(k, value);
 }
-void BrickCache::lookup(const BrickKey& k, std::vector<float>& data) {
-  return this->ci->lookup(k, data);
+
+const void* BrickCache::lookup(const BrickKey& k, float value) {
+  return this->ci->lookup(k, value);
 }
-#endif
+
 
 const void* BrickCache::add(const BrickKey& k,
                             std::vector<uint8_t>& data) {

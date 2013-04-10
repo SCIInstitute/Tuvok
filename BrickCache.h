@@ -20,7 +20,15 @@ class BrickCache {
     /// looks up a value in the cache, and fills the second argument if it
     /// exists.
     ///@{
-    const void* lookup(const BrickKey&);
+    const void* lookup(const BrickKey&, uint8_t);
+    const void* lookup(const BrickKey&, uint16_t);
+    const void* lookup(const BrickKey&, uint32_t);
+    const void* lookup(const BrickKey&, uint64_t);
+    const void* lookup(const BrickKey&, int8_t);
+    const void* lookup(const BrickKey&, int16_t);
+    const void* lookup(const BrickKey&, int32_t);
+    const void* lookup(const BrickKey&, int64_t);
+    const void* lookup(const BrickKey&, float);
     ///@}
 
     /// These return their argument for ease of use.

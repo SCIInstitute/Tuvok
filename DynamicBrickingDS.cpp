@@ -581,7 +581,7 @@ bool DynamicBrickingDS::dbinfo::Brick(const DynamicBrickingDS& ds,
   const void* lookup;
   {
     StackTimer cc(PERF_CACHE_LOOKUP);
-    lookup = this->cache.lookup(pre.skey);
+    lookup = this->cache.lookup(pre.skey, T(42));
   }
   // first: check the cache and see if we can get the data easy.
   if(NULL != lookup) {
