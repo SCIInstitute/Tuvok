@@ -199,7 +199,8 @@ const void* BrickCache::bcinfo::typed_add(const BrickKey& k,
                         std::move(data)));
 
   assert(this->size() == this->bytes);
-  return this->typed_lookup<T>(k);
+  TypeErase::GenericType& gt = *this->cache.back().second.gt;
+  return dynamic_cast<TypeErase::TypeEraser<std::vector<T>>&>(gt).get().data();
 }
 
 BrickCache::BrickCache() : ci(new BrickCache::bcinfo) {}
