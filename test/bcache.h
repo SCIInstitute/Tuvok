@@ -18,7 +18,7 @@ void add() {
     c.add(k, data);
   }
   // what we put in should be the same coming out!
-  const uint8_t* rv = static_cast<const uint8_t*>(c.lookup(k));
+  const uint8_t* rv = static_cast<const uint8_t*>(c.lookup(k, uint8_t(42)));
   TS_ASSERT(std::equal(elems.begin(), elems.end(), rv));
 }
 
@@ -33,11 +33,11 @@ void lookup_bug() {
     c.add(k, data);
   }
   TS_ASSERT_EQUALS(c.size(), sizeof(uint8_t)*4);
-  c.lookup(k);
+  c.lookup(k, uint8_t(42));
   TS_ASSERT_EQUALS(c.size(), sizeof(uint8_t)*4);
-  c.lookup(k);
+  c.lookup(k, uint8_t(42));
   TS_ASSERT_EQUALS(c.size(), sizeof(uint8_t)*4);
-  c.lookup(k);
+  c.lookup(k, uint8_t(42));
   TS_ASSERT_EQUALS(c.size(), sizeof(uint8_t)*4);
   c.remove();
   TS_ASSERT_EQUALS(c.size(), 0U);
@@ -53,11 +53,11 @@ void lookup_bug16() {
     c.add(k, data);
   }
   TS_ASSERT_EQUALS(c.size(), sizeof(uint16_t)*4);
-  c.lookup(k);
+  c.lookup(k, uint16_t(42));
   TS_ASSERT_EQUALS(c.size(), sizeof(uint16_t)*4);
-  c.lookup(k);
+  c.lookup(k, uint16_t(42));
   TS_ASSERT_EQUALS(c.size(), sizeof(uint16_t)*4);
-  c.lookup(k);
+  c.lookup(k, uint16_t(42));
   TS_ASSERT_EQUALS(c.size(), sizeof(uint16_t)*4);
   c.remove();
   TS_ASSERT_EQUALS(c.size(), 0U);
