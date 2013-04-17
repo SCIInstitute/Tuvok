@@ -53,6 +53,17 @@ void addIOInterface(LuaClassRegistration<Dataset>& reg, Dataset*,
                     LuaScripting*) {
   reg.function(&Dataset::GetLODLevelCount, "LODs", "help?", false);
 }
+// exposes "IOManager::ExportDataset".
+bool exportDS(LuaClassInstance lua_ds, uint64_t LOD,
+              const std::string& filename) {
+  const LuaDatasetProxy* datasetProxy =
+    lua_ds.getRawPointer<LuaDatasetProxy>(Controller::Instance().LuaScript());
+  const tuvok::Dataset* ds = datasetProxy->getDataset();
+  const IOManager& ioman = Controller::Const().IOMan();
+  return ioman.ExportDataset(dynamic_cast<const tuvok::UVFDataset*>(ds),
+                             LOD, filename, ".");
+}
+
 void dataset(std::shared_ptr<LuaScripting>& ss) {
   LuaDatasetProxy* proxy = new LuaDatasetProxy;
   ss->registerClass<Dataset>(
@@ -60,6 +71,8 @@ void dataset(std::shared_ptr<LuaScripting>& ss) {
     LuaClassRegCallback<Dataset>::Type(addIOInterface)
   );
   delete proxy;
+
+  ss->registerFunction(&exportDS, "tuvok.dataset.export", "exports a DS", true);
 }
 }
 
