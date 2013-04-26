@@ -62,6 +62,7 @@ public:
   /// factors to the file.  The format should implicitly load and apply the
   /// scaling factors when opening the data set.
   virtual bool SaveRescaleFactors();
+  DOUBLEVECTOR3 GetScale() const;
   ///@}
 
   virtual unsigned GetLODLevelCount() const;

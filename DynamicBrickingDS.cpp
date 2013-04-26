@@ -816,6 +816,7 @@ CFORWARDRET(DOUBLEVECTOR3, GetRescaleFactors)
 /// factors to the file.  The format should implicitly load and apply the
 /// scaling factors when opening the file.
 FORWARDRET(bool, SaveRescaleFactors)
+CFORWARDRET(DOUBLEVECTOR3, GetScale);
 
 CFORWARDRET(unsigned, GetLODLevelCount)
 CFORWARDRET(uint64_t, GetNumberOfTimesteps)

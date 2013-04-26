@@ -128,7 +128,7 @@ public:
   virtual uint64_t GetNumberOfTimesteps() const { return 1; }
   virtual UINT64VECTOR3 GetDomainSize(const size_t lod=0,
                                       const size_t ts=0) const = 0;
-  DOUBLEVECTOR3 GetScale() const {return m_DomainScale * m_UserScale;}
+  virtual DOUBLEVECTOR3 GetScale() const {return m_DomainScale * m_UserScale;}
   virtual UINTVECTOR3 GetBrickOverlapSize() const = 0;
   /// @return the number of voxels for the given brick, per dimension, taking
   ///         into account any brick overlaps.

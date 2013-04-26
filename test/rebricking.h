@@ -468,6 +468,15 @@ void trescale() {
 
   ds->SetRescaleFactors(DOUBLEVECTOR3(1.0, 2.0, 1.0));
   TS_ASSERT_EQUALS(dynamic.GetRescaleFactors(), DOUBLEVECTOR3(1.0, 2.0, 1.0));
+
+  TS_ASSERT_EQUALS(dynamic.GetScale(), ds->GetScale());
+
+  const size_t lod_dynamic = dynamic.GetLargestSingleBrickLOD(0);
+  const size_t lod_root = ds->GetLargestSingleBrickLOD(0);
+  const BrickKey k_dynamic(0, lod_dynamic, 0);
+  const BrickKey k_root(0, lod_root, 0);
+  TS_ASSERT_EQUALS(dynamic.GetBrickExtents(k_dynamic),
+                   ds->GetBrickExtents(k_root));
 }
 
 class RebrickerTests : public CxxTest::TestSuite {
