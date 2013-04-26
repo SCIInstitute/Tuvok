@@ -46,6 +46,36 @@ std::shared_ptr<UVFDataset> mk8x8testdata() {
 // number of ghost cells per dimension...
 static unsigned ghost() { return 4; }
 
+/// tries to find the given dataset.
+///@returns false if the data are not available.
+bool check_for(std::string file) {
+  if(SysTools::FileExists(file + ".uvf")) { return true; }
+  // can convert engine..
+  if(SysTools::FileExists(file + ".raw.gz") && file == "engine") {
+    TS_TRACE("Found raw engine data; converting it for tests.");
+    const IOManager& iom = Controller::Const().IOMan();
+    std::ofstream nhdr("engine.nhdr");
+    if(!nhdr) { return false; }
+    nhdr << "NRRD0001\n"
+            "encoding: gzip\n"
+            "type: uint8\n"
+            "sizes: 256 256 128\n"
+            "dimension: 3\n"
+            "data file: engine.raw.gz\n";
+    nhdr.close();
+    return iom.ConvertDataset("engine.nhdr", file+".uvf", ".", true, 256, 2,
+                              false);
+  }
+  // otherwise just try to convert it.
+  if(SysTools::FileExists(file + ".dat")) {
+    TS_TRACE("Attempting to convert data...");
+    const IOManager& iom = Controller::Const().IOMan();
+    return iom.ConvertDataset(file+".dat", file+".uvf", ".", true, 256, 2,
+                              false);
+  }
+  return false;
+}
+
 /// tries to find the engine, so that we can use it for some tests.
 /// @returns false if we can't find it, so you can abort the test if so.
 bool check_for_engine() {
@@ -402,6 +432,7 @@ void tengine_four() {
 }
 
 void rmi_bench() {
+  if(!check_for("rmi")) { TS_FAIL("need RMI for this test."); return; }
   std::shared_ptr<UVFDataset> ds(new UVFDataset("rmi.uvf", 1024, false, false));
   DynamicBrickingDS dynamic(ds, {{68,68,68}}, cacheBytes,
                             DynamicBrickingDS::MM_SOURCE);
@@ -415,11 +446,28 @@ void rmi_bench() {
       ++i;
     }
   }
+#if 0
   double cache_add = Controller::Instance().PerfQuery(PERF_CACHE_ADD);
   double cache_lookup = Controller::Instance().PerfQuery(PERF_CACHE_LOOKUP);
   double something = Controller::Instance().PerfQuery(PERF_SOMETHING);
   fprintf(stderr, "\ncache add: %g\ncache lookup: %g\nsomething: %g\n",
           cache_add, cache_lookup, something);
+#endif
+}
+
+void trescale() {
+  std::shared_ptr<UVFDataset> ds = mk8x8testdata();
+  DynamicBrickingDS dynamic(ds, {{6,16,16}}, cacheBytes);
+
+  // should forward to the underlying object
+  TS_ASSERT_EQUALS(dynamic.GetRescaleFactors(), ds->GetRescaleFactors());
+  // should forward; they are one in the same, so changing either should be
+  // visible from the other.
+  dynamic.SetRescaleFactors(DOUBLEVECTOR3(2.0, 1.0, 1.0));
+  TS_ASSERT_EQUALS(ds->GetRescaleFactors(), DOUBLEVECTOR3(2.0, 1.0, 1.0));
+
+  ds->SetRescaleFactors(DOUBLEVECTOR3(1.0, 2.0, 1.0));
+  TS_ASSERT_EQUALS(dynamic.GetRescaleFactors(), DOUBLEVECTOR3(1.0, 2.0, 1.0));
 }
 
 class RebrickerTests : public CxxTest::TestSuite {
@@ -444,5 +492,6 @@ public:
   void test_minmax_dynamic() { tminmax_dynamic(); }
   void test_cache_disable() { tcache_disable(); }
   void test_engine_four() { tengine_four(); }
-//  void test_rmi_bench() { rmi_bench(); }
+  void test_rmi_bench() { rmi_bench(); }
+  void test_rescale() { trescale(); }
 };
