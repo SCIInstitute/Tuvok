@@ -479,6 +479,28 @@ void trescale() {
                    ds->GetBrickExtents(k_root));
 }
 
+void tmulti_component() {
+  if(!check_for("vhuman")) { TS_FAIL("need vishuman for this test."); return; }
+  std::shared_ptr<UVFDataset> ds(new UVFDataset("vhuman.uvf", 260, false,
+                                                false));
+  DynamicBrickingDS dynamic(ds, {{260, 260, 260}}, cacheBytes);
+
+  TS_ASSERT_EQUALS(dynamic.GetComponentCount(), ds->GetComponentCount());
+
+  for(size_t i=0; i < 32; ++i) {
+    BrickKey bk(0,0,i);
+    std::vector<uint8_t> dyndata, srcdata;
+    if(!dynamic.GetBrick(bk, dyndata)) { TS_FAIL("failed read dynamic data"); }
+    if(!ds->GetBrick(bk, srcdata)) { TS_FAIL("failed read source data"); }
+
+    TS_ASSERT_EQUALS(dyndata.size(), srcdata.size());
+    TS_ASSERT(std::equal(dyndata.begin(), dyndata.end(), srcdata.begin()));
+
+    double iso = 42.42;
+    TS_ASSERT_EQUALS(dynamic.ContainsData(bk, iso), ds->ContainsData(bk, iso));
+  }
+}
+
 class RebrickerTests : public CxxTest::TestSuite {
 public:
   void test_simple() { tsimple(); }

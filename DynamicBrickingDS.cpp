@@ -94,7 +94,7 @@ struct DynamicBrickingDS::dbinfo {
   BrickSize BrickSansGhost() const;
 
   template<typename T, typename Iter>
-  bool CopyBrick(std::vector<T>& dest, Iter src,
+  bool CopyBrick(std::vector<T>& dest, Iter src, size_t components,
                  const BrickSize tgt_bs, const BrickSize src_bs,
                  VoxelIndex src_offset);
 };
@@ -503,7 +503,7 @@ DynamicBrickingDS::dbinfo::TargetBrickLayout(size_t lod, size_t ts) const {
 // the source data into the target brick.
 template<typename T, typename Iter>
 bool DynamicBrickingDS::dbinfo::CopyBrick(
-  std::vector<T>& dest, const Iter srcdata,
+  std::vector<T>& dest, const Iter srcdata, size_t components,
   const BrickSize tgt_bs, const BrickSize src_bs,
   VoxelIndex src_offset
 ) {
@@ -513,20 +513,22 @@ bool DynamicBrickingDS::dbinfo::CopyBrick(
 
   // make sure the vector is big enough.
   //assert(dest.size() >= (tgt_bs[0]*tgt_bs[1]*tgt_bs[2])); // be sure!
-  dest.resize(tgt_bs[0]*tgt_bs[1]*tgt_bs[2]);
+  dest.resize(tgt_bs[0]*tgt_bs[1]*tgt_bs[2]*components);
 
   const VoxelIndex orig_offset = src_offset;
 
   // our copy size/scanline size is the width of our target brick.
-  const size_t scanline = tgt_bs[0];
+  const size_t scanline = tgt_bs[0] * components;
 
   for(uint64_t z=0; z < tgt_bs[2]; ++z) {
     for(uint64_t y=0; y < tgt_bs[1]; ++y) {
       const uint64_t x = 0;
-      const uint64_t tgt_offset = z*tgt_bs[0]*tgt_bs[1] + y*tgt_bs[0] + x;
+      const uint64_t tgt_offset = (z*tgt_bs[0]*tgt_bs[1] + y*tgt_bs[0] + x) *
+                                   components;
 
-      const uint64_t src_o = src_offset[2]*src_bs[0]*src_bs[1] +
-                             src_offset[1]*src_bs[0] + src_offset[0];
+      const uint64_t src_o = (src_offset[2]*src_bs[0]*src_bs[1] +
+                              src_offset[1]*src_bs[0] + src_offset[0]) *
+                              components;
 #if 0
       // memcpy-based: works fast even in debug.
       std::copy(srcdata.data()+src_o, srcdata.data()+src_o+scanline,
@@ -585,13 +587,14 @@ bool DynamicBrickingDS::dbinfo::Brick(const DynamicBrickingDS& ds,
   }
   // first: check the cache and see if we can get the data easy.
   if(NULL != lookup) {
-    StackTimer copies(PERF_BRICK_COPY);
     MESSAGE("found <%u,%u,%u> in the cache!",
             static_cast<unsigned>(std::get<0>(pre.skey)),
             static_cast<unsigned>(std::get<1>(pre.skey)),
             static_cast<unsigned>(std::get<2>(pre.skey)));
+    StackTimer copies(PERF_BRICK_COPY);
     const T* srcdata = static_cast<const T*>(lookup);
-    return this->CopyBrick<T>(data, srcdata, pre.tgt_bs, pre.src_bs,
+    const size_t components = this->ds->GetComponentCount();
+    return this->CopyBrick<T>(data, srcdata, components, pre.tgt_bs, pre.src_bs,
                               pre.src_offset);
   }
   // nope?  oh well.  read it.
@@ -609,8 +612,9 @@ bool DynamicBrickingDS::dbinfo::Brick(const DynamicBrickingDS& ds,
     }
     sdata = static_cast<const T*>(this->cache.add(pre.skey, srcdata));
   }
+  const size_t components = this->ds->GetComponentCount();
   StackTimer copies(PERF_BRICK_COPY);
-  return this->CopyBrick<T>(data, sdata, pre.tgt_bs, pre.src_bs,
+  return this->CopyBrick<T>(data, sdata, components, pre.tgt_bs, pre.src_bs,
                             pre.src_offset);
 }
 
