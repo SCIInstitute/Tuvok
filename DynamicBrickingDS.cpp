@@ -84,6 +84,8 @@ struct DynamicBrickingDS::dbinfo {
 
   // sets the cache size (bytes)
   void SetCacheSize(size_t bytes);
+  // get the cache size (bytes)
+  size_t GetCacheSize() const;
 
   /// @returns true if 'bytes' bytes will fit into the current cache
   bool FitsInCache(size_t bytes) const;
@@ -170,6 +172,12 @@ void DynamicBrickingDS::SetCacheSize(size_t megabytes) {
   /// they give us megabytes, but our internal class deals with bytes!
   const size_t bytes = megabytes * 1024 * 1024;
   this->di->SetCacheSize(bytes);
+}
+
+size_t DynamicBrickingDS::GetCacheSize() const {
+  /// they give us bytes, but we want megabytes!
+  const size_t megabyte = 1024 * 1024;
+  return this->di->GetCacheSize() / megabyte;
 }
 
 // Removes all the cache information we've made so far.
@@ -767,6 +775,10 @@ void DynamicBrickingDS::dbinfo::SetCacheSize(size_t bytes) {
   this->cacheBytes = bytes;
   // shrink the cache to fit.
   while(this->cache.size() > this->cacheBytes) { this->cache.remove(); }
+}
+
+size_t DynamicBrickingDS::dbinfo::GetCacheSize() const {
+  return this->cacheBytes;
 }
 
 /// @returns true if 'bytes' bytes will fit into the current cache

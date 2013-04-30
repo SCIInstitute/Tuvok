@@ -37,6 +37,8 @@ public:
 
   /// modifies the cache size used for holding large bricks.
   void SetCacheSize(size_t megabytes);
+  /// get the cache size used for holding large bricks in MB
+  size_t GetCacheSize() const;
 
   virtual float MaxGradientMagnitude() const;
   /// Removes all the cache information we've made so far.
