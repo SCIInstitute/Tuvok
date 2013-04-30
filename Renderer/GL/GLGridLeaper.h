@@ -11,6 +11,8 @@
 
 //#define GLGRIDLEAPER_DEBUGVIEW  // define to toggle debug view with 'D'-key
 //#define GLGRIDLEAPER_WORKINGSET // define to measure per frame working set
+//#define GLGRIDLEAPER_PROFILE    // adds some glFinish() commands all over the place
+//#define GLGRIDLEAPER_SORT_HT    // hack to make layout comparisons fair
 
 class ExtendedPlane;
 
@@ -118,7 +120,6 @@ namespace tuvok {
 #ifdef GLGRIDLEAPER_WORKINGSET
       GLHashTable*    m_pWorkingSetTable;
 #endif
-      double m_RenderingTime;
 
       /** Loads GLSL vertex and fragment shaders. */
       virtual bool LoadShaders();

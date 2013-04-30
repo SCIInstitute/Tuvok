@@ -167,6 +167,12 @@ public:
   void SetRehashCount(uint32_t count);
   void SetMDUpdateStrategy(unsigned); ///< takes DM_* enum
   void SetHTSize(unsigned); ///< hash table size
+
+  size_t GetBrickStrategy();
+  uint32_t GetRehashCount();
+  unsigned GetMDUpdateStrategy();
+  unsigned GetHTSize();
+
   RendererState RState;
   ///@}
 

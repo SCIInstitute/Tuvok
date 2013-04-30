@@ -9,6 +9,8 @@
 #include <memory>
 #include <string>
 
+//#define GLHASHTABLE_PROFILE    // adds some glFinish() commands all over the place
+
 namespace tuvok {
 
 class GLTexture;

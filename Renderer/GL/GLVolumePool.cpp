@@ -662,7 +662,7 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit,
 void GLVolumePool::UploadBrick(uint32_t iBrickID, const UINTVECTOR3& vVoxelSize, void* pData, 
                                size_t iInsertPos, uint64_t iTimeOfCreation)
 {
-  StackTimer ubrick(PERF_POOL_BRICK);
+  StackTimer ubrick(PERF_POOL_UPLOAD_BRICK);
   PoolSlotData& slot = m_vPoolSlotData[iInsertPos];
 
   if (slot.ContainsVisibleBrick()) {
@@ -896,7 +896,7 @@ struct {
 } PoolSorter;
 
 void GLVolumePool::UploadMetadataTexture() {
-  StackTimer poolmd(PERF_POOL_METADATA);
+  StackTimer poolmd(PERF_POOL_UPLOAD_METADATA);
   // DEBUG code
 /*  MESSAGE("Brickpool Metadata entries:");
   for (size_t i = 0; i<m_iTotalBrickCount;++i) {
@@ -928,7 +928,7 @@ void GLVolumePool::UploadMetadataTexture() {
 }
 
 void GLVolumePool::UploadMetadataTexel(uint32_t iBrickID) {
-  StackTimer pooltexel(PERF_POOL_TEXEL);
+  StackTimer pooltexel(PERF_POOL_UPLOAD_TEXEL);
   UINTVECTOR3 texDim = m_pPoolMetadataTexture->GetSize();
 
   UINTVECTOR3 const vSize(1, 1, 1); // size of single texel
@@ -1349,9 +1349,7 @@ namespace {
     std::vector<UINTVECTOR4> const& vBrickIDs,
     const LinearIndexDataset* pDataset,
     size_t iTimestep,
-    const size_t maxUsedBrickVoxelCount, // we pass it in here to avoid the pDataset->GetMaxUsedBrickSize() loop over all bricks
-    double& perfBrickIOTime,
-    uint64_t& perfBrickIOBytes
+    const size_t maxUsedBrickVoxelCount // we pass it in here to avoid the pDataset->GetMaxUsedBrickSize() loop over all bricks
   ) {
     uint32_t iPagedBricks = 0;
     std::vector<T> vUploadMem(maxUsedBrickVoxelCount);
@@ -1362,10 +1360,10 @@ namespace {
       UINTVECTOR3 const vVoxelSize = pDataset->GetBrickVoxelCounts(key);
 
       // upload brick core
-      t.Start();
-      pDataset->GetBrick(key, vUploadMem);
-      perfBrickIOTime  += t.Elapsed();
-      perfBrickIOBytes += vUploadMem.size() * sizeof(T);
+      {
+        tuvok::StackTimer poolGetBrick(PERF_POOL_GET_BRICK);
+        pDataset->GetBrick(key, vUploadMem);
+      }
       if (brickDebug) {
         writeBrick(key, vUploadMem);
       }
@@ -1373,6 +1371,8 @@ namespace {
         break;
       else
         iPagedBricks++;
+
+      tuvok::Controller::Instance().IncrementPerfCounter(PERF_POOL_UPLOADED_MEM, double(vUploadMem.size() * sizeof(T)));
     }
     return iPagedBricks;
   }
@@ -1383,8 +1383,6 @@ namespace {
     const LinearIndexDataset* pDataset,
     size_t iTimestep,
     const size_t maxUsedBrickVoxelCount, // we pass it in here to avoid the pDataset->GetMaxUsedBrickSize() loop over all bricks
-    double& perfBrickIOTime,
-    uint64_t& perfBrickIOBytes,
     bool brickDebug
   ) {
     unsigned int const iBitWidth = pDataset->GetBitWidth();
@@ -1392,22 +1390,22 @@ namespace {
       // brick debugging enabled
       if (!pDataset->GetIsSigned()) {
         switch (iBitWidth) {
-        case 8  : return UploadBricksToBrickPoolT<uint8_t,  true>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount, perfBrickIOTime, perfBrickIOBytes);
-        case 16 : return UploadBricksToBrickPoolT<uint16_t, true>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount, perfBrickIOTime, perfBrickIOBytes);
-        case 32 : return UploadBricksToBrickPoolT<uint32_t, true>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount, perfBrickIOTime, perfBrickIOBytes);
+        case 8  : return UploadBricksToBrickPoolT<uint8_t,  true>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount);
+        case 16 : return UploadBricksToBrickPoolT<uint16_t, true>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount);
+        case 32 : return UploadBricksToBrickPoolT<uint32_t, true>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount);
         default : throw Exception("Invalid bit width for an unsigned dataset", _func_, __LINE__);
         }
       } else if (pDataset->GetIsFloat()) {
         switch (iBitWidth) {
-        case 32 : return UploadBricksToBrickPoolT<float,    true>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount, perfBrickIOTime, perfBrickIOBytes);
-        case 64 : return UploadBricksToBrickPoolT<double,   true>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount, perfBrickIOTime, perfBrickIOBytes);
+        case 32 : return UploadBricksToBrickPoolT<float,    true>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount);
+        case 64 : return UploadBricksToBrickPoolT<double,   true>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount);
         default : throw Exception("Invalid bit width for a float dataset", _func_, __LINE__);
         }
       } else {
         switch (iBitWidth) {
-        case 8  : return UploadBricksToBrickPoolT<int8_t,   true>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount, perfBrickIOTime, perfBrickIOBytes);
-        case 16 : return UploadBricksToBrickPoolT<int16_t,  true>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount, perfBrickIOTime, perfBrickIOBytes);
-        case 32 : return UploadBricksToBrickPoolT<int32_t,  true>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount, perfBrickIOTime, perfBrickIOBytes);
+        case 8  : return UploadBricksToBrickPoolT<int8_t,   true>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount);
+        case 16 : return UploadBricksToBrickPoolT<int16_t,  true>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount);
+        case 32 : return UploadBricksToBrickPoolT<int32_t,  true>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount);
         default : throw Exception("Invalid bit width for a signed dataset", _func_, __LINE__);
         }
       }
@@ -1415,22 +1413,22 @@ namespace {
       // brick debugging disabled
       if (!pDataset->GetIsSigned()) {
         switch (iBitWidth) {
-        case 8  : return UploadBricksToBrickPoolT<uint8_t,  false>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount, perfBrickIOTime, perfBrickIOBytes);
-        case 16 : return UploadBricksToBrickPoolT<uint16_t, false>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount, perfBrickIOTime, perfBrickIOBytes);
-        case 32 : return UploadBricksToBrickPoolT<uint32_t, false>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount, perfBrickIOTime, perfBrickIOBytes);
+        case 8  : return UploadBricksToBrickPoolT<uint8_t,  false>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount);
+        case 16 : return UploadBricksToBrickPoolT<uint16_t, false>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount);
+        case 32 : return UploadBricksToBrickPoolT<uint32_t, false>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount);
         default : throw Exception("Invalid bit width for an unsigned dataset", _func_, __LINE__);
         }
       } else if (pDataset->GetIsFloat()) {
         switch (iBitWidth) {
-        case 32 : return UploadBricksToBrickPoolT<float,    false>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount, perfBrickIOTime, perfBrickIOBytes);
-        case 64 : return UploadBricksToBrickPoolT<double,   false>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount, perfBrickIOTime, perfBrickIOBytes);
+        case 32 : return UploadBricksToBrickPoolT<float,    false>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount);
+        case 64 : return UploadBricksToBrickPoolT<double,   false>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount);
         default : throw Exception("Invalid bit width for a float dataset", _func_, __LINE__);
         }
       } else {
         switch (iBitWidth) {
-        case 8  : return UploadBricksToBrickPoolT<int8_t,   false>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount, perfBrickIOTime, perfBrickIOBytes);
-        case 16 : return UploadBricksToBrickPoolT<int16_t,  false>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount, perfBrickIOTime, perfBrickIOBytes);
-        case 32 : return UploadBricksToBrickPoolT<int32_t,  false>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount, perfBrickIOTime, perfBrickIOBytes);
+        case 8  : return UploadBricksToBrickPoolT<int8_t,   false>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount);
+        case 16 : return UploadBricksToBrickPoolT<int16_t,  false>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount);
+        case 32 : return UploadBricksToBrickPoolT<int32_t,  false>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount);
         default : throw Exception("Invalid bit width for a signed dataset", _func_, __LINE__);
         }
       }
@@ -1448,9 +1446,7 @@ namespace {
     const std::vector<UINTVECTOR4>& vBrickIDs,
     const std::vector<GLVolumePool::MinMax>& vMinMaxScalar,
     const std::vector<GLVolumePool::MinMax>& vMinMaxGradient,
-    const size_t maxUsedBrickVoxelCount, // we pass it in here to avoid the pDataset->GetMaxUsedBrickSize() loop over all bricks
-    double& perfBrickIOTime,
-    uint64_t& perfBrickIOBytes
+    const size_t maxUsedBrickVoxelCount // we pass it in here to avoid the pDataset->GetMaxUsedBrickSize() loop over all bricks
   ) {
     uint32_t iPagedBricks = 0;
     std::vector<T> vUploadMem(maxUsedBrickVoxelCount);
@@ -1472,10 +1468,10 @@ namespace {
         if (bContainsData) {
 
           // upload brick core
-          t.Start();
-          pDataset->GetBrick(key, vUploadMem);
-          perfBrickIOTime  += t.Elapsed();
-          perfBrickIOBytes += vUploadMem.size() * sizeof(T);
+          {
+            tuvok::StackTimer poolGetBrick(PERF_POOL_GET_BRICK);
+            pDataset->GetBrick(key, vUploadMem);
+          }
           if(brickDebug) {
             writeBrick(key, vUploadMem);
           }
@@ -1483,6 +1479,8 @@ namespace {
             return iPagedBricks;
           else
             iPagedBricks++;
+
+          tuvok::Controller::Instance().IncrementPerfCounter(PERF_POOL_UPLOADED_MEM, double(vUploadMem.size() * sizeof(T)));
 
         } else {
           vBrickMetadata[brickIndex] = BI_EMPTY;
@@ -1509,8 +1507,6 @@ namespace {
     const std::vector<GLVolumePool::MinMax>& vMinMaxScalar,
     const std::vector<GLVolumePool::MinMax>& vMinMaxGradient,
     const size_t maxUsedBrickVoxelCount, // we pass it in here to avoid the pDataset->GetMaxUsedBrickSize() loop over all bricks
-    double& perfBrickIOTime,
-    uint64_t& perfBrickIOBytes,
     bool brickDebug
     ) {
       unsigned int const iBitWidth = pDataset->GetBitWidth();
@@ -1518,22 +1514,22 @@ namespace {
         // brick debugging enabled
         if (!pDataset->GetIsSigned()) {
           switch (iBitWidth) {
-          case 8  : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, uint8_t,  true>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount, perfBrickIOTime, perfBrickIOBytes);
-          case 16 : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, uint16_t, true>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount, perfBrickIOTime, perfBrickIOBytes);
-          case 32 : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, uint32_t, true>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount, perfBrickIOTime, perfBrickIOBytes);
+          case 8  : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, uint8_t,  true>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount);
+          case 16 : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, uint16_t, true>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount);
+          case 32 : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, uint32_t, true>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount);
           default : throw Exception("Invalid bit width for an unsigned dataset", _func_, __LINE__);
           }
         } else if (pDataset->GetIsFloat()) {
           switch (iBitWidth) {
-          case 32 : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, float,    true>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount, perfBrickIOTime, perfBrickIOBytes);
-          case 64 : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, double,   true>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount, perfBrickIOTime, perfBrickIOBytes);
+          case 32 : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, float,    true>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount);
+          case 64 : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, double,   true>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount);
           default : throw Exception("Invalid bit width for a float dataset", _func_, __LINE__);
           }
         } else {
           switch (iBitWidth) {
-          case 8  : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, int8_t,   true>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount, perfBrickIOTime, perfBrickIOBytes);
-          case 16 : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, int16_t,  true>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount, perfBrickIOTime, perfBrickIOBytes);
-          case 32 : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, int32_t,  true>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount, perfBrickIOTime, perfBrickIOBytes);
+          case 8  : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, int8_t,   true>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount);
+          case 16 : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, int16_t,  true>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount);
+          case 32 : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, int32_t,  true>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount);
           default : throw Exception("Invalid bit width for a signed dataset", _func_, __LINE__);
           }
         }
@@ -1541,22 +1537,22 @@ namespace {
         // brick debugging disabled
         if (!pDataset->GetIsSigned()) {
           switch (iBitWidth) {
-          case 8  : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, uint8_t,  false>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount, perfBrickIOTime, perfBrickIOBytes);
-          case 16 : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, uint16_t, false>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount, perfBrickIOTime, perfBrickIOBytes);
-          case 32 : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, uint32_t, false>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount, perfBrickIOTime, perfBrickIOBytes);
+          case 8  : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, uint8_t,  false>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount);
+          case 16 : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, uint16_t, false>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount);
+          case 32 : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, uint32_t, false>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount);
           default : throw Exception("Invalid bit width for an unsigned dataset", _func_, __LINE__);
           }
         } else if (pDataset->GetIsFloat()) {
           switch (iBitWidth) {
-          case 32 : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, float,    false>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount, perfBrickIOTime, perfBrickIOBytes);
-          case 64 : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, double,   false>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount, perfBrickIOTime, perfBrickIOBytes);
+          case 32 : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, float,    false>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount);
+          case 64 : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, double,   false>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount);
           default : throw Exception("Invalid bit width for a float dataset", _func_, __LINE__);
           }
         } else {
           switch (iBitWidth) {
-          case 8  : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, int8_t,   false>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount, perfBrickIOTime, perfBrickIOBytes);
-          case 16 : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, int16_t,  false>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount, perfBrickIOTime, perfBrickIOBytes);
-          case 32 : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, int32_t,  false>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount, perfBrickIOTime, perfBrickIOBytes);
+          case 8  : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, int8_t,   false>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount);
+          case 16 : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, int16_t,  false>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount);
+          case 32 : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, int32_t,  false>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount);
           default : throw Exception("Invalid bit width for a signed dataset", _func_, __LINE__);
           }
         }
@@ -1726,7 +1722,7 @@ uint32_t GLVolumePool::UploadBricks(const std::vector<UINTVECTOR4>& vBrickIDs,
           PotentiallyUploadBricksToBrickPool<AbstrRenderer::RM_1DTRANS>(
             visibility, m_pDataset, m_iMinMaxScalarTimestep, *this,
             m_vBrickMetadata, vBrickIDs, m_vMinMaxScalar, m_vMinMaxGradient,
-            m_iMaxUsedBrickVoxelCount, m_BrickIOTime, m_BrickIOBytes, brickDebug
+            m_iMaxUsedBrickVoxelCount, brickDebug
           );
         break;
       case AbstrRenderer::RM_2DTRANS:
@@ -1734,7 +1730,7 @@ uint32_t GLVolumePool::UploadBricks(const std::vector<UINTVECTOR4>& vBrickIDs,
           PotentiallyUploadBricksToBrickPool<AbstrRenderer::RM_2DTRANS>(
             visibility, m_pDataset, m_iMinMaxScalarTimestep, *this,
             m_vBrickMetadata, vBrickIDs, m_vMinMaxScalar, m_vMinMaxGradient,
-            m_iMaxUsedBrickVoxelCount, m_BrickIOTime, m_BrickIOBytes, brickDebug
+            m_iMaxUsedBrickVoxelCount, brickDebug
           );
         break;
       case AbstrRenderer::RM_ISOSURFACE:
@@ -1742,7 +1738,7 @@ uint32_t GLVolumePool::UploadBricks(const std::vector<UINTVECTOR4>& vBrickIDs,
           PotentiallyUploadBricksToBrickPool<AbstrRenderer::RM_ISOSURFACE>(
             visibility, m_pDataset, m_iMinMaxScalarTimestep, *this,
             m_vBrickMetadata, vBrickIDs, m_vMinMaxScalar, m_vMinMaxGradient,
-            m_iMaxUsedBrickVoxelCount, m_BrickIOTime, m_BrickIOBytes, brickDebug
+            m_iMaxUsedBrickVoxelCount, brickDebug
           );
         break;
       default:
@@ -1753,7 +1749,7 @@ uint32_t GLVolumePool::UploadBricks(const std::vector<UINTVECTOR4>& vBrickIDs,
       // visibility is updated guaranteeing that requested bricks do contain data
       iPagedBricks = UploadBricksToBrickPool(
         *this, vBrickIDs, m_pDataset, m_iMinMaxScalarTimestep,
-        m_iMaxUsedBrickVoxelCount, m_BrickIOTime, m_BrickIOBytes, brickDebug);
+        m_iMaxUsedBrickVoxelCount, brickDebug);
     }
   }
   

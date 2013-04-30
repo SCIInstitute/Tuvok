@@ -7,6 +7,9 @@
 #include "IO/TransferFunction2D.h"
 #include "IO/FileBackedDataset.h"
 #include "IO/LinearIndexDataset.h"
+#ifdef GLGRIDLEAPER_SORT_HT
+  #include "IO/uvfDataset.h"
+#endif
 #include "Renderer/GPUMemMan/GPUMemMan.h"
 
 #include "GLFBOTex.h"
@@ -65,7 +68,6 @@ GLGridLeaper::GLGridLeaper(MasterController* pMasterController,
 #ifdef GLGRIDLEAPER_WORKINGSET
   , m_pWorkingSetTable(NULL)
 #endif
-  , m_RenderingTime(0)
 {
   // a member of the parent class, hence it's initialized here
   m_bSupportsMeshes = false;
@@ -737,6 +739,9 @@ void GLGridLeaper::SetupRaycastShader(GLSLProgram* shaderProgram, RenderRegion3D
 }
 
 void GLGridLeaper::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
+#ifdef GLGRIDLEAPER_PROFILE
+  GL(glFinish());
+#endif
   StackTimer rendering(PERF_RAYCAST);
   GLSLProgram* shaderProgram = NULL;
   switch (m_eRenderMode) {
@@ -846,6 +851,9 @@ void GLGridLeaper::Raycast(RenderRegion3D& rr, EStereoID eStereoID) {
   if (m_iDebugView == 2)
     std::swap(m_pFBODebugNext, m_pFBODebug);
 #endif
+#ifdef GLGRIDLEAPER_PROFILE
+  GL(glFinish());
+#endif
 }
 
 bool GLGridLeaper::CheckForRedraw() {
@@ -891,7 +899,10 @@ uint32_t GLGridLeaper::UpdateToVolumePool(std::vector<UINTVECTOR4>& hash) {
 }
 
 bool GLGridLeaper::Render3DRegion(RenderRegion3D& rr) {
-  Timer renTime; renTime.Start();
+  tuvok::Controller::Instance().IncrementPerfCounter(PERF_SUBFRAMES, 1.0);
+#ifdef GLGRIDLEAPER_PROFILE
+  GL(glFinish());
+#endif
   StackTimer overall(PERF_RENDER);
   glClearColor(0,0,0,0);
 
@@ -935,6 +946,37 @@ bool GLGridLeaper::Render3DRegion(RenderRegion3D& rr) {
 
   // evaluate hashtable
   std::vector<UINTVECTOR4> hash = m_pglHashTable->GetData();
+#ifdef GLGRIDLEAPER_SORT_HT
+  {
+    // sort hash table bricks according to their file offsets
+    // in order to guarantee fair layout comparisons
+    StackTimer sorting(PERF_SORT_HTABLE);
+    UVFDataset* pUVFDataset = dynamic_cast<UVFDataset*>(m_pToCDataset);
+    if (pUVFDataset) {
+      std::shared_ptr<TOCBlock> toc = pUVFDataset->GetTOCBlock();
+      if (toc) {
+
+        class Sorter {
+        public:
+          Sorter(std::shared_ptr<TOCBlock> toc) : m_toc(toc) {}
+          bool operator() (UINTVECTOR4 const& a, UINTVECTOR4 const& b)
+          {
+            UINT64VECTOR4 aa(a);
+            UINT64VECTOR4 bb(b);
+            TOCEntry const& ar = m_toc->GetBrickInfo(aa);
+            TOCEntry const& br = m_toc->GetBrickInfo(bb);
+            return ar.m_iOffset < br.m_iOffset;
+          }
+        private:
+          std::shared_ptr<TOCBlock> m_toc;
+        };
+
+        Sorter brickAccessSorter(toc);
+        std::sort(hash.begin(), hash.end(), brickAccessSorter);
+      }
+    }
+  }
+#endif
 
   // upload missing bricks
   if (!m_pVolumePool->IsVisibilityUpdated() || !hash.empty())
@@ -1081,7 +1123,6 @@ bool GLGridLeaper::Render3DRegion(RenderRegion3D& rr) {
       m_bConverged = false;
     }
   }
-  m_RenderingTime = renTime.Elapsed();
 
   if (m_eRenderMode == RM_ISOSURFACE) {
       for (size_t i = 0;i<iStereoBufferCount;i++) {
@@ -1093,6 +1134,9 @@ bool GLGridLeaper::Render3DRegion(RenderRegion3D& rr) {
   }
 
   // always display intermediate results
+#ifdef GLGRIDLEAPER_PROFILE
+  GL(glFinish());
+#endif
   return true;
 }
 

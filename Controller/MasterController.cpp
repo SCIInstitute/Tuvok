@@ -288,15 +288,29 @@ void MasterController::SetHTSize(unsigned size) {
   this->RState.HashTableSize = size;
 }
 
+size_t MasterController::GetBrickStrategy() {
+  return static_cast<size_t>(this->RState.BStrategy);
+}
+uint32_t MasterController::GetRehashCount() {
+  return this->RState.RehashCount;
+}
+unsigned MasterController::GetMDUpdateStrategy() {
+  return static_cast<unsigned>(this->RState.MDUpdateBehavior);
+}
+unsigned MasterController::GetHTSize() {
+  return this->RState.HashTableSize;
+}
+
+
 double MasterController::PerfQuery(enum PerfCounter pc) {
-  assert(pc < PERF_END_RENDER);
+  assert(pc < PERF_END);
   double tmp = m_Perf[pc];
   m_Perf[pc] = 0.0;
   return tmp;
 }
 void MasterController::IncrementPerfCounter(enum PerfCounter pc,
                                             double amount) {
-  assert(pc < PERF_END_RENDER);
+  assert(pc < PERF_END);
   m_Perf[pc] += amount;
 }
 
@@ -319,25 +333,32 @@ void register_unsigned(lua_State* lua, const char* name, unsigned value) {
 
 void register_perf_enum(std::shared_ptr<LuaScripting>& ss) {
   lua_State* lua = ss->getLuaState();
-  register_unsigned(lua, "PERF_DISK_READ", PERF_DISK_READ);
-  register_unsigned(lua, "PERF_DECOMPRESSION", PERF_DECOMPRESSION);
-  register_unsigned(lua, "PERF_COMPRESSION", PERF_COMPRESSION);
-  register_unsigned(lua, "PERF_BRICKS", PERF_BRICKS);
-  register_unsigned(lua, "PERF_CACHE_LOOKUP", PERF_CACHE_LOOKUP);
-  register_unsigned(lua, "PERF_CACHE_ADD", PERF_CACHE_ADD);
-  register_unsigned(lua, "PERF_DY_GETBRICK", PERF_DY_GETBRICK);
-  register_unsigned(lua, "PERF_POOL_SORT", PERF_POOL_SORT);
-  register_unsigned(lua, "PERF_POOL_METADATA", PERF_POOL_METADATA);
-  register_unsigned(lua, "PERF_POOL_BRICK", PERF_POOL_BRICK);
-  register_unsigned(lua, "PERF_POOL_TEXEL", PERF_POOL_TEXEL);
-  register_unsigned(lua, "PERF_SOMETHING", PERF_SOMETHING);
-  register_unsigned(lua, "PERF_BRICK_COPY", PERF_BRICK_COPY);
-  register_unsigned(lua, "PERF_MM_PRECOMPUTE", PERF_MM_PRECOMPUTE);
-  register_unsigned(lua, "PERF_READ_HTABLE", PERF_READ_HTABLE);
-  register_unsigned(lua, "PERF_CONDENSE_HTABLE", PERF_CONDENSE_HTABLE);
+  register_unsigned(lua, "PERF_SUBFRAMES", PERF_SUBFRAMES);
   register_unsigned(lua, "PERF_RENDER", PERF_RENDER);
   register_unsigned(lua, "PERF_RAYCAST", PERF_RAYCAST);
+  register_unsigned(lua, "PERF_READ_HTABLE", PERF_READ_HTABLE);
+  register_unsigned(lua, "PERF_CONDENSE_HTABLE", PERF_CONDENSE_HTABLE);
+  register_unsigned(lua, "PERF_SORT_HTABLE", PERF_SORT_HTABLE);
   register_unsigned(lua, "PERF_UPLOAD_BRICKS", PERF_UPLOAD_BRICKS);
+  register_unsigned(lua, "PERF_POOL_SORT", PERF_POOL_SORT);
+  register_unsigned(lua, "PERF_POOL_UPLOADED_MEM", PERF_POOL_UPLOADED_MEM);
+  register_unsigned(lua, "PERF_POOL_GET_BRICK", PERF_POOL_GET_BRICK);
+  register_unsigned(lua, "PERF_DY_GET_BRICK", PERF_DY_GET_BRICK);
+  register_unsigned(lua, "PERF_DY_CACHE_LOOKUPS", PERF_DY_CACHE_LOOKUPS);
+  register_unsigned(lua, "PERF_DY_CACHE_LOOKUP", PERF_DY_CACHE_LOOKUP);
+  register_unsigned(lua, "PERF_DY_LOAD_BRICK", PERF_DY_LOAD_BRICK);
+  register_unsigned(lua, "PERF_DY_CACHE_ADDS", PERF_DY_CACHE_ADDS);
+  register_unsigned(lua, "PERF_DY_CACHE_ADD", PERF_DY_CACHE_ADD);
+  register_unsigned(lua, "PERF_DY_BRICK_COPY", PERF_DY_BRICK_COPY);
+  register_unsigned(lua, "PERF_POOL_UPLOAD_BRICK", PERF_POOL_UPLOAD_BRICK);
+  register_unsigned(lua, "PERF_POOL_UPLOAD_TEXEL", PERF_POOL_UPLOAD_TEXEL);
+  register_unsigned(lua, "PERF_POOL_UPLOAD_METADATA", PERF_POOL_UPLOAD_METADATA);
+  register_unsigned(lua, "PERF_EO_BRICKS", PERF_EO_BRICKS);
+  register_unsigned(lua, "PERF_EO_DISK_READ", PERF_EO_DISK_READ);
+  register_unsigned(lua, "PERF_EO_DECOMPRESSION", PERF_EO_DECOMPRESSION);
+
+  register_unsigned(lua, "PERF_MM_PRECOMPUTE", PERF_MM_PRECOMPUTE);
+  register_unsigned(lua, "PERF_SOMETHING", PERF_SOMETHING);
 }
 
 void MasterController::RegisterLuaCommands() {
@@ -447,6 +468,15 @@ void MasterController::RegisterLuaCommands() {
     "tuvok.state.hashTableSize", "sets the size of the hash table.  Larger "
     "values give better raw performance; smaller values make the system more "
     " responsive.  default: 509", false);
+
+  m_pMemReg->registerFunction(this, &MasterController::GetBrickStrategy,
+    "tuvok.state.getBrickStrategy", "", false);
+  m_pMemReg->registerFunction(this, &MasterController::GetRehashCount,
+    "tuvok.state.getRehashCount", "", false);
+  m_pMemReg->registerFunction(this, &MasterController::GetMDUpdateStrategy,
+    "tuvok.state.getMdUpdateStrategy", "", false);
+  m_pMemReg->registerFunction(this, &MasterController::GetHTSize,
+    "tuvok.state.getHashTableSize", "", false);
 
   m_pMemReg->registerFunction(this,
     &MasterController::PerfQuery, "tuvok.perf",
