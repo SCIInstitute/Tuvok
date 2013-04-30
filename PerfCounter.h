@@ -5,28 +5,39 @@
 /// When adding a new counter, please add a (units) clause so we know how to
 /// interpret the value!
 enum PerfCounter {
-  PERF_DISK_READ=0,   // reading bricks from disk (seconds)
-  PERF_DECOMPRESSION, // decompressing brick data (seconds)
-  PERF_COMPRESSION,   // compressing brick data (seconds)
-  PERF_BRICKS,        // number of bricks read/processed (counter)
-  PERF_BRICK_COPY,    // copying data into rebricked bricks (seconds)
-  PERF_MM_PRECOMPUTE, // computing min/max for new bricks (seconds)
-  PERF_CACHE_LOOKUP,  // looking up/copying from cache (seconds)
-  PERF_CACHE_ADD,     // adding/copying into the brick cache (seconds)
-  PERF_DY_GETBRICK,   // overall operation of GetBrick call (seconds)
-  PERF_POOL_SORT,     // sorting the brick pool info (seconds)
-  PERF_POOL_METADATA, // updating (uploading) pool metadata (seconds)
-  PERF_POOL_BRICK,    // pool upload of a single brick (seconds)
-  PERF_POOL_TEXEL,    // uploading single texel of pool (seconds)
-  PERF_SOMETHING,     // ad hoc, always changing (seconds)
-  PERF_END_IO, // invalid; end of IO-based metrics
 
-  PERF_READ_HTABLE=1000, // reading hash table from GPU (seconds)
-  PERF_CONDENSE_HTABLE,  // condensing hash table [removing empties] (seconds)
-  PERF_RENDER,           // (seconds)
-  PERF_UPLOAD_BRICKS,    // uploading bricks to GPU [tex updates] (seconds)
-  PERF_RAYCAST,       // raycasting part of rendering (seconds)
-  PERF_END_RENDER, // invalid; end of render-based metrics
+  // structured timers, indention signals timer hierarchy
+  PERF_SUBFRAMES=0,              // number of subframes (counter)
+  PERF_RENDER,                   // (milliseconds)
+    PERF_RAYCAST,                // raycasting part of rendering (milliseconds)
+    PERF_READ_HTABLE,            // reading hash table from GPU (milliseconds)
+    PERF_CONDENSE_HTABLE,        // condensing hash table [removing empties] (milliseconds)
+    PERF_SORT_HTABLE,            // sort bricks by file offset, necessary for layouts
+    PERF_UPLOAD_BRICKS,          // uploading bricks to GPU [tex updates] (milliseconds)
+      PERF_POOL_SORT,            // sorting the brick pool info (milliseconds)
+      PERF_POOL_UPLOADED_MEM,    // overall uploaded mem to GPU (bytes)
+      PERF_POOL_GET_BRICK,       // overall operation of GetBrick call from the pool (milliseconds)
+        PERF_DY_GET_BRICK,       // overall operation of GetBrick call for dynamic bricked datasets (milliseconds)
+          PERF_DY_CACHE_LOOKUPS, // cache look ups (counter)
+          PERF_DY_CACHE_LOOKUP,  // looking up/copying from cache (milliseconds)
+          PERF_DY_LOAD_BRICK,    // load (GetBrick) brick from the underlying dataset (milliseconds)
+          PERF_DY_CACHE_ADDS,    // cache adds (counter)
+          PERF_DY_CACHE_ADD,     // adding/copying into the brick cache (milliseconds)
+          PERF_DY_BRICK_COPY,    // copying data into rebricked bricks (milliseconds)
+      PERF_POOL_UPLOAD_BRICK,    // pool upload of a single brick (milliseconds)
+        PERF_POOL_UPLOAD_TEXEL,  // uploading single texel of pool (milliseconds)
+      PERF_POOL_UPLOAD_METADATA, // uploading complete pool metadata instead of single texels (milliseconds)
+
+  // low level Extended Octree measures
+  // these timers belong under PERF_DY_LOAD_BRICK or PERF_POOL_GET_BRICK if
+  // there is no dyn bricked dataset
+  PERF_EO_BRICKS,        // number of bricks read/processed (counter)
+  PERF_EO_DISK_READ,     // reading bricks from disk (milliseconds)
+  PERF_EO_DECOMPRESSION, // decompressing brick data (milliseconds)
+
+  PERF_MM_PRECOMPUTE,    // computing min/max for new bricks (milliseconds)
+  PERF_SOMETHING,        // ad hoc, always changing (milliseconds)
+
   PERF_END // invalid; used for sizing table.
 };
 

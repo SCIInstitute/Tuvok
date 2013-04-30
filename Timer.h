@@ -53,7 +53,7 @@ class Timer {
 public:
   Timer();
   void Start();
-  double Elapsed() const;
+  double Elapsed() const; // returns milliseconds
   static double Now();
 private:
   #ifndef DETECTED_OS_WINDOWS
