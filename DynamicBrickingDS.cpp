@@ -600,6 +600,7 @@ bool DynamicBrickingDS::dbinfo::Brick(const DynamicBrickingDS& ds,
             static_cast<unsigned>(std::get<0>(pre.skey)),
             static_cast<unsigned>(std::get<1>(pre.skey)),
             static_cast<unsigned>(std::get<2>(pre.skey)));
+    tuvok::Controller::Instance().IncrementPerfCounter(PERF_DY_BRICK_COPIED, 1.0);
     StackTimer copies(PERF_DY_BRICK_COPY);
     const T* srcdata = static_cast<const T*>(lookup);
     const size_t components = this->ds->GetComponentCount();
@@ -607,8 +608,11 @@ bool DynamicBrickingDS::dbinfo::Brick(const DynamicBrickingDS& ds,
                               pre.src_offset);
   }
   // nope?  oh well.  read it.
-  std::vector<T> srcdata(this->ds->GetMaxBrickSize().volume());
-
+  std::vector<T> srcdata;
+  {
+    StackTimer loadBrick(PERF_DY_RESERVE_BRICK);
+    srcdata.resize(this->ds->GetMaxBrickSize().volume());
+  }
   {
     StackTimer loadBrick(PERF_DY_LOAD_BRICK);
     if(!this->ds->GetBrick(pre.skey, srcdata)) { return false; }
@@ -626,6 +630,7 @@ bool DynamicBrickingDS::dbinfo::Brick(const DynamicBrickingDS& ds,
     sdata = static_cast<const T*>(this->cache.add(pre.skey, srcdata));
   }
   const size_t components = this->ds->GetComponentCount();
+  tuvok::Controller::Instance().IncrementPerfCounter(PERF_DY_BRICK_COPIED, 1.0);
   StackTimer copies(PERF_DY_BRICK_COPY);
   return this->CopyBrick<T>(data, sdata, components, pre.tgt_bs, pre.src_bs,
                             pre.src_offset);
