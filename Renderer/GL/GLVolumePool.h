@@ -142,7 +142,7 @@ namespace tuvok {
       uint64_t GetMaxUsedBrickBytes() const { return m_iMaxUsedBrickBytes; }
 
     protected:
-      GLTexture2D* m_pPoolMetadataTexture;
+      GLTexture3D* m_pPoolMetadataTexture;
       GLTexture3D* m_pPoolDataTexture;
       UINTVECTOR3 m_vPoolCapacity;
       UINTVECTOR3 m_poolSize;

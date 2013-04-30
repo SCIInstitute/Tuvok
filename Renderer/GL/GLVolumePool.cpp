@@ -320,7 +320,7 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit,
                                             const std::string& WsetPrefixName)
 {
   // must have created GL resources before asking for shader
-  if (!m_pPoolMetadataTexture  || !m_pPoolDataTexture) return "";
+  if (!m_pPoolMetadataTexture || !m_pPoolDataTexture) return "";
 
   m_iMetaTextureUnit = iMetaTextureUnit;
   m_iDataTextureUnit = iDataTextureUnit;
@@ -354,8 +354,12 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit,
  // zeroes)
   ss << std::setprecision(36);
   ss << "\n"
-     << "layout(binding = " << m_iMetaTextureUnit << ") uniform usampler2D metaData;\n"
-     << "#define iMetaTextureWidth " << m_pPoolMetadataTexture->GetSize().x << "\n"
+     << "layout(binding = " << m_iMetaTextureUnit << ") uniform usampler3D metaData;\n"
+     << "#define iMetaTextureSize uvec3("
+     << m_pPoolMetadataTexture->GetSize().x << ", "
+     << m_pPoolMetadataTexture->GetSize().y << ", "
+     << m_pPoolMetadataTexture->GetSize().z << ")\n"
+     << "// #define iMetaTextureWidth " << m_pPoolMetadataTexture->GetSize().x << "\n"
      << "\n"
      << "#define BI_CHILD_EMPTY " << BI_CHILD_EMPTY << "\n"
      << "#define BI_EMPTY "       << BI_EMPTY << "\n"
@@ -467,13 +471,16 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit,
        << "\n";
   }
 
-  ss << "ivec2 GetBrickIndex(uvec4 brickCoords) {\n"
+  ss << "ivec3 GetBrickIndex(uvec4 brickCoords) {\n"
      << "  uint iLODOffset  = vLODOffset[brickCoords.w];\n"
      << "  uint iBrickIndex = iLODOffset + brickCoords.x + "
         "brickCoords.y * iLODLayoutSize[brickCoords.w].x + "
         "brickCoords.z * iLODLayoutSize[brickCoords.w].y;\n"
-        "  return ivec2(iBrickIndex % iMetaTextureWidth,"
-                       "iBrickIndex / iMetaTextureWidth);\n"
+        "  return ivec3(iBrickIndex % iMetaTextureSize[0],\n"
+        "               (iBrickIndex / iMetaTextureSize[0]) %"
+                        " iMetaTextureSize[1], "
+                        " iBrickIndex /"
+                        "   (iMetaTextureSize[0]*iMetaTextureSize[1]));\n"
      << "}\n"
      << "\n"
      << "uint GetBrickInfo(uvec4 brickCoords) {\n"
@@ -792,6 +799,40 @@ GLVolumePool::~GLVolumePool() {
   FreeGLResources();
 }
 
+static UINTVECTOR3 Fit1DIndexTo3DArray(uint64_t maxIdx, uint32_t maxArraySize) {
+  // we're creating a 3D texture.. make sure it can be large enough to hold the
+  // data!
+  const uint64_t max_elems = uint64_t(maxArraySize) * uint64_t(maxArraySize) *
+                             uint64_t(maxArraySize);
+  if(maxIdx > max_elems) {
+    throw std::runtime_error("index texture exceeds max allowable size!");
+  }
+
+  UINTVECTOR3 texSize;
+
+  if(maxIdx < uint64_t(maxArraySize)) {
+    // fits 1D index into a single row
+    texSize.x = uint32_t(maxIdx);
+    texSize.y = 1;
+    texSize.z = 1;
+  } else if (maxIdx < uint64_t(maxArraySize)*uint64_t(maxArraySize)) {
+    // fit 1D index into the smallest possible rectangle
+    texSize.x = uint32_t(std::ceil(std::sqrt(double(maxIdx))));
+    texSize.y = uint32_t(std::ceil(double(maxIdx)/double(texSize.x)));
+    texSize.z = 1;
+  } else {
+    // fit 1D index into the smallest possible cuboid
+    texSize.x = uint32_t(std::ceil(pow(double(maxIdx), 1.0/3.0)));
+    texSize.y = uint32_t(std::ceil(double(maxIdx)/double(texSize.x * texSize.x)));
+    texSize.z = uint32_t(std::ceil(double(maxIdx)/double(texSize.x * texSize.y)));
+  }
+  assert((uint64_t(texSize.x) * uint64_t(texSize.y) * uint64_t(texSize.z)) >= maxIdx);
+  assert(texSize.x <= maxArraySize);
+  assert(texSize.y <= maxArraySize);
+  assert(texSize.z <= maxArraySize);
+  return texSize;
+}
+
 void GLVolumePool::CreateGLResources() {
   m_pPoolDataTexture = new GLTexture3D(m_poolSize.x, m_poolSize.y, m_poolSize.z,
                                       m_internalformat, m_format, m_type, 0, GL_LINEAR, GL_LINEAR);
@@ -816,33 +857,34 @@ void GLVolumePool::CreateGLResources() {
            m_maxInnerBrickSize.z);
 
   int gpumax; 
-  GL(glGetIntegerv(GL_MAX_TEXTURE_SIZE, &gpumax));
+  GL(glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE_EXT, &gpumax));
 
   // last element in the offset table contains all bricks until the
   // last level + that last level itself contains one brick
   m_iTotalBrickCount = *(m_vLoDOffsetTable.end()-1)+1;
 
-  UINTVECTOR2 vTexSize;
+  UINTVECTOR3 vTexSize;
   try {
-    vTexSize = VolumeTools::Fit1DIndexTo2DArray(m_iTotalBrickCount, gpumax);
+    vTexSize = Fit1DIndexTo3DArray(m_iTotalBrickCount, gpumax);
   } catch (std::runtime_error const& e) {
     // this is very unlikely but not impossible
     T_ERROR(e.what());
     throw;
   }
-  m_vBrickMetadata.resize(vTexSize.area());
+  m_vBrickMetadata.resize(vTexSize.volume());
 
   std::fill(m_vBrickMetadata.begin(), m_vBrickMetadata.end(), BI_MISSING);
 
   std::stringstream ss;
   ss << "Creating brick metadata texture of size " << vTexSize.x << " x " 
-     << vTexSize.y << " to effectively hold  " << m_iTotalBrickCount << " entries. "
-     << "Consequently, " << vTexSize.area() - m_iTotalBrickCount << " entries in "
-     << "texture are wasted due to the 2D extension process.";
+     << vTexSize.y << " x " << vTexSize.z << " to effectively hold  "
+     << m_iTotalBrickCount << " entries. "
+     << "Consequently, " << vTexSize.volume() - m_iTotalBrickCount << " entries in "
+     << "texture are wasted due to the 3D extension process.";
   MESSAGE(ss.str().c_str());
 
-  m_pPoolMetadataTexture = new GLTexture2D(
-    vTexSize.x, vTexSize.y, GL_R32UI,
+  m_pPoolMetadataTexture = new GLTexture3D(
+    vTexSize.x, vTexSize.y, vTexSize.z, GL_R32UI,
     GL_RED_INTEGER, GL_UNSIGNED_INT, &m_vBrickMetadata[0], m_filter, m_filter
   );
 }
@@ -887,9 +929,12 @@ void GLVolumePool::UploadMetadataTexture() {
 
 void GLVolumePool::UploadMetadataTexel(uint32_t iBrickID) {
   StackTimer pooltexel(PERF_POOL_TEXEL);
-  uint32_t const iMetaTextureWidth = m_pPoolMetadataTexture->GetSize().x;
-  UINTVECTOR2 const vSize(1, 1); // size of single texel
-  UINTVECTOR2 const vOffset(iBrickID % iMetaTextureWidth, iBrickID / iMetaTextureWidth);
+  UINTVECTOR3 texDim = m_pPoolMetadataTexture->GetSize();
+
+  UINTVECTOR3 const vSize(1, 1, 1); // size of single texel
+  const uint32_t idx = iBrickID;
+  const UINTVECTOR3 vOffset(idx % texDim[0], (idx/texDim[0]) % texDim[1],
+                            idx / (texDim[0] * texDim[1]));
   m_pPoolMetadataTexture->SetData(vOffset, vSize, &m_vBrickMetadata[iBrickID]);
 }
 
