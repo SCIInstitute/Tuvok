@@ -779,7 +779,7 @@ GLVolumePool* GPUMemMan::GetVolumePool(LinearIndexDataset* dataSet,
 
   // the max brick layout that fits into the available GPU memory
   const uint64_t iMaxVoxelCount = iMaxGPUMem/(iCompCount*iBitWidth/8);
-  const uint64_t r3Voxels = uint64_t(pow(iMaxVoxelCount, 1.0f/3.0f));
+  const uint64_t r3Voxels = uint64_t(pow(double(iMaxVoxelCount), 1.0/3.0));
   UINTVECTOR3 maxBricksForGPU;
 
   // round the starting input size (r3Voxels) to the closest multiple brick size
@@ -804,7 +804,7 @@ GLVolumePool* GPUMemMan::GetVolumePool(LinearIndexDataset* dataSet,
 
   // the max brick layout required by the dataset
   const uint64_t iMaxBrickCount = dataSet->GetTotalBrickCount();
-  const uint64_t r3Bricks = uint64_t(pow(iMaxBrickCount, 1.0f/3.0f));
+  const uint64_t r3Bricks = uint64_t(pow(double(iMaxBrickCount), 1.0/3.0));
   UINT64VECTOR3 maxBricksForDataset;
 
   multipleOfBrickSizeThatFitsInX = vMaxBS.x*r3Bricks;
