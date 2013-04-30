@@ -506,7 +506,6 @@ void ExtendedOctreeConverter::ComputeStatsAndCompressAll(ExtendedOctree& tree)
                 tree.m_iComponentCount, tree.m_eComponentType);
 
       uint64_t newlen = 0;
-      Timer t; t.Start();
       switch (m_eCompression) {
       case CT_ZLIB:
         newlen = zCompress(BrickData, BrickSize(tree, i), compressed,
@@ -532,8 +531,6 @@ void ExtendedOctreeConverter::ComputeStatsAndCompressAll(ExtendedOctree& tree)
       default:
         throw std::runtime_error("unknown compression format");
       }
-      tuvok::Controller::Instance().IncrementPerfCounter(PERF_COMPRESSION,
-                                                         t.Elapsed());
       std::shared_ptr<uint8_t> data;
 
       if(newlen < BrickSize(tree, i)) {

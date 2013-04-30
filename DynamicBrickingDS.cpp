@@ -577,12 +577,13 @@ template<typename T>
 bool DynamicBrickingDS::dbinfo::Brick(const DynamicBrickingDS& ds,
                                       const BrickKey& key,
                                       std::vector<T>& data) {
-  StackTimer gbrick(PERF_DY_GETBRICK);
+  StackTimer gbrick(PERF_DY_GET_BRICK);
   GBPrelim pre = this->BrickSetup(key, ds);
 
   const void* lookup;
   {
-    StackTimer cc(PERF_CACHE_LOOKUP);
+    tuvok::Controller::Instance().IncrementPerfCounter(PERF_DY_CACHE_LOOKUPS, 1.0);
+    StackTimer cc(PERF_DY_CACHE_LOOKUP);
     lookup = this->cache.lookup(pre.skey, T(42));
   }
   // first: check the cache and see if we can get the data easy.
@@ -591,7 +592,7 @@ bool DynamicBrickingDS::dbinfo::Brick(const DynamicBrickingDS& ds,
             static_cast<unsigned>(std::get<0>(pre.skey)),
             static_cast<unsigned>(std::get<1>(pre.skey)),
             static_cast<unsigned>(std::get<2>(pre.skey)));
-    StackTimer copies(PERF_BRICK_COPY);
+    StackTimer copies(PERF_DY_BRICK_COPY);
     const T* srcdata = static_cast<const T*>(lookup);
     const size_t components = this->ds->GetComponentCount();
     return this->CopyBrick<T>(data, srcdata, components, pre.tgt_bs, pre.src_bs,
@@ -600,12 +601,16 @@ bool DynamicBrickingDS::dbinfo::Brick(const DynamicBrickingDS& ds,
   // nope?  oh well.  read it.
   std::vector<T> srcdata(this->ds->GetMaxBrickSize().volume());
 
-  if(!this->ds->GetBrick(pre.skey, srcdata)) { return false; }
+  {
+    StackTimer loadBrick(PERF_DY_LOAD_BRICK);
+    if(!this->ds->GetBrick(pre.skey, srcdata)) { return false; }
+  }
 
   // add it to the cache.
   const T* sdata = static_cast<const T*>(srcdata.data());
   if(this->cacheBytes > 0) {
-    StackTimer cc(PERF_CACHE_ADD);
+    tuvok::Controller::Instance().IncrementPerfCounter(PERF_DY_CACHE_ADDS, 1.0);
+    StackTimer cc(PERF_DY_CACHE_ADD);
     // is the cache full?  find room.
     while(!this->FitsInCache(srcdata.size() * sizeof(T))) {
       this->cache.remove();
@@ -613,7 +618,7 @@ bool DynamicBrickingDS::dbinfo::Brick(const DynamicBrickingDS& ds,
     sdata = static_cast<const T*>(this->cache.add(pre.skey, srcdata));
   }
   const size_t components = this->ds->GetComponentCount();
-  StackTimer copies(PERF_BRICK_COPY);
+  StackTimer copies(PERF_DY_BRICK_COPY);
   return this->CopyBrick<T>(data, sdata, components, pre.tgt_bs, pre.src_bs,
                             pre.src_offset);
 }

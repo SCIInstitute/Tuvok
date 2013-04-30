@@ -312,12 +312,13 @@ const TOCEntry& ExtendedOctree::GetBrickToCData(size_t index) const {
  decompression is required.
 */ 
 void ExtendedOctree::GetBrickData(uint8_t* pData, uint64_t index) const {
-  m_pLargeRAWFile->SeekPos(m_iOffset+m_vTOC[size_t(index)].m_iOffset);
-  Timer timer;
+
+  tuvok::Controller::Instance().IncrementPerfCounter(PERF_EO_BRICKS, 1.0);
 
   if(m_vTOC[size_t(index)].m_eCompression == CT_NONE) {
     // not compressed, just read it directly into the buffer.
-    tuvok::StackTimer t(PERF_DISK_READ);
+    tuvok::StackTimer t(PERF_EO_DISK_READ);
+    m_pLargeRAWFile->SeekPos(m_iOffset+m_vTOC[size_t(index)].m_iOffset);
     m_pLargeRAWFile->ReadRAW(pData, m_vTOC[size_t(index)].m_iLength);
     return;
   }
@@ -332,10 +333,11 @@ void ExtendedOctree::GetBrickData(uint8_t* pData, uint64_t index) const {
   std::shared_ptr<uint8_t> buf(new uint8_t[uncompressedSize],
                                nonstd::DeleteArray<uint8_t>());
   std::shared_ptr<uint8_t> out(pData, nonstd::null_deleter());
-  TimedStatement(PERF_DISK_READ,
-    m_pLargeRAWFile->ReadRAW(buf.get(), m_vTOC[size_t(index)].m_iLength)
+  TimedStatement(PERF_EO_DISK_READ,
+    m_pLargeRAWFile->SeekPos(m_iOffset+m_vTOC[size_t(index)].m_iOffset);
+    m_pLargeRAWFile->ReadRAW(buf.get(), m_vTOC[size_t(index)].m_iLength);
   );
-  tuvok::StackTimer decompress(PERF_DECOMPRESSION);
+  tuvok::StackTimer decompress(PERF_EO_DECOMPRESSION);
   switch (m_vTOC[size_t(index)].m_eCompression) {
   case CT_ZLIB:
     zDecompress(buf, out, uncompressedSize);
@@ -357,7 +359,6 @@ void ExtendedOctree::GetBrickData(uint8_t* pData, uint64_t index) const {
   default:
     throw std::runtime_error("unknown compression format");
   }
-  tuvok::Controller::Instance().IncrementPerfCounter(PERF_BRICKS, 1.0);
 }
 
 /*
