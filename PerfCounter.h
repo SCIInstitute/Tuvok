@@ -20,9 +20,11 @@ enum PerfCounter {
         PERF_DY_GET_BRICK,       // overall operation of GetBrick call for dynamic bricked datasets (milliseconds)
           PERF_DY_CACHE_LOOKUPS, // cache look ups (counter)
           PERF_DY_CACHE_LOOKUP,  // looking up/copying from cache (milliseconds)
+          PERF_DY_RESERVE_BRICK, // aquire brick memory
           PERF_DY_LOAD_BRICK,    // load (GetBrick) brick from the underlying dataset (milliseconds)
           PERF_DY_CACHE_ADDS,    // cache adds (counter)
           PERF_DY_CACHE_ADD,     // adding/copying into the brick cache (milliseconds)
+          PERF_DY_BRICK_COPIED,  // brick copying (counter)
           PERF_DY_BRICK_COPY,    // copying data into rebricked bricks (milliseconds)
       PERF_POOL_UPLOAD_BRICK,    // pool upload of a single brick (milliseconds)
         PERF_POOL_UPLOAD_TEXEL,  // uploading single texel of pool (milliseconds)
