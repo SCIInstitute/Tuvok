@@ -715,7 +715,10 @@ namespace {
   ) {
     const UINTVECTOR3 vVoxelCount = pDataset->GetBrickVoxelCounts(bkey);
     std::vector<T> vUploadMem(vVoxelCount.volume());
-    pDataset->GetBrick(bkey, vUploadMem);
+    {
+      tuvok::StackTimer poolGetBrick(PERF_POOL_GET_BRICK);
+      pDataset->GetBrick(bkey, vUploadMem);
+    }
     pool.UploadFirstBrick(vVoxelCount, &vUploadMem[0]);
   }
 

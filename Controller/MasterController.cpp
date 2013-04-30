@@ -356,9 +356,11 @@ void register_perf_enum(std::shared_ptr<LuaScripting>& ss) {
   register_unsigned(lua, "PERF_DY_GET_BRICK", PERF_DY_GET_BRICK);
   register_unsigned(lua, "PERF_DY_CACHE_LOOKUPS", PERF_DY_CACHE_LOOKUPS);
   register_unsigned(lua, "PERF_DY_CACHE_LOOKUP", PERF_DY_CACHE_LOOKUP);
+  register_unsigned(lua, "PERF_DY_RESERVE_BRICK", PERF_DY_RESERVE_BRICK);
   register_unsigned(lua, "PERF_DY_LOAD_BRICK", PERF_DY_LOAD_BRICK);
   register_unsigned(lua, "PERF_DY_CACHE_ADDS", PERF_DY_CACHE_ADDS);
   register_unsigned(lua, "PERF_DY_CACHE_ADD", PERF_DY_CACHE_ADD);
+  register_unsigned(lua, "PERF_DY_BRICK_COPIED", PERF_DY_BRICK_COPIED);
   register_unsigned(lua, "PERF_DY_BRICK_COPY", PERF_DY_BRICK_COPY);
   register_unsigned(lua, "PERF_POOL_UPLOAD_BRICK", PERF_POOL_UPLOAD_BRICK);
   register_unsigned(lua, "PERF_POOL_UPLOAD_TEXEL", PERF_POOL_UPLOAD_TEXEL);
