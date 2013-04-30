@@ -7,9 +7,6 @@
 #include "IO/TransferFunction2D.h"
 #include "IO/FileBackedDataset.h"
 #include "IO/LinearIndexDataset.h"
-#ifdef GLGRIDLEAPER_SORT_HT
-  #include "IO/uvfDataset.h"
-#endif
 #include "Renderer/GPUMemMan/GPUMemMan.h"
 
 #include "GLFBOTex.h"
@@ -20,6 +17,10 @@
 #include "GLTexture1D.h"
 #include "GLVolumePool.h"
 #include "GLVBO.h"
+
+#ifdef GLGRIDLEAPER_SORT_HT
+#include "IO/uvfDataset.h"
+#endif
 
 using std::bind;
 using namespace std::placeholders;
