@@ -288,16 +288,16 @@ void MasterController::SetHTSize(unsigned size) {
   this->RState.HashTableSize = size;
 }
 
-size_t MasterController::GetBrickStrategy() {
+size_t MasterController::GetBrickStrategy() const {
   return static_cast<size_t>(this->RState.BStrategy);
 }
-uint32_t MasterController::GetRehashCount() {
+uint32_t MasterController::GetRehashCount() const {
   return this->RState.RehashCount;
 }
-unsigned MasterController::GetMDUpdateStrategy() {
+unsigned MasterController::GetMDUpdateStrategy() const {
   return static_cast<unsigned>(this->RState.MDUpdateBehavior);
 }
-unsigned MasterController::GetHTSize() {
+unsigned MasterController::GetHTSize() const {
   return this->RState.HashTableSize;
 }
 
@@ -324,6 +324,16 @@ void MasterController::SetMaxCPUMem(uint64_t megs) {
   const uint64_t megabyte = 1024 * 1024;
   m_pSystemInfo->SetMaxUsableCPUMem(megabyte * megs);
   m_pGPUMemMan->MemSizesChanged();
+}
+
+uint64_t MasterController::GetMaxGPUMem() const {
+  const uint64_t megabyte = 1024 * 1024;
+  return m_pSystemInfo->GetMaxUsableGPUMem() / megabyte;
+}
+
+uint64_t MasterController::GetMaxCPUMem() const {
+  const uint64_t megabyte = 1024 * 1024;
+  return m_pSystemInfo->GetMaxUsableCPUMem() / megabyte;
 }
 
 void register_unsigned(lua_State* lua, const char* name, unsigned value) {
@@ -459,6 +469,14 @@ void MasterController::RegisterLuaCommands() {
     &MasterController::SetMaxCPUMem, "tuvok.state.cpuMem",
     "sets a new max amount of CPU memory.  In megabytes.", false
   );
+  m_pMemReg->registerFunction(this,
+    &MasterController::GetMaxGPUMem, "tuvok.state.getGpuMem",
+    "gets the max amount of GPU memory.  In megabytes.", false
+    );
+  m_pMemReg->registerFunction(this,
+    &MasterController::GetMaxCPUMem, "tuvok.state.getCpuMem",
+    "gets the max amount of CPU memory.  In megabytes.", false
+    );
   m_pMemReg->registerFunction(this, &MasterController::SetMDUpdateStrategy,
     "tuvok.state.mdUpdateStrategy", "control the background metadata update "
     "thread.\n  0: enabled (default)\n  1: async thread does nothing\n  2: "

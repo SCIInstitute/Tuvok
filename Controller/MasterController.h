@@ -161,6 +161,10 @@ public:
   void SetMaxGPUMem(uint64_t megs);
   void SetMaxCPUMem(uint64_t megs);
 
+  /// return max mem in megabyte
+  uint64_t GetMaxGPUMem() const;
+  uint64_t GetMaxCPUMem() const;
+
   /// centralized storage for renderer parameters
   ///@{
   void SetBrickStrategy(size_t strat);
@@ -168,10 +172,10 @@ public:
   void SetMDUpdateStrategy(unsigned); ///< takes DM_* enum
   void SetHTSize(unsigned); ///< hash table size
 
-  size_t GetBrickStrategy();
-  uint32_t GetRehashCount();
-  unsigned GetMDUpdateStrategy();
-  unsigned GetHTSize();
+  size_t GetBrickStrategy() const;
+  uint32_t GetRehashCount() const;
+  unsigned GetMDUpdateStrategy() const;
+  unsigned GetHTSize() const;
 
   RendererState RState;
   ///@}
