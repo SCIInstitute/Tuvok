@@ -178,6 +178,10 @@ void LuaDatasetProxy::bind(Dataset* ds, shared_ptr<LuaScripting> ss)
                                "sets the size of the cache, in megabytes.",
                                false);
       ss->addParamInfo(id, 0, "cacheMB", "cache size (megabytes)");
+      id = mReg->functionProxy(&dynDS, &DynamicBrickingDS::GetCacheSize,
+                              "getCacheSize",
+                              "gets the size of the cache, in megabytes.",
+                              false);
     } catch(const std::bad_cast&) {
       MESSAGE("Not dynamically bricked; not adding cache control functions.");
     }
