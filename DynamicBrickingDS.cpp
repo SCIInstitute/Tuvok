@@ -763,8 +763,12 @@ void DynamicBrickingDS::dbinfo::ComputeMinMaxes(BrickedDataset& ds) {
       MESSAGE("precomputing brick %u of %u", i, len);
       MinMaxBlock mm = minmax_brick(b->first, ds);
       this->minmax.insert(std::make_pair(b->first, mm));
+      while(this->cache.size() > this->cacheBytes) { this->cache.remove(); }
     }
   }
+  // remove all cached bricks
+  while(this->cache.size() > 0) { this->cache.remove(); }
+
   // try to cache that data to a file, now.
   std::ofstream mmcache(fname, std::ios::binary);
   if(!mmcache) {
