@@ -121,10 +121,10 @@ void add_many() {
     key = std::make_tuple(0U, 0U, i);
     c.add(key, buf);
   }
-  double cache_add = Controller::Instance().PerfQuery(PERF_CACHE_ADD);
-  double cache_lookup = Controller::Instance().PerfQuery(PERF_CACHE_LOOKUP);
+  double cache_add = Controller::Instance().PerfQuery(PERF_DY_CACHE_ADD);
+  double cache_lookup = Controller::Instance().PerfQuery(PERF_DY_CACHE_LOOKUP);
   double something = Controller::Instance().PerfQuery(PERF_SOMETHING);
-  double bcopy = Controller::Instance().PerfQuery(PERF_BRICK_COPY);
+  double bcopy = Controller::Instance().PerfQuery(PERF_DY_BRICK_COPY);
   fprintf(stderr, "\ncache add: %g\ncache lookup: %g\bcopy: %g\n"
           "something: %g\n",
           cache_add, cache_lookup, bcopy, something);
