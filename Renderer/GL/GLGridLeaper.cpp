@@ -217,14 +217,25 @@ void GLGridLeaper::CreateOffscreenBuffers() {
     }
 
   if (m_vWinSize.area() > 0) {
-    for_each(m_pFBORayStart.begin(), m_pFBORayStart.end(), 
-      bind(recreateFBO, _1, m_pContext ,m_vWinSize, intformat, GL_RGBA, type));
-    for_each(m_pFBORayStartNext.begin(), m_pFBORayStartNext.end(), 
-      bind(recreateFBO, _1, m_pContext ,m_vWinSize, intformat, GL_RGBA, type));
-    for_each(m_pFBOStartColor.begin(), m_pFBOStartColor.end(), 
-      bind(recreateFBO, _1, m_pContext ,m_vWinSize, intformat, GL_RGBA, type));
-    for_each(m_pFBOStartColorNext.begin(), m_pFBOStartColorNext.end(), 
-      bind(recreateFBO, _1, m_pContext ,m_vWinSize, intformat, GL_RGBA, type));
+    recreateFBO(m_pFBORayStart[0], m_pContext, m_vWinSize, intformat,
+                GL_RGBA, type);
+    recreateFBO(m_pFBORayStart[1], m_pContext, m_vWinSize, intformat,
+                GL_RGBA, type);
+
+    recreateFBO(m_pFBORayStartNext[0], m_pContext, m_vWinSize, intformat,
+                GL_RGBA, type);
+    recreateFBO(m_pFBORayStartNext[1], m_pContext, m_vWinSize, intformat,
+                GL_RGBA, type);
+
+    recreateFBO(m_pFBOStartColor[0], m_pContext, m_vWinSize, intformat,
+                GL_RGBA, type);
+    recreateFBO(m_pFBOStartColor[1], m_pContext, m_vWinSize, intformat,
+                GL_RGBA, type);
+
+    recreateFBO(m_pFBOStartColorNext[0], m_pContext, m_vWinSize, intformat,
+                GL_RGBA, type);
+    recreateFBO(m_pFBOStartColorNext[1], m_pContext, m_vWinSize, intformat,
+                GL_RGBA, type);
 
 #ifdef GLGRIDLEAPER_DEBUGVIEW
     recreateFBO(m_pFBODebug, m_pContext ,m_vWinSize, intformat, GL_RGBA, type);

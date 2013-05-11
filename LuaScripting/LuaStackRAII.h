@@ -64,7 +64,6 @@ public:
   virtual ~LuaStackRAII();
 
 private:
-
   int           mInitialStackTop;
   int           mValsConsumed;
   int           mValsReturned;
