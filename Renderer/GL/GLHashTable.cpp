@@ -144,7 +144,7 @@ std::string GLHashTable::GetShaderFragment(uint32_t iMountPoint) {
      << "}\n"
      << "\n"
      << "uint " << m_strPrefixName << "HashValue(uint serializedValue) {\n"
-     << "  return int(serializedValue % " << m_iTableSize << ");\n"
+     << "  return uint(serializedValue % " << m_iTableSize << ");\n"
      << "}\n"
      << "\n";
 

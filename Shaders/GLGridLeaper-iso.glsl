@@ -54,7 +54,7 @@ layout(location=3) out vec4 debugFBO;
 
 void TerminateRay(bool bOptimalResolution) {
   if (bOptimalResolution) {
-    rayResumePos.w = (rayHitPos.a == 0) ? 1000 : 499+rayHitPos.a;
+    rayResumePos.w = (rayHitPos.a == 0) ? 1000.0 : 499+rayHitPos.a;
   }
   rayResumeNormal = rayHitNormal;
 }
