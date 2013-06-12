@@ -327,6 +327,7 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit,
 
   std::stringstream ss;
 
+//#define WRITE_SHADERS
 #ifdef WRITE_SHADERS
   const char* shname = "volpool.glsl";
   std::ifstream shader(shname);
@@ -413,7 +414,9 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit,
     ss << "  vec3(" << vLoDSize.x << ", " << vLoDSize.y << ", " 
        << vLoDSize.z << "), // Level \n"
        << "  vec3(0.0,0.0,0.0) // Dummy \n );\n"
-       << "uniform uvec2 iLODLayoutSize[2] = uvec2[](\n";
+       // HACK:
+       << "uniform uvec2 iLODLayoutSize[3] = uvec2[](\n"
+       << "   uvec2(0, 0),// dummy Level that we'll never access to fix ATI/AMD issue where we cannot access the first element in a uniform integer array (does always return 0)\n";
     vLoDSize = GetFloatBrickLayout(m_volumeSize, m_maxInnerBrickSize, 0);
     ss << "  uvec2(" << unsigned(ceil(vLoDSize.x)) << ", "
        << unsigned(ceil(vLoDSize.x)) * unsigned(ceil(vLoDSize.y))
@@ -440,7 +443,9 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit,
       ss << "// Level " << i << "\n";
     }
     ss << ");\n"
-       << "uniform uvec2 iLODLayoutSize[" << m_iLoDCount << "] = uvec2[](\n";
+       // HACK:
+       << "uniform uvec2 iLODLayoutSize[" << m_iLoDCount+1 /* +1 is only needed for the ATI/AMD fix below! */ << "] = uvec2[](\n"
+       << "   uvec2(0, 0),// dummy Level that we'll never access to fix ATI/AMD issue where we cannot access the first element in a uniform integer array (does always return 0)\n";
     for (uint32_t i = 0;i<m_vLoDOffsetTable.size();++i) {
       FLOATVECTOR3 vLoDSize = GetFloatBrickLayout(m_volumeSize,
                                                   m_maxInnerBrickSize, i);    
@@ -473,9 +478,10 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit,
 
   ss << "ivec3 GetBrickIndex(uvec4 brickCoords) {\n"
      << "  uint iLODOffset  = vLODOffset[brickCoords.w];\n"
+     << "  uvec2 iAMDFixedLODLayoutSize = iLODLayoutSize[brickCoords.w+1];\n" // see ATI/AMD fix above
      << "  uint iBrickIndex = iLODOffset + brickCoords.x + "
-        "brickCoords.y * iLODLayoutSize[brickCoords.w].x + "
-        "brickCoords.z * iLODLayoutSize[brickCoords.w].y;\n"
+        "brickCoords.y * iAMDFixedLODLayoutSize.x + "
+        "brickCoords.z * iAMDFixedLODLayoutSize.y;\n"
         "  return ivec3(iBrickIndex % iMetaTextureSize[0],\n"
         "               (iBrickIndex / iMetaTextureSize[0]) %"
                         " iMetaTextureSize[1], "
