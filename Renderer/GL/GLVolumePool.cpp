@@ -844,7 +844,7 @@ static UINTVECTOR3 Fit1DIndexTo3DArray(uint64_t maxIdx, uint32_t maxArraySize) {
 
 void GLVolumePool::CreateGLResources() {
   m_pPoolDataTexture = new GLTexture3D(m_poolSize.x, m_poolSize.y, m_poolSize.z,
-                                      m_internalformat, m_format, m_type, 0, GL_LINEAR, GL_LINEAR);
+                                      m_internalformat, m_format, m_type, 0, m_filter, m_filter);
   m_vPoolCapacity = UINTVECTOR3(m_pPoolDataTexture->GetSize().x/m_maxTotalBrickSize.x,
                                 m_pPoolDataTexture->GetSize().y/m_maxTotalBrickSize.y,
                                 m_pPoolDataTexture->GetSize().z/m_maxTotalBrickSize.z);
@@ -894,7 +894,7 @@ void GLVolumePool::CreateGLResources() {
 
   m_pPoolMetadataTexture = new GLTexture3D(
     vTexSize.x, vTexSize.y, vTexSize.z, GL_R32UI,
-    GL_RED_INTEGER, GL_UNSIGNED_INT, &m_vBrickMetadata[0], m_filter, m_filter
+    GL_RED_INTEGER, GL_UNSIGNED_INT, &m_vBrickMetadata[0]
   );
 }
 
