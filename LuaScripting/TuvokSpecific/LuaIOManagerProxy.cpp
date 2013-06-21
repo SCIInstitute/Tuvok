@@ -148,6 +148,8 @@ void LuaIOManagerProxy::bind()
                                nm + "scanDirectory", "", false);
     id = mReg.registerFunction(mIO, &IOManager::RegisterFinalConverter,
                                nm + "registerFinalConverter", "", false);
+    id = mReg.registerFunction(mIO, &IOManager::RegisterExternalConverter,
+                               nm + "registerExternalConverter", "", false);
   }
 
 }
