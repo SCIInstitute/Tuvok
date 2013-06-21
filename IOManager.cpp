@@ -119,11 +119,11 @@ static void read_first_block(const string& filename,
 // let the higher level figure it out.
 namespace {
   template<typename ForwIter>
-  std::set<AbstrConverter*>
+  std::set<std::shared_ptr<AbstrConverter>>
   identify_converters(const std::string& filename,
                       ForwIter cbegin, ForwIter cend)
   {
-    std::set<AbstrConverter*> converters;
+    std::set<std::shared_ptr<AbstrConverter>> converters;
 
     vector<int8_t> bytes(512);
     read_first_block(filename, bytes);
@@ -164,22 +164,22 @@ IOManager::IOManager() :
   m_vpGeoConverters.push_back(new XML3DGeoConverter());
   m_vpGeoConverters.push_back(new StLGeoConverter());
 
-  m_vpConverters.push_back(new VGStudioConverter());
-  m_vpConverters.push_back(new QVISConverter());
-  m_vpConverters.push_back(new NRRDConverter());
-  m_vpConverters.push_back(new StkConverter());
-  m_vpConverters.push_back(new TiffVolumeConverter());
-  m_vpConverters.push_back(new VFFConverter());
-  m_vpConverters.push_back(new BOVConverter());
-  m_vpConverters.push_back(new REKConverter());
-  m_vpConverters.push_back(new IASSConverter());
-  m_vpConverters.push_back(new I3MConverter());
-  m_vpConverters.push_back(new KitwareConverter());
-  m_vpConverters.push_back(new InveonConverter());
-  m_vpConverters.push_back(new AnalyzeConverter());
-  m_vpConverters.push_back(new AmiraConverter());
-  m_vpConverters.push_back(new MRCConverter());
-  m_vpConverters.push_back(new VTKConverter());
+  m_vpConverters.push_back(std::shared_ptr<AbstrConverter>(new VGStudioConverter()));
+  m_vpConverters.push_back(std::shared_ptr<AbstrConverter>(new QVISConverter()));
+  m_vpConverters.push_back(std::shared_ptr<AbstrConverter>(new NRRDConverter()));
+  m_vpConverters.push_back(std::shared_ptr<AbstrConverter>(new StkConverter()));
+  m_vpConverters.push_back(std::shared_ptr<AbstrConverter>(new TiffVolumeConverter()));
+  m_vpConverters.push_back(std::shared_ptr<AbstrConverter>(new VFFConverter()));
+  m_vpConverters.push_back(std::shared_ptr<AbstrConverter>(new BOVConverter()));
+  m_vpConverters.push_back(std::shared_ptr<AbstrConverter>(new REKConverter()));
+  m_vpConverters.push_back(std::shared_ptr<AbstrConverter>(new IASSConverter()));
+  m_vpConverters.push_back(std::shared_ptr<AbstrConverter>(new I3MConverter()));
+  m_vpConverters.push_back(std::shared_ptr<AbstrConverter>(new KitwareConverter()));
+  m_vpConverters.push_back(std::shared_ptr<AbstrConverter>(new InveonConverter()));
+  m_vpConverters.push_back(std::shared_ptr<AbstrConverter>(new AnalyzeConverter()));
+  m_vpConverters.push_back(std::shared_ptr<AbstrConverter>(new AmiraConverter()));
+  m_vpConverters.push_back(std::shared_ptr<AbstrConverter>(new MRCConverter()));
+  m_vpConverters.push_back(std::shared_ptr<AbstrConverter>(new VTKConverter()));
   m_dsFactory->AddReader(shared_ptr<UVFDataset>(new UVFDataset()));
 }
 
@@ -199,8 +199,6 @@ namespace {
 
 IOManager::~IOManager()
 {
-  std::for_each(m_vpConverters.begin(), m_vpConverters.end(),
-                Delete<AbstrConverter>);
   std::for_each(m_vpGeoConverters.begin(), m_vpGeoConverters.end(),
                 Delete<AbstrGeoConverter>);
   m_vpConverters.clear();
@@ -843,10 +841,10 @@ bool IOManager::MergeDatasets(const vector <string>& strFilenames,
       string        strTitle = "";
       string        strSource = "";
 
-      std::set<AbstrConverter*> converters =
+      std::set<std::shared_ptr<AbstrConverter>> converters =
         identify_converters(strFilenames[iInputData], m_vpConverters.begin(),
                             m_vpConverters.end());
-      typedef std::set<AbstrConverter*>::const_iterator citer;
+      typedef std::set<std::shared_ptr<AbstrConverter>>::const_iterator citer;
       for(citer conv = converters.begin(); conv != converters.end(); ++conv) {
         bRAWCreated = (*conv)->ConvertToRAW(
           strFilenames[iInputData], strTempDir, bNoUserInteraction,
@@ -1112,10 +1110,10 @@ bool IOManager::ConvertDataset(const list<string>& files,
   if (strExtTarget == "UVF") {
     // Iterate through all our converters, stopping when one successfully
     // converts our data.
-    std::set<AbstrConverter*> converters =
+    std::set<std::shared_ptr<AbstrConverter>> converters =
       identify_converters(*files.begin(), m_vpConverters.begin(),
                           m_vpConverters.end());
-    typedef std::set<AbstrConverter*>::const_iterator citer;
+    typedef std::set<std::shared_ptr<AbstrConverter>>::const_iterator citer;
     for(citer conv = converters.begin(); conv != converters.end(); ++conv) {
       if (!(*conv)->CanImportData()) continue;
 
@@ -1202,10 +1200,10 @@ bool IOManager::ConvertDataset(const list<string>& files,
     vector<int8_t> bytes(512);
     read_first_block(strFilename, bytes);
 
-    std::set<AbstrConverter*> converters =
+    std::set<std::shared_ptr<AbstrConverter>> converters =
       identify_converters(*files.begin(), m_vpConverters.begin(),
                           m_vpConverters.end());
-    typedef std::set<AbstrConverter*>::const_iterator citer;
+    typedef std::set<std::shared_ptr<AbstrConverter>>::const_iterator citer;
     for(citer conv = converters.begin(); conv != converters.end(); ++conv) {
       if((*conv)->ConvertToRAW(strFilename, strTempDir,
                                bNoUserInteraction,iHeaderSkip,
@@ -1598,7 +1596,7 @@ bool IOManager::ExportDataset(const UVFDataset* pSourceData, uint64_t iLODlevel,
                               const string& strTempDir) const {
   // find the right converter to handle the output
   string strExt = SysTools::ToUpperCase(SysTools::GetExt(strTargetFilename));
-  AbstrConverter* pExporter = NULL;
+  std::shared_ptr<AbstrConverter> pExporter;
   for (size_t i = 0;i<m_vpConverters.size();i++) {
     const vector<string>& vStrSupportedExt = m_vpConverters[i]->SupportedExt();
     for (size_t j = 0;j<vStrSupportedExt.size();j++) {
@@ -1857,7 +1855,7 @@ vector< tConverterFormat > IOManager::GetFormatList() const {
   return v;
 }
 
-AbstrConverter* IOManager::GetConverterForExt(std::string ext,
+std::shared_ptr<AbstrConverter> IOManager::GetConverterForExt(std::string ext,
                                               bool bMustSupportExport,
                                               bool bMustSupportImport) const {
   for (size_t i = 0;i<m_vpConverters.size();i++) {

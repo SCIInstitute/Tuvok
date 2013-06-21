@@ -208,7 +208,7 @@ public:
                           bool bMustSupportImport) const {
     return (GetConverterForExt(ext,bMustSupportExport,bMustSupportImport)!=NULL);
   }
-  AbstrConverter* GetConverterForExt(std::string ext,
+  std::shared_ptr<AbstrConverter> GetConverterForExt(std::string ext,
                                      bool bMustSupportExport,
                                      bool bMustSupportImport) const;
 
@@ -266,10 +266,10 @@ public:
   }
 
 private:
-  std::vector<tuvok::AbstrGeoConverter*> m_vpGeoConverters;
-  std::vector<AbstrConverter*>    m_vpConverters;
-  std::shared_ptr<AbstrConverter> m_pFinalConverter;
-  std::auto_ptr<tuvok::io::DSFactory> m_dsFactory;
+  std::vector<tuvok::AbstrGeoConverter*>        m_vpGeoConverters;
+  std::vector<std::shared_ptr<AbstrConverter>>  m_vpConverters;
+  std::shared_ptr<AbstrConverter>               m_pFinalConverter;
+  std::auto_ptr<tuvok::io::DSFactory>           m_dsFactory;
 
   uint64_t m_iMaxBrickSize;
   uint64_t m_iBuilderBrickSize;
