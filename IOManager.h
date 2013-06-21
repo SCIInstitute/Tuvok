@@ -188,7 +188,7 @@ public:
                          bool bAllDirs) const;
 
 
-  void RegisterExternalConverter(AbstrConverter* pConverter);
+  void RegisterExternalConverter(std::shared_ptr<AbstrConverter> pConverter);
   void RegisterFinalConverter(std::shared_ptr<AbstrConverter> pConverter);
 
   std::string GetLoadDialogString() const;

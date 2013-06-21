@@ -184,7 +184,7 @@ IOManager::IOManager() :
 }
 
 
-void IOManager::RegisterExternalConverter(AbstrConverter* pConverter) {
+void IOManager::RegisterExternalConverter(shared_ptr<AbstrConverter> pConverter) {
   m_vpConverters.push_back(pConverter);
 }
 
