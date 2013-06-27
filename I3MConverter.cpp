@@ -283,32 +283,33 @@ bool I3MConverter::ConvertToNative(const std::string& strRawFilename,
   // next check the quantization and endianess of the volume
   // if it is not 8bit unsigned char -> convert it
 
-  bool bDelete8BitFile;
-  string str8BitFilename ;
+  bool bDelete8BitFile = false;
+  string str8BitFilename = strRawFilename;
+
   if (iComponentSize!=8 || bSigned) {
     LargeRAWFile rf(strRawFilename, iHeaderSkip);
+    rf.Open(false);
+
     if(!rf.IsOpen()) {
       using namespace tuvok::io;
       throw DSOpenFailed(strRawFilename.c_str(), "Could not quantize input.",
                          __FILE__, __LINE__);
     }
-    str8BitFilename = QuantizeTo8Bit(rf,
-                                     strTargetFilename+".tmp",
-                                     iComponentSize,
-                                     vVolumeSize.volume(),
-                                     bSigned,
-                                     bFloatingPoint);
+
+    const std::string quantizedFilname = strTargetFilename+".tmp";
+    if (QuantizeTo8Bit(rf,quantizedFilname, iComponentSize,
+                       vVolumeSize.volume(), bSigned,bFloatingPoint)) {
+      iHeaderSkip = 0;
+      str8BitFilename = quantizedFilname;
+      bDelete8BitFile = true;
+      iComponentSize = 8;
+      bSigned = false;
+      bFloatingPoint = false;
+    }
 
     rf.Close();
-    iHeaderSkip = 0;
-    iComponentSize = 8;
-    bSigned = false;
-    bFloatingPoint = false;
-    bDelete8BitFile = true;
-  } else {
-    str8BitFilename = strRawFilename;
-    bDelete8BitFile = false;
   }
+
 
   // next check is size of the volume, if a dimension is bigger than
   // MAX_I3M_VOLSIZE -> downsample the volume, otherwise simply copy
