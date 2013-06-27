@@ -1623,17 +1623,24 @@ bool IOManager::ExportDataset(const UVFDataset* pSourceData, uint64_t iLODlevel,
 
   MESSAGE("Writing Target Dataset");
 
-  bool bTargetCreated = pExporter->ConvertToNative(
-                    strTempFilename, strTargetFilename, 0,
-                    pSourceData->GetBitWidth(),
-                    pSourceData->GetComponentCount(),
-                    pSourceData->GetIsSigned(),
-                    pSourceData->GetIsFloat(),
-                    pSourceData->GetDomainSize(static_cast<size_t>(iLODlevel)),
-                    FLOATVECTOR3(pSourceData->GetScale()),
-                    false, false
-                  );
-  remove(strTempFilename.c_str());
+  bool bTargetCreated = false;
+
+  try {
+    bTargetCreated = pExporter->ConvertToNative(
+                      strTempFilename, strTargetFilename, 0,
+                      pSourceData->GetBitWidth(),
+                      pSourceData->GetComponentCount(),
+                      pSourceData->GetIsSigned(),
+                      pSourceData->GetIsFloat(),
+                      pSourceData->GetDomainSize(static_cast<size_t>(iLODlevel)),
+                      FLOATVECTOR3(pSourceData->GetScale()),
+                      false, false
+                    );
+    remove(strTempFilename.c_str());
+  } catch (const tuvok::io::DSOpenFailed& err) {
+    T_ERROR("Unable to write target file %s", err.what());
+    return false;
+  }
 
   if (!bTargetCreated) {
     T_ERROR("Unable to write target file %s", strTargetFilename.c_str());
