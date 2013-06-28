@@ -150,6 +150,20 @@ bool I3MConverter::ConvertToRAW(const std::string& strSourceFilename,
   MESSAGE("Aspect Ratio (%g x %g x %g)",
           vVolumeAspect.x, vVolumeAspect.y, vVolumeAspect.z);
 
+  if (vVolumeAspect.x <= 0) {
+    WARNING("aspect ratio in x-direction is zero or less, setting it to 1");
+    vVolumeAspect.x = 1;
+  }
+  if (vVolumeAspect.y <= 0) {
+    WARNING("aspect ratio in y-direction is zero or less, setting it to 1");
+    vVolumeAspect.y = 1;
+  }
+  if (vVolumeAspect.z <= 0) {
+    WARNING("aspect ratio in z-direction is zero or less, setting it to 1");
+    vVolumeAspect.z = 1;
+  }
+
+
   // header is completed all test passed, now we can read the volume,
   // simply copy every fourth byte to the target file
 
