@@ -181,7 +181,7 @@ AbstrConverter::QuantizeTo8Bit(LargeRAWFile& rawfile,
   BStreamDescriptor bsd;
   bsd.components = 1;
   bsd.width = iComponentSize / 8;
-  bsd.elements = iSize / iComponentSize;
+  bsd.elements = iSize;
   bsd.is_signed = bSigned;
   bsd.fp = bIsFloat;
   // at this point the stream should be in whatever the native form of the
