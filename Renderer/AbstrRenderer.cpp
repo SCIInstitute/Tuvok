@@ -631,7 +631,9 @@ void AbstrRenderer::ScheduleWindowRedraw(RenderRegion *renderRegion) {
 }
 
 void AbstrRenderer::ScheduleRecompose(RenderRegion *renderRegion) {
-  assert(renderRegion);
+  if (!renderRegion)
+    renderRegion = GetFirst3DRegion().get();
+
   if (renderRegion) {
     // ensure we've finished the current frame:
     if(m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) {
@@ -640,6 +642,8 @@ void AbstrRenderer::ScheduleRecompose(RenderRegion *renderRegion) {
     } else {
       ScheduleWindowRedraw(renderRegion);
     }
+  } else {
+    WARNING("ScheduleRecompose called with null render region");
   }
 }
 
