@@ -2018,9 +2018,7 @@ void AbstrRenderer::RegisterLuaFunctions(
 //                    "the 'Other' debug channel.", false);
 
   id = reg.function(&AbstrRenderer::SetPerfMeasures, "setPerfMeasures",
-                    "Deallocates GPU memory allocated during the rendering "
-                    "process. Should always be called before deleting "
-                    "the renderer.", false);
+                    "changes how LOD delays, etc.", false);
   ss->addParamInfo(id, 0, "minFramerate", "");
   ss->addParamInfo(id, 1, "renderLowResResults", "If true, renders low "
       "resolution intermediate results.");
