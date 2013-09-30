@@ -392,12 +392,12 @@ void MasterController::RegisterLuaCommands() {
   // Populate the tuvok.renderer.type table.
   ss->exec(renderer + ".types = {}");
 
-  AddLuaRendererType(renderer, "OpenGL_SVBR", OPENGL_SBVR);
+  AddLuaRendererType(renderer, "OpenGL_SBVR", OPENGL_SBVR);
   AddLuaRendererType(renderer, "OpenGL_2DSBVR", OPENGL_2DSBVR);
   AddLuaRendererType(renderer, "OpenGL_Raycaster", OPENGL_RAYCASTER);
   AddLuaRendererType(renderer, "OpenGL_GridLeaper", OPENGL_GRIDLEAPER);
 
-  AddLuaRendererType(renderer, "DirectX_SVBR", DIRECTX_SBVR);
+  AddLuaRendererType(renderer, "DirectX_SBVR", DIRECTX_SBVR);
   AddLuaRendererType(renderer, "DirectX_2DSBVR", DIRECTX_2DSBVR);
   AddLuaRendererType(renderer, "DirectX_Raycaster", DIRECTX_RAYCASTER);
   AddLuaRendererType(renderer, "DirectX_GridLeaper", DIRECTX_GRIDLEAPER);
