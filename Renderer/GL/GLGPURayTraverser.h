@@ -31,7 +31,7 @@ namespace tuvok {
 
     protected:
       GLVBO* m_pNearPlaneQuad;
-      GLVBO* m_pBBoxVBO;
+      std::shared_ptr<GLVBO> m_pBBoxVBO;
 
       /** Deallocates GPU memory allocated during the rendering process. */
       virtual void Cleanup();

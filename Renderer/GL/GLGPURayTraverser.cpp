@@ -21,8 +21,7 @@ GLGPURayTraverser::GLGPURayTraverser(MasterController* pMasterController,
 void GLGPURayTraverser::Cleanup() {
   GLRenderer::Cleanup();
 
-  delete m_pBBoxVBO;
-  m_pBBoxVBO = NULL;
+  m_pBBoxVBO.reset();
   delete m_pNearPlaneQuad;
   m_pNearPlaneQuad = NULL;
 }
@@ -42,7 +41,7 @@ bool GLGPURayTraverser::Initialize(std::shared_ptr<Context> ctx) {
   posData.push_back(FLOATVECTOR3(-1.0f, -1.0f, -0.5f));
   m_pNearPlaneQuad->AddVertexData(posData);
 
-  m_pBBoxVBO = new GLVBO();
+  m_pBBoxVBO = std::shared_ptr<GLVBO>(new GLVBO());
 
   return true;
 }

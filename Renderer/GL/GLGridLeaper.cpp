@@ -511,12 +511,13 @@ void GLGridLeaper::FillBBoxVBO() {
   vMinPoint = (vCenter - vExtend/2.0);
   vMaxPoint = (vCenter + vExtend/2.0);
 
-  m_pBBoxVBO = new GLVBO();
+  m_pBBoxVBO = std::shared_ptr<GLVBO>(new GLVBO());
   std::vector<FLOATVECTOR3> posData;
   MaxMinBoxToVector(vMinPoint, vMaxPoint, posData);
 
   if ( m_bClipPlaneOn ) {
-    // clip plane is normaly defined in world space, transform back to model space
+    // clip plane is normally defined in world space, transform it back to
+    // model space
     FLOATMATRIX4 inv = (GetFirst3DRegion()->rotation*GetFirst3DRegion()->translation).inverse();
     PLANE<float> transformed = m_ClipPlane.Plane() * inv;
 
