@@ -23,7 +23,9 @@ win32:LIBS       += shlwapi.lib
 unix:QMAKE_CXXFLAGS += -std=c++0x
 unix:QMAKE_CXXFLAGS += -fno-strict-aliasing
 unix:QMAKE_CFLAGS += -fno-strict-aliasing
-unix:!macx:LIBS  += -lGLU
+!macx:unix:QMAKE_CXXFLAGS += -fopenmp
+!macx:unix:QMAKE_LFLAGS += -fopenmp -bullshit-link-flag
+!macx:unix:LIBS  += -lGLU
 
 macx:QMAKE_CXXFLAGS += -stdlib=libc++ -mmacosx-version-min=10.7
 macx:QMAKE_CFLAGS += -mmacosx-version-min=10.7

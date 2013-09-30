@@ -23,6 +23,7 @@ macx:QMAKE_CXXFLAGS += -mmacosx-version-min=10.7
 unix:QMAKE_CXXFLAGS += -std=c++0x
 unix:QMAKE_CXXFLAGS += -fno-strict-aliasing
 unix:QMAKE_CFLAGS   += -fno-strict-aliasing
+!macx:unix:QMAKE_LFLAGS += -fopenmp
 
 SOURCES = \
   main.cpp
