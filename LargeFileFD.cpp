@@ -75,7 +75,7 @@ std::shared_ptr<const void> LargeFileFD::rd(uint64_t offset,
   if(lseek(this->fd, offset+this->header_size, SEEK_SET) < 0) {
     throw std::ios_base::failure("could not seek to correct file position.");
   }
-#if _POSIX_C_SOURCE >= 200112L
+#ifdef POSIX_FADV_WILLNEED
   posix_fadvise(this->fd, offset+this->header_size, len, POSIX_FADV_WILLNEED);
 #endif
 
@@ -126,7 +126,7 @@ void LargeFileFD::wr(const std::shared_ptr<const void>& data,
 void LargeFileFD::enqueue(uint64_t offset, size_t len)
 {
   if(len == 0) { return; }
-#if _POSIX_C_SOURCE >= 200112L
+#ifdef POSIX_FADV_WILLNEED
   int adv = posix_fadvise(this->fd, offset, len, POSIX_FADV_WILLNEED);
   // this should basically always succeed.  the only way it can fail is if we
   // gave it a bogus FD or something.  if that's the case, that points to
