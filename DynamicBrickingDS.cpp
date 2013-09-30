@@ -1,8 +1,6 @@
 // * can we chain these recursively?  e.g.:
 //      DynBrickingDS a(ds, {{128, 128, 128}});
 //      DynBrickingDS b(a, {{16, 16, 16}});
-// * rename/fix creation of the iterator functions ("begin"/"end" too general)
-// * implement GetBrick for other bit widths!!
 // * ContainsData: deal with new metadata appropriately
 #include <algorithm>
 #include <array>
@@ -413,12 +411,6 @@ VoxelIndex TargetIndex(const BrickKey& k, const Dataset& ds,
   const size_t lod = std::get<1>(k);
 
   return Index(ds, lod, idx1d, bricksize);
-}
-
-// basically a cast from UINTVECTOR3 to a 3-elem array.
-std::array<unsigned,3> ua(const UINTVECTOR3& v) {
-  const std::array<unsigned,3> tmp = {{ v[0], v[1], v[2] }};
-  return tmp;
 }
 
 // index of the first voxel in the current brick, among the whole level
