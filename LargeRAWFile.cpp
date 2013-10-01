@@ -166,9 +166,24 @@ void LargeRAWFile::SeekPos(uint64_t iPos) {
 
 size_t LargeRAWFile::ReadRAW(unsigned char* pData, uint64_t iCount) {
   #ifdef _WIN32
-    DWORD dwReadBytes;
-    ReadFile(m_StreamFile, pData, DWORD(iCount), &dwReadBytes, NULL);
-    return dwReadBytes;
+  uint64_t iTotalRead = 0;
+  DWORD dwReadBytes;
+  while (iCount > std::numeric_limits<DWORD>::max())
+  {
+    if (!ReadFile(m_StreamFile, pData, std::numeric_limits<DWORD>::max(), &dwReadBytes, NULL)) {
+      return iTotalRead;
+    }
+    if (dwReadBytes == 0) {
+      return iTotalRead;
+    }
+    iCount -= dwReadBytes;
+    iTotalRead += dwReadBytes;
+    pData += dwReadBytes;
+  }
+  if (!ReadFile(m_StreamFile, pData, DWORD(iCount), &dwReadBytes, NULL)) {
+    return iTotalRead;
+  }
+  return iTotalRead + dwReadBytes;
   #else
     return fread(pData,1,iCount,m_StreamFile);
   #endif
@@ -176,9 +191,24 @@ size_t LargeRAWFile::ReadRAW(unsigned char* pData, uint64_t iCount) {
 
 size_t LargeRAWFile::WriteRAW(const unsigned char* pData, uint64_t iCount) {
   #ifdef _WIN32
-    DWORD dwWrittenBytes;
-    WriteFile(m_StreamFile, pData, DWORD(iCount), &dwWrittenBytes, NULL);
-    return dwWrittenBytes;
+  uint64_t iTotalWritten = 0;
+  DWORD dwWrittenBytes;
+  while (iCount > std::numeric_limits<DWORD>::max())
+  {
+    if (!WriteFile(m_StreamFile, pData, std::numeric_limits<DWORD>::max(), &dwWrittenBytes, NULL)) {
+      return iTotalWritten;
+    }
+    if (dwWrittenBytes == 0) {
+      return iTotalWritten;
+    }
+    iCount -= dwWrittenBytes;
+    iTotalWritten += dwWrittenBytes;
+    pData += dwWrittenBytes;
+  }
+  if (!WriteFile(m_StreamFile, pData, DWORD(iCount), &dwWrittenBytes, NULL)) {
+    return iTotalWritten;
+  }
+  return iTotalWritten + dwWrittenBytes;
   #else
     return fwrite(pData,1,iCount,m_StreamFile);
   #endif
