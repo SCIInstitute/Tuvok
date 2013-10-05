@@ -54,7 +54,8 @@ NRRDConverter::NRRDConverter()
 
 bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
                                  const std::string& strTempDir, bool,
-                                 uint64_t& iHeaderSkip, unsigned& iComponentSize,
+                                 uint64_t& iHeaderSkip,
+                                 unsigned& iComponentSize,
                                  uint64_t& iComponentCount,
                                  bool& bConvertEndianess, bool& bSigned,
                                  bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
@@ -260,23 +261,20 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
     KeyValPair* kvpSpaceDirs = parser.GetData("SPACE DIRECTIONS");
     if (kvpSpaceDirs != NULL) {
       std::vector<std::string> dirs = kvpSpaceDirs->vstrValue;
-        
       if (dirs.size() == 3) {
-      
         for (size_t dim = 0;dim<3;dim++) {
           FLOATVECTOR3 axis;
 
           size_t iStart = 0;
 
           for (size_t vDim = 0;vDim<3;vDim++) {
-
             while (!isdigit(dirs[dim][iStart]) &&
                    '.' != dirs[dim][iStart] &&
                    '-' != dirs[dim][iStart] &&
-                   'e' != dirs[dim][iStart] ) {
+                   'e' != dirs[dim][iStart]) {
               iStart++;
               if (iStart >= dirs[dim].length()) {
-                throw tuvok::io::DSParseFailed("Ignoring malformed 'space directions' tag.");
+                throw tuvok::io::DSParseFailed("malformed 'space directions' tag.");
               }
             }
 
@@ -287,7 +285,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
                    'e' == dirs[dim][iEnd]) {
               iEnd++;
               if (iEnd >= dirs[dim].length()) {
-                throw tuvok::io::DSParseFailed("Ignoring malformed 'space directions' tag.");
+                throw tuvok::io::DSParseFailed("malformed 'space directions' tag.");
               }
             }
             
@@ -297,13 +295,15 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
           }
           vVolumeAspect[dim] *= axis.length();
         }
-
       } else {
         WARNING("Ignoring malformed 'space directions' tag.");
       }
     }
   } catch (const tuvok::io::DSParseFailed& err) {
     WARNING(err.what());
+  }
+  for(size_t i=0; i < 3; ++i) { // reset broken space directions parsing.
+    if(vVolumeAspect[i] == 0.0) { vVolumeAspect[i] = 1.0f; }
   }
 
 

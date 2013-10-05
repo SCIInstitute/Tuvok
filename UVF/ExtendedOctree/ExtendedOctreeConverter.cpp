@@ -96,6 +96,9 @@ bool ExtendedOctreeConverter::Convert(const std::string& filename,
   LargeRAWFile_ptr inFile(new LargeRAWFile(filename));
   LargeRAWFile_ptr outFile(new LargeRAWFile(targetFilename));
 
+  assert(vVolumeSize.volume() > 0);
+  assert(vVolumeAspect.volume() > 0);
+
   if (!inFile->Open()) {
     return false;
   }
@@ -141,6 +144,10 @@ bool ExtendedOctreeConverter::Convert(LargeRAWFile_ptr pLargeRAWFileIn,
   m_fProgress = 0.0f;
   PROGRESS;
 
+  assert(iComponentCount > 0);
+  assert(vVolumeSize.volume() > 0);
+  assert(vVolumeAspect.volume() > 0);
+
   ExtendedOctree e;
 
   // compute metadata
@@ -154,7 +161,6 @@ bool ExtendedOctreeConverter::Convert(LargeRAWFile_ptr pLargeRAWFileIn,
   e.m_pLargeRAWFile = pLargeRAWFileOut;
   e.m_iCompressionLevel = iCompressionLevel;
   e.ComputeMetadata();
-  m_fProgress = 0.0f;
 
   m_eCompression = compression;
   m_eLayout = layout;
@@ -163,13 +169,11 @@ bool ExtendedOctreeConverter::Convert(LargeRAWFile_ptr pLargeRAWFileIn,
 
   // brick (permute) the input data
   PermuteInputData(e, pLargeRAWFileIn, iInOffset, bClampToEdge);
-  m_fProgress = 0.4f;
 
   // compute hierarchy
 
   // now comes the really nasty part where we convert the input arguments
   // to template parameters, effectively writing out all branches
-
   if (bComputeMedian)  {
     switch (e.m_eComponentType) {
       case ExtendedOctree::CT_UINT8:
@@ -249,8 +253,8 @@ bool ExtendedOctreeConverter::Convert(LargeRAWFile_ptr pLargeRAWFileIn,
   }
 
   if (m_eCompression >= CT_UNKNOWN) {
-    m_Progress.Warning(_func_, "Unknown compression method requested (%d), resetting "
-                       "to default zlib compression", m_eCompression);
+    m_Progress.Warning(_func_, "Unknown compression method requested (%d), "
+                       "resetting to default zlib compression", m_eCompression);
     m_eCompression = CT_ZLIB;
   }
   if (m_eLayout >= LT_UNKNOWN) {
@@ -266,13 +270,12 @@ bool ExtendedOctreeConverter::Convert(LargeRAWFile_ptr pLargeRAWFileIn,
 
   // add header to file
   e.WriteHeader(pLargeRAWFileOut, iOutOffset);
-  PROGRESS;
+  m_Progress.Message(_func_, "Header written, truncating file...");
 
   // remove part of the file used only for temp calculations
   pLargeRAWFileOut->Truncate(iOutOffset + e.m_iSize);
 
   m_fProgress = 1.0f;
-  PROGRESS;
 
   return true;
 }
@@ -484,12 +487,12 @@ void ExtendedOctreeConverter::ComputeStatsAndCompressAll(ExtendedOctree& tree)
       tree.GetBrickData(BrickData.get(), i);
       BrickStat(m_pBrickStatVec, i, BrickData.get(), BrickSize(tree, i),
                 tree.m_iComponentCount, tree.m_eComponentType);
-      const float progress = float(i) / tree.m_vTOC.size();
-      m_fProgress = MathTools::lerp(progress, 0.0f,1.0f, 0.8f,1.0f);
 
       if (i % iReportInterval == 0) {
-        m_fProgress = MathTools::lerp(progress, 0.0f,1.0f, 0.8f,1.0f);
-        PROGRESS;
+        m_fProgress = float(i) / tree.m_vTOC.size();
+        std::string msg = m_pProgressTimer->GetProgressMessage(m_fProgress);
+        m_Progress.Message(_func_, "Statistic computation ... %5.2f%% (%s)",
+                           m_fProgress*100.0f, msg.c_str());
       }
     }
   } else {
@@ -548,11 +551,12 @@ void ExtendedOctreeConverter::ComputeStatsAndCompressAll(ExtendedOctree& tree)
       }
       tree.m_pLargeRAWFile->SeekPos(tree.m_vTOC[i].m_iOffset);
       tree.m_pLargeRAWFile->WriteRAW(data.get(), tree.m_vTOC[i].m_iLength);
-      const float progress = float(i) / tree.m_vTOC.size();
       
       if (i % iReportInterval == 0) {
-        m_fProgress = MathTools::lerp(progress, 0.0f,1.0f, 0.8f,1.0f);
-        PROGRESS;
+        m_fProgress = float(i) / tree.m_vTOC.size();
+        std::string msg = m_pProgressTimer->GetProgressMessage(m_fProgress);
+        m_Progress.Message(_func_, "Statistics and compression .. %5.2f%% (%s)",
+                           m_fProgress*100.0f, msg.c_str());
       }
     }
   }
@@ -919,6 +923,11 @@ void ExtendedOctreeConverter::FlushCache(ExtendedOctree &tree) {
   for (BrickCacheIter i = m_vBrickCache.begin();i != m_vBrickCache.end();++i) {
     if (i->m_bDirty) {
       WriteBrickToDisk(tree, i);
+      m_fProgress = -std::distance(i, m_vBrickCache.begin()) /
+                     float(m_vBrickCache.size());
+      const std::string msg = m_pProgressTimer->GetProgressMessage(m_fProgress);
+      m_Progress.Message(_func_, "Flushing brick cache ... %5.2f%% (%s)",
+                         m_fProgress*100.0f, msg.c_str());
     }
   }
 }
@@ -1025,7 +1034,8 @@ struct HasIndex :
   therefore we search for a suitable cache entry (the entry with the
   oldest access counter). In either case (hit or miss) we update the
   access counter, i.e. we use true LRU as caching strategy. */
-void ExtendedOctreeConverter::GetBrick(uint8_t* pData, ExtendedOctree &tree, uint64_t index) {
+void ExtendedOctreeConverter::GetBrick(uint8_t* pData, ExtendedOctree &tree,
+                                       uint64_t index) {
   if (m_vBrickCache.empty()) {
     tree.GetBrickData(pData, index);
     return;
@@ -1355,7 +1365,6 @@ void ExtendedOctreeConverter::PermuteInputData(ExtendedOctree &tree, LargeRAWFil
                                                bool bClampToEdge) {
   std::vector<uint8_t> vData;
   UINT64VECTOR3 baseBricks = tree.GetBrickCount(0);
-  const float progress_start = m_fProgress;
 
   uint64_t iCurrentOutOffset = tree.ComputeHeaderSize();
   for (uint64_t z = 0;z<baseBricks.z;z++) {
@@ -1377,10 +1386,11 @@ void ExtendedOctreeConverter::PermuteInputData(ExtendedOctree &tree, LargeRAWFil
         iCurrentOutOffset += iUncompressedBrickSize;
         const float xf = float(x);
         const float p = xf + y*baseBricks.x + z*baseBricks.x*baseBricks.y;
-        m_fProgress = MathTools::lerp(p / float(baseBricks.volume()),
-                                      0.0f,1.0f, progress_start,0.4f);
+        m_fProgress = p / float(baseBricks.volume());
       }
-      PROGRESS;
+      const std::string msg = m_pProgressTimer->GetProgressMessage(m_fProgress);
+      m_Progress.Message(_func_, "Generating LOD 0 ... %5.2f%% (%s)",
+                         m_fProgress*100.0f, msg.c_str());
     }
   }
 }

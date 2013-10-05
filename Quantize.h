@@ -543,18 +543,18 @@ static bool Quantize(LargeRAWFile& InputData,
       if (fQuantFact == 1.0)
         if (minmax.first == 0)
           qmsg << "Computing quantized histogram with " << hist_size
-          << " bins (input data has range from "
-          << minmax.first << " to " << minmax.second << ")\n"
+          << " bins (input range: ["
+          << minmax.first << "--" << minmax.second << "])\n"
           << (100*iPos)/iSize << "% complete";
         else
           qmsg << "Quantizing to " << (minmax.second-minmax.first)+1
-               << " integer values (input data has range from "
-               << minmax.first << " to " << minmax.second << ")\n"
+               << " integer values (input range: ["
+               << minmax.first << "--" << minmax.second << ")\n"
                << (100*iPos)/iSize << "% complete";
       else
         qmsg << "Quantizing to " << max_output_val
-             << " integer values (input data has range from "
-             << minmax.first << " to " << minmax.second << ")\n"
+             << " integer values (input range: ["
+             << minmax.first << "--" << minmax.second << ")\n"
              << (100*iPos)/iSize << "% complete";
       MESSAGE("%s", qmsg.str().c_str());
       iLastDisplayedPercent = (100*iPos)/iSize;

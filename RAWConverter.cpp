@@ -472,6 +472,14 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
     return false;
   }
 
+  if(!(vVolumeSize.volume() > 0)) {
+    T_ERROR("Data must be volumetric."); return false;
+  }
+  if(!(vVolumeAspect.volume() > 0)) {
+    T_ERROR("Invalid aspect ratio (%f)!", vVolumeAspect.volume());
+    return false;
+  }
+
   MESSAGE("Converting RAW dataset %s to %s", strFilename.c_str(),
           strTargetFilename.c_str());
 
@@ -595,26 +603,20 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
     }
 
     MESSAGE("Building level of detail hierarchy ...");
-    bool bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile,
-      ct, iComponentCount,
-      vVolumeSize,
-      DOUBLEVECTOR3(vVolumeAspect),
-      UINT64VECTOR3(iTargetBrickSize,iTargetBrickSize,iTargetBrickSize),
-      uint32_t(iTargetBrickOverlap), bUseMedian, bClampToEdge,
-      size_t(Controller::ConstInstance().SysInfo().GetMaxUsableCPUMem()),
-      MaxMinData,
-      &Controller::Debug::Out(),
-      COMPRESSION_TYPE(iBrickCompression),
-      iBrickCompressionLevel,
-      LAYOUT_TYPE(iBrickLayout)
-    );
-    MESSAGE("Hierarchy computation complete");
-
-    if (!bBrickingOK) {
-      uvfFile.Close();
+    if(dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile,
+       ct, iComponentCount, vVolumeSize, DOUBLEVECTOR3(vVolumeAspect),
+       UINT64VECTOR3(iTargetBrickSize,iTargetBrickSize,iTargetBrickSize),
+       uint32_t(iTargetBrickOverlap), bUseMedian, bClampToEdge,
+       size_t(Controller::ConstInstance().SysInfo().GetMaxUsableCPUMem()),
+       MaxMinData, &Controller::Debug::Out(),
+       COMPRESSION_TYPE(iBrickCompression), iBrickCompressionLevel,
+       LAYOUT_TYPE(iBrickLayout)) != true) {
       T_ERROR("Brick generation failed, aborting.");
+      uvfFile.Close();
       return false;
     }
+
+    MESSAGE("Hierarchy computation complete.");
 
     if (!uvfFile.AddDataBlock(dataVolume)) {
       T_ERROR("AddDataBlock failed!");
@@ -652,7 +654,8 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
         nonstd::null_deleter())
         );
       uvfFile.AddDataBlock(Histogram2D);
-
+    } else {
+      WARNING("Multicomponent data; skipping histogram computations.");
     }
     MESSAGE("Storing acceleration data...");
     uvfFile.AddDataBlock(MaxMinData);
@@ -1184,9 +1187,12 @@ bool RAWConverter::ConvertToUVF(const std::list<std::string>& files,
                             bConvertEndianess, bSigned, bIsFloat,
                             vVolumeSize, vVolumeAspect, strTitle,
                             intermediate, bDelete);
+    if(!success) { break; }
     assert(iComponentSize == 8 || iComponentSize == 16 ||
            iComponentSize == 32 || iComponentSize == 64);
-    if(!success) { break; }
+    assert(iComponentCount > 0);
+    assert(vVolumeSize.volume() > 0);
+    assert(vVolumeAspect.volume() > 0);
     strIntermediateFile.push_front(intermediate);
     bDeleteIntermediateFile.push_front(bDelete);
     header_skip.push_front(iHeaderSkip);

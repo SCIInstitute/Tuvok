@@ -83,8 +83,7 @@ bool ExtendedOctree::Open(std::string filename, uint64_t iOffset,
  maximum brick size, and overlap. Second, the table of contents (ToC) 
  which contains per brick information about their sizes, compression 
  methods and offsets in the file. After reading the global information
- about the level of detail is can be computed.
- 
+ about the level of detail, it can be computed.
 */
 bool ExtendedOctree::Open(LargeRAWFile_ptr pLargeRAWFile, uint64_t iOffset,
                           uint64_t iUVFFileVersion) {
@@ -115,7 +114,7 @@ bool ExtendedOctree::Open(LargeRAWFile_ptr pLargeRAWFile, uint64_t iOffset,
   // UVF file version 5 introduced the version flag inside ExtendedOctree data
   if (iUVFFileVersion > 4) {
     m_pLargeRAWFile->ReadData(m_iVersion, isBE);
-    if (m_iVersion == 0) return false;
+    if (m_iVersion == 0) return false; // doesn't make sense.
   } else
     m_iVersion = 0; // version is not stored
 
@@ -502,6 +501,11 @@ void ExtendedOctree::WriteHeader(LargeRAWFile_ptr pLargeRAWFile,
                                  uint64_t iOffset) {
   m_pLargeRAWFile = pLargeRAWFile;
   m_iOffset = iOffset;
+
+  assert(m_iComponentCount);
+  assert(m_vVolumeSize.volume() > 0);
+  assert(m_vVolumeAspect.volume() > 0);
+  assert(m_iBrickSize.volume() > 0);
 
   // write global header
   const bool isBE = EndianConvert::IsBigEndian();

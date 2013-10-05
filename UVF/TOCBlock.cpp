@@ -119,9 +119,9 @@ bool TOCBlock::FlatDataToBrickedLOD(
   uint32_t iCompressionLevel,
   LAYOUT_TYPE lt
 ) {
-
   LargeRAWFile_ptr inFile(new LargeRAWFile(strSourceFile));
   if (!inFile->Open()) {
+    debugOut->Error(_func_, "Could not read '%s'!", strSourceFile.c_str());
     return false;
   }
 
@@ -154,13 +154,14 @@ bool TOCBlock::FlatDataToBrickedLOD(
   assert(m_vMaxBrickSize[0] > 2*m_iOverlap);
   assert(m_vMaxBrickSize[1] > 2*m_iOverlap);
   assert(m_vMaxBrickSize[2] > 2*m_iOverlap);
-
-  if(debugOut == NULL) {
-    return false;
-  }
+  assert(debugOut != NULL);
+  assert(vVolumeSize.volume() > 0);
+  assert(vScale.volume() > 0);
 
   LargeRAWFile_ptr outFile(new LargeRAWFile(strTempFile));
   if (!outFile->Create()) {
+    debugOut->Error(_func_, "Could not create tempfile '%s'",
+                    strTempFile.c_str());
     return false;
   }
   m_pStreamFile = outFile;
@@ -171,17 +172,16 @@ bool TOCBlock::FlatDataToBrickedLOD(
 
   if (!pSourceData->IsOpen()) pSourceData->Open();
 
-  bool bResult = c.Convert(pSourceData, 0, eType, iComponentCount, vVolumeSize,
-                           vScale, outFile, 0, &statsVec, ct, iCompressionLevel,
-                           bUseMedian, bClampToEdge, lt);
-  outFile->Close();
-
-  if (bResult) {
-    pMaxMinDatBlock->SetDataFromFlatVector(statsVec, iComponentCount);
-    return m_ExtendedOctree.Open(m_strDeleteTempFile, 0, m_iUVFFileVersion);
-  } else {
+  if(!c.Convert(pSourceData, 0, eType, iComponentCount, vVolumeSize,
+                vScale, outFile, 0, &statsVec, ct, iCompressionLevel,
+                bUseMedian, bClampToEdge, lt)) {
+    debugOut->Error(_func_, "ExtOctree reported failed conversion.");
     return false;
   }
+
+  pMaxMinDatBlock->SetDataFromFlatVector(statsVec, iComponentCount);
+  debugOut->Message(_func_, "opening UVF '%s'", m_strDeleteTempFile.c_str());
+  return m_ExtendedOctree.Open(m_strDeleteTempFile, 0, m_iUVFFileVersion);
 }
 
 bool TOCBlock::BrickedLODToFlatData(
