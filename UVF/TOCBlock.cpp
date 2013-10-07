@@ -178,6 +178,7 @@ bool TOCBlock::FlatDataToBrickedLOD(
     debugOut->Error(_func_, "ExtOctree reported failed conversion.");
     return false;
   }
+  outFile->Close(); // note, needed before the 'Open' below!
 
   pMaxMinDatBlock->SetDataFromFlatVector(statsVec, iComponentCount);
   debugOut->Message(_func_, "opening UVF '%s'", m_strDeleteTempFile.c_str());

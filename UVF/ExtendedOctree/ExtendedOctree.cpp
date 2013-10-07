@@ -114,7 +114,8 @@ bool ExtendedOctree::Open(LargeRAWFile_ptr pLargeRAWFile, uint64_t iOffset,
   // UVF file version 5 introduced the version flag inside ExtendedOctree data
   if (iUVFFileVersion > 4) {
     m_pLargeRAWFile->ReadData(m_iVersion, isBE);
-    if (m_iVersion == 0) return false; // doesn't make sense.
+    assert(m_iVersion != 0); // doesn't make sense, probably means corrupt file
+    if (m_iVersion == 0) return false;
   } else
     m_iVersion = 0; // version is not stored
 
