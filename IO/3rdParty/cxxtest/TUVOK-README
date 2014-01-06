@@ -1,0 +1,10 @@
+This is CxxTest 3.10.1, sans some extra things which aren't needed for
+Tuvok and related projects.
+
+CxxTest is licensed under the LGPL; see the file COPYING for more
+information.  CxxTest has a homepage at:
+
+  http://cxxtest.com/
+
+If you want to use CxxTest in your own project[s], it's recommend you
+download the version available there instead of using this one.

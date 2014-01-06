@@ -1,0 +1,9 @@
+Makefile.debug
+Makefile.libexpr
+*.[ao]
+*.prl
+tvk-parse.*cpp
+tvk-parse.*hpp
+tvk-scan.*cpp
+tvk-scan.*hpp
+lexdbg

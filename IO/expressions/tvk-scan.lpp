@@ -1,0 +1,160 @@
+%option case-insensitive
+%option batch
+%option 8bit
+%option nodefault
+%option never-interactive
+%option noyywrap
+%option nounput
+%option bison-bridge
+%option bison-locations
+%option nomain
+%option nounistd
+
+%{
+/** Scanner for Tuvok expressions. */
+#include <cstdio>
+#include <sstream>
+#include "treenode.h"
+#include "tvk-parse.parser.hpp"
+
+#ifdef DEBUG_LEX
+//extern "C" int yylex(YYSTYPE*, YYLTYPE*);
+# define token(x) (DisplayToken(# x), x)
+  YYSTYPE yylval;
+  void DisplayToken(const char* s);
+#else
+# define token(x) (x)
+#endif /* DEBUG_LEX */
+
+static double convert_todbl(const char*);
+
+/** Keeps track of the current string index, for error reporting. */
+/**@{*/
+static void count(YYLTYPE* lloc);
+static size_t column = 0;
+/**@}*/
+
+static YY_BUFFER_STATE scanning_buf;
+void parser_set_string(const char*);
+
+%}
+
+d       ([0-9])
+integer ({d}+)
+dbl     ({integer}?"."{integer}+([Ee]{integer})?)
+volume  (v)
+
+%%
+
+{integer} {
+  count(yylloc);
+  yylval->y_dbl = convert_todbl(yytext);
+  return token(DOUBLE);
+}
+
+{dbl} {
+  count(yylloc);
+  yylval->y_dbl = convert_todbl(yytext);
+  return token(DOUBLE);
+}
+
+{volume} {
+  count(yylloc);
+  yylval->y_dbl = 0.0; // nullify it.
+  return token(VOLUME);
+}
+[\[] {
+  count(yylloc);
+  yylval->y_dbl = 0.0; // nullify it.
+  return token(OPEN_BRACKET);
+}
+[\]] {
+  count(yylloc);
+  yylval->y_dbl = 0.0; // nullify it.
+  return token(CLOSE_BRACKET);
+}
+[+]  { count(yylloc); yylval->y_dbl = 0.0; return token(PLUS); }
+[-]  { count(yylloc); yylval->y_dbl = 0.0; return token(MINUS); }
+[/]  { count(yylloc); yylval->y_dbl = 0.0; return token(DIVIDE); }
+[\*] { count(yylloc); yylval->y_dbl = 0.0; return token(MULTIPLY); }
+[>]  { count(yylloc); yylval->y_dbl = 0.0; return token(GREATER_THAN); }
+[<]  { count(yylloc); yylval->y_dbl = 0.0; return token(LESS_THAN); }
+[=]  { count(yylloc); yylval->y_dbl = 0.0; return token(EQUAL_TO); }
+[(]  { count(yylloc); yylval->y_dbl = 0.0; return token(OPEN_PAREN); }
+[)]  { count(yylloc); yylval->y_dbl = 0.0; return token(CLOSE_PAREN); }
+[\?] { count(yylloc); yylval->y_dbl = 0.0; return token(QUESTION_MARK); }
+[:]  { count(yylloc); yylval->y_dbl = 0.0; return token(COLON); }
+
+[ \t\v\f\n] { count(yylloc); }
+. { count(yylloc); return token(BAD); }
+
+%%
+
+/** keeps track of the # of lines/columns in a couple global variables,
+ * for the purpose of reporting errors.
+ * @todo FIXME should just remove 'column' and rely on yylloc aka lloc */
+static void count(YYLTYPE* lloc)
+{
+  size_t i;
+
+  for(i=0; yytext[i] != '\0'; ++i) {
+    if(yytext[i] == '\n') {
+      column = 0;
+    } else if(yytext[i] == '\t') {
+      column += 8;
+    } else {
+      ++column;
+    }
+  }
+  lloc->first_column = column;
+  lloc->first_line = yylineno;
+}
+
+static double convert_todbl(const char *s)
+{
+  std::istringstream input(s);
+  double d;
+
+  input >> d;
+  if(!input) {
+    // throw exception...
+  }
+  return d;
+}
+
+#ifdef DEBUG_LEX
+void DisplayToken(const char *p)
+{
+  printf("%-10.10s is [%s]\n", p, yytext);
+}
+
+# if 0
+// simple main to just open the file given by the only argument && lex it.
+int main(int argc, char *argv[])
+{
+  if(argc != 2) {
+    fprintf(stderr, "%s takes one argument: the file to lex.\n", argv[0]);
+    exit(-1);
+  }
+  fprintf(stderr, "scanning [%s]\n", argv[1]);
+  yyin = fopen(argv[1], "r");
+  if(yyin == NULL) {
+    perror("fopen");
+    exit(-2);
+  }
+  while(yylex()) {}
+  fclose(yyin);
+  return 0;
+}
+# endif
+#endif /* DEBUG_LEX */
+
+void parser_set_string(const char* s)
+{
+  scanning_buf = yy_scan_string(s);
+}
+
+void parser_free_string()
+{
+  yy_delete_buffer(scanning_buf);
+}
