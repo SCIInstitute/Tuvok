@@ -168,12 +168,14 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
       bSigned = true;
       bIsFloat = false;
       iComponentSize = 64;
-    } else if (kvpType->strValueUpper == "FLOAT") {
+    } else if (kvpType->strValueUpper == "FLOAT" ||
+               kvpType->strValueUpper == "FLOAT32") {
       bSigned = true;
       bIsFloat = true;
       iComponentSize = 32;
       MESSAGE("Floating point nrrd.");
-    } else if (kvpType->strValueUpper == "DOUBLE") {
+    } else if (kvpType->strValueUpper == "DOUBLE" ||
+               kvpType->strValueUpper == "FLOAT64") {
       bSigned = true;
       bIsFloat = true;
       iComponentSize = 64;
