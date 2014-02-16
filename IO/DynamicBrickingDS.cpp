@@ -124,14 +124,6 @@ static std::array<uint64_t,3> layout(const std::array<uint64_t,3> voxels,
   return tmp;
 }
 
-// converts a 3D index ('loc') into a 1D index.
-static uint64_t to1d(const std::array<uint64_t,3>& loc,
-                     const std::array<uint64_t,3>& size) {
-  assert(loc[2] < size[2]);
-  assert(loc[1] < size[1]);
-  assert(loc[0] < size[0]);
-  return loc[2]*size[1]*size[0] + loc[1]*size[0] + loc[0];
-}
 // ditto, but the location is unsigned instead of uint64_t.
 // remember unsigned is for brick indices, uint64_t is for voxel indices
 static uint64_t to1d(const std::array<unsigned,3>& loc,
