@@ -451,7 +451,7 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
                          value == "1.2.840.10008.1.2.4.80" ||   // JPEG-LS Lossless         ( untested due to lack of example DICOMs)
                          value == "1.2.840.10008.1.2.4.81" ||   // JPEG-LS Near-lossless    ( untested due to lack of example DICOMs)
                          value == "1.2.840.10008.1.2.4.90" ||   // JPEG 2000 Lossless       ( untested due to lack of example DICOMs)
-                         value == "1.2.840.10008.1.2.4.90" ) {  // JPEG 2000                ( untested due to lack of example DICOMs)
+                         value == "1.2.840.10008.1.2.4.91" ) {  // JPEG 2000                ( untested due to lack of example DICOMs)
                 info.m_bIsJPEGEncoded = true;
                 bImplicit = false;
                 bNeedsEndianConversion = EndianConvert::IsBigEndian();
