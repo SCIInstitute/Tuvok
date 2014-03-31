@@ -43,6 +43,7 @@
 // normally we'd include Qt headers first, but we want to make sure to get GLEW
 // before GL in this special case.
 #include "GPUMemMan.h"
+
 #ifndef TUVOK_NO_QT
 # include <QtGui/QImage>
 # include <QtOpenGL/QGLWidget>
@@ -63,6 +64,7 @@
 #include "Renderer/GL/GLTexture1D.h"
 #include "Renderer/GL/GLTexture2D.h"
 #include "Renderer/GL/GLVolume.h"
+#include "Renderer/GL/GLCommon.h"
 
 #include "IO/uvfDataset.h"
 #include "Renderer/GL/GLVolumePool.h"
@@ -1071,8 +1073,11 @@ GLFBOTex* GPUMemMan::GetFBO(GLenum minfilter, GLenum magfilter,
                             bool bHaveDepth, int iNumBuffers) {
   MESSAGE("Creating new FBO of size %i x %i", int(width), int(height));
 
-  uint64_t m_iCPUMemEstimate = GLFBOTex::EstimateCPUSize(width, height,
-                                                         bHaveDepth, iNumBuffers);
+  uint64_t m_iCPUMemEstimate =
+    GLFBOTex::EstimateCPUSize(width, height,
+                              GLCommon::gl_byte_width(type) *
+                              GLCommon::gl_components(format),
+                              bHaveDepth, iNumBuffers);
 
   // if we are running out of mem, kick out bricks to create room for the FBO
   while (m_iAllocatedCPUMemory + m_iCPUMemEstimate >
