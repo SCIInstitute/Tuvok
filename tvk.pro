@@ -20,6 +20,7 @@ QMAKE_LIBDIR     += IO/expressions
 LIBS              = -ltuvokexpr
 unix:LIBS        += -lz -lpthread
 win32:LIBS       += shlwapi.lib
+unix:QMAKE_CFLAGS += -std=c99 -Werror
 unix:QMAKE_CXXFLAGS += -std=c++0x
 unix:QMAKE_CXXFLAGS += -fno-strict-aliasing
 unix:QMAKE_CFLAGS += -fno-strict-aliasing
@@ -217,6 +218,7 @@ HEADERS += \
            IO/MobileGeoConverter.h \
            IO/MRCConverter.h \
            IO/NRRDConverter.h \
+           IO/netds.h \
            IO/OBJGeoConverter.h \
            IO/PLYGeoConverter.h \
            IO/Quantize.h \
@@ -555,6 +557,7 @@ SOURCES += \
            IO/MobileGeoConverter.cpp \
            IO/MRCConverter.cpp \
            IO/NRRDConverter.cpp \
+           IO/netds.c \
            IO/OBJGeoConverter.cpp \
            IO/PLYGeoConverter.cpp \
            IO/QVISConverter.cpp \
