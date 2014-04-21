@@ -28,6 +28,7 @@
      bzBuffToBuffDecompress.  Fixed.
 */
 
+#define _POSIX_C_SOURCE 201112L
 #include "bzlib_private.h"
 
 

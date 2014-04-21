@@ -62,6 +62,7 @@ METHODDEF(void) start_pass
 	j_lossless_c_ptr losslsc = (j_lossless_c_ptr) cinfo->codec; \
 	c_pred_ptr pred = (c_pred_ptr) losslsc->pred_private; \
 	boolean restart = FALSE; \
+  (void)restart; \
   unsigned int xindex; \
 	int samp, Ra; \
  \
@@ -100,6 +101,7 @@ METHODDEF(void) start_pass
 	c_pred_ptr pred = (c_pred_ptr) losslsc->pred_private; \
   unsigned int xindex; \
 	int samp, Ra, Rb, Rc; \
+  (void)Ra; (void) Rc;\
  \
 	Rb = GETJSAMPLE(prev_row[0]); \
 	samp = GETJSAMPLE(input_buf[0]); \

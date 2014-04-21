@@ -87,6 +87,7 @@
 #define UNDIFFERENCE_2D(PREDICTOR) \
   unsigned int xindex; \
 	int Ra, Rb, Rc; \
+  (void)Ra; (void)Rc; \
  \
 	Rb = GETJSAMPLE(prev_row[0]); \
 	Ra = (diff_buf[0] + PREDICTOR2) & 0xFFFF; \

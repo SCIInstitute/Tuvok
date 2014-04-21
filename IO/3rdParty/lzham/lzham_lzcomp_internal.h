@@ -133,7 +133,6 @@ namespace lzham
                return cLitComplexity;
             else if (is_rep())
             {
-               LZHAM_ASSUME(cRep0Complexity == 2);
                return 1 + -m_dist;  // 2, 3, 4, or 5
             }
             else if (get_len() >= cLongMatchComplexityLenThresh)

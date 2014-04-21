@@ -141,7 +141,6 @@ namespace lzham
 #if !LZHAM_FORCE_SINGLE_THREADED_PARSING
       if (params.m_max_helper_threads > 0)
       {
-         LZHAM_ASSUME(cMaxParseThreads >= 4);
 
          if (m_params.m_block_size < 16384)
          {

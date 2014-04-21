@@ -1401,7 +1401,6 @@ namespace lzham
             uint type_index = 4;
             if (!lzdec.is_full_match())
             {
-               LZHAM_ASSUME(CLZBase::cMatchHistSize == 4);
                type_index = -lzdec.m_dist - 1;
             }
 
