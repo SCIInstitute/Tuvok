@@ -39,7 +39,7 @@
 #define STDTUVOKDEFINES_H
 
 // To compile Tuvok without the Qt dependency
-// enable the following macro. Be aware that 
+// enable the following macro. Be aware that
 // for use in ImageVis3D Qt in Tuvok is required
 // #define TUVOK_NO_QT 1
 
@@ -78,8 +78,8 @@
 #define TUVOK_MAJOR 3
 #define TUVOK_MINOR 1
 #define TUVOK_PATCH 0
-#define TUVOK_VERSION "3.1.0"
-#define TUVOK_VERSION_TYPE "Release Build"
+#define TUVOK_VERSION "3.1.0+"
+#define TUVOK_VERSION_TYPE "Developer Build"
 
 #ifdef _MSC_VER
 # define _func_ __FUNCTION__
