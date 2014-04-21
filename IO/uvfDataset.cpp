@@ -1683,6 +1683,36 @@ std::list<std::string> UVFDataset::Extensions() const
   return retval;
 }
 
+template <class T> bool
+UVFDataset::GetBrickTemplate(const BrickKey& k, std::vector<T>& vData) const
+{
+  if(m_bToCBlock) {
+    const UINT64VECTOR4 coords = KeyToTOCVector(k);
+    const TOCTimestep* ts = static_cast<TOCTimestep*>(
+      m_timesteps[std::get<0>(k)]
+    );
+    const size_t targetSize = size_t(
+      ts->GetDB()->GetComponentTypeSize() *
+      ts->GetDB()->GetComponentCount() *
+      ts->GetDB()->GetBrickSize(coords).volume()
+    ) / sizeof(T);
+    vData.resize(targetSize);
+    uint8_t* pData = (uint8_t*)&vData[0];
+    ts->GetDB()->GetData(pData,coords);
+    if(ts->GetDB()->GetAtlasSize(coords).area() != 0) {
+      VolumeTools::DeAtalasify(targetSize, ts->GetDB()->GetAtlasSize(coords),
+                               ts->GetDB()->GetMaxBrickSize(),
+                               ts->GetDB()->GetBrickSize(coords), pData,
+                               pData);
+    }
+    return true;
+  } else {
+    const NDBrickKey& key = this->IndexToVectorKey(k);
+    const RDTimestep* ts = static_cast<RDTimestep*>(m_timesteps[key.timestep]);
+    return ts->GetDB()->GetData(vData, key.lod, key.brick);
+  }
+}
+
 bool UVFDataset::GetBrick(const BrickKey& k, std::vector<uint8_t>& vData) const {
   return GetBrickTemplate<uint8_t>(k,vData);
 }
