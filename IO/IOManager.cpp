@@ -2588,13 +2588,13 @@ IOManager::EvaluateExpression(const std::string& expr,
 
     using namespace std::placeholders;
     // advance each brick iterator by one.
-#ifndef __clang__
+#ifndef __APPLE__
     std::for_each(viters.begin(), viters.end(),
                   std::bind(std::advance<BrickTable::const_iterator,int>,
                             _1, 1));
 #else
-    // Clang uses iterator_traits<_InputIter>::difference_type to deduce
-    // distance template parameter.
+    // Clang's libc++ uses iterator_traits<_InputIter>::difference_type to
+    // deduce distance template parameter.
     std::for_each(viters.begin(), viters.end(),
                   std::bind(std::advance<BrickTable::const_iterator>,
                             _1, 1));
