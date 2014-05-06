@@ -13,86 +13,13 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include "netds.h"
+#include "sockhelp.h"
 
 /* file descriptor for server we're pushing requests to. */
 static int remote = -1;
 /* port number we'll connect to on the server */
 static const unsigned short port = 4445;
 
-enum NetDSCommandCode {
-  nds_OPEN=0,
-  nds_CLOSE,
-  nds_BRICK,
-};
-
-typedef bool (msgsend)(int, const void*, const size_t);
-
-/* a msgsend for arbitrary data. */
-static bool
-wrmsg(int fd, const void* buf, const size_t len) {
-  assert(len > 0);
-  struct iovec vec[1];
-  vec[0].iov_base = (void*)buf;
-  vec[0].iov_len = len;
-  struct msghdr msg;
-  memset(&msg, 0, sizeof(struct msghdr));
-  msg.msg_iov = vec;
-  msg.msg_iovlen = 1;
-  if(sendmsg(fd, &msg, MSG_NOSIGNAL) != (ssize_t)len) {
-    fprintf(stderr, "error writing %zu-byte buffer at %p: %d\n", len, buf,
-            errno);
-    return false;
-  }
-  return true;
-}
-/* same as write(2), but never reports partial writes. */
-static bool
-write2(int fd, const void* buffer_, const size_t len) {
-  assert(len > 0);
-  const char* buf = buffer_;
-  struct pollfd pll;
-
-  pll.fd = fd;
-  pll.events = POLLOUT;
-  size_t n = 0;
-  while(len > n) {
-    const ssize_t bytes = write(fd, buf+n, len-n);
-    switch(bytes) {
-      case -1:
-        if(errno == EAGAIN) {
-          continue;
-        } else if(errno == EWOULDBLOCK) {
-          poll(&pll, 1, -1); /* wait until we can send data. */
-          continue;
-        }
-        return false;
-      case 0:
-        return false;
-      default:
-        n += bytes;
-    }
-  }
-  return true;
-}
-
-static bool
-wru8(int fd, const uint8_t buf) {
-  return wrmsg(fd, &buf, 1);
-}
-
-static bool
-wru16(int fd, const uint16_t buf) {
-  const uint16_t data = htons(buf);
-  return wrmsg(fd, &data, sizeof(uint16_t));
-}
-
-static bool
-wru32(int fd, const uint32_t buf) {
-  const uint32_t data = htonl(buf);
-  return wrmsg(fd, &data, sizeof(uint32_t));
-}
-
-static msgsend* wr = wrmsg;
 
 /* returns file descriptor of connected socket. */
 static int
@@ -201,6 +128,7 @@ netds_open(const char* filename)
 void
 netds_close(const char* filename)
 {
+  force_connect();
   const size_t len = strlen(filename);
   if(len == 0) {
     fprintf(stderr, "no filename, ignoring not sending close notification\n");
@@ -214,4 +142,28 @@ netds_close(const char* filename)
   wru8(remote, (uint8_t)nds_CLOSE);
   wru16(remote, (uint16_t)len);
   wr(remote, filename, len);
+}
+    
+void netds_shutdown()
+{
+    force_connect();
+    wru8(remote, nds_SHUTDOWN);
+}
+    
+char** netds_list_files(size_t* count)
+{
+    force_connect();
+    wru8(remote, nds_LIST_FILES);
+    uint16_t tmp_count;
+    ru16(remote, &tmp_count);
+    *count = tmp_count;
+    
+    char** retValue = malloc(sizeof(char*) * tmp_count);
+    for (size_t i = 0; i < *count; i++) {
+        uint16_t len;
+        ru16(remote, &len);
+        retValue[i] = malloc(sizeof(char)*len);
+        readFromSocket(remote, retValue[i], len);
+    }
+    return retValue;
 }
