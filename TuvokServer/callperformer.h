@@ -14,7 +14,7 @@ public:
     ~CallPerformer();
 
     //File handling
-    vector<char*> listFiles();
+    vector<std::string> listFiles();
     void openFile(const char* filename);
     void closeFile(const char* filename);
 

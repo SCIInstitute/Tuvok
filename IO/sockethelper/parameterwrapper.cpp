@@ -97,16 +97,16 @@ ShutdownParams::ShutdownParams(NetDSCommandCode code)
 void OpenParams::initFromSocket(int socket) {
     ru16(socket, &len);
 
-    filename = new char[len];
-    readFromSocket(socket, filename, len*sizeof(char));
-    dprintf("OPEN (%d) %s\n", len, filename);
+    filename = new char[len+1];
+    readFromSocket(socket, filename, len*sizeof(char)+1);
+    dprintf("OPEN (%d) %s,\n", len, filename);
 }
 
 void CloseParams::initFromSocket(int socket) {
     ru16(socket, &len);
 
-    filename = new char[len];
-    readFromSocket(socket, filename, len*sizeof(char));
+    filename = new char[len+1];
+    readFromSocket(socket, filename, len*sizeof(char)+1);
     dprintf("CLOSE (%d) %s\n", len, filename);
 }
 
@@ -151,9 +151,10 @@ void SimpleParams::writeToSocket(int socket) {
 /*#################################*/
 
 void OpenParams::mpi_sync(int rank, int srcRank) {
-    MPI_Bcast(&len, 1, MPI_INT16_T, srcRank, MPI_COMM_WORLD);
+    MPI_Bcast(&len, 1, MPI_UINT16_T, srcRank, MPI_COMM_WORLD);
+
     if (rank != srcRank)
-        filename = new char[len];
+        filename = new char[len+1];
     MPI_Bcast(&filename[0], len, MPI_CHAR, srcRank, MPI_COMM_WORLD);
 
     if(rank != srcRank)
@@ -161,9 +162,9 @@ void OpenParams::mpi_sync(int rank, int srcRank) {
 }
 
 void CloseParams::mpi_sync(int rank, int srcRank) {
-    MPI_Bcast(&len, 1, MPI_INT16_T, srcRank, MPI_COMM_WORLD);
+    MPI_Bcast(&len, 1, MPI_UINT16_T, srcRank, MPI_COMM_WORLD);
     if (rank != srcRank)
-        filename = new char[len];
+        filename = new char[len+1];
     MPI_Bcast(&filename[0], len, MPI_CHAR, srcRank, MPI_COMM_WORLD);
 
     if(rank != srcRank)
@@ -171,8 +172,8 @@ void CloseParams::mpi_sync(int rank, int srcRank) {
 }
 
 void BrickParams::mpi_sync(int rank, int srcRank) {
-    MPI_Bcast(&lod, 1, MPI_INT32_T, srcRank, MPI_COMM_WORLD);
-    MPI_Bcast(&bidx, 1, MPI_INT32_T, srcRank, MPI_COMM_WORLD);
+    MPI_Bcast(&lod, 1, MPI_UINT32_T, srcRank, MPI_COMM_WORLD);
+    MPI_Bcast(&bidx, 1, MPI_UINT32_T, srcRank, MPI_COMM_WORLD);
 
     if(rank != srcRank)
         dprintf2("Hi there from proc %d! Brick Received: lod %d & bidx: %d)\n", rank, lod, bidx);
@@ -231,13 +232,15 @@ void ListFilesParams::perform(int socket, CallPerformer* object) {
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     if(rank == 0) {
-        vector<char*> filenames = object->listFiles();
+        vector<std::string> filenames = object->listFiles();
 
         wru16(socket, (uint16_t)filenames.size());
-        for(char* name : filenames) {
-            size_t len = strlen(name);
+        for(std::string name : filenames) {
+            const char* cstr = name.c_str();
+
+            size_t len = strlen(cstr);
             wru16(socket, (uint16_t)len);
-            wr(socket, name, len);
+            wr(socket, cstr, len+1);
         }
     }
 }

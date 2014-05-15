@@ -133,7 +133,7 @@ netds_open(const char* filename)
   }
   wru8(remote, (uint8_t)nds_OPEN);
   wru16(remote, (uint16_t)len);
-  wr(remote, filename, len);
+  wr(remote, filename, len+1);
 }
 
 void
@@ -152,7 +152,7 @@ netds_close(const char* filename)
   }
   wru8(remote, (uint8_t)nds_CLOSE);
   wru16(remote, (uint16_t)len);
-  wr(remote, filename, len);
+  wr(remote, filename, len+1);
 }
     
 void netds_shutdown()

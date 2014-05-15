@@ -11,23 +11,37 @@ CallPerformer::~CallPerformer() {
 }
 
 //File handling
-vector<char*> CallPerformer::listFiles() {
+vector<std::string> CallPerformer::listFiles() {
     const char* folder = getenv("IV3D_FILES_FOLDER");
     if(folder == NULL) {
         folder = "./";
     }
 
-    vector<char*> retVector;
+    vector<std::string> retVector;
+    std::string extension = ".uvf";
 
     DIR *dir;
     struct dirent *ent;
+
     if ((dir = opendir (folder)) != NULL) {
+
+        printf("\nFound the following files:\n");
         /* print all the files and directories within directory */
         while ((ent = readdir (dir)) != NULL) {
-            char *tmp_string = new char[ent->d_namlen];
-            strcpy(tmp_string, ent->d_name);
-            retVector.push_back(tmp_string);
+
+            //No directories
+            if(ent->d_type != DT_DIR) {
+                std::string fname = ent->d_name;
+
+                //Only files ending in .uvf
+                if (fname.find(extension, (fname.length() - extension.length())) != std::string::npos) {
+                    std::string tmp_string = ent->d_name;
+                    printf("%s,\n", tmp_string.c_str());
+                    retVector.push_back(tmp_string);
+                }
+            }
         }
+        printf("End of list!\n");
         closedir (dir);
     } else {
         /* could not open directory */
