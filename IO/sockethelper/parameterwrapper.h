@@ -10,6 +10,7 @@
 #include <string.h>
 #include <netdb.h>
 #include "sockhelp.h"
+#include "../../TuvokServer/callperformer.h"
 
 class ParameterWrapper
 {
@@ -22,7 +23,7 @@ public:
     virtual void initFromSocket(int socket)         = 0;
     virtual void writeToSocket(int socket)          = 0;
     virtual void mpi_sync(int rank, int srcRank)    = 0;
-    virtual void perform(int socket, void* object)  = 0;
+    virtual void perform(int socket, CallPerformer* object)  = 0;
 };
 
 class OpenParams : public ParameterWrapper
@@ -35,7 +36,7 @@ public:
     void initFromSocket(int socket);
     void writeToSocket(int socket);
     void mpi_sync(int rank, int srcRank);
-    void perform(int socket, void* object);
+    void perform(int socket, CallPerformer* object);
 };
 
 class CloseParams : public ParameterWrapper
@@ -48,7 +49,7 @@ public:
     void initFromSocket(int socket);
     void writeToSocket(int socket);
     void mpi_sync(int rank, int srcRank);
-    void perform(int socket, void* object);
+    void perform(int socket, CallPerformer* object);
 };
 
 class BrickParams : public ParameterWrapper
@@ -61,7 +62,7 @@ public:
     void initFromSocket(int socket);
     void writeToSocket(int socket);
     void mpi_sync(int rank, int srcRank);
-    void perform(int socket, void* object);
+    void perform(int socket, CallPerformer* object);
 };
 
 //For functions that don't need parameters
@@ -78,14 +79,14 @@ class ListFilesParams : public SimpleParams
 {
 public:
     ListFilesParams(NetDSCommandCode code);
-    void perform(int socket, void* object);
+    void perform(int socket, CallPerformer* object);
 };
 
 class ShutdownParams : public SimpleParams
 {
 public:
     ShutdownParams(NetDSCommandCode code);
-    void perform(int socket, void* object);
+    void perform(int socket, CallPerformer* object);
 };
 
 

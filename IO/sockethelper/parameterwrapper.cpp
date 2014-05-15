@@ -116,7 +116,7 @@ void BrickParams::initFromSocket(int socket) {
     dprintf("BRICK lod=%d, bidx=%d\n", lod, bidx);
 }
 
-void SimpleParams::initFromSocket(int socket) {}
+void SimpleParams::initFromSocket(int socket) {(void)socket;}
 
 
 /*#################################*/
@@ -178,46 +178,73 @@ void BrickParams::mpi_sync(int rank, int srcRank) {
         dprintf2("Hi there from proc %d! Brick Received: lod %d & bidx: %d)\n", rank, lod, bidx);
 }
 
-void SimpleParams::mpi_sync(int rank, int srcRank) {}
+void SimpleParams::mpi_sync(int rank, int srcRank) {(void)rank; (void)srcRank;}
 
 
 /*#################################*/
 /*######     Executing       ######*/
 /*#################################*/
 
-void OpenParams::perform(int socket, void* object) {
-    //TODO
+void OpenParams::perform(int socket, CallPerformer* object) {
+    object->openFile(filename);
+    (void)socket; //currently no answer
 }
 
-void CloseParams::perform(int socket, void* object) {
-    //TODO
+void CloseParams::perform(int socket, CallPerformer* object) {
+    object->closeFile(filename);
+    (void)socket; //currently no answer
 }
 
-void BrickParams::perform(int socket, void* object) {
-    //TODO
-}
-
-void ListFilesParams::perform(int socket, void* object) {
-    //TODO
-
+void BrickParams::perform(int socket, CallPerformer* object) {
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     if(rank == 0) {
-        const char* name1 = "Test1";
-        const char* name2 = "Test2";
+        typedef uint8_t T;
 
-        wru16(socket, 2);
-        size_t len = strlen(name1);
-        wru16(socket, (uint16_t)len);
-        wr(socket, name1, len);
+        vector<T> returnData;
+        object->brick_request(lod, bidx, returnData);
 
-        len = strlen(name2);
-        wru16(socket, (uint16_t)len);
-        wr(socket, name2, len);
+        //Return the data
+        wru16(socket, (uint16_t)returnData.size());
+
+        if(sizeof(T) == 1) {
+            for(T data : returnData) {
+                wr(socket, &data, 1);
+            }
+        }
+        else if(sizeof(T) == 2) {
+            for(T data : returnData) {
+                T netData = htons(data);
+                wr(socket, &netData, 2);
+            }
+        }
+        else if(sizeof(T) == 4) {
+            for(T data : returnData) {
+                T netData = htonl(data);
+                wr(socket, &netData, 4);
+            }
+        }
     }
 }
 
-void ShutdownParams::perform(int socket, void* object) {
+void ListFilesParams::perform(int socket, CallPerformer* object) {
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    if(rank == 0) {
+        vector<char*> filenames = object->listFiles();
+
+        wru16(socket, (uint16_t)filenames.size());
+        for(char* name : filenames) {
+            size_t len = strlen(name);
+            wru16(socket, (uint16_t)len);
+            wr(socket, name, len);
+        }
+    }
+}
+
+void ShutdownParams::perform(int socket, CallPerformer* object) {
     //Not necessary
+    (void)socket; //currently no answer
+    (void)object;
 }
 

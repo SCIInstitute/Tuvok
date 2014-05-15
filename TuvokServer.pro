@@ -4,9 +4,9 @@
 #
 #-------------------------------------------------
 
-QT       += core
+QT       += core opengl
 
-QT       -= gui
+#QT       -= gui
 
 TARGET = TuvokServer
 CONFIG   += console
@@ -28,21 +28,40 @@ QMAKE_LINK          = $$QMAKE_CXX
 }
 macx {
     macx:CONFIG     += c++11
-    QMAKE_CFLAGS    = -I/usr/local/include
-    QMAKE_CXXFLAGS  = -I/usr/local/include -DMPICH_IGNORE_CXX_SEEK
+    QMAKE_CFLAGS    = -I/usr/local/include -mmacosx-version-min=10.7
+    QMAKE_CXXFLAGS  = -I/usr/local/include -DMPICH_IGNORE_CXX_SEEK -mmacosx-version-min=10.7
     QMAKE_LFLAGS    = -L/usr/local/lib -lmpi_cxx -lmpi -lm
 }
-INCLUDEPATH += IO/sockethelper/ TuvokServer/
+INCLUDEPATH += IO/sockethelper/ TuvokServer/ IO/3rdParty/boost IO/3rdParty/zlib
+INCLUDEPATH += $$PWD/../ImageVis3D/Tuvok/
+DEPENDPATH += $$PWD/../ImageVis3D/Tuvok/
 
 TEMPLATE = app
+
 
 SOURCES += \
     TuvokServer/main.cpp \
     TuvokServer/tvkserver.cpp \
     IO/sockethelper/parameterwrapper.cpp \
-    IO/sockethelper/sockhelp.c
+    IO/sockethelper/sockhelp.c \
+    TuvokServer/callperformer.cpp \
+    IO/netds.c
 
 HEADERS += \
     IO/sockethelper/parameterwrapper.h \
     IO/sockethelper/sockhelp.h \
-    TuvokServer/tvkserver.h
+    TuvokServer/tvkserver.h \
+    TuvokServer/callperformer.h \
+    IO/netds.h
+
+macx:LIBS += -L$$PWD/../../../Dropbox/ -lTuvok
+macx:LIBS += -L$$PWD/../../../Dropbox/ -lTuvokexpr
+macx:LIBS += -lz
+macx:LIBS += -framework CoreFoundation
+macx:LIBS += -framework OpenGL
+
+macx: PRE_TARGETDEPS += $$PWD/../../../Dropbox/libTuvok.a
+macx: PRE_TARGETDEPS += $$PWD/../../../Dropbox/libtuvokexpr.a
+
+
+

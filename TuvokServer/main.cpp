@@ -2,11 +2,15 @@
 //#include <omp.h>
 #include <mpi.h>
 #include "tvkserver.h"
+#include "callperformer.h"
 
 static int srcRank = 0;
 
 int main(int argc, char *argv[])
 {
+    (void)argc;
+    (void)argv;
+
     int rank, numprocs;
     MPI_Init(NULL, NULL);
     MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
@@ -17,6 +21,8 @@ int main(int argc, char *argv[])
     if(rank == srcRank) {
         server = new TvkServer();
     }
+
+    CallPerformer *performer = new CallPerformer();
 
     int shouldShutdown = false;
     while(!shouldShutdown) {
@@ -59,7 +65,7 @@ int main(int argc, char *argv[])
             }
 
             //Perform request and return answer
-            params->perform(clientPort, NULL);
+            params->perform(clientPort, performer);
 
             delete params;
             params = NULL;
@@ -75,5 +81,6 @@ int main(int argc, char *argv[])
     if(rank == srcRank)
         printf("Server received shutdown command!\n");
 
+    delete performer;
     MPI_Finalize();
 }

@@ -89,22 +89,33 @@ force_connect() {
   assert(remote > 0);
 }
 
-void
-netds_brick_request(const size_t LoD, const size_t brickidx) {
-  force_connect();
-  if(LoD > UINT32_MAX) {
-    fprintf(stderr, "LoD is absurd (%zu).  Bug elsewhere.\n", LoD);
-    abort();
-  }
-  if(brickidx > UINT32_MAX) {
-    fprintf(stderr, "brick index is absurd (%zu).  Bug elsewhere.\n", brickidx);
-    abort();
-  }
-  wru8(remote, (uint8_t)nds_BRICK);
-  const uint32_t lod = (uint32_t)LoD;
-  const uint32_t bidx = (uint32_t)brickidx;
-  wru32(remote, lod);
-  wru32(remote, bidx);
+uint8_t*
+netds_brick_request_ui8(const size_t LoD, const size_t brickidx, size_t* count) {
+    force_connect();
+    if(LoD > UINT32_MAX) {
+        fprintf(stderr, "LoD is absurd (%zu).  Bug elsewhere.\n", LoD);
+        abort();
+    }
+    if(brickidx > UINT32_MAX) {
+        fprintf(stderr, "brick index is absurd (%zu).  Bug elsewhere.\n", brickidx);
+        abort();
+    }
+    wru8(remote, (uint8_t)nds_BRICK);
+    const uint32_t lod = (uint32_t)LoD;
+    const uint32_t bidx = (uint32_t)brickidx;
+    wru32(remote, lod);
+    wru32(remote, bidx);
+
+    //wait for answer
+    uint16_t tmp_count = 0;
+    ru16(remote, &tmp_count);
+    *count = tmp_count;
+
+    uint8_t* retValue = malloc(sizeof(uint8_t)*(*count));
+    for(size_t i = 0; i < *count; i++) {
+        ru8(remote, &retValue[i]);
+    }
+    return retValue;
 }
 
 void
