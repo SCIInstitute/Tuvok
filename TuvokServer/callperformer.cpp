@@ -60,7 +60,7 @@ void CallPerformer::openFile(const char* filename) {
 
     std::string effectiveFilename = folder;
     effectiveFilename.append(filename);
-    printf("Effective path: %s\n", effectiveFilename.c_str());
+    //printf("Effective path: %s,\n", effectiveFilename.c_str());
     ds = new UVFDataset(effectiveFilename, 256, false);
 }
 

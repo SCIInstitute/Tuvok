@@ -97,23 +97,23 @@ ShutdownParams::ShutdownParams(NetDSCommandCode code)
 void OpenParams::initFromSocket(int socket) {
     ru16(socket, &len);
 
-    filename = new char[len+1];
-    readFromSocket(socket, filename, len*sizeof(char)+1);
+    filename = new char[len];
+    readFromSocket(socket, filename, len*sizeof(char));
     dprintf("OPEN (%d) %s,\n", len, filename);
 }
 
 void CloseParams::initFromSocket(int socket) {
     ru16(socket, &len);
 
-    filename = new char[len+1];
-    readFromSocket(socket, filename, len*sizeof(char)+1);
-    dprintf("CLOSE (%d) %s\n", len, filename);
+    filename = new char[len];
+    readFromSocket(socket, filename, len*sizeof(char));
+    dprintf("CLOSE (%d) %s,\n", len, filename);
 }
 
 void BrickParams::initFromSocket(int socket) {
     ru32(socket, &lod);
     ru32(socket, &bidx);
-    dprintf("BRICK lod=%d, bidx=%d\n", lod, bidx);
+    dprintf("BRICK lod=%d, bidx=%d,\n", lod, bidx);
 }
 
 void SimpleParams::initFromSocket(int socket) {(void)socket;}
@@ -154,7 +154,7 @@ void OpenParams::mpi_sync(int rank, int srcRank) {
     MPI_Bcast(&len, 1, MPI_UINT16_T, srcRank, MPI_COMM_WORLD);
 
     if (rank != srcRank)
-        filename = new char[len+1];
+        filename = new char[len];
     MPI_Bcast(&filename[0], len, MPI_CHAR, srcRank, MPI_COMM_WORLD);
 
     if(rank != srcRank)
@@ -164,7 +164,7 @@ void OpenParams::mpi_sync(int rank, int srcRank) {
 void CloseParams::mpi_sync(int rank, int srcRank) {
     MPI_Bcast(&len, 1, MPI_UINT16_T, srcRank, MPI_COMM_WORLD);
     if (rank != srcRank)
-        filename = new char[len+1];
+        filename = new char[len];
     MPI_Bcast(&filename[0], len, MPI_CHAR, srcRank, MPI_COMM_WORLD);
 
     if(rank != srcRank)
@@ -205,13 +205,14 @@ void BrickParams::perform(int socket, CallPerformer* object) {
         vector<T> returnData;
         object->brick_request(lod, bidx, returnData);
 
+        printf("There are %d values in the brick.\n", returnData.size());
+
         //Return the data
-        wru16(socket, (uint16_t)returnData.size());
+        uint32_t len = returnData.size();
+        wru32(socket, len);
 
         if(sizeof(T) == 1) {
-            for(T data : returnData) {
-                wr(socket, &data, 1);
-            }
+            wr(socket, &returnData[0], len);
         }
         else if(sizeof(T) == 2) {
             for(T data : returnData) {
@@ -224,6 +225,9 @@ void BrickParams::perform(int socket, CallPerformer* object) {
                 T netData = htonl(data);
                 wr(socket, &netData, 4);
             }
+        }
+        else {
+            abort();
         }
     }
 }
@@ -238,9 +242,9 @@ void ListFilesParams::perform(int socket, CallPerformer* object) {
         for(std::string name : filenames) {
             const char* cstr = name.c_str();
 
-            size_t len = strlen(cstr);
+            size_t len = strlen(cstr)+1;
             wru16(socket, (uint16_t)len);
-            wr(socket, cstr, len+1);
+            wr(socket, cstr, len);
         }
     }
 }
