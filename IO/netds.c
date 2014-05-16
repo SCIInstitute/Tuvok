@@ -107,14 +107,15 @@ netds_brick_request_ui8(const size_t LoD, const size_t brickidx, size_t* count) 
     wru32(remote, bidx);
 
     //wait for answer
-    uint16_t tmp_count = 0;
-    ru16(remote, &tmp_count);
+    uint32_t tmp_count = 0;
+    ru32(remote, &tmp_count);
     *count = tmp_count;
 
     uint8_t* retValue = malloc(sizeof(uint8_t)*(*count));
-    for(size_t i = 0; i < *count; i++) {
+    /*for(size_t i = 0; i < *count; i++) {
         ru8(remote, &retValue[i]);
-    }
+    }*/
+    readFromSocket(remote, &retValue[0], *count);
     return retValue;
 }
 
@@ -122,7 +123,7 @@ void
 netds_open(const char* filename)
 {
   force_connect();
-  const size_t len = strlen(filename);
+  const size_t len = strlen(filename)+1;
   if(len > UINT16_MAX) {
     fprintf(stderr, "error, ridiculously long (%zu-byte) filename\n", len);
     abort();
@@ -133,14 +134,14 @@ netds_open(const char* filename)
   }
   wru8(remote, (uint8_t)nds_OPEN);
   wru16(remote, (uint16_t)len);
-  wr(remote, filename, len+1);
+  wr(remote, filename, len);
 }
 
 void
 netds_close(const char* filename)
 {
   force_connect();
-  const size_t len = strlen(filename);
+  const size_t len = strlen(filename)+1;
   if(len == 0) {
     fprintf(stderr, "no filename, ignoring not sending close notification\n");
     close(remote);
@@ -152,7 +153,7 @@ netds_close(const char* filename)
   }
   wru8(remote, (uint8_t)nds_CLOSE);
   wru16(remote, (uint16_t)len);
-  wr(remote, filename, len+1);
+  wr(remote, filename, len);
 }
     
 void netds_shutdown()
