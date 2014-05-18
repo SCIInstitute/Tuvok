@@ -52,16 +52,17 @@ HEADERS += \
     IO/sockethelper/sockhelp.h \
     TuvokServer/tvkserver.h \
     TuvokServer/callperformer.h \
-    IO/netds.h
+    IO/netds.h \
+    IO/sockethelper/order32.h
 
-macx:LIBS += -L$$PWD/../../../Dropbox/ -lTuvok
-macx:LIBS += -L$$PWD/../../../Dropbox/ -lTuvokexpr
+macx:LIBS += -L/Volumes/HDD/Dropbox/ -lTuvok
+macx:LIBS += -L/Volumes/HDD/Dropbox/ -lTuvokexpr
 macx:LIBS += -lz
 macx:LIBS += -framework CoreFoundation
 macx:LIBS += -framework OpenGL
 
-macx: PRE_TARGETDEPS += $$PWD/../../../Dropbox/libTuvok.a
-macx: PRE_TARGETDEPS += $$PWD/../../../Dropbox/libtuvokexpr.a
+macx: PRE_TARGETDEPS += /Volumes/HDD/Dropbox/libTuvok.a
+macx: PRE_TARGETDEPS += /Volumes/HDD/Dropbox/libtuvokexpr.a
 
 
 

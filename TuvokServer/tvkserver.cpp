@@ -93,6 +93,7 @@ int TvkServer::waitAndAccept() {
         close(conn_s);
         exit(EXIT_FAILURE);
     }
+    checkEndianness(conn_s);
 
     return conn_s;
 }

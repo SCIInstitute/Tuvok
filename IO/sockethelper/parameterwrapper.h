@@ -54,7 +54,37 @@ public:
 
 class BrickParams : public ParameterWrapper
 {
+    template <class T>
+    void internal_brickPerform(int socket, CallPerformer* object) {
+        vector<T> returnData;
+        object->brick_request(lod, bidx, returnData);
+
+        printf("There are %zu values in the brick.\n", returnData.size());
+
+        //Return the data
+        if(typeid(T) == typeid(uint8_t)) {
+            printf("Test 0\n");
+            uint8_t* data = (uint8_t*)&returnData[0];
+            wru8v(socket, data, returnData.size());
+        }
+        else if(typeid(T) == typeid(uint16_t)) {
+            printf("Test 1\n");
+            uint16_t* data = (uint16_t*)&returnData[0];
+            wru16v(socket, data, returnData.size());
+        }
+        else if(typeid(T) == typeid(uint32_t)) {
+            printf("Test 2\n");
+            uint32_t* data = (uint32_t*)&returnData[0];
+            wru32v(socket, data, returnData.size());
+        }
+        else {
+            printf("Brick return type invalid!\n");
+            abort();
+        }
+    }
+
 public:
+    uint8_t type; //When using, cast to NetDataType first... here we leave it as uint8_t for easier MPI-Syncing
     uint32_t lod;
     uint32_t bidx;
 

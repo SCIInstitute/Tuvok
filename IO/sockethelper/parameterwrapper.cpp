@@ -111,6 +111,7 @@ void CloseParams::initFromSocket(int socket) {
 }
 
 void BrickParams::initFromSocket(int socket) {
+    ru8(socket, &type);
     ru32(socket, &lod);
     ru32(socket, &bidx);
     dprintf("BRICK lod=%d, bidx=%d,\n", lod, bidx);
@@ -172,6 +173,7 @@ void CloseParams::mpi_sync(int rank, int srcRank) {
 }
 
 void BrickParams::mpi_sync(int rank, int srcRank) {
+    MPI_Bcast(&type, 1, MPI_UINT8_T, srcRank, MPI_COMM_WORLD);
     MPI_Bcast(&lod, 1, MPI_UINT32_T, srcRank, MPI_COMM_WORLD);
     MPI_Bcast(&bidx, 1, MPI_UINT32_T, srcRank, MPI_COMM_WORLD);
 
@@ -200,35 +202,14 @@ void BrickParams::perform(int socket, CallPerformer* object) {
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     if(rank == 0) {
-        typedef uint8_t T;
+        NetDataType dType = (NetDataType)type;
 
-        vector<T> returnData;
-        object->brick_request(lod, bidx, returnData);
-
-        printf("There are %d values in the brick.\n", returnData.size());
-
-        //Return the data
-        uint32_t len = returnData.size();
-        wru32(socket, len);
-
-        if(sizeof(T) == 1) {
-            wr(socket, &returnData[0], len);
-        }
-        else if(sizeof(T) == 2) {
-            for(T data : returnData) {
-                T netData = htons(data);
-                wr(socket, &netData, 2);
-            }
-        }
-        else if(sizeof(T) == 4) {
-            for(T data : returnData) {
-                T netData = htonl(data);
-                wr(socket, &netData, 4);
-            }
-        }
-        else {
-            abort();
-        }
+        if(dType == N_UINT8)
+            internal_brickPerform<uint8_t>(socket, object);
+        else if(dType == N_UINT16)
+            internal_brickPerform<uint16_t>(socket, object);
+        else if(dType == N_UINT32)
+            internal_brickPerform<uint32_t>(socket, object);
     }
 }
 
@@ -241,10 +222,7 @@ void ListFilesParams::perform(int socket, CallPerformer* object) {
         wru16(socket, (uint16_t)filenames.size());
         for(std::string name : filenames) {
             const char* cstr = name.c_str();
-
-            size_t len = strlen(cstr)+1;
-            wru16(socket, (uint16_t)len);
-            wr(socket, cstr, len);
+            wrCStr(socket, cstr);
         }
     }
 }

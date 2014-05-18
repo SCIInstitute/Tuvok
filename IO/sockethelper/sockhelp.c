@@ -13,8 +13,43 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include "order32.h"
 
 #define DEBUG_BYTES 0
+
+void checkEndianness(int socket) {
+    //Get own endianness
+    uint8_t ownEndianness;
+    if(O32_HOST_ORDER == O32_LITTLE_ENDIAN) {
+        ownEndianness = 0;
+    }
+    else if (O32_HOST_ORDER == O32_BIG_ENDIAN) {
+        ownEndianness = 1;
+    }
+    else if (O32_HOST_ORDER == O32_PDP_ENDIAN) {
+        ownEndianness = 2;
+    }
+    else {
+        printf("What kind of system is this? cant determine byte order");
+        ownEndianness = 3;
+    }
+
+    wru8(socket, ownEndianness);
+
+    uint8_t otherEndianness;
+    ru8(socket, &otherEndianness);
+
+    if(ownEndianness != otherEndianness
+            || ownEndianness == 3
+            || otherEndianness == 3) {
+        printf("Different byte order between systems, have to reencode data!\n");
+        shouldReencode = true;
+    }
+    else {
+        printf("Both systems have the same endianness (%d), don't need to reencode data before transfer.\n", ownEndianness);
+        shouldReencode = false;
+    }
+}
 
 /*#################################*/
 /*#######       Write       #######*/
@@ -73,17 +108,70 @@ bool write2(int fd, const void* buffer_, const size_t len) {
 }
 
 bool wru8(int fd, const uint8_t buf) {
-  return wrmsg(fd, &buf, 1);
+  return wr(fd, &buf, sizeof(uint8_t));
 }
 
 bool wru16(int fd, const uint16_t buf) {
-  const uint16_t data = htons(buf);
-  return wrmsg(fd, &data, sizeof(uint16_t));
+    if(!shouldReencode)
+        return wr(fd, &buf, sizeof(uint16_t));
+
+    const uint16_t data = htons(buf);
+    return wr(fd, &data, sizeof(uint16_t));
 }
 
 bool wru32(int fd, const uint32_t buf) {
-  const uint32_t data = htonl(buf);
-  return wrmsg(fd, &data, sizeof(uint32_t));
+    if(!shouldReencode)
+        return wr(fd, &buf, sizeof(uint32_t));
+
+    const uint32_t data = htonl(buf);
+    return wr(fd, &data, sizeof(uint32_t));
+}
+
+bool wru8v(int fd, const uint8_t* buf, size_t count) {
+    wru32(fd, (uint32_t)count); //Telling the other side how many elements there are
+    return wr(fd, buf, sizeof(uint8_t)*count);
+}
+
+bool wru16v(int fd, const uint16_t* buf, size_t count) {
+    wru32(fd, (uint32_t)count);
+    if(!shouldReencode) {
+        return wr(fd, buf, sizeof(uint16_t)*count);
+    }
+    else {
+        uint16_t* netData = malloc(sizeof(uint16_t)*count);
+        for(size_t i = 0; i < count; i++) {
+            netData[i] = htons(buf[i]);
+        }
+        bool retValue = wr(fd, netData, sizeof(uint16_t)*count);
+        free(netData);
+        return retValue;
+    }
+}
+
+bool wru32v(int fd, const uint32_t* buf, size_t count) {
+    wru32(fd, (uint32_t)count);
+    if(!shouldReencode) {
+        return wr(fd, buf, sizeof(uint32_t)*count);
+    }
+    else {
+        uint32_t* netData = malloc(sizeof(uint32_t)*count);
+        for(size_t i = 0; i < count; i++) {
+            netData[i] = htonl(buf[i]);
+        }
+        bool retValue = wr(fd, netData, sizeof(uint32_t)*count);
+        free(netData);
+        return retValue;
+    }
+}
+
+bool wrCStr(int fd, const char *cstr) {
+    size_t len = strlen(cstr)+1;
+
+    if(!wru16(fd, len)
+            || !wr(fd, cstr, len)) {
+        return false;
+    }
+    return true;
 }
 
 /*#################################*/
@@ -94,7 +182,7 @@ int readFromSocket(int socket, void *buffer, size_t len) {
     printf("Waiting on data from client...(len: %d)\n", len);
 #endif
 
-    int byteCount = recv(socket, buffer, len, MSG_WAITALL);
+    int byteCount = (int)recv(socket, buffer, len, MSG_WAITALL);
     if (byteCount < 0) {
         fprintf(stderr, "Failed to receive message from client!\n");
         close(socket);
@@ -114,12 +202,72 @@ bool ru8(int socket, uint8_t* value) {
 
 bool ru16(int socket, uint16_t* value) {
     bool success = 0 < (readFromSocket(socket, value, sizeof(uint16_t)));
-    *value = ntohs(*value);
+    
+    if (shouldReencode)
+        *value = ntohs(*value);
+    
     return success;
 }
 
 bool ru32(int socket, uint32_t* value) {
     bool success = 0 < (readFromSocket(socket, value, sizeof(uint32_t)));
-    *value = ntohl(*value);
+    
+    if (shouldReencode)
+        *value = ntohl(*value);
+    
     return success;
+}
+
+bool ru8v(int socket, uint8_t** buffer, size_t* count) {
+    uint32_t tmp_count = 0;
+    ru32(socket, &tmp_count);
+    *count = tmp_count;
+
+    *buffer = malloc(sizeof(uint8_t)*(*count));
+    return 0 < (readFromSocket(socket, *buffer, sizeof(uint8_t)*(*count)));
+}
+
+bool ru16v(int socket, uint16_t** buffer, size_t* count) {
+    uint32_t tmp_count = 0;
+    ru32(socket, &tmp_count);
+    *count = tmp_count;
+
+    *buffer = malloc(sizeof(uint16_t)*(*count));
+    bool success = 0 < (readFromSocket(socket, *buffer, sizeof(uint16_t)*(*count)));
+
+    if (shouldReencode) {
+        for(size_t i = 0; i < *count; i++) {
+            *buffer[i] = ntohs(*buffer[i]);
+        }
+    }
+    
+    return success;
+}
+
+bool ru32v(int socket, uint32_t** buffer, size_t* count) {
+    uint32_t tmp_count = 0;
+    ru32(socket, &tmp_count);
+    *count = tmp_count;
+
+    *buffer = malloc(sizeof(uint32_t)*(*count));
+    bool success = 0 < (readFromSocket(socket, *buffer, sizeof(uint32_t)*(*count)));
+    
+    if (shouldReencode) {
+        for(size_t i = 0; i < *count; i++) {
+            *buffer[i] = ntohl(*buffer[i]);
+        }
+    }
+    
+    return success;
+}
+
+bool rCStr(int socket, char **buffer, size_t *countOrNULL) {
+    uint16_t len;
+    ru16(socket, &len);
+    
+    if (countOrNULL != NULL)
+        *countOrNULL = len;
+
+    *buffer = malloc(sizeof(char)*len);
+    return readFromSocket(socket, *buffer, len);
 }
