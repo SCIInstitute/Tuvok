@@ -15,6 +15,7 @@ OBJECTS_DIR       = Build/objects
 DEPENDPATH       += . Basics Controller DebugOut IO Renderer
 INCLUDEPATH      += . 3rdParty/GLEW IO/3rdParty/boost IO/3rdParty/zlib IO/3rdParty/lzma IO/3rdParty/lz4 IO/3rdParty/lzham
 INCLUDEPATH      += Basics IO/exception
+INCLUDEPATH      += IO/sockethelper
 QT               += opengl
 QMAKE_LIBDIR     += IO/expressions
 LIBS              = -ltuvokexpr
@@ -28,9 +29,10 @@ unix:QMAKE_CFLAGS += -fno-strict-aliasing
 !macx:unix:QMAKE_LFLAGS += -fopenmp -bullshit-link-flag
 !macx:unix:LIBS  += -lGLU
 
+macx:CONFIG         += c++11
 macx:QMAKE_CXXFLAGS += -stdlib=libc++ -mmacosx-version-min=10.7
-macx:QMAKE_CFLAGS += -mmacosx-version-min=10.7
-macx:LIBS        += -stdlib=libc++ -framework CoreFoundation -mmacosx-version-min=10.7
+macx:QMAKE_CFLAGS   += -mmacosx-version-min=10.7
+macx:LIBS           += -stdlib=libc++ -framework CoreFoundation -mmacosx-version-min=10.7
 # Try to link to GLU statically.
 gludirs = /usr/lib /usr/lib/x86_64-linux-gnu
 for(d, gludirs) {
@@ -328,7 +330,9 @@ HEADERS += \
            Renderer/TFScaling.h \
            Renderer/VisibilityState.h \
            Renderer/writebrick.h \
-           StdTuvokDefines.h
+           StdTuvokDefines.h \
+           IO/sockethelper/parameterwrapper.h \
+           IO/sockethelper/sockhelp.h
 
 unix:HEADERS += \
   Basics/LargeFileAIO.h \
@@ -646,7 +650,9 @@ SOURCES += \
            Renderer/SBVRGeogen.cpp \
            Renderer/ShaderDescriptor.cpp \
            Renderer/TFScaling.cpp \
-           Renderer/VisibilityState.cpp
+           Renderer/VisibilityState.cpp \
+           IO/sockethelper/parameterwrapper.cpp \
+           IO/sockethelper/sockhelp.c
 
 unix:SOURCES += \
   Basics/LargeFileAIO.cpp \

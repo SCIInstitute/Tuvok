@@ -8,8 +8,19 @@
 # define EXPORT /* no extern "C" needed. */
 #endif
 
-EXPORT void netds_brick_request(const size_t lod, const size_t bidx);
+//For requesting single bricks
+EXPORT uint8_t* netds_brick_request_ui8(const size_t lod, const size_t bidx, size_t* count);
+EXPORT uint16_t* netds_brick_request_ui16(const size_t lod, const size_t bidx, size_t* count);
+EXPORT uint32_t* netds_brick_request_ui32(const size_t lod, const size_t bidx, size_t* count);
+
+//For requesting multiple bricks at once
+EXPORT uint8_t** netds_brick_request_ui8v(const size_t brickCount, const size_t* lods, const size_t* bidxs, size_t** dataCounts);
+EXPORT uint16_t** netds_brick_request_ui16v(const size_t brickCount, const size_t* lods, const size_t* bidxs, size_t** dataCounts);
+EXPORT uint32_t** netds_brick_request_ui32v(const size_t brickCount, const size_t* lods, const size_t* bidxs, size_t** dataCounts);
+
 EXPORT void netds_open(const char*);
 EXPORT void netds_close(const char*);
+EXPORT char** netds_list_files(size_t* count);
+EXPORT void netds_shutdown();
 
 #endif

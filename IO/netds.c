@@ -13,86 +13,12 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include "netds.h"
+#include "sockhelp.h"
 
 /* file descriptor for server we're pushing requests to. */
 static int remote = -1;
 /* port number we'll connect to on the server */
 static const unsigned short port = 4445;
-
-enum NetDSCommandCode {
-  nds_OPEN=0,
-  nds_CLOSE,
-  nds_BRICK,
-};
-
-typedef bool (msgsend)(int, const void*, const size_t);
-
-/* a msgsend for arbitrary data. */
-static bool
-wrmsg(int fd, const void* buf, const size_t len) {
-  assert(len > 0);
-  struct iovec vec[1];
-  vec[0].iov_base = (void*)buf;
-  vec[0].iov_len = len;
-  struct msghdr msg;
-  memset(&msg, 0, sizeof(struct msghdr));
-  msg.msg_iov = vec;
-  msg.msg_iovlen = 1;
-  if(sendmsg(fd, &msg, MSG_NOSIGNAL) != (ssize_t)len) {
-    fprintf(stderr, "error writing %zu-byte buffer at %p: %d\n", len, buf,
-            errno);
-    return false;
-  }
-  return true;
-}
-/* same as write(2), but never reports partial writes. */
-static bool
-write2(int fd, const void* buffer_, const size_t len) {
-  assert(len > 0);
-  const char* buf = buffer_;
-  struct pollfd pll;
-
-  pll.fd = fd;
-  pll.events = POLLOUT;
-  size_t n = 0;
-  while(len > n) {
-    const ssize_t bytes = write(fd, buf+n, len-n);
-    switch(bytes) {
-      case -1:
-        if(errno == EAGAIN) {
-          continue;
-        } else if(errno == EWOULDBLOCK) {
-          poll(&pll, 1, -1); /* wait until we can send data. */
-          continue;
-        }
-        return false;
-      case 0:
-        return false;
-      default:
-        n += bytes;
-    }
-  }
-  return true;
-}
-
-static bool
-wru8(int fd, const uint8_t buf) {
-  return wrmsg(fd, &buf, 1);
-}
-
-static bool
-wru16(int fd, const uint16_t buf) {
-  const uint16_t data = htons(buf);
-  return wrmsg(fd, &data, sizeof(uint16_t));
-}
-
-static bool
-wru32(int fd, const uint32_t buf) {
-  const uint32_t data = htonl(buf);
-  return wrmsg(fd, &data, sizeof(uint32_t));
-}
-
-static msgsend* wr = wrmsg;
 
 /* returns file descriptor of connected socket. */
 static int
@@ -148,6 +74,7 @@ connect_server() {
     close(sfd);
     return -1;
   }
+  checkEndianness(sfd);
   return sfd;
 }
 
@@ -162,29 +89,133 @@ force_connect() {
   assert(remote > 0);
 }
 
-void
-netds_brick_request(const size_t LoD, const size_t brickidx) {
-  force_connect();
-  if(LoD > UINT32_MAX) {
-    fprintf(stderr, "LoD is absurd (%zu).  Bug elsewhere.\n", LoD);
-    abort();
-  }
-  if(brickidx > UINT32_MAX) {
-    fprintf(stderr, "brick index is absurd (%zu).  Bug elsewhere.\n", brickidx);
-    abort();
-  }
-  wru8(remote, (uint8_t)nds_BRICK);
-  const uint32_t lod = (uint32_t)LoD;
-  const uint32_t bidx = (uint32_t)brickidx;
-  wru32(remote, lod);
-  wru32(remote, bidx);
+void sharedBrickStuff(const size_t LoD, const size_t brickidx, enum NetDataType type) {
+    force_connect();
+    if(LoD > UINT32_MAX) {
+        fprintf(stderr, "LoD is absurd (%zu).  Bug elsewhere.\n", LoD);
+        abort();
+    }
+    if(brickidx > UINT32_MAX) {
+        fprintf(stderr, "brick index is absurd (%zu).  Bug elsewhere.\n", brickidx);
+        abort();
+    }
+    wru8(remote, (uint8_t)nds_BRICK);
+
+    //Tell the other side which data type to use
+    const uint8_t ntype = (uint8_t)type;
+    const uint32_t lod = (uint32_t)LoD;
+    const uint32_t bidx = (uint32_t)brickidx;
+    wru8(remote, ntype);
+    wru32(remote, lod);
+    wru32(remote, bidx);
+}
+
+//Single bricks
+uint8_t*
+netds_brick_request_ui8(const size_t lod, const size_t brickidx, size_t* count) {
+    sharedBrickStuff(lod, brickidx, N_UINT8);
+    
+    //wait for answer
+    uint8_t* retValue = NULL;
+    ru8v(remote, &retValue, count);
+    return retValue;
+}
+
+uint16_t*
+netds_brick_request_ui16(const size_t lod, const size_t brickidx, size_t *count) {
+    sharedBrickStuff(lod, brickidx, N_UINT16);
+
+    //wait for answer
+    uint16_t* retValue = NULL;
+    ru16v(remote, &retValue, count);
+    return retValue;
+}
+
+uint32_t*
+netds_brick_request_ui32(const size_t lod, const size_t brickidx, size_t *count) {
+    sharedBrickStuff(lod, brickidx, N_UINT32);
+
+    //wait for answer
+    uint32_t* retValue = NULL;
+    ru32v(remote, &retValue, count);
+    return retValue;
+}
+
+//Multiple bricks
+uint8_t**
+netds_brick_request_ui8v(const size_t brickCount, const size_t* lods, const size_t* bidxs, size_t** dataCounts) {
+    if(brickCount == 0)
+        return NULL;
+    
+    //Tell the other side which data type to use
+    //wru8(remote, N_UINT8);
+
+    //TODO just a temporary solution, will rewrite it to a single request
+    //REMEMBER TO SEND THE NetDataType AGAIN, when switching to a single request!
+    uint8_t** retArray = malloc(sizeof(uint8_t*)*brickCount);
+    
+    if(*dataCounts == NULL) {
+        *dataCounts = malloc(sizeof(size_t)*brickCount);
+    }
+    
+    for(size_t i = 0; i < brickCount; i++) {
+        retArray[i] = netds_brick_request_ui8(lods[i], bidxs[i], &(*dataCounts)[i]);
+    }
+
+    return retArray;
+}
+
+uint16_t**
+netds_brick_request_ui16v(const size_t brickCount, const size_t* lods, const size_t* bidxs, size_t** dataCounts) {
+    if(brickCount == 0)
+        return NULL;
+    
+    //Tell the other side which data type to use
+    //wru8(remote, N_UINT16);
+    
+    //TODO just a temporary solution, will rewrite it to a single request
+    //REMEMBER TO SEND THE NetDataType AGAIN, when switching to a single request!
+    uint16_t** retArray = malloc(sizeof(uint16_t*)*brickCount);
+    
+    if(*dataCounts == NULL) {
+        *dataCounts = malloc(sizeof(size_t)*brickCount);
+    }
+    
+    for(size_t i = 0; i < brickCount; i++) {
+        retArray[i] = netds_brick_request_ui16(lods[i], bidxs[i], &(*dataCounts)[i]);
+    }
+
+    return retArray;
+}
+
+uint32_t**
+netds_brick_request_ui32v(const size_t brickCount, const size_t* lods, const size_t* bidxs, size_t** dataCounts) {
+    if(brickCount == 0)
+        return NULL;
+
+    //Tell the other side which data type to use
+    //wru8(remote, N_UINT32);
+    
+    //TODO just a temporary solution, will rewrite it to a single request
+    //REMEMBER TO SEND THE NetDataType AGAIN, when switching to a single request!
+    uint32_t** retArray = malloc(sizeof(uint32_t*)*brickCount);
+    
+    if(*dataCounts == NULL) {
+        *dataCounts = malloc(sizeof(size_t)*brickCount);
+    }
+    
+    for(size_t i = 0; i < brickCount; i++) {
+        retArray[i] = netds_brick_request_ui32(lods[i], bidxs[i], &(*dataCounts)[i]);
+    }
+
+    return retArray;
 }
 
 void
 netds_open(const char* filename)
 {
   force_connect();
-  const size_t len = strlen(filename);
+  const size_t len = strlen(filename)+1;
   if(len > UINT16_MAX) {
     fprintf(stderr, "error, ridiculously long (%zu-byte) filename\n", len);
     abort();
@@ -201,6 +232,7 @@ netds_open(const char* filename)
 void
 netds_close(const char* filename)
 {
+  force_connect();
   const size_t len = strlen(filename);
   if(len == 0) {
     fprintf(stderr, "no filename, ignoring not sending close notification\n");
@@ -212,6 +244,26 @@ netds_close(const char* filename)
     abort();
   }
   wru8(remote, (uint8_t)nds_CLOSE);
-  wru16(remote, (uint16_t)len);
-  wr(remote, filename, len);
+  wrCStr(remote, filename);
+}
+    
+void netds_shutdown()
+{
+    force_connect();
+    wru8(remote, nds_SHUTDOWN);
+}
+    
+char** netds_list_files(size_t* count)
+{
+    force_connect();
+    wru8(remote, nds_LIST_FILES);
+    uint16_t tmp_count;
+    ru16(remote, &tmp_count);
+    *count = tmp_count;
+    
+    char** retValue = malloc(sizeof(char*) * tmp_count);
+    for (size_t i = 0; i < *count; i++) {
+        rCStr(remote, &retValue[i], NULL);
+    }
+    return retValue;
 }
