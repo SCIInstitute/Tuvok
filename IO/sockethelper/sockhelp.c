@@ -49,7 +49,8 @@ void checkEndianness(int socket) {
         shouldReencode = true;
     }
     else {
-        printf("Both systems have the same endianness (%d), don't need to reencode data before transfer.\n", ownEndianness);
+        printf("Both systems have the same endianness (%d), "
+               "don't need to reencode data before transfer.\n", ownEndianness);
         shouldReencode = false;
     }
 }
