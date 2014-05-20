@@ -27,7 +27,6 @@ enum NetDataType {
     N_UINT32
 };
 
-static bool shouldReencode = true; //if endianness differs between server/client
 EXPORT void checkEndianness(int socket);
 
 //For writing

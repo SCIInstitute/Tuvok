@@ -17,6 +17,9 @@
 
 #define DEBUG_BYTES 0
 
+/** if endianness needs to be fixed up between client/server */
+static bool shouldReencode = true;
+
 void checkEndianness(int socket) {
     //Get own endianness
     uint8_t ownEndianness;
