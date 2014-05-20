@@ -1,20 +1,9 @@
-#include "parameterwrapper.h"
 #include <mpi.h>
+#include "parameterwrapper.h"
+#include "DebugOut/debug.h"
 
-#define DEBUG_PARAMS 1
-#define DEBUG_SYNC 0
-
-#if DEBUG_PARAMS
-#define dprintf printf
-#else
-#define dprintf 0 && printf
-#endif
-
-#if DEBUG_SYNC
-#define dprintf2 printf
-#else
-#define dprintf2 0 && printf
-#endif
+DECLARE_CHANNEL(params);
+DECLARE_CHANNEL(sync);
 
 ParameterWrapper* ParamFactory::createFrom(NetDSCommandCode cmd, int socket) {
     switch(cmd) {
@@ -77,16 +66,18 @@ ListFilesParams::ListFilesParams(NetDSCommandCode code)
     :SimpleParams(code) {
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    if(rank == 0)
-        dprintf("LIST\n");
+    if(rank == 0) {
+        TRACE(params, "LIST");
+    }
 }
 
 ShutdownParams::ShutdownParams(NetDSCommandCode code)
     :SimpleParams(code) {
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    if(rank == 0)
-        dprintf("SHUTDOWN\n");
+    if(rank == 0) {
+        TRACE(params, "SHUTDOWN");
+    }
 }
 
 
@@ -99,7 +90,7 @@ void OpenParams::initFromSocket(int socket) {
 
     filename = new char[len];
     readFromSocket(socket, filename, len*sizeof(char));
-    dprintf("OPEN (%d) %s,\n", len, filename);
+    TRACE(params, "OPEN (%d) %s", len, filename);
 }
 
 void CloseParams::initFromSocket(int socket) {
@@ -107,14 +98,14 @@ void CloseParams::initFromSocket(int socket) {
 
     filename = new char[len];
     readFromSocket(socket, filename, len*sizeof(char));
-    dprintf("CLOSE (%d) %s,\n", len, filename);
+    TRACE(params, "CLOSE (%d) %s", len, filename);
 }
 
 void BrickParams::initFromSocket(int socket) {
     ru8(socket, &type);
     ru32(socket, &lod);
     ru32(socket, &bidx);
-    dprintf("BRICK lod=%d, bidx=%d,\n", lod, bidx);
+    TRACE(params, "BRICK lod=%u, bidx=%u", lod, bidx);
 }
 
 void SimpleParams::initFromSocket(int socket) {(void)socket;}
@@ -158,8 +149,9 @@ void OpenParams::mpi_sync(int rank, int srcRank) {
         filename = new char[len];
     MPI_Bcast(&filename[0], len, MPI_CHAR, srcRank, MPI_COMM_WORLD);
 
-    if(rank != srcRank)
-        dprintf2("Hi there from proc %d! Open Received: %s (%d)\n", rank, filename, len);
+    if(rank != srcRank) {
+        TRACE(sync, "proc %d open received %s (%d)", rank, filename, len);
+    }
 }
 
 void CloseParams::mpi_sync(int rank, int srcRank) {
@@ -168,8 +160,9 @@ void CloseParams::mpi_sync(int rank, int srcRank) {
         filename = new char[len];
     MPI_Bcast(&filename[0], len, MPI_CHAR, srcRank, MPI_COMM_WORLD);
 
-    if(rank != srcRank)
-        dprintf2("Hi there from proc %d! Close Received: %s (%d)\n", rank, filename, len);
+    if(rank != srcRank) {
+        TRACE(sync, "proc %d close received %s (%d)", rank, filename, len);
+    }
 }
 
 void BrickParams::mpi_sync(int rank, int srcRank) {
@@ -177,8 +170,10 @@ void BrickParams::mpi_sync(int rank, int srcRank) {
     MPI_Bcast(&lod, 1, MPI_UINT32_T, srcRank, MPI_COMM_WORLD);
     MPI_Bcast(&bidx, 1, MPI_UINT32_T, srcRank, MPI_COMM_WORLD);
 
-    if(rank != srcRank)
-        dprintf2("Hi there from proc %d! Brick Received: lod %d & bidx: %d)\n", rank, lod, bidx);
+    if(rank != srcRank) {
+        TRACE(sync, "proc %d brick received: lod %u & bidx: %u", rank, lod,
+              bidx);
+    }
 }
 
 void SimpleParams::mpi_sync(int rank, int srcRank) {(void)rank; (void)srcRank;}
@@ -232,4 +227,3 @@ void ShutdownParams::perform(int socket, CallPerformer* object) {
     (void)socket; //currently no answer
     (void)object;
 }
-

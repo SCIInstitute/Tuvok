@@ -120,6 +120,7 @@ HEADERS += \
            Basics/Vectors.h \
            Controller/Controller.h \
            Controller/MasterController.h \
+           DebugOut/debug.h \
            DebugOut/AbstrDebugOut.h \
            DebugOut/ConsoleOut.h \
            DebugOut/MultiplexOut.h \
@@ -393,6 +394,7 @@ SOURCES += \
            Basics/Threads.cpp \
            Basics/Timer.cpp \
            Controller/MasterController.cpp \
+           DebugOut/debug.c \
            DebugOut/AbstrDebugOut.cpp \
            DebugOut/ConsoleOut.cpp \
            DebugOut/MultiplexOut.cpp \
