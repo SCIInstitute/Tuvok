@@ -141,7 +141,7 @@ namespace {
   unsigned_type type_category(unsigned short) { return unsigned_type(); }
 #if defined(DETECTED_OS_WINDOWS) && _MSC_VER < 1600
   signed_type   type_category(int)            { return signed_type(); }
-  unsigned_type type_category(unsigned int)         { return unsigned_type(); }
+  unsigned_type type_category(unsigned int)   { return unsigned_type(); }
 #endif
   signed_type   type_category(int32_t)        { return signed_type(); }
   unsigned_type type_category(uint32_t)       { return unsigned_type(); }
