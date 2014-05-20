@@ -5,10 +5,8 @@ compiler:
 before_install:
 - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
 - sudo apt-get update -qq
-- sudo apt-get install libosmesa6-dev
-- sudo apt-get install libqt4-dev qt4-qmake
-- if [ "$CXX" = "g++" ]; then sudo apt-get install -qq g++-4.8; fi
-- if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
+- sudo apt-get install libosmesa6-dev libqt4-dev qt4-qmake mpi-default-dev
+- sudo apt-get install build-essential
 script: bash ./ci.sh
 after_success:
 branches:
