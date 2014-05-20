@@ -60,6 +60,7 @@ void checkEndianness(int socket) {
 
 /* a msgsend for arbitrary data. */
 bool wrmsg(int fd, const void* buf, const size_t len) {
+  if(fd == -1) { return false; }
   assert(len > 0);
   struct iovec vec[1];
   vec[0].iov_base = (void*)buf;
@@ -83,6 +84,7 @@ bool wrmsg(int fd, const void* buf, const size_t len) {
 }
 /* same as write(2), but never reports partial writes. */
 bool write2(int fd, const void* buffer_, const size_t len) {
+  if(fd == -1) { return false; }
   assert(len > 0);
   const char* buf = buffer_;
   struct pollfd pll;
