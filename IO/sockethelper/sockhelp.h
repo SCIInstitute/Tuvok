@@ -46,7 +46,6 @@ EXPORT bool wrCStr(int fd, const char* cstr);
 typedef bool (msgsend)(int, const void*, const size_t);
 static msgsend* wr = wrmsg;
 
-
 //For reading
 EXPORT int readFromSocket(int socket, void *buffer, size_t len);
 EXPORT bool ru8(int socket, uint8_t* value);

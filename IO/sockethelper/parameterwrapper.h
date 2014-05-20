@@ -64,17 +64,17 @@ class BrickParams : public ParameterWrapper
         //Return the data
         if(typeid(T) == typeid(uint8_t)) {
             printf("Test 0\n");
-            uint8_t* data = (uint8_t*)&returnData[0];
+            const uint8_t* data = (const uint8_t*)&returnData[0];
             wru8v(socket, data, returnData.size());
         }
         else if(typeid(T) == typeid(uint16_t)) {
             printf("Test 1\n");
-            uint16_t* data = (uint16_t*)&returnData[0];
+            const uint16_t* data = (const uint16_t*)&returnData[0];
             wru16v(socket, data, returnData.size());
         }
         else if(typeid(T) == typeid(uint32_t)) {
             printf("Test 2\n");
-            uint32_t* data = (uint32_t*)&returnData[0];
+            const uint32_t* data = (const uint32_t*)&returnData[0];
             wru32v(socket, data, returnData.size());
         }
         else {
