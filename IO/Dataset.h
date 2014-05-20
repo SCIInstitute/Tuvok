@@ -174,6 +174,8 @@ public:
     bool bUseOnlyPowerOfTwo
   ) const;
 
+  virtual void CacheBricks(const std::vector<BrickKey>&) = 0;
+
 protected:
   std::shared_ptr<Histogram1D>          m_pHist1D;
   std::shared_ptr<Histogram2D>          m_pHist2D;

@@ -1096,6 +1096,12 @@ MESSAGE("considering brick <%zu,%zu,%zu>", std::get<0>(brick->first),
   /// For now, IV3D doesn't support multiple 3D regions in a single renderer.
   sort(vBrickList.begin(), vBrickList.end());
 
+  std::vector<BrickKey> klist(vBrickList.size());
+  for(size_t i=0; i < vBrickList.size(); ++i) {
+    klist[i] = vBrickList[i].kBrick;
+  }
+  m_pDataset->CacheBricks(klist);
+
   return vBrickList;
 }
 

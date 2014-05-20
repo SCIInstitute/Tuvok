@@ -84,6 +84,8 @@ public:
   virtual bool BrickIsLastInDimension(size_t, const BrickKey&) const;
   ///@}
 
+  virtual void CacheBricks(const std::vector<BrickKey>&);
+
 protected:
   /// gives a hint to this object that we'll have 'n' bricks in the end.
   virtual void NBricksHint(size_t n);

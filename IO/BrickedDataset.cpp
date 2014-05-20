@@ -177,4 +177,8 @@ void BrickedDataset::Clear() {
   bricks.clear();
 }
 
+void BrickedDataset::CacheBricks(const std::vector<BrickKey>&) {
+  WARNING("(temporarily) ignoring cache bricks request");
+}
+
 } // namespace tuvok
