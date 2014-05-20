@@ -1688,9 +1688,9 @@ std::list<std::string> UVFDataset::Extensions() const
 }
 
 template <class T> bool
-UVFDataset::GetBrickTemplate(const BrickKey& k, std::vector<T>& vData) const
-{
-  netds_brick_request(std::get<1>(k), std::get<2>(k));
+UVFDataset::GetBrickTemplate(const BrickKey& k, std::vector<T>& vData) const {
+  size_t n=0;
+  netds_brick_request<T>(std::get<1>(k), std::get<2>(k), &n);
   if(m_bToCBlock) {
     const UINT64VECTOR4 coords = KeyToTOCVector(k);
     const TOCTimestep* ts = static_cast<TOCTimestep*>(
