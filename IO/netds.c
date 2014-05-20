@@ -232,10 +232,10 @@ netds_open(const char* filename)
 void
 netds_close(const char* filename)
 {
-  force_connect();
+  if(remote == -1) { return; }
   const size_t len = strlen(filename);
   if(len == 0) {
-    fprintf(stderr, "no filename, ignoring not sending close notification\n");
+    fprintf(stderr, "no filename, ignoring (not sending) close notification\n");
     close(remote);
     return;
   }
