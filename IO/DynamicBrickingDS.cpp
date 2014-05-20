@@ -646,14 +646,6 @@ MinMaxBlock minmax_brick(const BrickKey& bk, const BrickedDataset& ds) {
     return mm<uint16_t>(bk, ds);
   } else if(!sign && !fp && size == 4) {
     return mm<uint32_t>(bk, ds);
-  } else if(sign && !fp && size == 1) {
-    return mm<int8_t>(bk, ds);
-  } else if(sign && !fp && size == 2) {
-    return mm<int16_t>(bk, ds);
-  } else if(sign && !fp && size == 4) {
-    return mm<int32_t>(bk, ds);
-  } else if(sign && fp && size == 4) {
-    return mm<float>(bk, ds);
   } else {
     T_ERROR("unsupported type.");
     assert(false);
@@ -783,42 +775,15 @@ bool DynamicBrickingDS::GetBrick(const BrickKey& k, std::vector<uint8_t>& data) 
 {
   return this->di->Brick<uint8_t>(*this, k, data);
 }
-
-bool DynamicBrickingDS::GetBrick(const BrickKey& k,
-                                 std::vector<int8_t>& data) const
-{
-  return this->di->Brick<int8_t>(*this, k, data);
-}
 bool DynamicBrickingDS::GetBrick(const BrickKey& k,
                                  std::vector<uint16_t>& data) const
 {
   return this->di->Brick<uint16_t>(*this, k, data);
 }
 bool DynamicBrickingDS::GetBrick(const BrickKey& k,
-                                 std::vector<int16_t>& data) const
-{
-  return this->di->Brick<int16_t>(*this, k, data);
-}
-bool DynamicBrickingDS::GetBrick(const BrickKey& k,
                                  std::vector<uint32_t>& data) const
 {
   return this->di->Brick<uint32_t>(*this, k, data);
-}
-bool DynamicBrickingDS::GetBrick(const BrickKey& k,
-                                 std::vector<int32_t>& data) const
-{
-  return this->di->Brick<int32_t>(*this, k, data);
-}
-bool DynamicBrickingDS::GetBrick(const BrickKey& k,
-                                 std::vector<float>& data) const
-{
-  return this->di->Brick<float>(*this, k, data);
-}
-bool DynamicBrickingDS::GetBrick(const BrickKey&,
-                                 std::vector<double>&) const
-{
-  assert(false && "no support for double with dynamic bricking!");
-  return false;
 }
 
 void DynamicBrickingDS::SetRescaleFactors(const DOUBLEVECTOR3& scale) {
@@ -1268,7 +1233,7 @@ static bool test() {
   }
   return true;
 }
-static bool dybr = test();
+__attribute__((unused)) static const bool dybr = test();
 #endif
 
 }

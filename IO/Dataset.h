@@ -91,13 +91,8 @@ public:
   /// Data access
   ///@{
   virtual bool GetBrick(const BrickKey&, std::vector<uint8_t>&) const=0;
-  virtual bool GetBrick(const BrickKey&, std::vector<int8_t>&) const = 0;
   virtual bool GetBrick(const BrickKey&, std::vector<uint16_t>&) const=0;
-  virtual bool GetBrick(const BrickKey&, std::vector<int16_t>&) const=0;
   virtual bool GetBrick(const BrickKey&, std::vector<uint32_t>&) const=0;
-  virtual bool GetBrick(const BrickKey&, std::vector<int32_t>&) const=0;
-  virtual bool GetBrick(const BrickKey&, std::vector<float>&) const=0;
-  virtual bool GetBrick(const BrickKey&, std::vector<double>&) const=0;
   ///@}
   virtual BrickTable::const_iterator BricksBegin() const = 0;
   virtual BrickTable::const_iterator BricksEnd() const = 0;

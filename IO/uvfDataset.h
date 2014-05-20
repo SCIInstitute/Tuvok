@@ -111,13 +111,8 @@ public:
   virtual UINT64VECTOR3 GetEffectiveBrickSize(const BrickKey &) const;
 
   virtual bool GetBrick(const BrickKey&, std::vector<uint8_t>&) const;
-  virtual bool GetBrick(const BrickKey&, std::vector<int8_t>&) const;
   virtual bool GetBrick(const BrickKey&, std::vector<uint16_t>&) const;
-  virtual bool GetBrick(const BrickKey&, std::vector<int16_t>&) const;
   virtual bool GetBrick(const BrickKey&, std::vector<uint32_t>&) const;
-  virtual bool GetBrick(const BrickKey&, std::vector<int32_t>&) const;
-  virtual bool GetBrick(const BrickKey&, std::vector<float>&) const;
-  virtual bool GetBrick(const BrickKey&, std::vector<double>&) const;
 
   /// Acceleration queries.
   virtual bool ContainsData(const BrickKey &k, double isoval) const;

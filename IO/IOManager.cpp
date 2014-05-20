@@ -2365,40 +2365,11 @@ void TypedRead(std::vector<T>& data,
   // it into the argument vector.
   std::pair<double, double> range = ds.GetRange();
 
-  if(is_float && width == 32) {
-    std::vector<float> tmpdata;
-    ds.GetBrick(key, tmpdata);
-    data.resize(tmpdata.size() / (width/8));
-    interpolate<float*, typename std::vector<T>::iterator, T>(
-      &tmpdata[0], (&tmpdata[0]) + tmpdata.size(), range, data.begin()
-    );
-  } else if(is_float && width == 64) {
-    // Can this happen?  What would we expand double into?
-    std::vector<double> tmpdata;
-    ds.GetBrick(key, tmpdata);
-    data.resize(tmpdata.size() / (width/8));
-    interpolate<double*, typename std::vector<T>::iterator, T>(
-      &tmpdata[0], (&tmpdata[0]) + tmpdata.size(), range, data.begin()
-    );
-  } else if( is_signed &&  8 == width) {
-    std::vector<int8_t> tmpdata;
-    ds.GetBrick(key, tmpdata);
-    data.resize(tmpdata.size() / (width/8));
-    interpolate<int8_t*, typename std::vector<T>::iterator, T>(
-      &tmpdata[0], (&tmpdata[0]) + tmpdata.size(), range, data.begin()
-    );
-  } else if(!is_signed &&  8 == width) {
+  if(!is_signed &&  8 == width) {
     std::vector<uint8_t> tmpdata;
     ds.GetBrick(key, tmpdata);
     data.resize(tmpdata.size() / (width/8));
     interpolate<uint8_t*, typename std::vector<T>::iterator, T>(
-      &tmpdata[0], (&tmpdata[0]) + tmpdata.size(), range, data.begin()
-    );
-  } else if( is_signed && 16 == width) {
-    std::vector<int16_t> tmpdata;
-    ds.GetBrick(key, tmpdata);
-    data.resize(tmpdata.size() / (width/8));
-    interpolate<int16_t*, typename std::vector<T>::iterator, T>(
       &tmpdata[0], (&tmpdata[0]) + tmpdata.size(), range, data.begin()
     );
   } else if(!is_signed && 16 == width) {
@@ -2406,13 +2377,6 @@ void TypedRead(std::vector<T>& data,
     ds.GetBrick(key, tmpdata);
     data.resize(tmpdata.size() / (width/8));
     interpolate<uint16_t*, typename std::vector<T>::iterator, T>(
-      &tmpdata[0], (&tmpdata[0]) + tmpdata.size(), range, data.begin()
-    );
-  } else if( is_signed && 32 == width) {
-    std::vector<int32_t> tmpdata;
-    ds.GetBrick(key, tmpdata);
-    data.resize(tmpdata.size() / (width/8));
-    interpolate<int32_t*, typename std::vector<T>::iterator, T>(
       &tmpdata[0], (&tmpdata[0]) + tmpdata.size(), range, data.begin()
     );
   } else if(!is_signed && 32 == width) {
@@ -2553,18 +2517,8 @@ IOManager::EvaluateExpression(const std::string& expr,
       MESSAGE("Brick %u (file %03u/%03u)...", static_cast<unsigned>(brick),
               static_cast<unsigned>(i+1), static_cast<unsigned>(uvf.size()));
       // Read in the data we need.
-      if(is_float && bit_width == 32) {
-        ReadAndEvalBrick<float>(*rdb, uvf, viters, tree);
-      } else if(is_float && bit_width == 64) {
-        // Not implemented in UVF...
-        T_ERROR("double format data not supported!");
-        continue;
-      } else if( is_signed && bit_width ==  8) {
-        ReadAndEvalBrick< int8_t>(*rdb, uvf, viters, tree);
-      } else if(!is_signed && bit_width ==  8) {
+      if(!is_signed && bit_width ==  8) {
         ReadAndEvalBrick<uint8_t>(*rdb, uvf, viters, tree);
-      } else if( is_signed && bit_width == 16) {
-        ReadAndEvalBrick< int16_t>(*rdb, uvf, viters, tree);
       } else if(!is_signed && bit_width == 16) {
         ReadAndEvalBrick<uint16_t>(*rdb, uvf, viters, tree);
       // These types aren't yet implemented in UVF/RasterDataBlock.

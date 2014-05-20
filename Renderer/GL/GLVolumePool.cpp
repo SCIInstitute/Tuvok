@@ -739,19 +739,8 @@ void GLVolumePool::UploadFirstBrick(const BrickKey& bkey) {
     case 32 : return UploadFirstBrickT<uint32_t>(bkey, *this, m_pDataset);
     default : throw Exception("Invalid bit width for an unsigned dataset", _func_, __LINE__);
     }
-  } else if (m_pDataset->GetIsFloat()) {
-    switch (iBitWidth) {
-    case 32 : return UploadFirstBrickT<float> (bkey, *this, m_pDataset);
-    case 64 : return UploadFirstBrickT<double>(bkey, *this, m_pDataset);
-    default : throw Exception("Invalid bit width for a float dataset", _func_, __LINE__);
-    }
   } else {
-    switch (iBitWidth) {
-    case 8  : return UploadFirstBrickT<int8_t> (bkey, *this, m_pDataset);
-    case 16 : return UploadFirstBrickT<int16_t>(bkey, *this, m_pDataset);
-    case 32 : return UploadFirstBrickT<int32_t>(bkey, *this, m_pDataset);
-    default : throw Exception("Invalid bit width for a signed dataset", _func_, __LINE__);
-    }
+    T_ERROR("blah no signed");
   }
 }
 
@@ -1404,19 +1393,8 @@ namespace {
         case 32 : return UploadBricksToBrickPoolT<uint32_t, true>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount);
         default : throw Exception("Invalid bit width for an unsigned dataset", _func_, __LINE__);
         }
-      } else if (pDataset->GetIsFloat()) {
-        switch (iBitWidth) {
-        case 32 : return UploadBricksToBrickPoolT<float,    true>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount);
-        case 64 : return UploadBricksToBrickPoolT<double,   true>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount);
-        default : throw Exception("Invalid bit width for a float dataset", _func_, __LINE__);
-        }
       } else {
-        switch (iBitWidth) {
-        case 8  : return UploadBricksToBrickPoolT<int8_t,   true>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount);
-        case 16 : return UploadBricksToBrickPoolT<int16_t,  true>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount);
-        case 32 : return UploadBricksToBrickPoolT<int32_t,  true>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount);
-        default : throw Exception("Invalid bit width for a signed dataset", _func_, __LINE__);
-        }
+        T_ERROR("no more signed");
       }
     } else {
       // brick debugging disabled
@@ -1427,22 +1405,11 @@ namespace {
         case 32 : return UploadBricksToBrickPoolT<uint32_t, false>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount);
         default : throw Exception("Invalid bit width for an unsigned dataset", _func_, __LINE__);
         }
-      } else if (pDataset->GetIsFloat()) {
-        switch (iBitWidth) {
-        case 32 : return UploadBricksToBrickPoolT<float,    false>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount);
-        case 64 : return UploadBricksToBrickPoolT<double,   false>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount);
-        default : throw Exception("Invalid bit width for a float dataset", _func_, __LINE__);
-        }
       } else {
-        switch (iBitWidth) {
-        case 8  : return UploadBricksToBrickPoolT<int8_t,   false>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount);
-        case 16 : return UploadBricksToBrickPoolT<int16_t,  false>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount);
-        case 32 : return UploadBricksToBrickPoolT<int32_t,  false>(pool, vBrickIDs, pDataset, iTimestep, maxUsedBrickVoxelCount);
-        default : throw Exception("Invalid bit width for a signed dataset", _func_, __LINE__);
-        }
+        T_ERROR("can't do signed anymore");
       }
     }
-    //return 0;
+    return 0;
   }
 
   template<AbstrRenderer::ERenderMode eRenderMode, typename T, bool brickDebug>
@@ -1528,19 +1495,8 @@ namespace {
           case 32 : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, uint32_t, true>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount);
           default : throw Exception("Invalid bit width for an unsigned dataset", _func_, __LINE__);
           }
-        } else if (pDataset->GetIsFloat()) {
-          switch (iBitWidth) {
-          case 32 : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, float,    true>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount);
-          case 64 : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, double,   true>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount);
-          default : throw Exception("Invalid bit width for a float dataset", _func_, __LINE__);
-          }
         } else {
-          switch (iBitWidth) {
-          case 8  : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, int8_t,   true>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount);
-          case 16 : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, int16_t,  true>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount);
-          case 32 : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, int32_t,  true>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount);
-          default : throw Exception("Invalid bit width for a signed dataset", _func_, __LINE__);
-          }
+          T_ERROR("unhandled type case!");
         }
       } else {
         // brick debugging disabled
@@ -1551,22 +1507,11 @@ namespace {
           case 32 : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, uint32_t, false>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount);
           default : throw Exception("Invalid bit width for an unsigned dataset", _func_, __LINE__);
           }
-        } else if (pDataset->GetIsFloat()) {
-          switch (iBitWidth) {
-          case 32 : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, float,    false>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount);
-          case 64 : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, double,   false>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount);
-          default : throw Exception("Invalid bit width for a float dataset", _func_, __LINE__);
-          }
         } else {
-          switch (iBitWidth) {
-          case 8  : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, int8_t,   false>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount);
-          case 16 : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, int16_t,  false>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount);
-          case 32 : return PotentiallyUploadBricksToBrickPoolT<eRenderMode, int32_t,  false>(visibility, pDataset, iTimestep, pool, vBrickMetadata, vBrickIDs, vMinMaxScalar, vMinMaxGradient, maxUsedBrickVoxelCount);
-          default : throw Exception("Invalid bit width for a signed dataset", _func_, __LINE__);
-          }
+          T_ERROR("unhandled types!");
         }
       }
-      //return 0;
+      return 0;
   }
 
 } // anonymous namespace

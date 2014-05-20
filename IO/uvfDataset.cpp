@@ -1722,32 +1722,12 @@ bool UVFDataset::GetBrick(const BrickKey& k, std::vector<uint8_t>& vData) const 
   return GetBrickTemplate<uint8_t>(k,vData);
 }
 
-bool UVFDataset::GetBrick(const BrickKey& k, std::vector<int8_t>& vData) const {
-  return GetBrickTemplate<int8_t>(k,vData);
-}
-
 bool UVFDataset::GetBrick(const BrickKey& k, std::vector<uint16_t>& vData) const {
   return GetBrickTemplate<uint16_t>(k,vData);
 }
 
-bool UVFDataset::GetBrick(const BrickKey& k, std::vector<int16_t>& vData) const {
-  return GetBrickTemplate<int16_t>(k,vData);
-}
-
 bool UVFDataset::GetBrick(const BrickKey& k, std::vector<uint32_t>& vData) const {
   return GetBrickTemplate<uint32_t>(k,vData);
-}
-
-bool UVFDataset::GetBrick(const BrickKey& k, std::vector<int32_t>& vData) const {
-  return GetBrickTemplate<int32_t>(k,vData);
-}
-
-bool UVFDataset::GetBrick(const BrickKey& k, std::vector<float>& vData) const {
-  return GetBrickTemplate<float>(k,vData);
-}
-
-bool UVFDataset::GetBrick(const BrickKey& k, std::vector<double>& vData) const {
-  return GetBrickTemplate<double>(k,vData);
 }
 
 std::pair<FLOATVECTOR3, FLOATVECTOR3> UVFDataset::GetTextCoords(BrickTable::const_iterator brick, bool bUseOnlyPowerOfTwo) const {
