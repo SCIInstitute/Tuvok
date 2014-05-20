@@ -30,7 +30,7 @@ int main(int argc, const char * argv[])
         size_t dataCount;
         size_t lod = 0;
         size_t bidx = 0;
-        uint8_t* data = netds_brick_request_ui8(0, 0, &dataCount);
+        uint8_t* data = netds_brick_request<uint8_t>(0, 0, &dataCount);
         printf("\nSingle brick uint8_t (lod: %zu, bidx: %zu): Received brick data (%zu values);\n", lod, bidx, dataCount);
         
 #if DEBUG_BRICK
@@ -47,7 +47,7 @@ int main(int argc, const char * argv[])
         size_t bidxs[2] = {0, 4};
         
         size_t *dataCounts = NULL;
-        uint32_t** data2 = netds_brick_request_ui32v(brickCount, lods, bidxs, &dataCounts);
+        uint32_t** data2 = netds_brick_request_v<uint32_t>(brickCount, lods, bidxs, &dataCounts);
         printf("Multi-Brick uint32_t: Received bricks:\n");
         for (size_t i = 0; i < brickCount; i++) {
             printf("Brick %zu: has %zu values!\n", i, dataCounts[i]);
