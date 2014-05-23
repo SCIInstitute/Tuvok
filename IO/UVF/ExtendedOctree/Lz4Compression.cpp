@@ -12,47 +12,56 @@ extern "C" {
 
 size_t lz4Compress(std::shared_ptr<uint8_t> src, size_t uncompressedBytes,
                    std::shared_ptr<uint8_t>& dst,
-                   bool /*highCompression*/)
+                   uint32_t compressionLevel)
 {
-  if (uncompressedBytes > size_t(std::numeric_limits<int>::max()))
-    throw std::runtime_error("Input data too big for LZ4 (max ~1.9GB)");
+  if (uncompressedBytes > size_t(LZ4_MAX_INPUT_SIZE))
+    throw std::runtime_error("Input data too big for LZ4 (max LZ4_MAX_INPUT_SIZE)");
   int const inputSize = static_cast<int>(uncompressedBytes);
   int const upperBound = LZ4_compressBound(inputSize);
   if (upperBound < 0)
-    throw std::runtime_error("Input data too big for LZ4 (max ~1.9GB)");
+    throw std::runtime_error("Input data too big for LZ4 (max LZ4_MAX_INPUT_SIZE)");
   dst.reset(new uint8_t[size_t(upperBound)], nonstd::DeleteArray<uint8_t>());
 
-  // NOTE: LZ4_compressHC compresses stronger and slower but decompresses
-  // faster. It causes some bad memory accesses that's why we disable it here
-  // for now. (e.g. processing the HeadAneurysm dataset with brick size 256 at
-  // brick index 8)
+  if (compressionLevel > 17)
+    compressionLevel = 17;
+  else if (compressionLevel < 1)
+    compressionLevel = 1;
+
   int compressedBytes = 0;
-  //if (!highCompression)
+  switch (compressionLevel) {
+  case 1:
     compressedBytes = LZ4_compress((const char*)src.get(),
                                    (char*)dst.get(),
                                    inputSize);
-/*
-  else
-    compressedBytes = LZ4_compressHC((const char*)src.get(),
-                                     (char*)dst.get(),
-                                     inputSize);
-*/
+    break;
+  default:
+    // compression level 0 is default mode which seems to equal level 9 and HC
+    compressedBytes = LZ4_compressHC2((const char*)src.get(),
+                                      (char*)dst.get(),
+                                      inputSize,
+                                      compressionLevel - 1);
+    break;
+  }
+
   assert(compressedBytes >= 0);
+  if (compressedBytes <= 0)
+    throw std::runtime_error(std::string("LZ4_compress[HC] failed, returned value: ") +
+      SysTools::ToString(compressedBytes));
   return compressedBytes;
 }
 
 void lz4Decompress(std::shared_ptr<uint8_t> src, std::shared_ptr<uint8_t>& dst,
                    size_t uncompressedBytes)
 {
-  if (uncompressedBytes > size_t(std::numeric_limits<int>::max()))
-    throw std::runtime_error("Expected output data too big for LZ4 (max ~1.9GB)");
+  if (uncompressedBytes > size_t(LZ4_MAX_INPUT_SIZE))
+    throw std::runtime_error("Expected output data too big for LZ4 (max LZ4_MAX_INPUT_SIZE)");
 
   int const outputSize = static_cast<int>(uncompressedBytes);
-  int readBytes = LZ4_uncompress((const char*)src.get(),
+  int readBytes = LZ4_decompress_fast((const char*)src.get(),
                                  (char*)dst.get(),
                                  outputSize);
   if (readBytes < 0)
-    throw std::runtime_error(std::string("LZ4_uncompress failed: faulty input "
+    throw std::runtime_error(std::string("LZ4_decompress_fast failed: faulty input "
                              "byte at position ") +
                              SysTools::ToString(-readBytes));
 }

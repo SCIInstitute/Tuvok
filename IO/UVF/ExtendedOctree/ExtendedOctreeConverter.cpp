@@ -521,7 +521,7 @@ void ExtendedOctreeConverter::ComputeStatsAndCompressAll(ExtendedOctree& tree)
         break;
       case CT_LZ4:
         newlen = lz4Compress(BrickData, BrickSize(tree, i), compressed,
-                             tree.m_iCompressionLevel > 5); // high or normal
+                             tree.m_iCompressionLevel); // 1..17
         break;
       case CT_BZLIB:
         newlen = bzCompress(BrickData, BrickSize(tree, i), compressed,
@@ -607,7 +607,7 @@ ExtendedOctreeConverter::Fetch(ExtendedOctree& tree,
         break; }
       case CT_LZ4:
         iCompressed = lz4Compress(pData, record.m_iLength, pCompressed,
-                                  tree.m_iCompressionLevel > 5); // high or normal
+                                  tree.m_iCompressionLevel); // 1..17
         break;
       case CT_BZLIB:
         iCompressed = bzCompress(pData, record.m_iLength, pCompressed,

@@ -19,14 +19,14 @@ void lz4Decompress(std::shared_ptr<uint8_t> src, std::shared_ptr<uint8_t>& dst,
   @param  src the data to compress
   @param  uncompressedBytes number of bytes in 'src'
   @param  dst the output buffer that will be created of the same size as 'src'
-  @param  highCompression high compression mode is disabled for now because it
-                          sometimes causes bad memory accesses (see cpp file)
+  @param  compressionLevel between 1..17 ( 1 - default lz4, non HC mode,                                           
+                                           2..17 - HC, level 10 is default mode)
   @return the number of bytes in the compressed data
   @throws std::runtime_error if something fails
   */
 size_t lz4Compress(std::shared_ptr<uint8_t> src, size_t uncompressedBytes,
                    std::shared_ptr<uint8_t>& dst,
-                   bool highCompression = false);
+                   uint32_t compressionLevel = 1);
 
 #endif /* UVF_LZ4_COMPRESSION_H */
 
