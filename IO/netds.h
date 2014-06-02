@@ -22,6 +22,7 @@ EXPORT void netds_open(const char*);
 EXPORT void netds_close(const char*);
 EXPORT char** netds_list_files(size_t* count);
 EXPORT void netds_shutdown();
+EXPORT void netds_rotation(const float m[16]);
 
 #ifdef __cplusplus
 namespace {

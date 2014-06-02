@@ -18,6 +18,7 @@ enum NetDSCommandCode {
     nds_BRICK,
     nds_LIST_FILES,
     nds_SHUTDOWN,
+    nds_ROTATION,
 };
 
 //treat as uint8_t
@@ -40,6 +41,7 @@ EXPORT bool wru32(int fd, const uint32_t buf);
 EXPORT bool wru8v(int fd, const uint8_t* buf, size_t count);
 EXPORT bool wru16v(int fd, const uint16_t* buf, size_t count);
 EXPORT bool wru32v(int fd, const uint32_t* buf, size_t count);
+EXPORT bool wrf32v(int fd, const float* buf, size_t count);
 
 EXPORT bool wrCStr(int fd, const char* cstr);
 

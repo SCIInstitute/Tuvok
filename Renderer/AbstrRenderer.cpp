@@ -42,8 +42,8 @@
 #include "Basics/nonstd.h"
 #include "Basics/GeometryGenerator.h"
 #include "Basics/SysTools.h"
-#include "IO/Tuvok_QtPlugins.h"
 #include "IO/IOManager.h"
+#include "IO/netds.h"
 #include "IO/TransferFunction1D.h"
 #include "IO/TransferFunction2D.h"
 #include "AbstrRenderer.h"
@@ -493,6 +493,7 @@ LuaClassInstance AbstrRenderer::LuaGetFirst3DRegion() {
 
 void AbstrRenderer::SetRotationRR(RenderRegion *renderRegion,
                                   const FLOATMATRIX4& rotation) {
+  netds_rotation(rotation.array);
   renderRegion->rotation = rotation;
   ScheduleWindowRedraw(renderRegion);
 }

@@ -247,10 +247,16 @@ netds_close(const char* filename)
   wrCStr(remote, filename);
 }
     
-void netds_shutdown()
-{
+void netds_shutdown() {
     force_connect();
     wru8(remote, nds_SHUTDOWN);
+}
+
+void netds_rotation(const float m[16]) {
+    force_connect();
+    /* we might want to start thinking about cork/uncorking our sends .. */
+    wru8(remote, nds_ROTATION);
+    wrf32v(remote, m, 16);
 }
     
 char** netds_list_files(size_t* count)

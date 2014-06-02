@@ -213,7 +213,7 @@ class AbstrRenderer {
                                         const RenderRegion *renderRegion) const;
 
     virtual void SetClipPlane(RenderRegion *renderRegion,
-                      const ExtendedPlane& plane);
+                              const ExtendedPlane& plane);
     virtual bool IsClipPlaneEnabled(RenderRegion *renderRegion=NULL);
     virtual void EnableClipPlane(RenderRegion *renderRegion=NULL);
     virtual void DisableClipPlane(RenderRegion *renderRegion=NULL);

@@ -169,12 +169,26 @@ bool wru32v(int fd, const uint32_t* buf, size_t count) {
         return retValue;
     }
 }
+bool wrf32v(int fd, const float* buf, size_t count) {
+    assert(count <= 4294967296);
+    wru32(fd, (uint32_t)count);
+    if(!shouldReencode) {
+        return wr(fd, buf, sizeof(float)*count);
+    }
+
+    float* swapped = malloc(sizeof(float)*count);
+    for(float* b = swapped; b < swapped+count; ++b) {
+        *b = htonl(*b);
+    }
+    const bool rv = wr(fd, swapped, sizeof(float)*count);
+    free(swapped);
+    return rv;
+}
 
 bool wrCStr(int fd, const char *cstr) {
     size_t len = strlen(cstr)+1;
 
-    if(!wru16(fd, len)
-            || !wr(fd, cstr, len)) {
+    if(!wru16(fd, len) || !wr(fd, cstr, len)) {
         return false;
     }
     return true;
