@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
     int shouldShutdown = false;
     while(!shouldShutdown) {
 
-        int clientPort;
+        int clientPort = -1;
         if(server != NULL)
             clientPort = server->waitAndAccept();
 
@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
                     code = params->code;
                 }
 
-                MPI_Bcast(&code, 1, MPI_INT8_T, srcRank, MPI_COMM_WORLD);
+                MPI_Bcast(&code, 1, MPI_CHAR, srcRank, MPI_COMM_WORLD);
 
                 if(rank != srcRank) {
                     params = ParamFactory::createFrom((NetDSCommandCode)code, -1);

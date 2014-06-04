@@ -1,5 +1,9 @@
 #include "callperformer.h"
 #include "dirent.h"
+#include "uvfDataset.h"
+#include <limits.h>
+using tuvok::DynamicBrickingDS;
+using tuvok::UVFDataset;
 
 CallPerformer::CallPerformer()
 :ds(NULL)
@@ -24,7 +28,6 @@ vector<std::string> CallPerformer::listFiles() {
     struct dirent *ent;
 
     if ((dir = opendir (folder)) != NULL) {
-
         printf("\nFound the following files:\n");
         /* print all the files and directories within directory */
         while ((ent = readdir (dir)) != NULL) {
@@ -61,7 +64,11 @@ void CallPerformer::openFile(const char* filename) {
     std::string effectiveFilename = folder;
     effectiveFilename.append(filename);
     //printf("Effective path: %s,\n", effectiveFilename.c_str());
-    ds = new UVFDataset(effectiveFilename, 256, false);
+    std::shared_ptr<UVFDataset> uvfDS(new UVFDataset(effectiveFilename, 256, false));
+
+    //TODO: this needs to be made dynamic
+    const size_t cacheByteSize = 256*1024*1024;
+    ds = new DynamicBrickingDS(uvfDS, {1024, 1024, 1024}, cacheByteSize, DynamicBrickingDS::MM_DYNAMIC);
 }
 
 void CallPerformer::closeFile(const char* filename) {

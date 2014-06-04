@@ -1,7 +1,7 @@
 #ifndef TVKSERVER_H
 #define TVKSERVER_H
 
-#include "parameterwrapper.h"
+#include "../IO/sockethelper/parameterwrapper.h"
 
 static const unsigned short defaultPort = 4445;
 

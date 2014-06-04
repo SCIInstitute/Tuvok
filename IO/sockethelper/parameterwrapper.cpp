@@ -143,11 +143,11 @@ void SimpleParams::writeToSocket(int socket) {
 /*#################################*/
 
 void OpenParams::mpi_sync(int rank, int srcRank) {
-    MPI_Bcast(&len, 1, MPI_UINT16_T, srcRank, MPI_COMM_WORLD);
+    MPI_Bcast(&len, 1, MPI_UNSIGNED_SHORT, srcRank, MPI_COMM_WORLD);
 
     if (rank != srcRank)
         filename = new char[len];
-    MPI_Bcast(&filename[0], len, MPI_CHAR, srcRank, MPI_COMM_WORLD);
+    MPI_Bcast(&filename[0], len, MPI_UNSIGNED_CHAR, srcRank, MPI_COMM_WORLD);
 
     if(rank != srcRank) {
         TRACE(sync, "proc %d open received %s (%d)", rank, filename, len);
@@ -155,7 +155,7 @@ void OpenParams::mpi_sync(int rank, int srcRank) {
 }
 
 void CloseParams::mpi_sync(int rank, int srcRank) {
-    MPI_Bcast(&len, 1, MPI_UINT16_T, srcRank, MPI_COMM_WORLD);
+    MPI_Bcast(&len, 1, MPI_UNSIGNED_SHORT, srcRank, MPI_COMM_WORLD);
     if (rank != srcRank)
         filename = new char[len];
     MPI_Bcast(&filename[0], len, MPI_CHAR, srcRank, MPI_COMM_WORLD);
@@ -166,9 +166,9 @@ void CloseParams::mpi_sync(int rank, int srcRank) {
 }
 
 void BrickParams::mpi_sync(int rank, int srcRank) {
-    MPI_Bcast(&type, 1, MPI_UINT8_T, srcRank, MPI_COMM_WORLD);
-    MPI_Bcast(&lod, 1, MPI_UINT32_T, srcRank, MPI_COMM_WORLD);
-    MPI_Bcast(&bidx, 1, MPI_UINT32_T, srcRank, MPI_COMM_WORLD);
+    MPI_Bcast(&type, 1, MPI_UNSIGNED_CHAR, srcRank, MPI_COMM_WORLD);
+    MPI_Bcast(&lod, 1, MPI_UNSIGNED, srcRank, MPI_COMM_WORLD);
+    MPI_Bcast(&bidx, 1, MPI_UNSIGNED, srcRank, MPI_COMM_WORLD);
 
     if(rank != srcRank) {
         TRACE(sync, "proc %d brick received: lod %u & bidx: %u", rank, lod,

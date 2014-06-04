@@ -1,13 +1,15 @@
 #ifndef CALLPERFORMER_H
 #define CALLPERFORMER_H
-#include "IO/uvfDataset.h"
+#include "DynamicBrickingDS.h"
 #include <vector>
-using tuvok::UVFDataset;
+//using tuvok::AbstrRenderer;
+using tuvok::DynamicBrickingDS;
 using std::vector;
 
 class CallPerformer
 {
-    UVFDataset *ds;
+    //AbstrRenderer *renderer;
+    DynamicBrickingDS *ds;
 
 public:
     CallPerformer();
