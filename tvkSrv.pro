@@ -9,6 +9,7 @@ QT              += core opengl
 TEMPLATE        = app
 
 CONFIG          += console
+CONFIG          += c++11
 CONFIG          -= app_bundle
 TARGET           = TuvokServer/TuvokServer
 OBJECTS_DIR      = Build
@@ -25,17 +26,15 @@ QMAKE_LFLAGS    += $$system(mpicxx --showme:link)
     QMAKE_CXXFLAGS  += -fopenmp
     QMAKE_LFLAGS    += -fopenmp
 
-    unix:QMAKE_CFLAGS   += -std=c99 -Werror
-    unix:QMAKE_CXXFLAGS += -std=c++0x
+    QMAKE_CFLAGS    += -std=c99 -Werror
+    QMAKE_CXXFLAGS  += -std=c++0x
 }
 macx {
-    CONFIG     += c++11
-
     QMAKE_CFLAGS    += -mmacosx-version-min=10.7
     QMAKE_CXXFLAGS  += -mmacosx-version-min=10.7
 
-    LIBS       += -framework CoreFoundation
-    LIBS       += -framework OpenGL
+    LIBS            += -framework CoreFoundation
+    LIBS            += -framework OpenGL
 }
 
 incpath           = . OriginalTvk OriginalTvk/Basics OriginalTvk/IO/3rdParty/boost/
@@ -46,7 +45,8 @@ INCLUDEPATH      += $$incpath
 
 #We unfortunately need to link against the original tuvok lib
 QMAKE_LIBDIR += OriginalTvk/Build OriginalTvk/IO/expressions
-LIBS += -lTuvok -ltuvokexpr -lz -lGLU
+LIBS         += -lTuvok -ltuvokexpr -lz
+!macx:LIBS   += -lGLU
 
 SOURCES += \
     TuvokServer/main.cpp \
