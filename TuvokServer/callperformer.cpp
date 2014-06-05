@@ -76,3 +76,7 @@ void CallPerformer::closeFile(const char* filename) {
     delete ds;
     ds = NULL;
 }
+
+void CallPerformer::rotate(const float *matrix) {
+    //TODO actually implement
+}

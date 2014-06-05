@@ -22,6 +22,9 @@ ParameterWrapper* ParamFactory::createFrom(NetDSCommandCode cmd, int socket) {
     case nds_SHUTDOWN:
         return new ShutdownParams(cmd);
         break;
+    case nds_ROTATION:
+        return new RotateParams(cmd);
+        break;
     default:
         printf("Unknown command received.\n");
         break;
@@ -55,6 +58,12 @@ CloseParams::CloseParams(int socket)
 
 BrickParams::BrickParams(int socket)
     :ParameterWrapper(nds_BRICK){
+    if (socket != -1)
+        initFromSocket(socket);
+}
+
+RotateParams::RotateParams(int socket)
+    :ParameterWrapper(nds_ROTATION) {
     if (socket != -1)
         initFromSocket(socket);
 }
@@ -101,6 +110,12 @@ void CloseParams::initFromSocket(int socket) {
     TRACE(params, "CLOSE (%d) %s", len, filename);
 }
 
+void RotateParams::initFromSocket(int socket) {
+    rf32v(socket, &matrix, &matSize);
+
+    TRACE(params, "ROTATE");
+}
+
 void BrickParams::initFromSocket(int socket) {
     ru8(socket, &type);
     ru32(socket, &lod);
@@ -125,6 +140,11 @@ void CloseParams::writeToSocket(int socket) {
     wru8(socket, code);
     wru16(socket, len);
     wr(socket, filename, len);
+}
+
+void RotateParams::writeToSocket(int socket) {
+    wru8(socket, code);
+    wrf32v(socket, matrix, 16);
 }
 
 void BrickParams::writeToSocket(int socket) {
@@ -165,6 +185,14 @@ void CloseParams::mpi_sync(int rank, int srcRank) {
     }
 }
 
+void RotateParams::mpi_sync(int rank, int srcRank) {
+    MPI_Bcast(&matrix[0], 16, MPI_FLOAT, srcRank, MPI_COMM_WORLD);
+
+    if(rank != srcRank) {
+        TRACE(sync, "proc %d rotate received", rank);
+    }
+}
+
 void BrickParams::mpi_sync(int rank, int srcRank) {
     MPI_Bcast(&type, 1, MPI_UNSIGNED_CHAR, srcRank, MPI_COMM_WORLD);
     MPI_Bcast(&lod, 1, MPI_UNSIGNED, srcRank, MPI_COMM_WORLD);
@@ -191,6 +219,11 @@ void OpenParams::perform(int socket, CallPerformer* object) {
 void CloseParams::perform(int socket, CallPerformer* object) {
     object->closeFile(filename);
     (void)socket; //currently no answer
+}
+
+void RotateParams::perform(int socket, CallPerformer *object) {
+    object->rotate(matrix);
+    //Return something, probably the needed bricks!
 }
 
 void BrickParams::perform(int socket, CallPerformer* object) {

@@ -238,6 +238,15 @@ bool ru32(int socket, uint32_t* value) {
     return success;
 }
 
+bool rf32(int socket, float* value) {
+    bool success = 0 < (readFromSocket(socket, value, sizeof(float)));
+
+    if (shouldReencode)
+        *value = ntohl(*value);
+
+    return success;
+}
+
 bool ru8v(int socket, uint8_t** buffer, size_t* count) {
     uint32_t tmp_count = 0;
     ru32(socket, &tmp_count);
@@ -278,6 +287,23 @@ bool ru32v(int socket, uint32_t** buffer, size_t* count) {
         }
     }
     
+    return success;
+}
+
+bool rf32v(int socket, float **buffer, size_t *count) {
+    uint32_t tmp_count = 0;
+    ru32(socket, &tmp_count);
+    *count = tmp_count;
+
+    *buffer = malloc(sizeof(float)*(*count));
+    bool success = 0 < (readFromSocket(socket, *buffer, sizeof(float)*(*count)));
+
+    if (shouldReencode) {
+        for(size_t i = 0; i < *count; i++) {
+            *buffer[i] = ntohl(*buffer[i]);
+        }
+    }
+
     return success;
 }
 

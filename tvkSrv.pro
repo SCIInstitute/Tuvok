@@ -29,12 +29,13 @@ QMAKE_LFLAGS    += $$system(mpicxx --showme:link)
     unix:QMAKE_CXXFLAGS += -std=c++0x
 }
 macx {
-    macx:CONFIG     += c++11
+    CONFIG     += c++11
+
     QMAKE_CFLAGS    += -mmacosx-version-min=10.7
     QMAKE_CXXFLAGS  += -mmacosx-version-min=10.7
 
-    macx:LIBS       += -framework CoreFoundation
-    macx:LIBS       += -framework OpenGL
+    LIBS       += -framework CoreFoundation
+    LIBS       += -framework OpenGL
 }
 
 incpath           = . OriginalTvk OriginalTvk/Basics OriginalTvk/IO/3rdParty/boost/

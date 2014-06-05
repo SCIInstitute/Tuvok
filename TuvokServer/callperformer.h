@@ -19,6 +19,7 @@ public:
     vector<std::string> listFiles();
     void openFile(const char* filename);
     void closeFile(const char* filename);
+    void rotate(const float* matrix);
 
     template <class T>
     void brick_request(const size_t lod, const size_t bidx, vector<T>& data) {

@@ -52,6 +52,19 @@ public:
     void perform(int socket, CallPerformer* object);
 };
 
+class RotateParams : public ParameterWrapper
+{
+public:
+    float *matrix;
+    size_t matSize = 0;
+
+    RotateParams(int socket = -1);
+    void initFromSocket(int socket);
+    void writeToSocket(int socket);
+    void mpi_sync(int rank, int srcRank);
+    void perform(int socket, CallPerformer* object);
+};
+
 class BrickParams : public ParameterWrapper
 {
     template <class T>

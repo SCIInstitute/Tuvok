@@ -18,7 +18,7 @@ enum NetDSCommandCode {
     nds_BRICK,
     nds_LIST_FILES,
     nds_SHUTDOWN,
-    nds_ROTATION,
+    nds_ROTATION
 };
 
 //treat as uint8_t
@@ -53,10 +53,12 @@ EXPORT int readFromSocket(int socket, void *buffer, size_t len);
 EXPORT bool ru8(int socket, uint8_t* value);
 EXPORT bool ru16(int socket, uint16_t* value);
 EXPORT bool ru32(int socket, uint32_t* value);
+EXPORT bool rf32(int socket, float* value);
 
 EXPORT bool ru8v(int socket, uint8_t** buffer, size_t* count); //count only acts as output parameter, size is being read from the stream
 EXPORT bool ru16v(int socket, uint16_t** buffer, size_t* count);
 EXPORT bool ru32v(int socket, uint32_t** buffer, size_t* count);
+EXPORT bool rf32v(int socket, float** buffer, size_t* count);
 
 EXPORT bool rCStr(int socket, char** buffer, size_t* countOrNULL); //since string lengths can always be recalculated, you can also just pass NULL. count will include \0
 
