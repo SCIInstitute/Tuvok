@@ -1308,6 +1308,10 @@ uint32_t GLGridLeaper::GetDebugViewCount() const {
   return 2;
 #endif
 }
+std::vector<UINTVECTOR4>
+GLGridLeaper::GetNeededBricks() const {
+  return m_pglHashTable->GetData();
+}
 
 void GLGridLeaper::SetDebugView(uint32_t iDebugView) {
 

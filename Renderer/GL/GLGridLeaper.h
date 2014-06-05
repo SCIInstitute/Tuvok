@@ -79,6 +79,8 @@ namespace tuvok {
       virtual void SetDebugView(uint32_t iDebugView);
       virtual uint32_t GetDebugViewCount() const;
 
+      std::vector<UINTVECTOR4> GetNeededBricks() const;
+
     protected:
       GLHashTable*    m_pglHashTable;
       GLVolumePool*   m_pVolumePool;
