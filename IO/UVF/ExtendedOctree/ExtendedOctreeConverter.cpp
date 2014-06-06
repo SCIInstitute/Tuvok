@@ -920,14 +920,22 @@ void ExtendedOctreeConverter::SetupCache(ExtendedOctree &tree) {
   Write all bricks to disk that have not been committed yet
 */
 void ExtendedOctreeConverter::FlushCache(ExtendedOctree &tree) {
+  double t1 = m_pProgressTimer->Elapsed();
+
   for (BrickCacheIter i = m_vBrickCache.begin();i != m_vBrickCache.end();++i) {
     if (i->m_bDirty) {
       WriteBrickToDisk(tree, i);
       m_fProgress = -std::distance(i, m_vBrickCache.begin()) /
                      float(m_vBrickCache.size());
-      const std::string msg = m_pProgressTimer->GetProgressMessage(m_fProgress);
-      m_Progress.Message(_func_, "Flushing brick cache ... %5.2f%% (%s)",
-                         m_fProgress*100.0f, msg.c_str());
+
+      // Do not update display more than twice in a second!
+      const double t2 = m_pProgressTimer->Elapsed();
+      if ((t2 - t1) > 500) {
+        t1 = t2;
+        const std::string msg = m_pProgressTimer->GetProgressMessage(m_fProgress);
+        m_Progress.Message(_func_, "Flushing brick cache ... %5.2f%% (%s)",
+                           m_fProgress*100.0f, msg.c_str());
+      }
     }
   }
 }
@@ -1197,6 +1205,8 @@ void ExtendedOctreeConverter::CopyBrickToBrick(std::vector<uint8_t>& vSourceData
 */
 void ExtendedOctreeConverter::FillOverlap(ExtendedOctree &tree, uint64_t iLoD, bool bClampToEdge) {
   UINT64VECTOR3 baseBricks = tree.GetBrickCount(iLoD);
+  double t1 = m_pProgressTimer->Elapsed();
+  float fProgress = m_fProgress; // remember progess
 
   size_t iElementSize = tree.GetComponentTypeSize() * size_t(tree.GetComponentCount());
   std::vector<uint8_t> vTargetData(size_t(tree.m_iBrickSize.volume() * iElementSize));
@@ -1347,10 +1357,21 @@ void ExtendedOctreeConverter::FillOverlap(ExtendedOctree &tree, uint64_t iLoD, b
 
         // now that brick is complete, write it back to the tree
         SetBrick(&vTargetData[0], tree, coords);
+
+        // Do not update display more than twice in a second!
+        const double t2 = m_pProgressTimer->Elapsed();
+        if ((t2 - t1) > 500) {
+          t1 = t2;
+          m_fProgress = (x + y * baseBricks.x + z * baseBricks.x * baseBricks.y) / (float)baseBricks.volume();
+          const std::string msg = m_pProgressTimer->GetProgressMessage(m_fProgress);
+          m_Progress.Message(_func_, "Filling overlap of LOD %d ... %5.2f%% (%s)",
+            iLoD, m_fProgress*100.0f, msg.c_str());
+        }
       }
     }
   }
 
+  m_fProgress = fProgress; // reset progress to last value
 }
 
 /*
