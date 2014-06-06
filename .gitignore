@@ -2,8 +2,6 @@ Makefile
 Makefile.tvk
 Build
 .gitignore
-Basics
-IO
 *.o
 *.swp
 *.vcxproj.user
