@@ -152,7 +152,7 @@ IOManager::IOManager() :
   m_iCompression(1), // default zlib compression
   m_iCompressionLevel(1), // default compression level best speed
   m_iLayout(0), // default scanline layout
-  m_LoadDS(NULL)
+  m_LoadDS(nullptr)
 {
   m_vpGeoConverters.push_back(new GeomViewConverter());
   m_vpGeoConverters.push_back(new LinesGeoConverter());
