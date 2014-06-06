@@ -1,5 +1,6 @@
 #include <memory>
 #include <sstream>
+#include <algorithm> // for std::max, std::min
 #include "LargeRAWFile.h"
 #include "nonstd.h"
 

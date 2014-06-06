@@ -34,6 +34,7 @@
   \date    January 2009
 */
 
+#include <algorithm> // for std::max, std::min
 #include "Appendix.h"
 #include "SysTools.h"
 #include "LargeRAWFile.h"

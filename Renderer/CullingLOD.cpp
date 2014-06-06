@@ -36,6 +36,7 @@
   \date    November 2008
 */
 
+#include <algorithm> // for std::max, std::min
 #include "CullingLOD.h"
 
 using namespace std;
