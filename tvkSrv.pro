@@ -38,8 +38,7 @@ macx {
 }
 
 incpath           = . Basics IO/3rdParty/boost/ Renderer Renderer/GL
-incpath          += OriginalTvk/IO
-incpath          += IO/sockethelper
+incpath          += IO IO/sockethelper
 DEPENDPATH       += $$incpath
 INCLUDEPATH      += $$incpath
 

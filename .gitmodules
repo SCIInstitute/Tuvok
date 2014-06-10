@@ -1,4 +1,0 @@
-[submodule "OriginalTvk"]
-	path = OriginalTvk
-	url = https://github.com/SCIInstitute/Tuvok.git
-	branch = master
