@@ -1,3 +1,3 @@
-SUBDIRS           = OriginalTvk/IO/expressions OriginalTvk/tvk.pro tvkSrv.pro
+SUBDIRS           = IO/expressions tvk.pro tvkSrv.pro
 TEMPLATE          = subdirs
 CONFIG           += ordered c++11

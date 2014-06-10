@@ -87,7 +87,7 @@ void UVFDataset::Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion) {
   const std::string& fn = Filename();
   std::wstring wstrFilename(fn.begin(), fn.end());
   m_pDatasetFile = new UVF(wstrFilename);
-  netds_open(fn.c_str());
+  //netds_open(fn.c_str());
   std::string strError;
   if(!m_pDatasetFile->Open(bMustBeSameVersion, bVerify, bReadWrite, &strError))
   {

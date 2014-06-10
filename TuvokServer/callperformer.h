@@ -1,17 +1,21 @@
 #ifndef CALLPERFORMER_H
 #define CALLPERFORMER_H
 #include "DynamicBrickingDS.h"
+#include "AbstrRenderer.h"
 #include <vector>
-//using tuvok::AbstrRenderer;
+using tuvok::AbstrRenderer;
 using tuvok::DynamicBrickingDS;
 using std::vector;
 
+const size_t defaultBatchSize = 10;
+
 class CallPerformer
 {
-    //AbstrRenderer *renderer;
-    DynamicBrickingDS *ds;
-
 public:
+    AbstrRenderer *renderer; //not set yet
+    DynamicBrickingDS *ds;
+    size_t maxBatchSize;
+
     CallPerformer();
     ~CallPerformer();
 

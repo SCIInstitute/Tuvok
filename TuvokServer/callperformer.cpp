@@ -6,7 +6,7 @@ using tuvok::DynamicBrickingDS;
 using tuvok::UVFDataset;
 
 CallPerformer::CallPerformer()
-:ds(NULL)
+:ds(NULL), renderer(NULL), maxBatchSize(defaultBatchSize)
 {
 }
 
@@ -69,6 +69,9 @@ void CallPerformer::openFile(const char* filename) {
     //TODO: this needs to be made dynamic
     const size_t cacheByteSize = 256*1024*1024;
     ds = new DynamicBrickingDS(uvfDS, {1024, 1024, 1024}, cacheByteSize, DynamicBrickingDS::MM_DYNAMIC);
+
+    //TODO: also create Renderer
+    renderer = NULL;
 }
 
 void CallPerformer::closeFile(const char* filename) {
@@ -79,4 +82,5 @@ void CallPerformer::closeFile(const char* filename) {
 
 void CallPerformer::rotate(const float *matrix) {
     //TODO actually implement
+    //Render the scene here
 }

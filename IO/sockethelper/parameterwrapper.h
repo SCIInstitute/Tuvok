@@ -52,9 +52,76 @@ public:
     void perform(int socket, CallPerformer* object);
 };
 
-class RotateParams : public ParameterWrapper
+class BatchSizeParams : public ParameterWrapper
 {
 public:
+    size_t newBatchSize;
+
+    BatchSizeParams(int socket = -1);
+    void initFromSocket(int socket);
+    void writeToSocket(int socket);
+    void mpi_sync(int rank, int srcRank);
+    void perform(int socket, CallPerformer* object);
+};
+
+class RotateParams : public ParameterWrapper
+{
+    bool newDataOnSocket(int socket) {
+        //TODO: implement correct
+        return false;
+    }
+
+    template <class T>
+    void startBrickSendLoop(int socket, CallPerformer *object, std::vector<tuvok::BrickKey>& allKeys) {
+        uint8_t moreDataComing = 1;
+        size_t offset = 0;
+
+        size_t maxBatchSize = object->maxBatchSize;
+        std::vector<size_t> lods(maxBatchSize);
+        std::vector<size_t> idxs(maxBatchSize);
+        std::vector<size_t> brickSizes(maxBatchSize);
+        std::vector<std::vector<T>> batchBricks(maxBatchSize);
+        while(moreDataComing && !newDataOnSocket(socket)) {
+            lods.resize(0);
+            idxs.resize(0);
+            brickSizes.resize(0);
+            for(size_t i = 0; i < batchBricks.size(); i++)
+                batchBricks[i].resize(0);
+            batchBricks.resize(0);
+
+            for(size_t i = 0; i < maxBatchSize && (i + offset) < allKeys.size(); i++) {
+                const tuvok::BrickKey& bk = allKeys[i + offset];
+                lods.push_back(std::get<1>(bk));
+                idxs.push_back(std::get<2>(bk));
+            }
+
+            size_t actualBatchSize = lods.size();
+            offset += actualBatchSize;
+            moreDataComing = (offset == (allKeys.size() - 1)) ? 0 : 1;
+
+            wrsizet(socket, actualBatchSize);
+            wru8(socket, moreDataComing);
+
+            if(actualBatchSize > 0) {
+                for(size_t i = 0; i < actualBatchSize; i++) {
+                    object->brick_request(lods[i], idxs[i], batchBricks[i]);
+                    brickSizes[i] = batchBricks[i].size();
+                }
+
+                wrsizetv_d(socket, &lods[0], actualBatchSize);
+                wrsizetv_d(socket, &idxs[0], actualBatchSize);
+                wrsizetv_d(socket, &brickSizes[0], actualBatchSize);
+
+                for(size_t i = 0; i < actualBatchSize; i++) {
+                    if(brickSizes[i] > 0)
+                        wr_multiple(socket, &batchBricks[i][0], brickSizes[i], false);
+                }
+            }
+        }
+    }
+
+public:
+    uint8_t type; //When using, cast to NetDataType first... here we leave it as uint8_t for easier MPI-Syncing
     float *matrix;
     size_t matSize = 0;
 
@@ -73,27 +140,7 @@ class BrickParams : public ParameterWrapper
         object->brick_request(lod, bidx, returnData);
 
         printf("There are %zu values in the brick.\n", returnData.size());
-
-        //Return the data
-        if(typeid(T) == typeid(uint8_t)) {
-            printf("Test 0\n");
-            const uint8_t* data = (const uint8_t*)&returnData[0];
-            wru8v(socket, data, returnData.size());
-        }
-        else if(typeid(T) == typeid(uint16_t)) {
-            printf("Test 1\n");
-            const uint16_t* data = (const uint16_t*)&returnData[0];
-            wru16v(socket, data, returnData.size());
-        }
-        else if(typeid(T) == typeid(uint32_t)) {
-            printf("Test 2\n");
-            const uint32_t* data = (const uint32_t*)&returnData[0];
-            wru32v(socket, data, returnData.size());
-        }
-        else {
-            printf("Brick return type invalid!\n");
-            abort();
-        }
+        wr_multiple(socket, &returnData[0], returnData.size(), true);
     }
 
 public:

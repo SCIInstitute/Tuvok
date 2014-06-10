@@ -133,13 +133,41 @@ bool wru32(int fd, const uint32_t buf) {
     return wr(fd, &data, sizeof(uint32_t));
 }
 
+bool wrsizet(int fd, const size_t buf) {
+    return wru32(fd, (uint32_t) buf);
+}
+
 bool wru8v(int fd, const uint8_t* buf, size_t count) {
-    wru32(fd, (uint32_t)count); //Telling the other side how many elements there are
-    return wr(fd, buf, sizeof(uint8_t)*count);
+    wrsizet(fd, count);//Telling the other side how many elements there are
+    return wru8v_d(fd, buf, count);
 }
 
 bool wru16v(int fd, const uint16_t* buf, size_t count) {
-    wru32(fd, (uint32_t)count);
+    wrsizet(fd, count);//Telling the other side how many elements there are
+    return wru16v_d(fd, buf, count);
+}
+
+bool wru32v(int fd, const uint32_t* buf, size_t count) {
+    wrsizet(fd, count);//Telling the other side how many elements there are
+    return wru32v_d(fd, buf, count);
+}
+
+bool wrf32v(int fd, const float* buf, size_t count) {
+    assert(count <= 4294967296);
+    wrsizet(fd, count);//Telling the other side how many elements there are
+    return wrf32v_d(fd, buf, count);
+}
+
+bool wrsizetv(int fd, const size_t *buf, size_t count) {
+    wrsizet(fd, count);
+    return wrsizetv_d(fd, buf, count);
+}
+
+bool wru8v_d(int fd, const uint8_t* buf, size_t count) {
+    return wr(fd, buf, sizeof(uint8_t)*count);
+}
+
+bool wru16v_d(int fd, const uint16_t* buf, size_t count) {
     if(!shouldReencode) {
         return wr(fd, buf, sizeof(uint16_t)*count);
     }
@@ -154,8 +182,7 @@ bool wru16v(int fd, const uint16_t* buf, size_t count) {
     }
 }
 
-bool wru32v(int fd, const uint32_t* buf, size_t count) {
-    wru32(fd, (uint32_t)count);
+bool wru32v_d(int fd, const uint32_t* buf, size_t count) {
     if(!shouldReencode) {
         return wr(fd, buf, sizeof(uint32_t)*count);
     }
@@ -169,9 +196,7 @@ bool wru32v(int fd, const uint32_t* buf, size_t count) {
         return retValue;
     }
 }
-bool wrf32v(int fd, const float* buf, size_t count) {
-    assert(count <= 4294967296);
-    wru32(fd, (uint32_t)count);
+bool wrf32v_d(int fd, const float* buf, size_t count) {
     if(!shouldReencode) {
         return wr(fd, buf, sizeof(float)*count);
     }
@@ -183,6 +208,14 @@ bool wrf32v(int fd, const float* buf, size_t count) {
     const bool rv = wr(fd, swapped, sizeof(float)*count);
     free(swapped);
     return rv;
+}
+
+bool wrsizetv_d(int fd, const size_t* buf, size_t count) {
+    uint32_t newBuffer[count];
+    for(size_t i = 0; i < count; i++) {
+        newBuffer[i] = (uint32_t)buf[i];
+    }
+    return wru32v_d(fd, &newBuffer[0], count);
 }
 
 bool wrCStr(int fd, const char *cstr) {
@@ -247,60 +280,85 @@ bool rf32(int socket, float* value) {
     return success;
 }
 
-bool ru8v(int socket, uint8_t** buffer, size_t* count) {
-    uint32_t tmp_count = 0;
-    ru32(socket, &tmp_count);
-    *count = tmp_count;
+bool rsizet(int socket, size_t *value) {
+    uint32_t tmp_val;
+    bool success = ru32(socket, &tmp_val);
+    *value = (size_t)tmp_val;
+    return success;
+}
 
+bool ru8v(int socket, uint8_t** buffer, size_t* count) {
+    rsizet(socket, count);
     *buffer = malloc(sizeof(uint8_t)*(*count));
-    return 0 < (readFromSocket(socket, *buffer, sizeof(uint8_t)*(*count)));
+    return ru8v_d(socket, *buffer, *count);
 }
 
 bool ru16v(int socket, uint16_t** buffer, size_t* count) {
-    uint32_t tmp_count = 0;
-    ru32(socket, &tmp_count);
-    *count = tmp_count;
-
+    rsizet(socket, count);
     *buffer = malloc(sizeof(uint16_t)*(*count));
-    bool success = 0 < (readFromSocket(socket, *buffer, sizeof(uint16_t)*(*count)));
-
-    if (shouldReencode) {
-        for(size_t i = 0; i < *count; i++) {
-            *buffer[i] = ntohs(*buffer[i]);
-        }
-    }
-    
-    return success;
+    return ru16v_d(socket, *buffer, *count);
 }
 
 bool ru32v(int socket, uint32_t** buffer, size_t* count) {
-    uint32_t tmp_count = 0;
-    ru32(socket, &tmp_count);
-    *count = tmp_count;
-
+    rsizet(socket, count);
     *buffer = malloc(sizeof(uint32_t)*(*count));
-    bool success = 0 < (readFromSocket(socket, *buffer, sizeof(uint32_t)*(*count)));
-    
-    if (shouldReencode) {
-        for(size_t i = 0; i < *count; i++) {
-            *buffer[i] = ntohl(*buffer[i]);
-        }
-    }
-    
-    return success;
+    return ru32v_d(socket, *buffer, *count);
 }
 
 bool rf32v(int socket, float **buffer, size_t *count) {
-    uint32_t tmp_count = 0;
-    ru32(socket, &tmp_count);
-    *count = tmp_count;
-
+    rsizet(socket, count);
     *buffer = malloc(sizeof(float)*(*count));
-    bool success = 0 < (readFromSocket(socket, *buffer, sizeof(float)*(*count)));
+    return rf32v_d(socket, *buffer, *count);
+}
 
+bool rsizetv(int socket, size_t **buffer, size_t *count) {
+    rsizet(socket, count);
+    *buffer = malloc(sizeof(size_t)*(*count));
+    return rsizetv_d(socket, *buffer, *count);
+}
+
+bool ru8v_d(int socket, uint8_t* buffer, size_t count) {
+    return 0 < (readFromSocket(socket, buffer, sizeof(uint8_t)*count));
+}
+
+bool ru16v_d(int socket, uint16_t* buffer, size_t count) {
+    bool success = 0 < (readFromSocket(socket, buffer, sizeof(uint16_t)*count));
     if (shouldReencode) {
-        for(size_t i = 0; i < *count; i++) {
-            *buffer[i] = ntohl(*buffer[i]);
+        for(size_t i = 0; i < count; i++) {
+            buffer[i] = ntohs(buffer[i]);
+        }
+    }
+    return success;
+}
+
+bool ru32v_d(int socket, uint32_t* buffer, size_t count) {
+    bool success = 0 < (readFromSocket(socket, buffer, sizeof(uint32_t)*count));
+    if (shouldReencode) {
+        for(size_t i = 0; i < count; i++) {
+            buffer[i] = ntohl(buffer[i]);
+        }
+    }
+    return success;
+}
+
+bool rf32v_d(int socket, float* buffer, size_t count) {
+    bool success = 0 < (readFromSocket(socket, buffer, sizeof(float)*count));
+    if (shouldReencode) {
+        for(size_t i = 0; i < count; i++) {
+            buffer[i] = ntohl(buffer[i]);
+        }
+    }
+    return success;
+}
+
+//Careful... slow!
+bool rsizetv_d(int socket, size_t* buffer, size_t count) {
+    uint32_t newBuffer[count];
+    bool success = ru32v_d(socket, &newBuffer[0], count);
+
+    if(success) {
+        for(size_t i = 0; i < count; i++) {
+            buffer[i] = (size_t)newBuffer[i];
         }
     }
 

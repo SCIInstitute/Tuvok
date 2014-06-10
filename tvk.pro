@@ -2,6 +2,7 @@ TEMPLATE          = lib
 win32:TEMPLATE    = vclib
 CONFIG           += warn_on qt rtti static staticlib stl largefile
 CONFIG           += exceptions
+CONFIG           += c++11
 macx:DEFINES     += QT_MAC_USE_COCOA=1 LUA_USE_MACOSX=1
 unix:DEFINES     += LZHAM_ANSI_CPLUSPLUS=1
 DEFINES          += _FILE_OFFSET_BITS=64
@@ -29,10 +30,9 @@ unix:QMAKE_CFLAGS += -fno-strict-aliasing
 !macx:unix:QMAKE_LFLAGS += -fopenmp -bullshit-link-flag
 !macx:unix:LIBS  += -lGLU
 
-macx:CONFIG         += c++11
-macx:QMAKE_CXXFLAGS += -stdlib=libc++ -mmacosx-version-min=10.7
+macx:QMAKE_CXXFLAGS += -mmacosx-version-min=10.7
 macx:QMAKE_CFLAGS   += -mmacosx-version-min=10.7
-macx:LIBS           += -stdlib=libc++ -framework CoreFoundation -mmacosx-version-min=10.7
+macx:LIBS           += -framework CoreFoundation -mmacosx-version-min=10.7
 # Try to link to GLU statically.
 gludirs = /usr/lib /usr/lib/x86_64-linux-gnu
 for(d, gludirs) {
@@ -652,8 +652,8 @@ SOURCES += \
            Renderer/SBVRGeogen.cpp \
            Renderer/ShaderDescriptor.cpp \
            Renderer/TFScaling.cpp \
-           Renderer/VisibilityState.cpp \
-           IO/sockethelper/parameterwrapper.cpp \
+           Renderer/VisibilityState.cpp
+           #IO/sockethelper/parameterwrapper.cpp \
            IO/sockethelper/sockhelp.c
 
 unix:SOURCES += \

@@ -493,7 +493,8 @@ LuaClassInstance AbstrRenderer::LuaGetFirst3DRegion() {
 
 void AbstrRenderer::SetRotationRR(RenderRegion *renderRegion,
                                   const FLOATMATRIX4& rotation) {
-  netds_rotation(rotation.array);
+    //TODO somehow derive type
+  netds_rotation(rotation.array, N_UINT8);
   renderRegion->rotation = rotation;
   ScheduleWindowRedraw(renderRegion);
 }

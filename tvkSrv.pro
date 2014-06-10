@@ -37,14 +37,14 @@ macx {
     LIBS            += -framework OpenGL
 }
 
-incpath           = . OriginalTvk OriginalTvk/Basics OriginalTvk/IO/3rdParty/boost/
+incpath           = . Basics IO/3rdParty/boost/ Renderer Renderer/GL
 incpath          += OriginalTvk/IO
 incpath          += IO/sockethelper
 DEPENDPATH       += $$incpath
 INCLUDEPATH      += $$incpath
 
 #We unfortunately need to link against the original tuvok lib
-QMAKE_LIBDIR += OriginalTvk/Build OriginalTvk/IO/expressions
+QMAKE_LIBDIR += Build IO/expressions
 LIBS         += -lTuvok -ltuvokexpr -lz
 !macx:LIBS   += -lGLU
 
