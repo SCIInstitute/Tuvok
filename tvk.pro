@@ -332,8 +332,8 @@ HEADERS += \
            Renderer/VisibilityState.h \
            Renderer/writebrick.h \
            StdTuvokDefines.h \
-           IO/sockethelper/parameterwrapper.h \
            IO/sockethelper/sockhelp.h
+           #IO/sockethelper/parameterwrapper.h \
 
 unix:HEADERS += \
   Basics/LargeFileAIO.h \
@@ -603,6 +603,7 @@ SOURCES += \
            IO/VGStudioConverter.cpp \
            IO/VTKConverter.cpp \
            IO/XML3DGeoConverter.cpp \
+           IO/sockethelper/sockhelp.c \
            LuaScripting/LuaClassConstructor.cpp \
            LuaScripting/LuaClassInstance.cpp \
            LuaScripting/LuaClassRegistration.cpp \
@@ -653,8 +654,6 @@ SOURCES += \
            Renderer/ShaderDescriptor.cpp \
            Renderer/TFScaling.cpp \
            Renderer/VisibilityState.cpp
-           #IO/sockethelper/parameterwrapper.cpp \
-           IO/sockethelper/sockhelp.c
 
 unix:SOURCES += \
   Basics/LargeFileAIO.cpp \
