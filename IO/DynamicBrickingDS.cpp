@@ -423,13 +423,15 @@ BrickSize ComputedTargetBrickSize(BrickIndex idx, VoxelLayout voxels,
     idx[2] == bl[2]-1,
   }};
   const BrickSize no_ghost = BrickSansGhost(bsize);
+  const BrickSize extra = {{
+    static_cast<size_t>(voxels[0] % no_ghost[0]),
+    static_cast<size_t>(voxels[1] % no_ghost[1]),
+    static_cast<size_t>(voxels[2] % no_ghost[2])
+  }};
   const BrickSize rv = {{
-    last[0] && (voxels[0] % no_ghost[0]) ? 4 + (voxels[0]%no_ghost[0])
-                                         : bsize[0],
-    last[1] && (voxels[1] % no_ghost[1]) ? 4 + (voxels[1]%no_ghost[1])
-                                         : bsize[1],
-    last[2] && (voxels[2] % no_ghost[2]) ? 4 + (voxels[2]%no_ghost[2])
-                                         : bsize[2]
+    last[0] && extra[0] ? 4 + extra[0] : bsize[0],
+    last[1] && extra[1] ? 4 + extra[1] : bsize[1],
+    last[2] && extra[2] ? 4 + extra[2] : bsize[2]
   }};
   return rv;
 }
