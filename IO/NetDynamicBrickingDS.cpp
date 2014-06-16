@@ -1,23 +1,27 @@
 #include "DynamicBrickingDS.h"
 #include "NetDynamicBrickingDS.h"
 #include "uvfDataset.h"
+#include "netds.h"
 namespace tuvok {
 
   /// @param ds the source data set to break up
   /// @param maxBrickSize the brick size to use in the new data set
   /// @param cacheBytes how many bytes to use for the brick cache
   /// @param mm how should we handle brick min maxes?
-NetDynDS::NetDynDS(const char* filename,
+NetDynDS::NetDynDS(const char* fname,
                    std::array<size_t, 3> maxBrickSize,
                    size_t cacheBytes)
 {
-  std::shared_ptr<UVFDataset> uvf(new UVFDataset(filename, 512, false));
+  struct DSMetaData ignored;
+  netds_open(fname, &ignored);
+  std::shared_ptr<UVFDataset> uvf(new UVFDataset(fname, 512, false));
   DynamicBrickingDS* dyn = new DynamicBrickingDS(uvf, maxBrickSize, cacheBytes,
                                                  DynamicBrickingDS::MM_DYNAMIC);
   this->ds = std::unique_ptr<DynamicBrickingDS>(dyn);
 }
 
 NetDynDS::~NetDynDS() {
+  netds_close(this->Filename().c_str());
   this->ds.reset();
 }
 
@@ -43,15 +47,18 @@ void NetDynDS::Clear() { this->ds->Clear(); }
 /// Data access
 ///@{
 bool NetDynDS::GetBrick(const BrickKey& k, std::vector<uint8_t>& data) const {
-  assert("should note request on socket?");
+  static size_t n=0;
+  netds_brick_request<uint8_t>(std::get<1>(k), std::get<2>(k), &n);
   return this->ds->GetBrick(k, data);
 }
 bool NetDynDS::GetBrick(const BrickKey& k, std::vector<uint16_t>& data) const {
-  assert("should note request on socket?");
+  static size_t n=0;
+  netds_brick_request<uint8_t>(std::get<1>(k), std::get<2>(k), &n);
   return this->ds->GetBrick(k, data);
 }
 bool NetDynDS::GetBrick(const BrickKey& k, std::vector<uint32_t>& data) const {
-  assert("should note request on socket?");
+  static size_t n=0;
+  netds_brick_request<uint32_t>(std::get<1>(k), std::get<2>(k), &n);
   return this->ds->GetBrick(k, data);
 }
 ///@}
