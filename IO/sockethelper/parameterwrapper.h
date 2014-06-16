@@ -122,8 +122,8 @@ class RotateParams : public ParameterWrapper
 
 public:
     uint8_t type; //When using, cast to NetDataType first... here we leave it as uint8_t for easier MPI-Syncing
+    size_t matSize;
     float *matrix;
-    size_t matSize = 0;
 
     RotateParams(int socket = -1);
     void initFromSocket(int socket);

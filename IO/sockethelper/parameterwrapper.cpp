@@ -75,7 +75,7 @@ BrickParams::BrickParams(int socket)
 }
 
 RotateParams::RotateParams(int socket)
-    :ParameterWrapper(nds_ROTATION) {
+    :ParameterWrapper(nds_ROTATION), matSize(0) {
     if (socket != -1)
         initFromSocket(socket);
 }
