@@ -44,7 +44,6 @@
 #include "UVF/Histogram2DDataBlock.h"
 #include "UVF/GeometryDataBlock.h"
 #include "uvfMesh.h"
-#include "netds.h"
 
 using namespace boost;
 using namespace std;
@@ -87,7 +86,6 @@ void UVFDataset::Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion) {
   const std::string& fn = Filename();
   std::wstring wstrFilename(fn.begin(), fn.end());
   m_pDatasetFile = new UVF(wstrFilename);
-  //netds_open(fn.c_str());
   std::string strError;
   if(!m_pDatasetFile->Open(bMustBeSameVersion, bVerify, bReadWrite, &strError))
   {
@@ -219,7 +217,6 @@ void UVFDataset::Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion) {
 }
 
 void UVFDataset::Close() {
-  netds_close(Filename().c_str());
   delete m_pDatasetFile;
 
   for(std::vector<Timestep*>::iterator ts = m_timesteps.begin();
@@ -1690,7 +1687,6 @@ std::list<std::string> UVFDataset::Extensions() const
 template <class T> bool
 UVFDataset::GetBrickTemplate(const BrickKey& k, std::vector<T>& vData) const {
   size_t n=0;
-  netds_brick_request<T>(std::get<1>(k), std::get<2>(k), &n);
   if(m_bToCBlock) {
     const UINT64VECTOR4 coords = KeyToTOCVector(k);
     const TOCTimestep* ts = static_cast<TOCTimestep*>(
