@@ -339,7 +339,9 @@ void netds_shutdown() {
 }
 
 void netds_rotation(const float m[16], enum NetDataType type) {
-    force_connect();
+    if(remote == -1) { /* ignore rotations if not connected. */
+        return;
+    }
     /* we might want to start thinking about cork/uncorking our sends .. */
     wru8(remote, (uint8_t)nds_ROTATION);
     wrf32v(remote, m, 16);
