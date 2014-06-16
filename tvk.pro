@@ -220,6 +220,7 @@ HEADERS += \
            IO/MedAlyVisGeoConverter.h \
            IO/MobileGeoConverter.h \
            IO/MRCConverter.h \
+           IO/NetDynamicBrickingDS.h \
            IO/NRRDConverter.h \
            IO/netds.h \
            IO/OBJGeoConverter.h \
@@ -562,6 +563,7 @@ SOURCES += \
            IO/MedAlyVisGeoConverter.cpp \
            IO/MobileGeoConverter.cpp \
            IO/MRCConverter.cpp \
+           IO/NetDynamicBrickingDS.cpp \
            IO/NRRDConverter.cpp \
            IO/netds.c \
            IO/OBJGeoConverter.cpp \
