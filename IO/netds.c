@@ -334,7 +334,7 @@ netds_close(const char* filename)
 }
     
 void netds_shutdown() {
-    force_connect();
+    if(remote == -1) { return; }
     wru8(remote, nds_SHUTDOWN);
 }
 
