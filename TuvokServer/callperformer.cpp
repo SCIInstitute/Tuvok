@@ -6,7 +6,7 @@ using tuvok::DynamicBrickingDS;
 using tuvok::UVFDataset;
 
 CallPerformer::CallPerformer()
-:ds(NULL), renderer(NULL), maxBatchSize(defaultBatchSize)
+:renderer(NULL), ds(NULL), maxBatchSize(defaultBatchSize)
 {
 }
 
@@ -68,7 +68,8 @@ void CallPerformer::openFile(const char* filename) {
 
     //TODO: this needs to be made dynamic
     const size_t cacheByteSize = 256*1024*1024;
-    ds = new DynamicBrickingDS(uvfDS, {1024, 1024, 1024}, cacheByteSize, DynamicBrickingDS::MM_DYNAMIC);
+    std::array<size_t, 3> maxBrickSize { {1024, 1024, 1024} };
+    ds = new DynamicBrickingDS(uvfDS, maxBrickSize, cacheByteSize, DynamicBrickingDS::MM_DYNAMIC);
 
     //TODO: also create Renderer
     renderer = NULL;
