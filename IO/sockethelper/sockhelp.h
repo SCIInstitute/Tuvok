@@ -62,6 +62,7 @@ typedef bool (msgsend)(int, const void*, const size_t);
 static msgsend* wr = wrmsg;
 
 //For reading
+EXPORT bool newDataOnSocket(int socket);
 EXPORT int readFromSocket(int socket, void *buffer, size_t len);
 EXPORT bool ru8(int socket, uint8_t* value);
 EXPORT bool ru16(int socket, uint16_t* value);

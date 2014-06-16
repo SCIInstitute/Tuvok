@@ -6,6 +6,7 @@
 #include "GLGridLeaper.h"
 
 DECLARE_CHANNEL(params);
+DECLARE_CHANNEL(bricks);
 DECLARE_CHANNEL(sync);
 
 ParameterWrapper* ParamFactory::createFrom(NetDSCommandCode cmd, int socket) {
@@ -335,6 +336,71 @@ void CloseParams::perform(int socket, CallPerformer* object) {
 void BatchSizeParams::perform(int socket, CallPerformer *object) {
     object->maxBatchSize = newBatchSize;
     (void)socket;
+}
+
+template <class T>
+void startBrickSendLoop(int socket, CallPerformer *object, std::vector<tuvok::BrickKey>& allKeys) {
+    uint8_t moreDataComing = 1;
+    size_t offset = 0;
+
+    size_t maxBatchSize = object->maxBatchSize;
+    std::vector<size_t> lods(maxBatchSize);
+    std::vector<size_t> idxs(maxBatchSize);
+    std::vector<size_t> brickSizes(maxBatchSize);
+    std::vector<std::vector<T>> batchBricks(maxBatchSize);
+    while(moreDataComing) {
+        //In case there is a new request from the client arriving,
+        //we have to stop sending the current bricks.
+        // !!!! BUT: Due to the asynchronous nature of this sending loop
+        // an outdated "end of bricks"-batch might still arrive at a client.
+        // Therefore we always send a last "empty batch" that the client can handle.
+        if(newDataOnSocket(socket)) {
+            TRACE(bricks, "Received new request. Interrupting current brick-batch-sending.");
+            wrsizet(socket, 0);
+            wru8(socket, 0);
+            break;
+        }
+
+        //Reset
+        lods.resize(0);
+        idxs.resize(0);
+        brickSizes.resize(0);
+        for(size_t i = 0; i < batchBricks.size(); i++)
+            batchBricks[i].resize(0);
+        batchBricks.resize(0);
+
+        //Get the brick keys for this batch
+        for(size_t i = 0; i < maxBatchSize && (i + offset) < allKeys.size(); i++) {
+            const tuvok::BrickKey& bk = allKeys[i + offset];
+            lods.push_back(std::get<1>(bk));
+            idxs.push_back(std::get<2>(bk));
+        }
+
+        //Retrieve amount of bricks in this batch and increment the offset
+        size_t actualBatchSize = lods.size();
+        offset += actualBatchSize;
+        moreDataComing = (offset == (allKeys.size() - 1)) ? 0 : 1;
+
+        //Tell client how many bricks to expect
+        wrsizet(socket, actualBatchSize);
+        wru8(socket, moreDataComing);
+
+        if(actualBatchSize > 0) {
+            for(size_t i = 0; i < actualBatchSize; i++) {
+                object->brick_request(lods[i], idxs[i], batchBricks[i]);
+                brickSizes[i] = batchBricks[i].size();
+            }
+
+            wrsizetv_d(socket, &lods[0], actualBatchSize);
+            wrsizetv_d(socket, &idxs[0], actualBatchSize);
+            wrsizetv_d(socket, &brickSizes[0], actualBatchSize);
+
+            for(size_t i = 0; i < actualBatchSize; i++) {
+                if(brickSizes[i] > 0)
+                    wr_multiple(socket, &batchBricks[i][0], brickSizes[i], false);
+            }
+        }
+    }
 }
 
 void RotateParams::perform(int socket, CallPerformer *object) {

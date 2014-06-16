@@ -271,6 +271,50 @@ uint32_t** netds_readBrickBatch_ui32(struct BatchInfo* out_info) {
     return retArray;
 }
 
+void netds_open(const char* filename, struct DSMetaData* out_meta)
+{
+    force_connect();
+    const size_t len = strlen(filename)+1;
+    if(len > UINT16_MAX) {
+        fprintf(stderr, "error, ridiculously long (%zu-byte) filename\n", len);
+        abort();
+    }
+    if(len == 0) {
+        fprintf(stderr, "open of blank filename?  ignoring.\n");
+        return;
+    }
+    wru8(remote, (uint8_t)nds_OPEN);
+    wru16(remote, (uint16_t)len);
+    wr(remote, filename, len);
+    
+    //Read meta-data from server
+    rsizet(remote, &out_meta->lodCount);
+    
+    size_t layoutsCount;
+    ru32v(remote, &out_meta->layouts, &layoutsCount);
+    assert(layoutsCount == out_meta->lodCount*3);
+    
+    size_t brickCount;
+    rsizet(remote, &brickCount);
+    out_meta->brickCount    = brickCount;
+    out_meta->lods          = malloc(sizeof(size_t)     * brickCount);
+    out_meta->idxs          = malloc(sizeof(size_t)     * brickCount);
+    out_meta->md_centers    = malloc(sizeof(float)      * brickCount * 3);
+    out_meta->md_extents    = malloc(sizeof(float)      * brickCount * 3);
+    out_meta->md_n_voxels   = malloc(sizeof(uint32_t)   * brickCount * 3);
+    
+    //Retrieve key-data
+    rsizetv_d(remote, &out_meta->lods[0], brickCount);
+    rsizetv_d(remote, &out_meta->idxs[0], brickCount);
+    
+    //Retrieve BrickMDs
+    rf32v_d(remote, &out_meta->md_centers[0], brickCount * 3);
+    rf32v_d(remote, &out_meta->md_extents[0], brickCount * 3);
+    ru32v_d(remote, &out_meta->md_n_voxels[0], brickCount * 3);
+    
+    //Receive brick zero?
+}
+
 void
 netds_close(const char* filename)
 {
@@ -328,69 +372,3 @@ void netds_cancelBatches() {
 
     //still have to flush but don't have a proper type... would have to template it
 }*/
-
-#ifdef __cplusplus
-void netds_open(const char* filename, DSMetaData* out_meta)
-{
-    force_connect();
-    const size_t len = strlen(filename)+1;
-    if(len > UINT16_MAX) {
-        fprintf(stderr, "error, ridiculously long (%zu-byte) filename\n", len);
-        abort();
-    }
-    if(len == 0) {
-        fprintf(stderr, "open of blank filename?  ignoring.\n");
-        return;
-    }
-    wru8(remote, (uint8_t)nds_OPEN);
-    wru16(remote, (uint16_t)len);
-    wr(remote, filename, len);
-
-    //Read meta-data from server
-    rsizet(remote, &out_meta->lodCount);
-
-    size_t layoutsCount;
-    ru32v(remote, &out_meta->layouts, &layoutsCount);
-    assert(layoutsCount == out_meta->lodCount*3);
-
-    size_t brickCount;
-    rsizet(remote, &brickCount);
-    out_meta->brickCount = brickCount;
-    out_meta->brickKeys = new tuvok::BrickKey[brickCount];
-    out_meta->brickMDs = new tuvok::BrickMD[brickCount];
-
-    //Retrieve key-data
-    size_t lods[brickCount];
-    size_t idxs[brickCount];
-    rsizetv_d(remote, &lods[0], brickCount);
-    rsizetv_d(remote, &idxs[0], brickCount);
-
-    //Retrieve BrickMDs
-    float md_centers[brickCount * 3];
-    float md_extents[brickCount * 3];
-    uint32_t md_n_voxels[brickCount * 3];
-    rf32v_d(remote, &md_centers[0], brickCount * 3);
-    rf32v_d(remote, &md_extents[0], brickCount * 3);
-    ru32v_d(remote, &md_n_voxels[0], brickCount * 3);
-
-    //build keys and MDs
-    for(size_t i = 0; i < out_meta->brickCount; i++) {
-        out_meta->brickKeys[i] = BrickKey(0, lods[i], idxs[i]);
-
-        out_meta->brickMDs[i].center.x = md_centers[i*3 + 0];
-        out_meta->brickMDs[i].center.y = md_centers[i*3 + 1];
-        out_meta->brickMDs[i].center.z = md_centers[i*3 + 2];
-
-        out_meta->brickMDs[i].extents.x = md_extents[i*3 + 0];
-        out_meta->brickMDs[i].extents.y = md_extents[i*3 + 1];
-        out_meta->brickMDs[i].extents.z = md_extents[i*3 + 2];
-
-        out_meta->brickMDs[i].n_voxels.x = md_n_voxels[i*3 + 0];
-        out_meta->brickMDs[i].n_voxels.y = md_n_voxels[i*3 + 1];
-        out_meta->brickMDs[i].n_voxels.z = md_n_voxels[i*3 + 2];
-    }
-
-    //Receive brick zero?
-}
-
-#endif

@@ -25,7 +25,9 @@ int main(int argc, const char * argv[])
     
     if (fileCount > 0) {
         printf("\nRequesting OPEN file with name: %s\n", filenames[0]);
-        netds_open(filenames[0]);
+        
+        DSMetaData metaData;
+        netds_open(filenames[0], &metaData);
         
         size_t dataCount;
         size_t lod = 0;

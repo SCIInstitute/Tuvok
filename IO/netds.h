@@ -19,6 +19,25 @@ EXPORT uint8_t**  netds_brick_request_ui8v(const size_t  brickCount, const size_
 EXPORT uint16_t** netds_brick_request_ui16v(const size_t brickCount, const size_t* lods, const size_t* bidxs, size_t** out_dataCounts);
 EXPORT uint32_t** netds_brick_request_ui32v(const size_t brickCount, const size_t* lods, const size_t* bidxs, size_t** out_dataCounts);
 
+struct DSMetaData {
+    size_t lodCount;
+    unsigned *layouts; //3 unsigned per LOD
+    
+    size_t brickCount; //total count of bricks
+    
+    //For the keys... Reconstruct using BrickKey(0, lods[i], idxs[i]);
+    size_t *lods;
+    size_t *idxs;
+    
+    //For the brickMD
+    float *md_centers;
+    float *md_extents;
+    uint32_t *md_n_voxels;
+    
+    //TODO: We are supposed to also send brick zero
+    //(Which type?)
+};
+EXPORT void netds_open(const char* filename, struct DSMetaData* out_meta);
 EXPORT void netds_close(const char* filename);
 EXPORT char** netds_list_files(size_t* count);
 EXPORT void netds_shutdown();
@@ -44,23 +63,7 @@ EXPORT uint16_t** netds_readBrickBatch_ui16(struct BatchInfo* out_info);
 EXPORT uint32_t** netds_readBrickBatch_ui32(struct BatchInfo* out_info);
 
 
-
 #ifdef __cplusplus
-
-#include "Brick.h"
-
-struct DSMetaData {
-    size_t lodCount;
-    unsigned *layouts; //3 unsigned per LOD
-
-    size_t brickCount; //total count of bricks
-    tuvok::BrickKey *brickKeys;
-    tuvok::BrickMD *brickMDs;
-
-    //TODO: We are supposed to also send brick zero
-    //(Which type?)
-};
-EXPORT void netds_open(const char* filename, DSMetaData* out_meta);
 
 namespace {
 template<typename T> T*

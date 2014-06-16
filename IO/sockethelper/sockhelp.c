@@ -230,6 +230,32 @@ bool wrCStr(int fd, const char *cstr) {
 /*#################################*/
 /*#######       Read        #######*/
 /*#################################*/
+bool newDataOnSocket(int socket) {
+    fd_set rfds;
+    struct timeval tv;
+    int retval;
+
+    /* Watch socket to see when it has input. */
+    FD_ZERO(&rfds);
+    FD_SET(socket, &rfds);
+
+    /* Don't wait... */
+    tv.tv_sec   = 0;
+    tv.tv_usec  = 0;
+
+    retval = select(socket+1, &rfds, NULL, NULL, &tv);
+    /* Don't rely on the value of tv now! */
+
+    if (retval == -1) {
+        perror("select()");
+        return false;
+    }
+    else if (retval)
+        return true;
+    else
+        return false;
+}
+
 int readFromSocket(int socket, void *buffer, size_t len) {
 #if DEBUG_BYTES
     printf("Waiting on data from client...(len: %d)\n", len);

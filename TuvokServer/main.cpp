@@ -2,11 +2,11 @@
 //#include <omp.h>
 #if MPI_ACTIVE
     #include <mpi.h>
+    static int srcRank = 0;
 #endif
 #include "tvkserver.h"
 #include "callperformer.h"
 
-static int srcRank = 0;
 
 #if MPI_ACTIVE
 int main(int argc, char *argv[])
