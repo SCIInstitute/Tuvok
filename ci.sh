@@ -9,5 +9,5 @@ qmake \
   QMAKE_CFLAGS+="${CF}" \
   QMAKE_CXXFLAGS+="${VIS} ${CF} ${CXF}" \
   -recursive \
-  Tuvok.pro || exit 1
+  TuvokServer.pro || exit 1
 nice make -j2

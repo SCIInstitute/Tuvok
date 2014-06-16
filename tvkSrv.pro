@@ -12,15 +12,19 @@ CONFIG          += console
 CONFIG          += c++11
 CONFIG          -= app_bundle
 TARGET           = TuvokServer/TuvokServer
-OBJECTS_DIR      = Build
+OBJECTS_DIR      = TuvokServer/Build
 
-QMAKE_CC         = mpicc
-QMAKE_CXX        = mpicxx
-QMAKE_LINK       = $$QMAKE_CXX
+#CONFIG          += mpi
+mpi {
+    QMAKE_CC         = mpicc
+    QMAKE_CXX        = mpicxx
+    QMAKE_LINK       = $$QMAKE_CXX
+    DEFINES         += "MPI_ACTIVE=1"
 
-QMAKE_CFLAGS    += $$system(mpicc --showme:compile)
-QMAKE_CXXFLAGS  += $$system(mpicxx --showme:compile) -DMPICH_IGNORE_CXX_SEEK
-QMAKE_LFLAGS    += $$system(mpicxx --showme:link)
+    QMAKE_CFLAGS    += $$system(mpicc --showme:compile)
+    QMAKE_CXXFLAGS  += $$system(mpicxx --showme:compile) -DMPICH_IGNORE_CXX_SEEK
+    QMAKE_LFLAGS    += $$system(mpicxx --showme:link)
+}
 
 !macx {
     QMAKE_CXXFLAGS  += -fopenmp
@@ -29,6 +33,7 @@ QMAKE_LFLAGS    += $$system(mpicxx --showme:link)
     QMAKE_CFLAGS    += -std=c99 -Werror
     QMAKE_CXXFLAGS  += -std=c++0x
 }
+USE_MPI              = 1
 macx {
     QMAKE_CFLAGS    += -mmacosx-version-min=10.7
     QMAKE_CXXFLAGS  += -mmacosx-version-min=10.7

@@ -1,4 +1,6 @@
+#if MPI_ACTIVE
 #include <mpi.h>
+#endif
 #include "parameterwrapper.h"
 #include "DebugOut/debug.h"
 #include "GLGridLeaper.h"
@@ -83,20 +85,29 @@ SimpleParams::SimpleParams(NetDSCommandCode code)
 
 ListFilesParams::ListFilesParams(NetDSCommandCode code)
     :SimpleParams(code) {
+
+#if MPI_ACTIVE
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     if(rank == 0) {
         TRACE(params, "LIST");
     }
+#else
+    TRACE(params, "LIST");
+#endif
 }
 
 ShutdownParams::ShutdownParams(NetDSCommandCode code)
     :SimpleParams(code) {
+#if MPI_ACTIVE
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     if(rank == 0) {
         TRACE(params, "SHUTDOWN");
     }
+#else
+    TRACE(params, "SHUTDOWN");
+#endif
 }
 
 
@@ -183,6 +194,7 @@ void SimpleParams::writeToSocket(int socket) {
 /*######     MPI Syncing     ######*/
 /*#################################*/
 
+#if MPI_ACTIVE
 void OpenParams::mpi_sync(int rank, int srcRank) {
     MPI_Bcast(&len, 1, MPI_UNSIGNED_SHORT, srcRank, MPI_COMM_WORLD);
 
@@ -234,6 +246,13 @@ void BrickParams::mpi_sync(int rank, int srcRank) {
               bidx);
     }
 }
+#else
+void OpenParams::mpi_sync(int rank, int srcRank)  {(void)rank; (void)srcRank;}
+void CloseParams::mpi_sync(int rank, int srcRank)  {(void)rank; (void)srcRank;}
+void BatchSizeParams::mpi_sync(int rank, int srcRank)  {(void)rank; (void)srcRank;}
+void RotateParams::mpi_sync(int rank, int srcRank)  {(void)rank; (void)srcRank;}
+void BrickParams::mpi_sync(int rank, int srcRank)  {(void)rank; (void)srcRank;}
+#endif
 
 void SimpleParams::mpi_sync(int rank, int srcRank) {(void)rank; (void)srcRank;}
 
@@ -245,10 +264,12 @@ void SimpleParams::mpi_sync(int rank, int srcRank) {(void)rank; (void)srcRank;}
 void OpenParams::perform(int socket, CallPerformer* object) {
     object->openFile(filename);
 
+#if MPI_ACTIVE
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     if(rank != 0)
         return; //mpi currently not supported
+#endif
 
     //send LODs
     size_t lodCount = object->ds->GetLODLevelCount();
@@ -317,10 +338,13 @@ void BatchSizeParams::perform(int socket, CallPerformer *object) {
 }
 
 void RotateParams::perform(int socket, CallPerformer *object) {
+
+#if MPI_ACTIVE
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     if(rank != 0)
         return; //mpi currently not supported
+#endif
 
     //renders the scene
     object->rotate(matrix);
@@ -347,31 +371,39 @@ void RotateParams::perform(int socket, CallPerformer *object) {
 }
 
 void BrickParams::perform(int socket, CallPerformer* object) {
+#if MPI_ACTIVE
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    if(rank == 0) {
-        NetDataType dType = (NetDataType)type;
+    if(rank != 0)
+        return;
+    //TODO: Would be useful to implement a behavior of:
+    // - Do i have brick in cash? no?
+    // => get from another MPI process that has brick in cash
+#endif
 
-        if(dType == N_UINT8)
-            internal_brickPerform<uint8_t>(socket, object);
-        else if(dType == N_UINT16)
-            internal_brickPerform<uint16_t>(socket, object);
-        else if(dType == N_UINT32)
-            internal_brickPerform<uint32_t>(socket, object);
-    }
+    NetDataType dType = (NetDataType)type;
+
+    if(dType == N_UINT8)
+        internal_brickPerform<uint8_t>(socket, object);
+    else if(dType == N_UINT16)
+        internal_brickPerform<uint16_t>(socket, object);
+    else if(dType == N_UINT32)
+        internal_brickPerform<uint32_t>(socket, object);
 }
 
 void ListFilesParams::perform(int socket, CallPerformer* object) {
+#if MPI_ACTIVE
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    if(rank == 0) {
-        vector<std::string> filenames = object->listFiles();
+    if(rank != 0)
+        return;
+#endif
+    vector<std::string> filenames = object->listFiles();
 
-        wru16(socket, (uint16_t)filenames.size());
-        for(std::string name : filenames) {
-            const char* cstr = name.c_str();
-            wrCStr(socket, cstr);
-        }
+    wru16(socket, (uint16_t)filenames.size());
+    for(std::string name : filenames) {
+        const char* cstr = name.c_str();
+        wrCStr(socket, cstr);
     }
 }
 

@@ -1,11 +1,14 @@
 #include <iostream>
 //#include <omp.h>
-#include <mpi.h>
+#if MPI_ACTIVE
+    #include <mpi.h>
+#endif
 #include "tvkserver.h"
 #include "callperformer.h"
 
 static int srcRank = 0;
 
+#if MPI_ACTIVE
 int main(int argc, char *argv[])
 {
     (void)argc;
@@ -84,3 +87,53 @@ int main(int argc, char *argv[])
     delete performer;
     MPI_Finalize();
 }
+
+#else
+int main(int argc, char *argv[])
+{
+    (void)argc;
+    (void)argv;
+
+    TvkServer *server           = new TvkServer();
+    CallPerformer *performer    = new CallPerformer();
+
+    int shouldShutdown = false;
+    while(!shouldShutdown) {
+
+        int clientPort = -1;
+        if(server != NULL)
+            clientPort = server->waitAndAccept();
+
+        int shouldDisconnect = false;
+        while(!shouldDisconnect) {
+            ParameterWrapper *params = NULL;
+            if(server != NULL) {
+                 params = server->processNextCommand(clientPort);
+                 if (params == NULL)
+                    shouldDisconnect = true;
+                 else if(params->code == nds_SHUTDOWN) {
+                    shouldDisconnect    = true;
+                    shouldShutdown      = true;
+                 }
+            }
+            if (shouldDisconnect)
+                break;
+
+            //Perform request and return answer
+            params->perform(clientPort, performer);
+
+            delete params;
+            params = NULL;
+
+        }
+
+        if(server != NULL) {
+            server->disconnect(clientPort);
+        }
+    }
+    printf("Server received shutdown command!\n");
+
+    delete performer;
+}
+
+#endif
