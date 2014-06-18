@@ -1687,7 +1687,6 @@ std::list<std::string> UVFDataset::Extensions() const
 
 template <class T> bool
 UVFDataset::GetBrickTemplate(const BrickKey& k, std::vector<T>& vData) const {
-  size_t n=0;
   if(m_bToCBlock) {
     const UINT64VECTOR4 coords = KeyToTOCVector(k);
     const TOCTimestep* ts = static_cast<TOCTimestep*>(
