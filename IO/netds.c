@@ -290,6 +290,10 @@ void netds_open(const char* filename, struct DSMetaData* out_meta)
     //Read meta-data from server
     rsizet(remote, &out_meta->lodCount);
     
+    if (&out_meta->lodCount <= 0) {
+        return;
+    }
+    
     size_t layoutsCount;
     ru32v(remote, &out_meta->layouts, &layoutsCount);
     assert(layoutsCount == out_meta->lodCount*3);
