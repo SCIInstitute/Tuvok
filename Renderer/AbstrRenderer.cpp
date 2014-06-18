@@ -1878,10 +1878,6 @@ void AbstrRenderer::RegisterLuaFunctions(
                     "transfer function, etc...",
                     false);
 
-  id = reg.function(&AbstrRenderer::GetDataset,
-                    "GetDataset",
-                    "Retrieves the REAL renderer's current dataset.", false);
-
   id = reg.function(&AbstrRenderer::LuaGetDataset,
                     "getDataset",
                     "Retrieves the renderer's current dataset.", false);
