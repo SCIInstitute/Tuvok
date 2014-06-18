@@ -2009,4 +2009,3 @@ SUITE(LuaTestClassRegistration_MultipleInheritenceFromBottom)
 }
 
 #endif
-
