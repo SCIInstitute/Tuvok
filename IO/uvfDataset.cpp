@@ -89,7 +89,8 @@ void UVFDataset::Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion) {
   std::string strError;
   if(!m_pDatasetFile->Open(bMustBeSameVersion, bVerify, bReadWrite, &strError))
   {
-    throw Exception("Could not open file", _func_, __LINE__);
+    std::string errorMsg = "Could not open file (" + strError + ")";
+    throw Exception(errorMsg, _func_, __LINE__);
   }
 
   if(m_pDatasetFile->ms_ulReaderVersion !=

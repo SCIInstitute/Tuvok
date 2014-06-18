@@ -2,8 +2,14 @@
 #include "dirent.h"
 #include "uvfDataset.h"
 #include <limits.h>
+#include "DebugOut/debug.h"
+#include "GLGridLeaper.h"
 using tuvok::DynamicBrickingDS;
 using tuvok::UVFDataset;
+
+DECLARE_CHANNEL(dataset);
+DECLARE_CHANNEL(renderer);
+DECLARE_CHANNEL(file);
 
 CallPerformer::CallPerformer()
 :renderer(NULL), ds(NULL), maxBatchSize(defaultBatchSize)
@@ -55,7 +61,7 @@ vector<std::string> CallPerformer::listFiles() {
     return retVector;
 }
 
-void CallPerformer::openFile(const char* filename) {
+bool CallPerformer::openFile(const char* filename) {
     const char* folder = getenv("IV3D_FILES_FOLDER");
     if(folder == NULL) {
         folder = "./";
@@ -64,24 +70,62 @@ void CallPerformer::openFile(const char* filename) {
     std::string effectiveFilename = folder;
     effectiveFilename.append(filename);
     //printf("Effective path: %s,\n", effectiveFilename.c_str());
-    std::shared_ptr<UVFDataset> uvfDS(new UVFDataset(effectiveFilename, 256, false));
 
-    //TODO: this needs to be made dynamic
-    const size_t cacheByteSize = 256*1024*1024;
-    std::array<size_t, 3> maxBrickSize { {1024, 1024, 1024} };
-    ds = new DynamicBrickingDS(uvfDS, maxBrickSize, cacheByteSize, DynamicBrickingDS::MM_DYNAMIC);
+    try {
+        std::shared_ptr<UVFDataset> uvfDS(new UVFDataset(effectiveFilename, 256, false));
 
-    //TODO: also create Renderer
+        FIXME(dataset, "Cache-Size should not be hardcoded!");
+        const size_t cacheByteSize = 256*1024*1024;
+        std::array<size_t, 3> maxBrickSize { {1024, 1024, 1024} };
+        ds = new DynamicBrickingDS(uvfDS, maxBrickSize, cacheByteSize, DynamicBrickingDS::MM_DYNAMIC);
+    }
+    catch(tuvok::Exception e) {
+        ERR(file, "%s", e.what());
+        return false;
+    }
+
+    FIXME(renderer, "Renderer needs to be created!!!");
     renderer = NULL;
+    return true;
 }
 
 void CallPerformer::closeFile(const char* filename) {
     (void)filename; //TODO: maybe keep it around to see, which file to close... currently not planned
+    delete renderer;
     delete ds;
-    ds = NULL;
+    ds          = NULL;
+    renderer    = NULL;
 }
 
 void CallPerformer::rotate(const float *matrix) {
-    //TODO actually implement
-    //Render the scene here
+    if(renderer == NULL) {
+        WARN(renderer, "No renderer created! Aborting request.");
+        return;
+    }
+
+    FIXME(renderer, "Region is not yet initialized anywhere!");
+    tuvok::RenderRegion *region = NULL;
+    FLOATMATRIX4 rotation(matrix);
+    renderer->SetRotationRR(region, rotation);
+}
+
+std::vector<tuvok::BrickKey> CallPerformer::getRenderedBrickKeys() {
+    if(renderer == NULL) {
+        WARN(renderer, "No renderer created! Aborting request.");
+        return std::vector<tuvok::BrickKey>(0);
+    }
+
+    //Retrieve a list of bricks that need to be send to the client
+    const tuvok::GLGridLeaper* glren = dynamic_cast<tuvok::GLGridLeaper*>(renderer);
+    assert(glren && "not a grid leaper?  wrong renderer in us?");
+    const std::vector<UINTVECTOR4> hash = glren->GetNeededBricks();
+    const tuvok::LinearIndexDataset& linearDS = dynamic_cast<const tuvok::LinearIndexDataset&>(*ds);
+
+    size_t totalBrickCount = hash.size();
+    std::vector<tuvok::BrickKey> allKeys(totalBrickCount);
+    for(UINTVECTOR4 b : hash) {
+        allKeys.push_back(linearDS.IndexFrom4D(b, 0));
+    }
+
+    return allKeys;
 }

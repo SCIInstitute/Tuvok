@@ -3,7 +3,6 @@
 #endif
 #include "parameterwrapper.h"
 #include "DebugOut/debug.h"
-#include "GLGridLeaper.h"
 
 DECLARE_CHANNEL(params);
 DECLARE_CHANNEL(bricks);
@@ -263,7 +262,7 @@ void SimpleParams::mpi_sync(int rank, int srcRank) {(void)rank; (void)srcRank;}
 /*#################################*/
 
 void OpenParams::perform(int socket, CallPerformer* object) {
-    object->openFile(filename);
+    bool opened = object->openFile(filename);
 
 #if MPI_ACTIVE
     int rank;
@@ -271,6 +270,11 @@ void OpenParams::perform(int socket, CallPerformer* object) {
     if(rank != 0)
         return; //mpi currently not supported
 #endif
+
+    if(!opened) {
+        wrsizet(socket, 0); //No LODs
+        return;
+    }
 
     //send LODs
     size_t lodCount = object->ds->GetLODLevelCount();
@@ -414,18 +418,7 @@ void RotateParams::perform(int socket, CallPerformer *object) {
 
     //renders the scene
     object->rotate(matrix);
-
-    //Retrieve a list of bricks that need to be send to the client
-    const tuvok::GLGridLeaper* glren = dynamic_cast<tuvok::GLGridLeaper*>(object->renderer);
-    assert(glren && "not a grid leaper?  wrong renderer in us?");
-    const std::vector<UINTVECTOR4> hash = glren->GetNeededBricks();
-    const tuvok::LinearIndexDataset& ds = dynamic_cast<const tuvok::LinearIndexDataset&>(*object->ds);
-
-    size_t totalBrickCount = hash.size();
-    std::vector<tuvok::BrickKey> allKeys(totalBrickCount);
-    for(UINTVECTOR4 b : hash) {
-        allKeys.push_back(ds.IndexFrom4D(b, 0));
-    }
+    std::vector<tuvok::BrickKey> allKeys = object->getRenderedBrickKeys();
 
     NetDataType dType = (NetDataType)type;
     if(dType == N_UINT8)
