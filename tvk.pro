@@ -19,7 +19,6 @@ INCLUDEPATH      += Basics IO/exception
 INCLUDEPATH      += IO/sockethelper
 QT               += opengl
 QMAKE_LIBDIR     += IO/expressions
-LIBS              = -ltuvokexpr
 unix:LIBS        += -lz -lpthread
 win32:LIBS       += shlwapi.lib
 unix:QMAKE_CFLAGS += -std=c99 -Werror

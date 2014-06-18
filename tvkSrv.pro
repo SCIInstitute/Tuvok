@@ -49,7 +49,7 @@ INCLUDEPATH      += $$incpath
 
 #We unfortunately need to link against the original tuvok lib
 QMAKE_LIBDIR += Build IO/expressions
-LIBS         += -lTuvok -ltuvokexpr -lz
+LIBS         += -lTuvok -lz
 !macx:LIBS   += -lGLU
 
 SOURCES += \
