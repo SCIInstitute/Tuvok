@@ -104,13 +104,6 @@ public:
                      bool bUseMaxMode=true,
                      bool bNoUserInteraction=false) const;
 
-  /// evaluates the given expression. v[n] in the expression refers to
-  /// the volume given by volumes[n].
-  void EvaluateExpression(const std::string& expr,
-                          const std::vector<std::string>& volumes,
-                          const std::string& out_fn) const
-                          throw(tuvok::Exception);
-
   bool ReBrickDataset(const std::string& strSourceFilename,
                       const std::string& strTargetFilename,
                       const std::string& strTempDir,
