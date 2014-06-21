@@ -13,6 +13,7 @@ CONFIG          += c++11
 CONFIG          -= app_bundle
 TARGET           = TuvokServer/TuvokServer
 OBJECTS_DIR      = TuvokServer/Build
+unix:DEFINES    += LZHAM_ANSI_CPLUSPLUS=1
 
 #add shaders to build dir
 shaders.path    = $$OUT_PWD/TuvokServer/Shaders
@@ -61,7 +62,7 @@ INCLUDEPATH      += $$incpath
 
 #We unfortunately need to link against the original tuvok lib
 QMAKE_LIBDIR += Build IO/expressions
-LIBS         += -lTuvok -lz
+LIBS         += -lTuvok -lz -lX11
 !macx:LIBS   += -lGLU
 
 SOURCES += \
