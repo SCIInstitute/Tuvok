@@ -11,3 +11,4 @@ qmake \
   -recursive \
   TuvokServer.pro || exit 1
 nice make -j2
+nice make install
