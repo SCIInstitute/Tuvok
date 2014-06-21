@@ -305,6 +305,8 @@ class AbstrRenderer {
     virtual bool PH_IsWorkingSetTrackerAvailable() const;
     ///@}
 
+    std::shared_ptr<RenderRegion3D> GetFirst3DRegion();
+
   public:
     // The following functions are public ONLY because there are dependencies
     // upon them within Tuvok. Their dependencies are listed.
@@ -374,8 +376,6 @@ class AbstrRenderer {
     int GetFrustumCullingLODLevel(const FLOATVECTOR3& vfCenter, 
                                   const FLOATVECTOR3& vfExtent, 
                                   const UINTVECTOR3& viVoxelCount) const;
-
-    std::shared_ptr<RenderRegion3D> GetFirst3DRegion();
 
     virtual void SetRenderCoordArrows(bool bRenderCoordArrows);
     virtual bool GetRenderCoordArrows() const {return m_bRenderCoordArrows;}

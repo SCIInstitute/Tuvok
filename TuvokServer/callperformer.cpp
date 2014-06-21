@@ -165,7 +165,7 @@ bool CallPerformer::openFile(const char* filename) {
 }
 
 void CallPerformer::closeFile(const char* filename) {
-    (void)filename; //TODO: maybe keep it around to see, which file to close... currently not planned
+    (void)filename; /// @TODO: keep it around to see which file to close?
 
     invalidateRenderer();
 }
@@ -177,6 +177,7 @@ void CallPerformer::rotate(const float *matrix) {
         return;
     }
 
+#if 0
     //const FLOATMATRIX4 rotation(matrix);
     //Dirty hack because the lua binding cannot work with MATRIX or VECTOR
     std::string matString = "{";
@@ -186,10 +187,16 @@ void CallPerformer::rotate(const float *matrix) {
     matString += std::to_string(matrix[15]);
     matString += "}";
 
-    std::string rn = rendererInst.fqName();
+    const std::string rn = rendererInst.fqName();
     FIXME(renderer, "For some reason we cannot retrieve the renderRegion...");
     tuvok::LuaClassInstance renderRegion = ss->cexecRet<tuvok::LuaClassInstance>(rn+".getFirst3DRenderRegion");
     ss->exec(renderRegion.fqName()+".setRotation4x4("+matString+")");
+#else
+    AbstrRenderer* ren = rendererInst.getRawPointer<AbstrRenderer>(ss);
+    std::shared_ptr<tuvok::RenderRegion3D> rr3d = ren->GetFirst3DRegion();
+    ren->SetRotationRR(rr3d.get(), FLOATMATRIX4(matrix));
+    const std::string rn = rendererInst.fqName();
+#endif
     ss->cexec(rn+".paint");
 }
 
