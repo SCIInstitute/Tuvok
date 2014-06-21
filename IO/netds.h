@@ -34,17 +34,20 @@ struct DSMetaData {
     float *md_extents;
     uint32_t *md_n_voxels;
     
-    //TODO: We are supposed to also send brick zero
-    //(Which type?)
+    //To find out the type of data inside the set
+    struct PlainTypeInfo typeInfo;
+
+    //brick zero
+    void* brickZero;
 };
-EXPORT void netds_open(const char* filename, struct DSMetaData* out_meta);
+EXPORT bool netds_open(const char* filename, struct DSMetaData* out_meta);
 EXPORT void netds_close(const char* filename);
 EXPORT char** netds_list_files(size_t* count);
 EXPORT void netds_shutdown();
 
 //Initiates a sending of bricks that the client might need!
 //call netds_setBatchSize first!!!
-EXPORT void netds_rotation(const float m[16], enum NetDataType type);
+EXPORT void netds_rotation(const float m[16]);
 //The server always sends bricks in form of batches
 //This allows the sending of another rotation to restart the sending process
 EXPORT void netds_setBatchSize(size_t maxBatchSize);
@@ -57,6 +60,11 @@ struct BatchInfo {
     size_t* brickSizes;
     bool moreDataComing;
 };
+void freeBatchInfo(struct BatchInfo* info) {
+    free(info->lods);
+    free(info->idxs);
+    free(info->brickSizes);
+}
 // !!! It can also happen, that the batchSize is zero, then NULL will be returned !!!
 EXPORT uint8_t**  netds_readBrickBatch_ui8(struct BatchInfo* out_info);
 EXPORT uint16_t** netds_readBrickBatch_ui16(struct BatchInfo* out_info);

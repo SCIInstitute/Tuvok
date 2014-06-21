@@ -15,13 +15,16 @@
 #include "netds.h"
 
 /* file descriptor for server we're pushing requests to. */
-static int remote = -1;
+static int remote   = -1;
+static int remote2  = -1;
+
 /* port number we'll connect to on the server */
-static const unsigned short port = 4445;
+static const unsigned short portA = 4445;
+static const unsigned short portB = 4446; //For batches
 
 /* returns file descriptor of connected socket. */
 static int
-connect_server() {
+connect_server(unsigned short port) {
   const char* host = getenv("IV3D_SERVER");
   if(host == NULL) {
     fprintf(stderr, "You need to set the IV3D_SERVER environment variable to "
@@ -79,13 +82,19 @@ connect_server() {
 
 static void
 force_connect() {
-  if(remote == -1) {
-    if((remote = connect_server())== -1) {
-      fprintf(stderr, "Bailing due to error.\n");
-      abort();
+    if(remote == -1) {
+        if((remote = connect_server(portA))== -1) {
+            fprintf(stderr, "Bailing due to error.\n");
+            abort();
+        }
     }
-  }
-  assert(remote > 0);
+    if(remote2 == -1) {
+        if((remote2 = connect_server(portB))== -1) {
+            fprintf(stderr, "Bailing due to error.\n");
+            abort();
+        }
+    }
+    assert(remote > 0);
 }
 
 void sharedBrickStuff(const size_t LoD, const size_t brickidx, enum NetDataType type) {
@@ -211,6 +220,7 @@ netds_brick_request_ui32v(const size_t brickCount, const size_t* lods, const siz
 }
 
 void sharedBatchReadStuff(struct BatchInfo* out_info) {
+    force_connect();
     size_t batchSize;
     rsizet(remote, &batchSize);
     out_info->batchSize = batchSize;
@@ -240,7 +250,7 @@ uint8_t**  netds_readBrickBatch_ui8(struct BatchInfo* out_info) {
     uint8_t** retArray = malloc(sizeof(uint8_t*) * out_info->batchSize);
     for(size_t i = 0; i < out_info->batchSize; i++) {
         retArray[i] = malloc(sizeof(uint8_t) * out_info->brickSizes[i]);
-        ru8v_d(remote, retArray[i], out_info->brickSizes[i]);
+        ru8v_d(remote2, retArray[i], out_info->brickSizes[i]);
     }
     return retArray;
 }
@@ -253,7 +263,7 @@ uint16_t** netds_readBrickBatch_ui16(struct BatchInfo* out_info) {
     uint16_t** retArray = malloc(sizeof(uint16_t*) * out_info->batchSize);
     for(size_t i = 0; i < out_info->batchSize; i++) {
         retArray[i] = malloc(sizeof(uint16_t) * out_info->brickSizes[i]);
-        ru16v_d(remote, retArray[i], out_info->brickSizes[i]);
+        ru16v_d(remote2, retArray[i], out_info->brickSizes[i]);
     }
     return retArray;
 }
@@ -266,12 +276,12 @@ uint32_t** netds_readBrickBatch_ui32(struct BatchInfo* out_info) {
     uint32_t** retArray = malloc(sizeof(uint32_t*) * out_info->batchSize);
     for(size_t i = 0; i < out_info->batchSize; i++) {
         retArray[i] = malloc(sizeof(uint32_t) * out_info->brickSizes[i]);
-        ru32v_d(remote, retArray[i], out_info->brickSizes[i]);
+        ru32v_d(remote2, retArray[i], out_info->brickSizes[i]);
     }
     return retArray;
 }
 
-void netds_open(const char* filename, struct DSMetaData* out_meta)
+bool netds_open(const char* filename, struct DSMetaData* out_meta)
 {
     force_connect();
     const size_t len = strlen(filename)+1;
@@ -281,18 +291,21 @@ void netds_open(const char* filename, struct DSMetaData* out_meta)
     }
     if(len == 0) {
         fprintf(stderr, "open of blank filename?  ignoring.\n");
-        return;
+        return false;
     }
     wru8(remote, (uint8_t)nds_OPEN);
     wru16(remote, (uint16_t)len);
     wr(remote, filename, len);
-    
+
     //Read meta-data from server
     rsizet(remote, &out_meta->lodCount);
-    
-    if (&out_meta->lodCount == 0) {
-        return;
+    if (out_meta->lodCount == 0) {
+        return false;
     }
+
+    uint8_t ntype;
+    ru8(remote, &ntype);
+    out_meta->typeInfo = bitWidthFromNType(ntype);
     
     size_t layoutsCount;
     ru32v(remote, &out_meta->layouts, &layoutsCount);
@@ -316,7 +329,9 @@ void netds_open(const char* filename, struct DSMetaData* out_meta)
     rf32v_d(remote, &out_meta->md_extents[0], brickCount * 3);
     ru32v_d(remote, &out_meta->md_n_voxels[0], brickCount * 3);
     
-    //Receive brick zero?
+    //TODO: Receive brick zero?
+    
+    return true;
 }
 
 void
@@ -342,14 +357,13 @@ void netds_shutdown() {
     wru8(remote, nds_SHUTDOWN);
 }
 
-void netds_rotation(const float m[16], enum NetDataType type) {
+void netds_rotation(const float m[16]) {
     if(remote == -1) { /* ignore rotations if not connected. */
         return;
     }
     /* we might want to start thinking about cork/uncorking our sends .. */
     wru8(remote, (uint8_t)nds_ROTATION);
-    wrf32v(remote, m, 16);
-    wru8(remote, (uint8_t)type);
+    wrf32v_d(remote, m, 16);
 }
     
 char** netds_list_files(size_t* count)

@@ -56,6 +56,49 @@ void checkEndianness(int socket) {
     }
 }
 
+enum NetDataType netTypeForPlainT(struct PlainTypeInfo info) {
+    return netTypeForBitWidth(info.bitwidth, info.is_signed, info.is_float);
+}
+
+enum NetDataType netTypeForBitWidth(size_t width, bool is_signed, bool is_float) {
+    if(is_float && width == 32)
+        return N_FL32;
+    else if(!is_float && !is_signed) {
+        if(width == 8)
+            return N_UINT8;
+        else if(width == 16)
+            return N_UINT16;
+        else if(width == 32)
+            return N_UINT32;
+    }
+
+    return N_NOT_SUPPORTED;
+}
+
+struct PlainTypeInfo bitWidthFromNType(enum NetDataType type) {
+    struct PlainTypeInfo retVal;
+    if(type == N_FL32) {
+        retVal.bitwidth = 32;
+        retVal.is_float = true;
+        retVal.is_signed = true;
+        return retVal;
+    }
+
+    retVal.is_float     = false;
+    retVal.is_signed    = false;
+
+    if(type == N_UINT8)
+        retVal.bitwidth = 8;
+    else if(type == N_UINT16)
+        retVal.bitwidth = 16;
+    else if(type == N_UINT32)
+        retVal.bitwidth = 32;
+    else
+        retVal.bitwidth = 0; // Not supported
+
+    return retVal;
+}
+
 /*#################################*/
 /*#######       Write       #######*/
 /*#################################*/
@@ -264,7 +307,7 @@ int readFromSocket(int socket, void *buffer, size_t len) {
 
     int byteCount = (int)recv(socket, buffer, len, MSG_WAITALL);
     if (byteCount < 0) {
-        fprintf(stderr, "Failed to receive message from client!\n");
+        fprintf(stderr, "Failed to receive message! (errno %d)\n", errno);
         close(socket);
         exit(EXIT_FAILURE);
     }

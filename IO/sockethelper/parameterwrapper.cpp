@@ -26,7 +26,7 @@ ParameterWrapper* ParamFactory::createFrom(NetDSCommandCode cmd, int socket) {
         return new ShutdownParams(cmd);
         break;
     case nds_ROTATION:
-        return new RotateParams(cmd);
+        return new RotateParams(socket);
         break;
     case nds_BATCHSIZE:
         return new BatchSizeParams(socket);
@@ -39,6 +39,12 @@ ParameterWrapper* ParamFactory::createFrom(NetDSCommandCode cmd, int socket) {
     return NULL;
 }
 
+NetDataType netTypeForDataset(tuvok::Dataset* ds) {
+    size_t width = static_cast<size_t>(ds->GetBitWidth());
+    bool is_signed = ds->GetIsSigned();
+    bool is_float = ds->GetIsFloat();
+    return netTypeForBitWidth(width, is_signed, is_float);
+}
 
 /*#################################*/
 /*#######   Constructors    #######*/
@@ -75,9 +81,14 @@ BrickParams::BrickParams(int socket)
 }
 
 RotateParams::RotateParams(int socket)
-    :ParameterWrapper(nds_ROTATION), matSize(0) {
+    :ParameterWrapper(nds_ROTATION), matSize(16) {
+    rotMatrix = new float[matSize];
     if (socket != -1)
         initFromSocket(socket);
+}
+
+RotateParams::~RotateParams() {
+    delete rotMatrix;
 }
 
 SimpleParams::SimpleParams(NetDSCommandCode code)
@@ -138,8 +149,7 @@ void BatchSizeParams::initFromSocket(int socket) {
 }
 
 void RotateParams::initFromSocket(int socket) {
-    rf32v(socket, &matrix, &matSize);
-    ru8(socket, &type);
+    rf32v_d(socket, &rotMatrix[0], matSize);
     TRACE(params, "ROTATE");
 }
 
@@ -176,7 +186,7 @@ void BatchSizeParams::writeToSocket(int socket) {
 
 void RotateParams::writeToSocket(int socket) {
     wru8(socket, code);
-    wrf32v(socket, matrix, 16);
+    wrf32v(socket, rotMatrix, 16);
 }
 
 void BrickParams::writeToSocket(int socket) {
@@ -261,7 +271,8 @@ void SimpleParams::mpi_sync(int rank, int srcRank) {(void)rank; (void)srcRank;}
 /*######     Executing       ######*/
 /*#################################*/
 
-void OpenParams::perform(int socket, CallPerformer* object) {
+void OpenParams::perform(int socket, int socketB, CallPerformer* object) {
+    (void)socketB;
     bool opened = object->openFile(filename);
 
 #if MPI_ACTIVE
@@ -277,14 +288,20 @@ void OpenParams::perform(int socket, CallPerformer* object) {
     }
 
     //send LODs
-    size_t lodCount = object->ds->GetLODLevelCount();
+    size_t lodCount = object->getDataSet()->GetLODLevelCount();
     wrsizet(socket, lodCount);
+
+    if(lodCount == 0)
+        return;
+
+    const uint8_t ntype = (uint8_t)netTypeForDataset(object->getDataSet());
+    wru8(socket, ntype);
 
     //Send layouts
     size_t layoutsCount = lodCount * 3;
     uint32_t layouts[layoutsCount];
     for(size_t lod=0; lod < lodCount; ++lod) {
-        UINTVECTOR3 layout = object->ds->GetBrickLayout(lod, 0);
+        UINTVECTOR3 layout = object->getDataSet()->GetBrickLayout(lod, 0);
         layouts[lod * 3 + 0] = layout.x;
         layouts[lod * 3 + 1] = layout.y;
         layouts[lod * 3 + 2] = layout.z;
@@ -292,7 +309,7 @@ void OpenParams::perform(int socket, CallPerformer* object) {
     wru32v(socket, &layouts[0], layoutsCount);
 
     //write total count of bricks out
-    size_t brickCount = object->ds->GetTotalBrickCount();
+    size_t brickCount = object->getDataSet()->GetTotalBrickCount();
     wrsizet(socket, brickCount);
 
     //We need the brick Keys
@@ -305,7 +322,7 @@ void OpenParams::perform(int socket, CallPerformer* object) {
 
     //Actually read the data
     size_t i = 0;
-    for(auto brick = object->ds->BricksBegin(); brick != object->ds->BricksEnd(); brick++, i++) {
+    for(auto brick = object->getDataSet()->BricksBegin(); brick != object->getDataSet()->BricksEnd(); brick++, i++) {
         tuvok::BrickKey key    = brick->first;
         tuvok::BrickMD md      = brick->second;
 
@@ -332,18 +349,20 @@ void OpenParams::perform(int socket, CallPerformer* object) {
     wru32v_d(socket, &md_n_voxels[0], brickCount * 3);
 }
 
-void CloseParams::perform(int socket, CallPerformer* object) {
+void CloseParams::perform(int socket, int socketB, CallPerformer* object) {
     object->closeFile(filename);
+    (void)socketB;
     (void)socket; //currently no answer
 }
 
-void BatchSizeParams::perform(int socket, CallPerformer *object) {
+void BatchSizeParams::perform(int socket, int socketB, CallPerformer *object) {
     object->maxBatchSize = newBatchSize;
+    (void)socketB;
     (void)socket;
 }
 
 template <class T>
-void startBrickSendLoop(int socket, CallPerformer *object, std::vector<tuvok::BrickKey>& allKeys) {
+void startBrickSendLoop(int socket, int socketB, CallPerformer *object, std::vector<tuvok::BrickKey>& allKeys) {
     uint8_t moreDataComing = 1;
     size_t offset = 0;
 
@@ -360,8 +379,8 @@ void startBrickSendLoop(int socket, CallPerformer *object, std::vector<tuvok::Br
         // Therefore we always send a last "empty batch" that the client can handle.
         if(newDataOnSocket(socket)) {
             TRACE(bricks, "Received new request. Interrupting current brick-batch-sending.");
-            wrsizet(socket, 0);
-            wru8(socket, 0);
+            wrsizet(socketB, 0);
+            wru8(socketB, 0);
             break;
         }
 
@@ -386,8 +405,8 @@ void startBrickSendLoop(int socket, CallPerformer *object, std::vector<tuvok::Br
         moreDataComing = (offset == (allKeys.size() - 1)) ? 0 : 1;
 
         //Tell client how many bricks to expect
-        wrsizet(socket, actualBatchSize);
-        wru8(socket, moreDataComing);
+        wrsizet(socketB, actualBatchSize);
+        wru8(socketB, moreDataComing);
 
         if(actualBatchSize > 0) {
             for(size_t i = 0; i < actualBatchSize; i++) {
@@ -395,19 +414,19 @@ void startBrickSendLoop(int socket, CallPerformer *object, std::vector<tuvok::Br
                 brickSizes[i] = batchBricks[i].size();
             }
 
-            wrsizetv_d(socket, &lods[0], actualBatchSize);
-            wrsizetv_d(socket, &idxs[0], actualBatchSize);
-            wrsizetv_d(socket, &brickSizes[0], actualBatchSize);
+            wrsizetv_d(socketB, &lods[0], actualBatchSize);
+            wrsizetv_d(socketB, &idxs[0], actualBatchSize);
+            wrsizetv_d(socketB, &brickSizes[0], actualBatchSize);
 
             for(size_t i = 0; i < actualBatchSize; i++) {
                 if(brickSizes[i] > 0)
-                    wr_multiple(socket, &batchBricks[i][0], brickSizes[i], false);
+                    wr_multiple(socketB, &batchBricks[i][0], brickSizes[i], false);
             }
         }
     }
 }
 
-void RotateParams::perform(int socket, CallPerformer *object) {
+void RotateParams::perform(int socket, int socketB, CallPerformer *object) {
 
 #if MPI_ACTIVE
     int rank;
@@ -417,19 +436,20 @@ void RotateParams::perform(int socket, CallPerformer *object) {
 #endif
 
     //renders the scene
-    object->rotate(matrix);
+    object->rotate(rotMatrix);
     std::vector<tuvok::BrickKey> allKeys = object->getRenderedBrickKeys();
 
-    NetDataType dType = (NetDataType)type;
+    NetDataType dType = netTypeForDataset(object->getDataSet());
     if(dType == N_UINT8)
-        startBrickSendLoop<uint8_t>(socket, object, allKeys);
+        startBrickSendLoop<uint8_t>(socket, socketB, object, allKeys);
     else if(dType == N_UINT16)
-        startBrickSendLoop<uint16_t>(socket, object, allKeys);
+        startBrickSendLoop<uint16_t>(socket, socketB, object, allKeys);
     else if(dType == N_UINT32)
-        startBrickSendLoop<uint32_t>(socket, object, allKeys);
+        startBrickSendLoop<uint32_t>(socket, socketB, object, allKeys);
 }
 
-void BrickParams::perform(int socket, CallPerformer* object) {
+void BrickParams::perform(int socket, int socketB, CallPerformer* object) {
+    (void)socketB;
 #if MPI_ACTIVE
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -440,7 +460,7 @@ void BrickParams::perform(int socket, CallPerformer* object) {
     // => get from another MPI process that has brick in cash
 #endif
 
-    NetDataType dType = (NetDataType)type;
+    NetDataType dType = netTypeForDataset(object->getDataSet());
 
     if(dType == N_UINT8)
         internal_brickPerform<uint8_t>(socket, object);
@@ -450,7 +470,8 @@ void BrickParams::perform(int socket, CallPerformer* object) {
         internal_brickPerform<uint32_t>(socket, object);
 }
 
-void ListFilesParams::perform(int socket, CallPerformer* object) {
+void ListFilesParams::perform(int socket, int socketB, CallPerformer* object) {
+    (void)socketB;
 #if MPI_ACTIVE
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -466,7 +487,8 @@ void ListFilesParams::perform(int socket, CallPerformer* object) {
     }
 }
 
-void ShutdownParams::perform(int socket, CallPerformer* object) {
+void ShutdownParams::perform(int socket, int socketB, CallPerformer* object) {
+    (void)socketB;
     //Not necessary
     (void)socket; //currently no answer
     (void)object;

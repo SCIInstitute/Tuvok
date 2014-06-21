@@ -27,10 +27,21 @@ enum NetDSCommandCode {
 enum NetDataType {
     N_UINT8 = 0,
     N_UINT16,
-    N_UINT32
+    N_UINT32,
+    N_FL32,
+    N_NOT_SUPPORTED
+};
+
+struct PlainTypeInfo {
+    size_t bitwidth;
+    bool is_signed;
+    bool is_float;
 };
 
 EXPORT void checkEndianness(int socket);
+EXPORT enum NetDataType netTypeForPlainT(struct PlainTypeInfo info);
+EXPORT enum NetDataType netTypeForBitWidth(size_t width, bool is_signed, bool is_float);
+EXPORT struct PlainTypeInfo bitWidthFromNType(enum NetDataType type);
 
 //For writing
 EXPORT bool wrmsg(int  fd, const void* buffer, const size_t len);

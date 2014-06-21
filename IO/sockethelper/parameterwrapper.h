@@ -24,7 +24,7 @@ public:
     virtual void initFromSocket(int socket)         = 0;
     virtual void writeToSocket(int socket)          = 0;
     virtual void mpi_sync(int rank, int srcRank)    = 0;
-    virtual void perform(int socket, CallPerformer* object)  = 0;
+    virtual void perform(int socket, int socketB, CallPerformer* object)  = 0;
 };
 
 class OpenParams : public ParameterWrapper
@@ -37,7 +37,7 @@ public:
     void initFromSocket(int socket);
     void writeToSocket(int socket);
     void mpi_sync(int rank, int srcRank);
-    void perform(int socket, CallPerformer* object);
+    void perform(int socket, int socketB, CallPerformer* object);
 };
 
 class CloseParams : public ParameterWrapper
@@ -50,7 +50,7 @@ public:
     void initFromSocket(int socket);
     void writeToSocket(int socket);
     void mpi_sync(int rank, int srcRank);
-    void perform(int socket, CallPerformer* object);
+    void perform(int socket, int socketB, CallPerformer* object);
 };
 
 class BatchSizeParams : public ParameterWrapper
@@ -62,7 +62,7 @@ public:
     void initFromSocket(int socket);
     void writeToSocket(int socket);
     void mpi_sync(int rank, int srcRank);
-    void perform(int socket, CallPerformer* object);
+    void perform(int socket, int socketB, CallPerformer* object);
 };
 
 class RotateParams : public ParameterWrapper
@@ -70,15 +70,15 @@ class RotateParams : public ParameterWrapper
     bool newDataOnSocket(int sock);
 
 public:
-    uint8_t type; //When using, cast to NetDataType first... here we leave it as uint8_t for easier MPI-Syncing
     size_t matSize;
-    float *matrix;
+    float *rotMatrix;
 
     RotateParams(int socket = -1);
+    ~RotateParams();
     void initFromSocket(int socket);
     void writeToSocket(int socket);
     void mpi_sync(int rank, int srcRank);
-    void perform(int socket, CallPerformer* object);
+    void perform(int socket, int socketB, CallPerformer* object);
 };
 
 class BrickParams : public ParameterWrapper
@@ -101,7 +101,7 @@ public:
     void initFromSocket(int socket);
     void writeToSocket(int socket);
     void mpi_sync(int rank, int srcRank);
-    void perform(int socket, CallPerformer* object);
+    void perform(int socket, int socketB, CallPerformer* object);
 };
 
 //For functions that don't need parameters
@@ -118,14 +118,14 @@ class ListFilesParams : public SimpleParams
 {
 public:
     ListFilesParams(NetDSCommandCode code);
-    void perform(int socket, CallPerformer* object);
+    void perform(int socket, int socketB, CallPerformer* object);
 };
 
 class ShutdownParams : public SimpleParams
 {
 public:
     ShutdownParams(NetDSCommandCode code);
-    void perform(int socket, CallPerformer* object);
+    void perform(int socket, int socketB, CallPerformer* object);
 };
 
 

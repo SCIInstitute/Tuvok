@@ -100,15 +100,12 @@ int main(int argc, char *argv[])
     int shouldShutdown = false;
     while(!shouldShutdown) {
 
-        int clientPort = -1;
-        if(server != NULL)
-            clientPort = server->waitAndAccept();
+        int shouldDisconnect    = !server->waitAndAccept();
 
-        int shouldDisconnect = false;
         while(!shouldDisconnect) {
             ParameterWrapper *params = NULL;
             if(server != NULL) {
-                 params = server->processNextCommand(clientPort);
+                 params = server->processNextCommand(server->getRequestSocket());
                  if (params == NULL)
                     shouldDisconnect = true;
                  else if(params->code == nds_SHUTDOWN) {
@@ -120,7 +117,7 @@ int main(int argc, char *argv[])
                 break;
 
             //Perform request and return answer
-            params->perform(clientPort, performer);
+            params->perform(server->getRequestSocket(), server->getBatchSocket(), performer);
 
             delete params;
             params = NULL;
@@ -128,7 +125,7 @@ int main(int argc, char *argv[])
         }
 
         if(server != NULL) {
-            server->disconnect(clientPort);
+            server->disconnect(server->getRequestSocket());
         }
     }
     printf("Server received shutdown command!\n");

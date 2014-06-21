@@ -16,7 +16,7 @@ in_port_t get_in_port(struct sockaddr *sa)
     return (((struct sockaddr_in6*)sa)->sin6_port);
 }
 
-TvkServer::TvkServer(unsigned short port) {
+int listenAndBind(unsigned short port) {
     struct addrinfo hints;
     memset(&hints, 0, sizeof(struct addrinfo));
     hints.ai_family     = AF_UNSPEC;    /* Allow IPv4 or IPv6 */
@@ -45,6 +45,8 @@ TvkServer::TvkServer(unsigned short port) {
            If socket(2) (or bind(2)) fails, we (close the socket
            and) try the next address. */
     struct addrinfo *rp;
+
+    int listen_s;
     for (rp = result; rp != NULL; rp = rp->ai_next) {
         listen_s = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
         if (listen_s == -1)
@@ -57,7 +59,7 @@ TvkServer::TvkServer(unsigned short port) {
     }
 
     if (rp == NULL) {               /* No address succeeded */
-        fprintf(stderr, "Could not bind\n");
+        fprintf(stderr, "Could not bind to socket. Already in use?\n");
         exit(EXIT_FAILURE);
     }
     else if ( listen(listen_s, LISTEN_BACKLOG) < 0 ) {
@@ -66,17 +68,42 @@ TvkServer::TvkServer(unsigned short port) {
     }
 
 #if DEBUG_SERVER
-    printf("Server created, listening on port %d.\n", ntohs(get_in_port(rp->ai_addr)));
+    printf("listening on port %d\n", ntohs(get_in_port(rp->ai_addr)));
 #endif
 
     freeaddrinfo(result); /* No longer needed */
+    return listen_s;
 }
 
-int TvkServer::waitAndAccept() {
+TvkServer::TvkServer(unsigned short port, unsigned short portB) {
+    listen_a = listenAndBind(port);
+    listen_b = listenAndBind(portB);
+    printf("Server created.\n");
+}
+
+bool magicCheck(int socket) {
+    char buf[4];
+    int byteCount = readFromSocket(socket, buf, sizeof(char)*4);
+
+    if (byteCount < 4) {
+        printf("Could not find magic on stream (not enough data)!\n");
+        return false;
+    }
+
+    if (buf[0] != 'I' || buf[1] != 'V' || buf[2] != '3' || buf[3] != 'D') {
+        printf("Could not find magic on stream!\n");
+        return false;
+    }
+
+    return true;
+}
+
+int acceptOnListeningPort(int listen_s) {
     /*  Wait for a connection, then accept() it  */
     struct sockaddr_in peer_addr;
     socklen_t peer_addr_size = sizeof(struct sockaddr_in);
 
+    int conn_s;
     if ( (conn_s = accept(listen_s, (struct sockaddr *)&peer_addr, &peer_addr_size) ) < 0 ) {
         fprintf(stderr, "ECHOSERV: Error calling accept()\n");
         exit(EXIT_FAILURE);
@@ -98,6 +125,15 @@ int TvkServer::waitAndAccept() {
     return conn_s;
 }
 
+bool TvkServer::waitAndAccept() {
+    printf("Waiting for a new client connection...\n");
+    conn_a = acceptOnListeningPort(listen_a);
+    conn_b = acceptOnListeningPort(listen_b);
+    //TODO: should also check for same address
+
+    return true;
+}
+
 void TvkServer::disconnect(int socket) {
     /*  Close the connected socket*/
     if ( close(socket) < 0 ) {
@@ -108,23 +144,6 @@ void TvkServer::disconnect(int socket) {
         printf("Client disconnected.\n");
 }
 
-bool TvkServer::magicCheck(int socket) {
-    char buf[4];
-    int byteCount = readFromSocket(socket, buf, sizeof(char)*4);
-
-    if (byteCount < 4) {
-        printf("Could not find magic on stream (not enough data)!\n");
-        return false;
-    }
-
-    if (buf[0] != 'I' || buf[1] != 'V' || buf[2] != '3' || buf[3] != 'D') {
-        printf("Could not find magic on stream!\n");
-        return false;
-    }
-
-    return true;
-}
-
 ParameterWrapper* TvkServer::processNextCommand(int socket) {
     uint8_t cmd;
     if(!ru8(socket, &cmd))
@@ -133,3 +152,10 @@ ParameterWrapper* TvkServer::processNextCommand(int socket) {
         return ParamFactory::createFrom((NetDSCommandCode)cmd, socket);
 }
 
+int TvkServer::getRequestSocket() {
+    return conn_a;
+}
+
+int TvkServer::getBatchSocket() {
+    return conn_b;
+}
