@@ -75,7 +75,7 @@ void typedMultiTest(NetDataType dType, DSMetaData metaData) {
 
 template <typename T>
 void typedRotationTest(NetDataType dType, DSMetaData metaData) {
-    printf("\nRequesting rotation with identity matrix.");
+    printf("\nRequesting rotation with identity matrix.\n");
     netds_setBatchSize(20);
     
     float identityMatrix[16] = {1, 0, 0, 0,
