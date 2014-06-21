@@ -131,7 +131,7 @@ bool CallPerformer::openFile(const char* filename) {
 
     rendererInst = ss->cexecRet<tuvok::LuaClassInstance>(
                 "tuvok.renderer.new",
-                tuvok::MasterController::OPENGL_SBVR, false, false,
+                tuvok::MasterController::OPENGL_SBVR, true, false,
                 false, false);
 
     std::string rn = rendererInst.fqName();
