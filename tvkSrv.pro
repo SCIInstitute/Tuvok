@@ -62,8 +62,8 @@ INCLUDEPATH      += $$incpath
 
 #We unfortunately need to link against the original tuvok lib
 QMAKE_LIBDIR += Build IO/expressions
-LIBS         += -lTuvok -lz -lX11
-!macx:LIBS   += -lGLU
+LIBS         += -lTuvok -lz
+!macx:LIBS   += -lGLU -lX11
 
 SOURCES += \
     TuvokServer/main.cpp \

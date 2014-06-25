@@ -129,7 +129,7 @@ bool TvkServer::waitAndAccept() {
     printf("Waiting for a new client connection...\n");
     conn_a = acceptOnListeningPort(listen_a);
     conn_b = acceptOnListeningPort(listen_b);
-    //TODO: should also check for same address
+    // @TODO: should also check for same address
 
     return true;
 }

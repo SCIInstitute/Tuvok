@@ -131,7 +131,7 @@ bool CallPerformer::openFile(const char* filename) {
 
     rendererInst = ss->cexecRet<tuvok::LuaClassInstance>(
                 "tuvok.renderer.new",
-                tuvok::MasterController::OPENGL_SBVR, true, false,
+                tuvok::MasterController::OPENGL_GRIDLEAPER, true, false,
                 false, false);
 
     std::string rn = rendererInst.fqName();
@@ -208,7 +208,8 @@ std::vector<tuvok::BrickKey> CallPerformer::getRenderedBrickKeys() {
     }
 
     //Retrieve a list of bricks that need to be send to the client
-    const tuvok::GLGridLeaper* glren = dynamic_cast<tuvok::GLGridLeaper*>(getRenderer());
+    AbstrRenderer* tmp_ren = getRenderer();
+    const tuvok::GLGridLeaper* glren = dynamic_cast<tuvok::GLGridLeaper*>(tmp_ren);
     assert(glren && "not a grid leaper?  wrong renderer in us?");
     const std::vector<UINTVECTOR4> hash = glren->GetNeededBricks();
     const tuvok::LinearIndexDataset& linearDS = dynamic_cast<const tuvok::LinearIndexDataset&>(*getDataSet());
