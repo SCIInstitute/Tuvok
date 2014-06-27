@@ -84,6 +84,11 @@ void LuaIOManagerProxy::bind()
                                nm + "rebrickDataset", "", false);
     id = mReg.registerFunction(this, &LuaIOManagerProxy::ConvertDataset,
                                nm + "convertDataset", "", false);
+    mSS->addParamInfo(id, 0, "file list", "list of files to convert");
+    mSS->addParamInfo(id, 1, "dest", "destination file");
+    mSS->addParamInfo(id, 2, "temp", "directory to use as tmp");
+    mSS->addParamInfo(id, 3, "interaction", "interaction allowed?");
+    mSS->addParamInfo(id, 4, "quantize", "quantize to 8bit?");
     id = mReg.registerFunction(this, 
                                &LuaIOManagerProxy::ConvertDatasetWithStack,
                                nm + "convertDatasetWithStack", "", false);
