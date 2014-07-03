@@ -387,10 +387,12 @@ void startBrickSendLoop(int socket, int socketB, CallPerformer *object, std::vec
         //Reset
         lods.resize(0);
         idxs.resize(0);
-        brickSizes.resize(0);
+        //brickSizes.resize(0);
+/*
         for(size_t i = 0; i < batchBricks.size(); i++)
             batchBricks[i].resize(0);
-        batchBricks.resize(0);
+        batchBricks.clear();
+        batchBricks.resize();*/
 
         //Get the brick keys for this batch
         for(size_t i = 0; i < maxBatchSize && (i + offset) < allKeys.size(); i++) {
@@ -446,6 +448,8 @@ void RotateParams::perform(int socket, int socketB, CallPerformer *object) {
         startBrickSendLoop<uint16_t>(socket, socketB, object, allKeys);
     else if(dType == N_UINT32)
         startBrickSendLoop<uint32_t>(socket, socketB, object, allKeys);
+
+    printf("Done sending bricks!\n");
 }
 
 void BrickParams::perform(int socket, int socketB, CallPerformer* object) {

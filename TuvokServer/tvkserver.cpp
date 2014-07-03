@@ -52,6 +52,10 @@ int listenAndBind(unsigned short port) {
         if (listen_s == -1)
             continue;
 
+        // @TODO: Remove setsockopt again, only for debug reasons!
+        int foo = 1;
+        setsockopt(listen_s, SOL_SOCKET, SO_REUSEADDR, &foo, sizeof(int));
+
         if (bind(listen_s, rp->ai_addr, rp->ai_addrlen) == 0)
             break;                  /* Success */
 

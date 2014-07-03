@@ -69,13 +69,15 @@ vector<std::string> CallPerformer::listFiles() {
     struct dirent *ent;
 
     if ((dir = opendir (folder)) != NULL) {
-        printf("\nFound the following files:\n");
+        printf("\nFound the following files in folder %s:\n", folder);
         /* print all the files and directories within directory */
         while ((ent = readdir (dir)) != NULL) {
 
             //No directories
             if(ent->d_type != DT_DIR) {
                 std::string fname = ent->d_name;
+
+                printf("%s\n", fname.c_str());
 
                 //Only files ending in .uvf
                 if (fname.find(extension, (fname.length() - extension.length())) != std::string::npos) {
@@ -124,6 +126,9 @@ bool CallPerformer::openFile(const char* filename) {
     uint32_t height = 1200;
 
     std::string effectiveFilename = folder;
+    if(effectiveFilename.back() != '/') {
+        effectiveFilename.append("/");
+    }
     effectiveFilename.append(filename);
 
     //Create renderer
@@ -133,6 +138,10 @@ bool CallPerformer::openFile(const char* filename) {
                 "tuvok.renderer.new",
                 tuvok::MasterController::OPENGL_GRIDLEAPER, true, false,
                 false, false);
+
+    if(!rendererInst.isValid(ss)) {
+        abort(); //@TODO: properly handle
+    }
 
     std::string rn = rendererInst.fqName();
 
@@ -155,7 +164,9 @@ bool CallPerformer::openFile(const char* filename) {
 
     //Create openGL-context
     std::shared_ptr<tuvok::Context> ctx = createContext(width, height, 32, 24, 8, true, false);
+
     //Render init
+    //getRenderer()->Initialize(ctx);
     ss->cexec(rn+".initialize", ctx);
     ss->exec(rn+".resize("+resStr+")");
     //ss->cexec(rn+".setRendererTarget", tuvok::AbstrRenderer::RT_HEADLESS); //From CMDRenderer.cpp... but no idea why
