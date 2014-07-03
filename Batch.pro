@@ -25,7 +25,7 @@ win32       { DEFINES += "DETECTED_OS_WINDOWS" }
     QMAKE_LFLAGS    += -fopenmp
 
     QMAKE_CFLAGS    += -std=c99 -Werror
-    QMAKE_CXXFLAGS  += -std=c++11
+    QMAKE_CXXFLAGS  += -std=c++0x
 }
 macx {
     QMAKE_CFLAGS    += -mmacosx-version-min=10.7
