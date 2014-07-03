@@ -222,11 +222,11 @@ netds_brick_request_ui32v(const size_t brickCount, const size_t* lods, const siz
 void sharedBatchReadStuff(struct BatchInfo* out_info) {
     force_connect();
     size_t batchSize;
-    rsizet(remote, &batchSize);
+    rsizet(remote2, &batchSize);
     out_info->batchSize = batchSize;
 
     uint8_t moreNet;
-    ru8(remote, &moreNet);
+    ru8(remote2, &moreNet);
     out_info->moreDataComing = (moreNet == 1);
 
     if(batchSize <= 0)
@@ -236,9 +236,9 @@ void sharedBatchReadStuff(struct BatchInfo* out_info) {
     out_info->idxs          = malloc(sizeof(size_t) * batchSize);
     out_info->brickSizes    = malloc(sizeof(size_t) * batchSize);
 
-    rsizetv_d(remote, &out_info->lods[0],       batchSize);
-    rsizetv_d(remote, &out_info->idxs[0],       batchSize);
-    rsizetv_d(remote, &out_info->brickSizes[0], batchSize);
+    rsizetv_d(remote2, &out_info->lods[0],       batchSize);
+    rsizetv_d(remote2, &out_info->idxs[0],       batchSize);
+    rsizetv_d(remote2, &out_info->brickSizes[0], batchSize);
 }
 
 uint8_t**  netds_readBrickBatch_ui8(struct BatchInfo* out_info) {
