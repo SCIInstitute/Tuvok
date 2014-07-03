@@ -36,13 +36,14 @@ macx {
     LIBS            += -framework Cocoa
 }
 
-incpath           = . Basics IO/3rdParty/boost 3rdParty/GLEW Renderer Renderer/GL
+incpath           = . Basics Basics/3rdParty IO/3rdParty/boost 3rdParty/GLEW
+incpath          += Renderer Renderer/GL
 incpath          += IO IO/sockethelper TuvokServer/BatchRenderer
 DEPENDPATH       += $$incpath
 INCLUDEPATH      += $$incpath
 
-#We unfortunately need to link against the original tuvok lib
-QMAKE_LIBDIR += Build IO/expressions
+# We unfortunately need to link against the original tuvok lib
+QMAKE_LIBDIR += Build
 LIBS         += -lTuvok -lz
 !macx:LIBS   += -lGLU -lX11
 
