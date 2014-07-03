@@ -1,3 +1,3 @@
-SUBDIRS           = tvk.pro doc/genlua
+SUBDIRS           = tvk.pro
 TEMPLATE          = subdirs
 CONFIG           += ordered
