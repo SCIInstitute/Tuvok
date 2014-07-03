@@ -15,5 +15,5 @@ ${qm} \
   QMAKE_CXXFLAGS+="${VIS} ${CF} ${CXF}" \
   -recursive \
   Tuvok.pro || exit 1
-nice make -j2
+nice make -j2 || exit 1
 nice make install
