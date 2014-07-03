@@ -14,15 +14,16 @@ namespace tuvok {
 
 class NetDataSource : public LinearIndexDataset, public FileBackedDataset {
 public:
-  NetDataSource(int socksrc, const struct DSMetaData& dsm,
-                std::shared_ptr<BrickCache> cache);
- 
+  NetDataSource(int socksrc, const struct DSMetaData& dsm);
+
   virtual ~NetDataSource();
+  void SetCache(std::shared_ptr<BrickCache> cache);
 
   /// Data access
   ///@{
   virtual bool GetBrick(const BrickKey&, std::vector<uint8_t>&) const;
   virtual bool GetBrick(const BrickKey&, std::vector<uint16_t>&) const;
+  virtual bool GetBrick(const BrickKey&, std::vector<uint32_t>&) const;
   ///@}
 
   virtual unsigned GetLODLevelCount() const;
@@ -30,6 +31,7 @@ public:
                                       const size_t ts=0) const;
   UINT64VECTOR3 GetEffectiveBrickSize(const BrickKey&) const;
   virtual UINTVECTOR3 GetBrickLayout(size_t lod, size_t ts) const;
+  virtual UINTVECTOR3 GetBrickOverlapSize() const;
 
   virtual unsigned GetBitWidth() const;
   virtual uint64_t GetComponentCount() const;
@@ -59,6 +61,18 @@ public:
   virtual bool Verify(const std::string&) const;
   virtual std::list<std::string> Extensions() const;
   ///@}
+
+  virtual float MaxGradientMagnitude() const;
+  virtual bool Export(uint64_t iLODLevel, const std::string& targetFilename,
+    bool bAppend) const;
+
+  virtual bool ApplyFunction(uint64_t iLODLevel,
+                        bool (*brickFunc)(void* pData,
+                                          const UINT64VECTOR3& vBrickSize,
+                                          const UINT64VECTOR3& vBrickOffset,
+                                          void* pUserContext),
+                        void *pUserContext,
+                        uint64_t iOverlap) const;
 
 private:
   struct DSMetaData dsm;

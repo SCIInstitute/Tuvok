@@ -54,6 +54,7 @@
 #include "Controller/Controller.h"
 #include "DSFactory.h"
 #include "DynamicBrickingDS.h"
+#include "NetDataSource.h"
 #include "exception/UnmergeableDatasets.h"
 #include "IO/DICOM/DICOMParser.h"
 #include "IO/Images/ImageParser.h"
@@ -67,6 +68,7 @@
 #include "UVF/GeometryDataBlock.h"
 #include "UVF/Histogram1DDataBlock.h"
 #include "UVF/Histogram2DDataBlock.h"
+#include "DebugOut/debug.h"
 
 #include "AmiraConverter.h"
 #include "AnalyzeConverter.h"
@@ -100,6 +102,7 @@
 using namespace std;
 using namespace boost;
 using namespace tuvok;
+DECLARE_CHANNEL(netcreate);
 
 static void read_first_block(const string& filename,
                              vector<int8_t>& block)
@@ -1315,6 +1318,31 @@ Dataset* IOManager::LoadRebrickedDataset(const std::string& filename,
   enum DynamicBrickingDS::MinMaxMode mm =
     static_cast<enum DynamicBrickingDS::MinMaxMode>(minmaxType);
   return new DynamicBrickingDS(lid, tgt_bsize, cache_size, mm);
+}
+
+Dataset*
+IOManager::LoadNetDataset(const UINTVECTOR3 bsize,
+                          size_t minmaxMode) const {
+  if(minmaxMode > DynamicBrickingDS::MM_DYNAMIC) {
+    throw std::logic_error("minmaxType too large");
+  }
+  if(bsize.volume() == 0) { T_ERROR("null brick size"); return NULL; }
+
+  FIXME(netcreate, "should check that the brick size of the NetDataSource "
+        "matches what DynamicBrickingDS will use");
+  const std::array<size_t,3> tgt_bsize = {{bsize[0], bsize[1], bsize[2]}};
+
+  const size_t cache_size = static_cast<size_t>(
+    0.80f * Controller::ConstInstance().SysInfo().GetMaxUsableCPUMem()
+  );
+  enum DynamicBrickingDS::MinMaxMode mm =
+    static_cast<enum DynamicBrickingDS::MinMaxMode>(minmaxMode);
+
+  std::shared_ptr<NetDataSource> ds(
+    new NetDataSource(netds_dataSocket(), netds_clientMetaData())
+  );
+
+  return new DynamicBrickingDS(ds, tgt_bsize, cache_size, mm);
 }
 
 Dataset* IOManager::CreateDataset(const string& filename,

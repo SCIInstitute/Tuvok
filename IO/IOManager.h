@@ -154,6 +154,8 @@ public:
   tuvok::Dataset* LoadRebrickedDataset(const std::string& filename,
                                        const UINTVECTOR3 bricksize,
                                        size_t minmaxType) const;
+  tuvok::Dataset* LoadNetDataset(const UINTVECTOR3 bsize,
+                                 size_t minmaxMode) const;
   ///@}
   tuvok::Dataset* CreateDataset(const std::string& filename,
                                 uint64_t max_brick_size, bool verify) const;

@@ -40,6 +40,12 @@ struct DSMetaData {
     //brick zero
     void* brickZero;
 };
+/// the client uses these to know the metadata to load.
+EXPORT void netds_setClientMetaData(struct DSMetaData d);
+EXPORT struct DSMetaData netds_clientMetaData();
+/// @returns the socket we should receive bricks on.
+EXPORT int netds_dataSocket();
+
 EXPORT bool netds_open(const char* filename, struct DSMetaData* out_meta);
 EXPORT void netds_close(const char* filename);
 EXPORT char** netds_list_files(size_t* count);
@@ -60,11 +66,7 @@ struct BatchInfo {
     size_t* brickSizes;
     bool moreDataComing;
 };
-void freeBatchInfo(struct BatchInfo* info) {
-    free(info->lods);
-    free(info->idxs);
-    free(info->brickSizes);
-}
+EXPORT void freeBatchInfo(struct BatchInfo* info);
 // !!! It can also happen, that the batchSize is zero, then NULL will be returned !!!
 EXPORT uint8_t**  netds_readBrickBatch_ui8(struct BatchInfo* out_info);
 EXPORT uint16_t** netds_readBrickBatch_ui16(struct BatchInfo* out_info);

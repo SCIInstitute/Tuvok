@@ -42,6 +42,7 @@
 #include "Basics/nonstd.h"
 #include "Basics/GeometryGenerator.h"
 #include "Basics/SysTools.h"
+#include "DebugOut/debug.h"
 #include "IO/IOManager.h"
 #include "IO/netds.h"
 #include "IO/TransferFunction1D.h"
@@ -60,6 +61,7 @@
 
 using namespace std;
 using namespace tuvok;
+DECLARE_CHANNEL(netload);
 
 static const FLOATVECTOR3 s_vEye(0,0,1.6f);
 static const FLOATVECTOR3 s_vAt(0,0,0);
@@ -268,6 +270,18 @@ bool AbstrRenderer::LoadRebricked(const std::string& filename,
                                   size_t minmaxMode) {
   const IOManager& iomgr = Controller::Const().IOMan();
   Dataset* ds = iomgr.LoadRebrickedDataset(filename, bsize, minmaxMode);
+  Controller::Instance().MemMan()->AddDataset(ds, this);
+  return this->RegisterDataset(ds);
+}
+bool AbstrRenderer::LoadNetDS(const std::string& filename,
+                              const UINTVECTOR3 bsize,
+                              size_t minmaxMode) {
+  // filename is expected to be used in order to figure out metadata and then
+  // call setClientMetaData ...
+  (void) filename; // ... but we haven't implemented that yet!
+  const IOManager& iomgr = Controller::Const().IOMan();
+  FIXME(netload, "Rainer: must add setClientMetaData before iomgr call here!");
+  Dataset* ds = iomgr.LoadNetDataset(bsize, minmaxMode);
   Controller::Instance().MemMan()->AddDataset(ds, this);
   return this->RegisterDataset(ds);
 }
@@ -2126,6 +2140,8 @@ void AbstrRenderer::RegisterLuaFunctions(
                     "loadDataset", "", true);
   id = reg.function(&AbstrRenderer::LoadRebricked,
                     "loadRebricked", "load a rebricked DS", true);
+  id = reg.function(&AbstrRenderer::LoadNetDS,
+                    "loadNetDS", "load a network dataset", true);
 
   id = reg.function(&AbstrRenderer::GetUseOnlyPowerOfTwo,
                     "getUseOnlyPowerOfTwo", "", false);

@@ -5,15 +5,18 @@ DECLARE_CHANNEL(netsrc);
 
 namespace tuvok {
 
-NetDataSource::NetDataSource(int socksrc, const struct DSMetaData& meta,
-                             std::shared_ptr<BrickCache> ch) :
+NetDataSource::NetDataSource(int socksrc, const struct DSMetaData& meta) :
   dsm(meta),
-  src(socksrc),
-  cache(ch)
+  src(socksrc)
 {
   //start_receiving_thread(socksrc); // maybe?
   FIXME(netsrc, "we need to do a bunch of AddBrick calls here, one per brick");
 }
+NetDataSource::~NetDataSource() {
+  FIXME(netsrc, "should we close 'src' here?");
+}
+void
+NetDataSource::SetCache(std::shared_ptr<BrickCache> ch) { this->cache = ch; }
 
 /// @returns true iff it is reasonable to assume the brick BK will arrive on
 /// socket SOCK *without* user intervention.  That is, that BK exists in the
@@ -77,6 +80,10 @@ bool
 NetDataSource::GetBrick(const BrickKey& k, std::vector<uint16_t>& data) const {
   return getbrick<uint16_t>(k, data, this->src, this->cache, this);
 }
+bool
+NetDataSource::GetBrick(const BrickKey& k, std::vector<uint32_t>& data) const {
+  return getbrick<uint32_t>(k, data, this->src, this->cache, this);
+}
 
 // we don't expect that this function is needed, and want to be notified if it
 // is needed.
@@ -98,13 +105,20 @@ NetDataSource::GetBrickLayout(size_t lod, size_t /*ts*/) const {
                      this->dsm.layouts[lod*3+1],
                      this->dsm.layouts[lod*3+2]);
 }
+UINTVECTOR3
+NetDataSource::GetBrickOverlapSize() const {
+  FIXME(netsrc, "is 2 voxels per-dimension correct?  4 might be.  or 0.  "
+        "or this is never called...");
+  return UINTVECTOR3(2,2,2); // hack?  or accurate?
+}
+
 unsigned
 NetDataSource::GetBitWidth() const {
-  FIXME(netsrc, "return 8 or 16 depending on sizeof the underlying data type");
+  FIXME(netsrc, "Rainer: return 8 or 16 etc depending on underlying data type");
   return 8;
 }
 MinMaxBlock
-NetDataSource::MaxMinForKey(const BrickKey& k) const {
+NetDataSource::MaxMinForKey(const BrickKey&) const {
   FIXME(netsrc, "Rainer: need to fill in a tuvok MinMaxBlock here!");
   return MinMaxBlock();
 }
@@ -159,6 +173,25 @@ NetDataSource::Verify(const std::string&) const {
 std::list<std::string>
 NetDataSource::Extensions() const {
   DO_NOT_THINK_NEEDED; return std::list<std::string>();
+}
+
+float
+NetDataSource::MaxGradientMagnitude() const {
+  DO_NOT_THINK_NEEDED; return 0.0f;
+}
+
+bool
+NetDataSource::Export(uint64_t, const std::string&, bool) const {
+  DO_NOT_THINK_NEEDED; return false;
+}
+
+bool
+NetDataSource::ApplyFunction(uint64_t,
+                        bool(*)(void*, const UINT64VECTOR3&,
+                                const UINT64VECTOR3&, void*),
+                        void*,
+                        uint64_t) const {
+  DO_NOT_THINK_NEEDED; return false;
 }
 
 }

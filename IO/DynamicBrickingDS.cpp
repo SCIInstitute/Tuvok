@@ -19,6 +19,7 @@
 #include "IOManager.h"
 #include "const-brick-iterator.h"
 #include "uvfDataset.h"
+#include "NetDataSource.h"
 
 // This file deals with some tricky indexing.  The convention here is that a
 // std::array<unsigned,3> refers to a BRICK index, whereas a
@@ -47,14 +48,21 @@ struct GBPrelim {
 struct DynamicBrickingDS::dbinfo {
   std::shared_ptr<LinearIndexDataset> ds;
   const BrickSize brickSize;
-  BrickCache cache;
+  std::shared_ptr<BrickCache> cache;
   size_t cacheBytes;
   std::unordered_map<BrickKey, MinMaxBlock, BKeyHash> minmax;
   enum MinMaxMode mmMode;
 
   dbinfo(std::shared_ptr<LinearIndexDataset> d,
          BrickSize bs, size_t bytes, enum MinMaxMode mm) :
-    ds(d), brickSize(bs), cacheBytes(bytes), mmMode(mm) {}
+    ds(d), brickSize(bs), cache(new BrickCache()), cacheBytes(bytes), mmMode(mm)
+  {
+    std::shared_ptr<NetDataSource> nds =
+      std::dynamic_pointer_cast<NetDataSource>(ds);
+    if(nds) {
+      nds->SetCache(this->cache);
+    }
+  }
 
   // early, non-type-specific parts of GetBrick.
   GBPrelim BrickSetup(const BrickKey&, const DynamicBrickingDS& tgt) const;
@@ -173,7 +181,7 @@ size_t DynamicBrickingDS::GetCacheSize() const {
 // Removes all the cache information we've made so far.
 void DynamicBrickingDS::Clear() {
   di->ds->Clear();
-  while(this->di->cache.size() > 0) { this->di->cache.remove(); }
+  while(this->di->cache->size() > 0) { this->di->cache->remove(); }
   BrickedDataset::Clear();
   this->Rebrick();
 }
@@ -576,9 +584,9 @@ bool DynamicBrickingDS::dbinfo::Brick(const DynamicBrickingDS& ds,
 
   const void* lookup;
   {
-    tuvok::Controller::Instance().IncrementPerfCounter(PERF_DY_CACHE_LOOKUPS, 1.0);
+    Controller::Instance().IncrementPerfCounter(PERF_DY_CACHE_LOOKUPS, 1.0);
     StackTimer cc(PERF_DY_CACHE_LOOKUP);
-    lookup = this->cache.lookup(pre.skey, T(42));
+    lookup = this->cache->lookup(pre.skey, T(42));
   }
   // first: check the cache and see if we can get the data easy.
   if(NULL != lookup) {
@@ -611,9 +619,9 @@ bool DynamicBrickingDS::dbinfo::Brick(const DynamicBrickingDS& ds,
     StackTimer cc(PERF_DY_CACHE_ADD);
     // is the cache full?  find room.
     while(!this->FitsInCache(srcdata.size() * sizeof(T))) {
-      this->cache.remove();
+      this->cache->remove();
     }
-    sdata = static_cast<const T*>(this->cache.add(pre.skey, srcdata));
+    sdata = static_cast<const T*>(this->cache->add(pre.skey, srcdata));
   }
   const size_t components = this->ds->GetComponentCount();
   tuvok::Controller::Instance().IncrementPerfCounter(PERF_DY_BRICK_COPIED, 1.0);
@@ -741,11 +749,11 @@ void DynamicBrickingDS::dbinfo::ComputeMinMaxes(BrickedDataset& ds) {
       MESSAGE("precomputing brick %u of %u", i, len);
       MinMaxBlock mm = minmax_brick(b->first, ds);
       this->minmax.insert(std::make_pair(b->first, mm));
-      while(this->cache.size() > this->cacheBytes) { this->cache.remove(); }
+      while(this->cache->size() > this->cacheBytes) { this->cache->remove(); }
     }
   }
   // remove all cached bricks
-  while(this->cache.size() > 0) { this->cache.remove(); }
+  while(this->cache->size() > 0) { this->cache->remove(); }
 
   // try to cache that data to a file, now.
   std::ofstream mmcache(fname, std::ios::binary);
@@ -761,7 +769,7 @@ void DynamicBrickingDS::dbinfo::ComputeMinMaxes(BrickedDataset& ds) {
 void DynamicBrickingDS::dbinfo::SetCacheSize(size_t bytes) {
   this->cacheBytes = bytes;
   // shrink the cache to fit.
-  while(this->cache.size() > this->cacheBytes) { this->cache.remove(); }
+  while(this->cache->size() > this->cacheBytes) { this->cache->remove(); }
 }
 
 size_t DynamicBrickingDS::dbinfo::GetCacheSize() const {

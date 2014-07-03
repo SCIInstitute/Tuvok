@@ -13,6 +13,9 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include "netds.h"
+#include "DebugOut/debug.h"
+
+DECLARE_CHANNEL(net);
 
 /* file descriptor for server we're pushing requests to. */
 static int remote   = -1;
@@ -281,6 +284,20 @@ uint32_t** netds_readBrickBatch_ui32(struct BatchInfo* out_info) {
     return retArray;
 }
 
+static struct DSMetaData dsmd = { .lodCount=0 };
+void netds_setClientMetaData(struct DSMetaData d) { dsmd = d; }
+struct DSMetaData netds_clientMetaData() {
+  if(dsmd.lodCount == 0) {
+    FIXME(net, "dataset metadata not yet initialized! Rainer, you must setup");
+    assert(false);
+  }
+  return dsmd;
+}
+int netds_dataSocket() {
+  FIXME(net, "Rainer: this must return the socket to receive bricks on!");
+  return -1;
+}
+
 bool netds_open(const char* filename, struct DSMetaData* out_meta)
 {
     force_connect();
@@ -384,6 +401,11 @@ char** netds_list_files(size_t* count)
 void netds_setBatchSize(size_t maxBatchSize) {
     wru8(remote, (uint8_t)nds_BATCHSIZE);
     wrsizet(remote, maxBatchSize);
+}
+void freeBatchInfo(struct BatchInfo* info) {
+    free(info->lods);
+    free(info->idxs);
+    free(info->brickSizes);
 }
 
 /*

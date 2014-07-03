@@ -462,6 +462,8 @@ class AbstrRenderer {
     virtual bool LoadRebricked(const std::string& strFilename,
                                const UINTVECTOR3 bsize,
                                size_t minmaxMode);
+    bool LoadNetDS(const std::string& filename, const UINTVECTOR3 bsize,
+                   size_t minmaxMode);
 
     virtual bool Initialize(std::shared_ptr<Context> ctx);
 
