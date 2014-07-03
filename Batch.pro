@@ -10,7 +10,7 @@ OBJECTS_DIR      = batchrender/build/obj/
 unix:DEFINES    += LZHAM_ANSI_CPLUSPLUS=1
 
 #add shaders to build dir
-shaders.path    = $$OUT_PWD/TuvokServer/Shaders
+shaders.path    = $$OUT_PWD/batchrender/Shaders
 shaders.files  += Shaders/*
 INSTALLS       += shaders
 
