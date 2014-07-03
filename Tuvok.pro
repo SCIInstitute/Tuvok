@@ -1,3 +1,3 @@
-SUBDIRS           = tvk.pro tvkSrv.pro
+SUBDIRS           = tvk.pro tvkSrv.pro Batch.pro
 TEMPLATE          = subdirs
 CONFIG           += ordered

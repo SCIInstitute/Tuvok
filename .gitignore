@@ -1,6 +1,7 @@
 Makefile
 Makefile.tvk
 Makefile.tvkSrv
+Makefile.Batch
 Build
 .gitignore
 *.o
