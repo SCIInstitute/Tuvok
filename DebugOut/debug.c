@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
+#include <strings.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include "debug.h"
@@ -87,6 +88,12 @@ symb_parse_options(struct tuvokdbgchannel* ch, const char* opt)
 {
   _Static_assert(sizeof(enum TuvokChanClass) <= sizeof(unsigned),
                  "to make sure we can't shift beyond flags");
+  /* Simple check: if it's +all, then everything is enabled and we don't really
+   * need to do any 'extended' parsing. */
+  if(opt != NULL && strncasecmp(opt, "+all", 4) == 0) {
+    ch->flags = 0xFFFFFFFF;
+  }
+
   /* outer loop iterates over channels.  channel names are separated by ';' */
   for(const char* chan=opt; chan && chan!=(const char*)0x1;
       chan=strchr(chan, ';')+1) {
