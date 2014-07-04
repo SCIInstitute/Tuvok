@@ -1,10 +1,13 @@
 #include "tvkserver.h"
 #include "sockhelp.h"
+#include "DebugOut/debug.h"
 
 #define DEBUG_PEER 1
 #define DEBUG_SERVER 1
 
 #define LISTEN_BACKLOG 50
+
+DECLARE_CHANNEL(log);
 
 // get port, IPv4 or IPv6:
 in_port_t get_in_port(struct sockaddr *sa)
@@ -90,12 +93,12 @@ bool magicCheck(int socket) {
     int byteCount = readFromSocket(socket, buf, sizeof(char)*4);
 
     if (byteCount < 4) {
-        printf("Could not find magic on stream (not enough data)!\n");
+        ERR(log, "Could not find magic on stream (not enough data)!");
         return false;
     }
 
     if (buf[0] != 'I' || buf[1] != 'V' || buf[2] != '3' || buf[3] != 'D') {
-        printf("Could not find magic on stream!\n");
+        ERR(log, "Could not find magic on stream!");
         return false;
     }
 
@@ -130,7 +133,7 @@ int acceptOnListeningPort(int listen_s) {
 }
 
 bool TvkServer::waitAndAccept() {
-    printf("Waiting for a new client connection...\n");
+    TRACE(log, "Waiting for a new client connection...");
     conn_a = acceptOnListeningPort(listen_a);
     conn_b = acceptOnListeningPort(listen_b);
     // @TODO: should also check for same address
