@@ -15,6 +15,7 @@
 #include "netds.h"
 #include "DebugOut/debug.h"
 #include <array>
+#include <limits>
 #include <cstdint>
 
 DECLARE_CHANNEL(net);
@@ -113,11 +114,11 @@ namespace NETDS {
 template<typename T>
 bool sharedSingleBrickStuff(const size_t LoD, const size_t brickidx, vector<T>& resultBuffer) {
     force_connect();
-    if(LoD > UINT32_MAX) {
+    if(LoD > std::numeric_limits<uint32_t>::max()) {
         ERR(net, "LoD is absurd (%zu).  Bug elsewhere.\n", LoD);
         abort();
     }
-    if(brickidx > UINT32_MAX) {
+    if(brickidx > std::numeric_limits<uint32_t>::max()) {
         ERR(net, "brick index is absurd (%zu).  Bug elsewhere.\n", brickidx);
         abort();
     }
@@ -257,7 +258,7 @@ bool openFile(const string& filenameString, DSMetaData& out_meta, size_t minmaxM
 
     force_connect();
     const size_t len = strlen(filename)+1;
-    if(len > UINT16_MAX) {
+    if(len > std::numeric_limits<uint16_t>::max()) {
         fprintf(stderr, "error, ridiculously long (%zu-byte) filename\n", len);
         abort();
     }
@@ -324,7 +325,7 @@ void closeFile(const string& filenameString)
         close(remote);
         return;
     }
-    if(len > UINT16_MAX) {
+    if(len > std::numeric_limits<uint16_t>::max()) {
         fprintf(stderr, "error, ridiculously long (%zu-byte) filename\n", len);
         abort();
     }
