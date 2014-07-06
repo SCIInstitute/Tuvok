@@ -200,12 +200,11 @@ bool wr_multiple(int fd, const uint16_t* buf, size_t count, bool announce) {
         return wr(fd, buf, sizeof(uint16_t)*count);
     }
     else {
-        uint16_t* netData = new uint16_t[count];
+        uint16_t netData[count];
         for(size_t i = 0; i < count; i++) {
             netData[i] = htons(buf[i]);
         }
-        bool retValue = wr(fd, netData, sizeof(uint16_t)*count);
-        delete netData;
+        bool retValue = wr(fd, &netData[0], sizeof(uint16_t)*count);
         return retValue;
     }
 }
@@ -217,12 +216,11 @@ bool wr_multiple(int fd, const uint32_t* buf, size_t count, bool announce) {
         return wr(fd, buf, sizeof(uint32_t)*count);
     }
     else {
-        uint32_t* netData = new uint32_t[count];
+        uint32_t netData[count];
         for(size_t i = 0; i < count; i++) {
             netData[i] = htonl(buf[i]);
         }
-        bool retValue = wr(fd, netData, sizeof(uint32_t)*count);
-        free(netData);
+        bool retValue = wr(fd, &netData[0], sizeof(uint32_t)*count);
         return retValue;
     }
 }

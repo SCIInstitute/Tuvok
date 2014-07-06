@@ -15,6 +15,7 @@
 #include "netds.h"
 #include "DebugOut/debug.h"
 #include <array>
+#include <cstdint>
 
 DECLARE_CHANNEL(net);
 
