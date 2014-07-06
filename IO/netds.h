@@ -2,143 +2,82 @@
 #define NETDATASET_H
 #include <stdlib.h>
 #include "sockhelp.h"
+#include <vector>
+#include <string>
+using std::vector;
+using std::string;
+using SOCK::PlainTypeInfo;
 
-#ifdef __cplusplus
-# define EXPORT extern "C"
-#else
-# define EXPORT /* no extern "C" needed. */
-#endif
+namespace NETDS {
 
-//For requesting single bricks
-EXPORT uint8_t*  netds_brick_request_ui8(const size_t  lod, const size_t bidx, size_t* out_count);
-EXPORT uint16_t* netds_brick_request_ui16(const size_t lod, const size_t bidx, size_t* out_count);
-EXPORT uint32_t* netds_brick_request_ui32(const size_t lod, const size_t bidx, size_t* out_count);
+    struct DSMetaData {
+        size_t lodCount;
+        vector<unsigned> layouts; //3 unsigned per LOD
 
-//For requesting multiple bricks at once
-EXPORT uint8_t**  netds_brick_request_ui8v(const size_t  brickCount, const size_t* lods, const size_t* bidxs, size_t** out_dataCounts);
-EXPORT uint16_t** netds_brick_request_ui16v(const size_t brickCount, const size_t* lods, const size_t* bidxs, size_t** out_dataCounts);
-EXPORT uint32_t** netds_brick_request_ui32v(const size_t brickCount, const size_t* lods, const size_t* bidxs, size_t** out_dataCounts);
+        size_t brickCount; //total count of bricks
 
-struct DSMetaData {
-    size_t lodCount;
-    unsigned *layouts; //3 unsigned per LOD
-    
-    size_t brickCount; //total count of bricks
-    
-    //For the keys... Reconstruct using BrickKey(0, lods[i], idxs[i]);
-    size_t *lods;
-    size_t *idxs;
-    
-    //For the brickMD
-    float *md_centers;
-    float *md_extents;
-    uint32_t *md_n_voxels;
-    
-    //To find out the type of data inside the set
-    struct PlainTypeInfo typeInfo;
+        //For the keys... Reconstruct using BrickKey(0, lods[i], idxs[i]);
+        vector<size_t> lods; //(size == brickCount)
+        vector<size_t> idxs; //(size == brickCount)
 
-    //brick zero
-    void* brickZero;
-};
-/// the client uses these to know the metadata to load.
-EXPORT void netds_setClientMetaData(struct DSMetaData d);
-EXPORT struct DSMetaData netds_clientMetaData();
-/// @returns the socket we should receive bricks on.
-EXPORT int netds_dataSocket();
+        //For the brickMD
+        vector<float> md_centers;  //(size == brickCount * 3)
+        vector<float> md_extents;  //(size == brickCount * 3)
+        vector<uint32_t> md_n_voxels;  //(size == brickCount * 3)
 
-EXPORT bool netds_open(const char* filename, struct DSMetaData* out_meta);
-EXPORT void netds_close(const char* filename);
-EXPORT char** netds_list_files(size_t* count);
-EXPORT void netds_shutdown();
+        //To find out the type of data inside the set
+        struct PlainTypeInfo typeInfo;
 
-//Initiates a sending of bricks that the client might need!
-//call netds_setBatchSize first!!!
-EXPORT void netds_rotation(const float m[16]);
-//The server always sends bricks in form of batches
-//This allows the sending of another rotation to restart the sending process
-EXPORT void netds_setBatchSize(size_t maxBatchSize);
-//EXPORT void netds_cancelBatches();
+        //brick zero
+        //void* brickZero;
+    };
 
-struct BatchInfo {
-    size_t batchSize;
-    size_t* lods;
-    size_t* idxs;
-    size_t* brickSizes;
-    bool moreDataComing;
-};
-EXPORT void freeBatchInfo(struct BatchInfo* info);
-// !!! It can also happen, that the batchSize is zero, then NULL will be returned !!!
-EXPORT uint8_t**  netds_readBrickBatch_ui8(struct BatchInfo* out_info);
-EXPORT uint16_t** netds_readBrickBatch_ui16(struct BatchInfo* out_info);
-EXPORT uint32_t** netds_readBrickBatch_ui32(struct BatchInfo* out_info);
+    struct BatchInfo {
+        size_t batchSize;
+        //For the keys... Reconstruct using BrickKey(0, lods[i], idxs[i]);
+        vector<size_t> lods;
+        vector<size_t> idxs;
+        vector<size_t> brickSizes; //Not in bytes, but in elements of the type
+        bool moreDataComing;
+    };
 
+    struct RotateInfo {
+        size_t brickCount;
+        vector<size_t> lods;
+        vector<size_t> idxs;
+    };
 
-#ifdef __cplusplus
+    bool openFile(const string& filename, DSMetaData& out_meta, size_t minmaxMode, std::array<size_t, 3> bSize, uint32_t width, uint32_t height);
+    void closeFile(const string& filename);
+    bool listFiles(vector<string>& resultBuffer);
+    void shutdownServer();
 
-namespace {
-template<typename T> T*
-netds_brick_request(const size_t, const size_t, size_t*);
+    //For requesting single bricks
+    bool getBrick(const size_t lod, const size_t bidx, vector<uint8_t>& resultBuffer);
+    bool getBrick(const size_t lod, const size_t bidx, vector<uint16_t>& resultBuffer);
+    bool getBrick(const size_t lod, const size_t bidx, vector<uint32_t>& resultBuffer);
 
-template<> uint8_t*
-netds_brick_request(const size_t lod, const size_t bidx,
-                    size_t* count) {
-    return netds_brick_request_ui8(lod, bidx, count);
-}
-template<> uint16_t*
-netds_brick_request(const size_t lod, const size_t bidx,
-                    size_t* count) {
-    return netds_brick_request_ui16(lod, bidx, count);
-}
-template<> uint32_t*
-netds_brick_request(const size_t lod, const size_t bidx,
-                    size_t* count) {
-    return netds_brick_request_ui32(lod, bidx, count);
+    //For requesting multiple bricks at once
+    bool getBricks(const size_t brickCount, const vector<size_t>& lods, const vector<size_t>& bidxs, vector<vector<uint8_t>>& resultBuffer);
+    bool getBricks(const size_t brickCount, const vector<size_t>& lods, const vector<size_t>& bidxs, vector<vector<uint16_t>>& resultBuffer);
+    bool getBricks(const size_t brickCount, const vector<size_t>& lods, const vector<size_t>& bidxs, vector<vector<uint32_t>>& resultBuffer);
+
+    /// the client uses these to know the metadata to load.
+    //void setClientMetaData(DSMetaData d); //being set automatically with an openFile call
+    struct DSMetaData clientMetaData();
+
+    //Initiates a sending of bricks that the client might need!
+    //WARNING! call setBatchSize first!!!
+    //RotateInfo is similar to BatchInfo, but contains the keys for ALL rendered bricks
+    void rotate(const float m[16]);
+    const RotateInfo* getLastRotationKeys(); //can be NULL
+
+    void setBatchSize(size_t maxBatchSize);
+    size_t batchSize();
+    bool readBrickBatch(BatchInfo &out_info, vector<vector<uint8_t>>& resultBuffer);
+    bool readBrickBatch(BatchInfo &out_info, vector<vector<uint16_t>>& resultBuffer);
+    bool readBrickBatch(BatchInfo &out_info, vector<vector<uint32_t>>& resultBuffer);
 }
 
-template<class T> T**
-netds_brick_request_v(const size_t, const size_t* LoDs, const size_t* bidxs,
-                      size_t** counts);
-
-template<> uint8_t**
-netds_brick_request_v(const size_t brickCount, const size_t* lods,
-                      const size_t* bidxs, size_t** dataCounts) {
-    return netds_brick_request_ui8v(brickCount, lods, bidxs, dataCounts);
-}
-template<> uint16_t**
-netds_brick_request_v(const size_t brickCount, const size_t* lods,
-                      const size_t* bidxs, size_t** dataCounts) {
-    return netds_brick_request_ui16v(brickCount, lods, bidxs, dataCounts);
-}
-template<> uint32_t**
-netds_brick_request_v(const size_t brickCount, const size_t* lods,
-                      const size_t* bidxs, size_t** dataCounts) {
-    return netds_brick_request_ui32v(brickCount, lods, bidxs, dataCounts);
-}
-
-template<class T> T** netds_readBrickBatch(BatchInfo *out_info);
-template<> uint8_t** netds_readBrickBatch(BatchInfo *out_info) {
-    return netds_readBrickBatch_ui8(out_info);
-}
-template<> uint16_t** netds_readBrickBatch(BatchInfo *out_info) {
-    return netds_readBrickBatch_ui16(out_info);
-}
-template<> uint32_t** netds_readBrickBatch(BatchInfo *out_info) {
-    return netds_readBrickBatch_ui32(out_info);
-}
-
-/* Needs some way of defining a type
-template<class T> void netds_rotation(const float m[16]);
-template<uint8_t> void netds_rotation(const float m[16]) {
-    netds_rotation(m, N_UINT8);
-}
-template<uint16_t> void netds_rotation(const float m[16]) {
-    netds_rotation(m, N_UINT16);
-}
-template<uint32_t> void netds_rotation(const float m[16]) {
-    netds_rotation(m, N_UINT32);
-}*/
-
-}
-#endif
 
 #endif

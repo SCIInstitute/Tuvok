@@ -6,13 +6,15 @@
 //  Copyright (c) 2014 Rainer Schlönvoigt. All rights reserved.
 //
 
+#define DEBUG_BRICK 0
+#define DEBUG_MBRICK 1
 #include <iostream>
 #include "netds.h"
 #include <inttypes.h>
 #include <vector>
 
-#define DEBUG_BRICK 0
-#define DEBUG_MBRICK 0
+using namespace NETDS;
+using namespace SOCK;
 
 void printVar(uint8_t var) {
     printf("%" PRIu8 "\n", var);
@@ -25,26 +27,28 @@ void printVar(uint32_t var) {
 }
 
 template <typename T>
-void typedSingleTest(NetDataType dType, DSMetaData metaData) {
-    size_t dataCount;
+void typedSingleTest(DSMetaData metaData) {
+    (void)metaData;
+
     size_t lod = 0;
     size_t bidx = 0;
-    
-    T* data = netds_brick_request<T>(0, 0, &dataCount);
-    printf("\nSingle brick (lod: %zu, bidx: %zu): Received brick data (%zu values);\n", lod, bidx, dataCount);
+
+    vector<T> buffer;
+    if(!NETDS::getBrick(lod, bidx, buffer))
+        abort();
+
+    printf("\nSingle brick (lod: %zu, bidx: %zu): Received brick data (%zu values);\n", lod, bidx, buffer.size());
     
 #if DEBUG_BRICK
-    for (size_t i = 0; i < dataCount; i++) {
-        printVar(data[i]);
+    for (size_t i = 0; i < buffer.size(); i++) {
+        printVar(buffer[i]);
     }
     printf("End of list.\n");
-#else
-    (void)data;
 #endif
 }
 
 template <typename T>
-void typedMultiTest(NetDataType dType, DSMetaData metaData) {
+void typedMultiTest(DSMetaData metaData) {
     srand(5000);
     
     size_t brickCount = std::min((size_t)2, metaData.brickCount);
@@ -56,14 +60,16 @@ void typedMultiTest(NetDataType dType, DSMetaData metaData) {
         bidxs[i]    = metaData.idxs[rand_index];
     }
     
-    size_t *dataCounts = NULL;
-    T** data2 = netds_brick_request_v<T>(brickCount, &lods[0], &bidxs[0], &dataCounts);
+    vector<vector<T>> result;
+    if(!NETDS::getBricks(brickCount, lods, bidxs, result))
+        abort();
+
     printf("Multi-Brick: Received bricks:\n");
-    for (size_t i = 0; i < brickCount; i++) {
-        printf("Brick %zu: has %zu values!\n", i, dataCounts[i]);
+    for (size_t i = 0; i < result.size(); i++) {
+        printf("Brick %zu: has %zu values!\n", i, result[i].size());
 #if DEBUG_MBRICK
-        for (size_t j = 0; j < dataCounts[i]; j++) {
-            printVar(data2[i][j]);
+        for (size_t j = 0; j < result[i].size(); j++) {
+            printVar(result[i][j]);
         }
         printf("Brick %zu: End of list.\n", i);
 #else
@@ -74,79 +80,85 @@ void typedMultiTest(NetDataType dType, DSMetaData metaData) {
 }
 
 template <typename T>
-void typedRotationTest(NetDataType dType, DSMetaData metaData) {
+void typedRotationTest(DSMetaData metaData) {
+    (void)metaData;
+
     printf("\nRequesting rotation with identity matrix.\n");
-    netds_setBatchSize(20);
+    NETDS::setBatchSize(20);
     
     float identityMatrix[16] = {1, 0, 0, 0,
                                 0, 1, 0, 0,
                                 0, 0, 1, 0,
                                 0, 0, 0, 1};
-    netds_rotation(identityMatrix);
+    NETDS::rotate(identityMatrix);
     
     bool done = false;
+
+    vector<vector<T>> batchData;
+    BatchInfo bInfo;
+
     while (!done) {
-        BatchInfo bInfo;
-        T** data = netds_readBrickBatch<T>(&bInfo);
+        if(!NETDS::readBrickBatch(bInfo, batchData))
+            abort();
+
         printf("Received a batch of size %zu\n", bInfo.batchSize);
         for (size_t i = 0; i < bInfo.batchSize; i++) {
             printf("Brick %zu has size: %zu\n", i, bInfo.brickSizes[i]);
-            delete data[i];
         }
-        delete data;
         printf("End of batch!\n");
         
         done = !bInfo.moreDataComing;
-        freeBatchInfo(&bInfo);
     }
 }
 
-int main(int argc, const char * argv[])
+void performTests()
 {
-    size_t fileCount;
-    char** filenames = netds_list_files(&fileCount);
+    vector<string> filenames;
+    if(!NETDS::listFiles(filenames))
+        abort();
+
     printf("Received the following file names:\n");
-    for (size_t i = 0; i < fileCount; i++) {
-        printf("%s\n", filenames[i]);
+    for (size_t i = 0; i < filenames.size(); i++) {
+        printf("%s\n", filenames[i].c_str());
     }
     printf("End of list.\n");
     
-    if (fileCount > 0) {
-        printf("\nRequesting OPEN file with name: %s\n", filenames[0]);
+    if (filenames.size() > 0) {
+        printf("\nRequesting OPEN file with name: %s\n", filenames[0].c_str());
         
         DSMetaData metaData;
-        netds_open(filenames[0], &metaData);
+        std::array<size_t, 3> bSize = {{1024, 1024, 1024}};
+        NETDS::openFile(filenames[0], metaData, 2, bSize, 1920, 1080);
         
         if (metaData.lodCount == 0) {
             abort();
-            return 0;
+            return;
         }
         
         NetDataType dType = netTypeForPlainT(metaData.typeInfo);
         
         if (dType == N_UINT8) {
-            typedSingleTest<uint8_t>(dType, metaData);
-            typedMultiTest<uint8_t>(dType, metaData);
-            typedRotationTest<uint8_t>(dType, metaData);
+            typedSingleTest<uint8_t>(metaData);
+            typedMultiTest<uint8_t>(metaData);
+            typedRotationTest<uint8_t>(metaData);
         }
         else if(dType == N_UINT16) {
-            typedSingleTest<uint16_t>(dType, metaData);
-            typedMultiTest<uint16_t>(dType, metaData);
-            typedRotationTest<uint16_t>(dType, metaData);
+            typedSingleTest<uint16_t>(metaData);
+            typedMultiTest<uint16_t>(metaData);
+            typedRotationTest<uint16_t>(metaData);
         }
         else if(dType == N_UINT32) {
-            typedSingleTest<uint32_t>(dType, metaData);
-            typedMultiTest<uint32_t>(dType, metaData);
-            typedRotationTest<uint32_t>(dType, metaData);
+            typedSingleTest<uint32_t>(metaData);
+            typedMultiTest<uint32_t>(metaData);
+            typedRotationTest<uint32_t>(metaData);
         }
         else
             abort(); //Not implemented
         
-        printf("\nRequesting CLOSE file with name: %s\n", filenames[0]);
-        netds_close(filenames[0]);
+        printf("\nRequesting CLOSE file with name: %s\n", filenames[0].c_str());
+        NETDS::closeFile(filenames[0]);
     }
-    
-    //netds_shutdown();
-    return 0;
+
+    //NETDS::shutdownServer();
 }
 

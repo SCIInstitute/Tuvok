@@ -13,6 +13,8 @@
 #include "sockhelp.h"
 #include "../../TuvokServer/callperformer.h"
 
+using namespace SOCK;
+
 class ParameterWrapper
 {
 public:
@@ -22,7 +24,7 @@ public:
 
     //To overwrite
     virtual void initFromSocket(int socket)         = 0;
-    virtual void writeToSocket(int socket)          = 0;
+    //virtual void writeToSocket(int socket)          = 0;
     virtual void mpi_sync(int rank, int srcRank)    = 0;
     virtual void perform(int socket, int socketB, CallPerformer* object)  = 0;
 };
@@ -30,12 +32,17 @@ public:
 class OpenParams : public ParameterWrapper
 {
 public:
+    std::vector<size_t> bSize;
+    size_t minmaxMode;
+    uint32_t width;
+    uint32_t height;
+
     uint16_t len;
     char *filename;
 
     OpenParams(int socket = -1);
     void initFromSocket(int socket);
-    void writeToSocket(int socket);
+    //void writeToSocket(int socket);
     void mpi_sync(int rank, int srcRank);
     void perform(int socket, int socketB, CallPerformer* object);
 };
@@ -48,7 +55,7 @@ public:
 
     CloseParams(int socket = -1);
     void initFromSocket(int socket);
-    void writeToSocket(int socket);
+    //void writeToSocket(int socket);
     void mpi_sync(int rank, int srcRank);
     void perform(int socket, int socketB, CallPerformer* object);
 };
@@ -60,7 +67,7 @@ public:
 
     BatchSizeParams(int socket = -1);
     void initFromSocket(int socket);
-    void writeToSocket(int socket);
+    //void writeToSocket(int socket);
     void mpi_sync(int rank, int srcRank);
     void perform(int socket, int socketB, CallPerformer* object);
 };
@@ -70,13 +77,11 @@ class RotateParams : public ParameterWrapper
     bool newDataOnSocket(int sock);
 
 public:
-    size_t matSize;
-    float *rotMatrix;
+    std::vector<float> rotMatrix;
 
     RotateParams(int socket = -1);
-    ~RotateParams();
     void initFromSocket(int socket);
-    void writeToSocket(int socket);
+    //void writeToSocket(int socket);
     void mpi_sync(int rank, int srcRank);
     void perform(int socket, int socketB, CallPerformer* object);
 };
@@ -93,13 +98,12 @@ class BrickParams : public ParameterWrapper
     }
 
 public:
-    uint8_t type; //When using, cast to NetDataType first... here we leave it as uint8_t for easier MPI-Syncing
-    uint32_t lod;
-    uint32_t bidx;
+    size_t lod;
+    size_t bidx;
 
     BrickParams(int socket = -1);
     void initFromSocket(int socket);
-    void writeToSocket(int socket);
+    //void writeToSocket(int socket);
     void mpi_sync(int rank, int srcRank);
     void perform(int socket, int socketB, CallPerformer* object);
 };
@@ -110,7 +114,7 @@ class SimpleParams : public ParameterWrapper
 public:
     SimpleParams(NetDSCommandCode code);
     void initFromSocket(int socket);
-    void writeToSocket(int socket);
+    //void writeToSocket(int socket);
     void mpi_sync(int rank, int srcRank);
 };
 

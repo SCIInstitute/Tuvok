@@ -38,7 +38,7 @@ macx {
 
 incpath           = . Basics Basics/3rdParty IO/3rdParty/boost 3rdParty/GLEW
 incpath          += Renderer Renderer/GL
-incpath          += IO IO/sockethelper TuvokServer/BatchRenderer
+incpath          += IO IO/sockethelper TuvokServer/BatchRenderer TuvokServer/QuickTests
 DEPENDPATH       += $$incpath
 INCLUDEPATH      += $$incpath
 
@@ -47,15 +47,10 @@ QMAKE_LIBDIR += Build
 LIBS         += -lTuvok -lz
 !macx:LIBS   += -lGLU -lX11
 
-SOURCES += \
-  batchrender/main.cpp \
-  batchrender/TuvokLuaScriptExec.cpp
-
-HEADERS += \
-  batchrender/TuvokLuaScriptExec.h
-
 # use the contexts from the server.
 SOURCES += \
+  batchrender/main.cpp \
+  batchrender/TuvokLuaScriptExec.cpp \
   TuvokServer/BatchRenderer/BatchContext.cpp
 
 unix:!macx  { SOURCES += TuvokServer/BatchRenderer/GLXContext.cpp }
@@ -64,8 +59,10 @@ macx        { OBJECTIVE_SOURCES += TuvokServer/BatchRenderer/NSContext.mm }
 win32       { SOURCES += TuvokServer/BatchRenderer/WGLContext.cpp }
 
 HEADERS += \
+  batchrender/TuvokLuaScriptExec.h \
   TuvokServer/BatchRenderer/BatchContext.h \
   TuvokServer/BatchRenderer/CGLContext.h \
   TuvokServer/BatchRenderer/NSContext.h \
   TuvokServer/BatchRenderer/GLXContext.h \
-  TuvokServer/BatchRenderer/WGLContext.h
+  TuvokServer/BatchRenderer/WGLContext.h \
+  TuvokServer/QuickTests/Tests.h

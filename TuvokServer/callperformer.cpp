@@ -116,14 +116,11 @@ std::shared_ptr<tuvok::Context> createContext(uint32_t width, uint32_t height,
   return ctx;
 }
 
-bool CallPerformer::openFile(const char* filename) {
+bool CallPerformer::openFile(const char* filename, const std::vector<size_t>& bSize, size_t minmaxMode) {
     const char* folder = getenv("IV3D_FILES_FOLDER");
     if(folder == NULL) {
         folder = "./";
     }
-
-    uint32_t width = 1920;
-    uint32_t height = 1200;
 
     std::string effectiveFilename = folder;
     if(effectiveFilename.back() != '/') {
@@ -145,10 +142,10 @@ bool CallPerformer::openFile(const char* filename) {
 
     std::string rn = rendererInst.fqName();
 
-    char buff[100];
+    char buff[200];
 
     //Hook up dataset to renderer
-    UINTVECTOR3 maxBS(1024, 1024, 1024);
+    UINTVECTOR3 maxBS(bSize[0], bSize[1], bSize[2]);
     UINTVECTOR2 res(width, height);
 
     //Dirty hack because the lua binding cannot work with MATRIX or VECTOR
@@ -158,7 +155,15 @@ bool CallPerformer::openFile(const char* filename) {
     std::string resStr(buff);
 
     ss->cexec(rn+".loadDataset", effectiveFilename);
-    ss->exec(rn+".loadRebricked(\""+effectiveFilename+"\", "+maxBSStr+", MM_DYNAMIC)");
+
+    sprintf(buff, "%s.loadRebricked(%s, %s, %zu)",
+            rn.c_str(),
+            effectiveFilename.c_str(),
+            maxBSStr.c_str(),
+            minmaxMode);
+    std::string loadRebrickedString(buff);
+
+    ss->exec(loadRebrickedString);
     dsInst = ss->cexecRet<tuvok::LuaClassInstance>(rn+".getDataset");
     ss->cexec(rn+".addShaderPath", SHADER_PATH);
 

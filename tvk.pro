@@ -566,7 +566,7 @@ SOURCES += \
            IO/NetDynamicBrickingDS.cpp \
            IO/NetDataSource.cpp \
            IO/NRRDConverter.cpp \
-           IO/netds.c \
+           IO/netds.cpp \
            IO/OBJGeoConverter.cpp \
            IO/PLYGeoConverter.cpp \
            IO/QVISConverter.cpp \
@@ -606,7 +606,7 @@ SOURCES += \
            IO/VGStudioConverter.cpp \
            IO/VTKConverter.cpp \
            IO/XML3DGeoConverter.cpp \
-           IO/sockethelper/sockhelp.c \
+           IO/sockethelper/sockhelp.cpp \
            LuaScripting/LuaClassConstructor.cpp \
            LuaScripting/LuaClassInstance.cpp \
            LuaScripting/LuaClassRegistration.cpp \

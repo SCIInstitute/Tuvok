@@ -43,6 +43,10 @@
 #include "BatchContext.h"
 #include "TuvokLuaScriptExec.h"
 
+#include "Tests.h"
+
+#define RUN_TESTS 0
+
 using namespace std;
 using namespace tuvok;
 
@@ -66,6 +70,11 @@ std::shared_ptr<BatchContext> createContext(uint32_t width, uint32_t height,
 
 int main(int argc, const char* argv[])
 {
+#if RUN_TESTS
+    performTests();
+    return 0;
+#endif
+
   // Read Lua filename from the first program argument
   std::string filename;
   bool debug = false;

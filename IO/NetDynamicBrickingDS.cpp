@@ -2,6 +2,10 @@
 #include "NetDynamicBrickingDS.h"
 #include "uvfDataset.h"
 #include "netds.h"
+#include "DebugOut/debug.h"
+
+DECLARE_CHANNEL(netsrc);
+
 namespace tuvok {
 
   /// @param ds the source data set to break up
@@ -12,8 +16,8 @@ NetDynDS::NetDynDS(const char* fname,
                    std::array<size_t, 3> maxBrickSize,
                    size_t cacheBytes)
 {
-  struct DSMetaData ignored;
-  netds_open(fname, &ignored);
+  struct NETDS::DSMetaData ignored;
+  NETDS::openFile(fname, ignored, DynamicBrickingDS::MM_DYNAMIC, maxBrickSize, 1920, 1080);
   std::shared_ptr<UVFDataset> uvf(new UVFDataset(fname, 512, false));
   DynamicBrickingDS* dyn = new DynamicBrickingDS(uvf, maxBrickSize, cacheBytes,
                                                  DynamicBrickingDS::MM_DYNAMIC);
@@ -21,7 +25,7 @@ NetDynDS::NetDynDS(const char* fname,
 }
 
 NetDynDS::~NetDynDS() {
-  netds_close(this->Filename().c_str());
+  NETDS::closeFile(this->Filename().c_str());
   this->ds.reset();
 }
 
@@ -47,19 +51,25 @@ void NetDynDS::Clear() { this->ds->Clear(); }
 /// Data access
 ///@{
 bool NetDynDS::GetBrick(const BrickKey& k, std::vector<uint8_t>& data) const {
-  static size_t n=0;
-  netds_brick_request<uint8_t>(std::get<1>(k), std::get<2>(k), &n);
-  return this->ds->GetBrick(k, data);
+    if(!NETDS::getBrick(std::get<1>(k), std::get<2>(k), data))
+        return false;
+
+    FIXME(netsrc, "Actually write the data to the cash");
+    return this->ds->GetBrick(k, data);
 }
 bool NetDynDS::GetBrick(const BrickKey& k, std::vector<uint16_t>& data) const {
-  static size_t n=0;
-  netds_brick_request<uint8_t>(std::get<1>(k), std::get<2>(k), &n);
-  return this->ds->GetBrick(k, data);
+    if(!NETDS::getBrick(std::get<1>(k), std::get<2>(k), data))
+        return false;
+
+    FIXME(netsrc, "Actually write the data to the cash");
+    return this->ds->GetBrick(k, data);
 }
 bool NetDynDS::GetBrick(const BrickKey& k, std::vector<uint32_t>& data) const {
-  static size_t n=0;
-  netds_brick_request<uint32_t>(std::get<1>(k), std::get<2>(k), &n);
-  return this->ds->GetBrick(k, data);
+    if(!NETDS::getBrick(std::get<1>(k), std::get<2>(k), data))
+        return false;
+
+    FIXME(netsrc, "Actually write the data to the cash");
+    return this->ds->GetBrick(k, data);
 }
 ///@}
 

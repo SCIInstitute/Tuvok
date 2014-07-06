@@ -15,6 +15,9 @@ class CallPerformer
     void invalidateRenderer();
 
 public:
+    uint32_t width;
+    uint32_t height;
+
     //AbstrRenderer *renderer; //not set yet
     //DynamicBrickingDS *ds;
     tuvok::LuaClassInstance rendererInst;
@@ -30,7 +33,7 @@ public:
 
     //File handling
     vector<std::string> listFiles();
-    bool openFile(const char* filename);
+    bool openFile(const char* filename, const std::vector<size_t>& bSize, size_t minmaxMode);
     void closeFile(const char* filename);
     void rotate(const float* matrix);
     std::vector<tuvok::BrickKey> getRenderedBrickKeys();

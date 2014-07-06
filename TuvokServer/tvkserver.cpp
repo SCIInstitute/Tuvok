@@ -152,11 +152,11 @@ void TvkServer::disconnect(int socket) {
 }
 
 ParameterWrapper* TvkServer::processNextCommand(int socket) {
-    uint8_t cmd;
-    if(!ru8(socket, &cmd))
+    NetDSCommandCode cmd;
+    if(!r_single(socket, cmd))
         return NULL; //Should only happen if a connection error occurs, since reads are blocking
     else
-        return ParamFactory::createFrom((NetDSCommandCode)cmd, socket);
+        return ParamFactory::createFrom(cmd, socket);
 }
 
 int TvkServer::getRequestSocket() {

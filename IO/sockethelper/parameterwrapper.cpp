@@ -3,6 +3,7 @@
 #endif
 #include "parameterwrapper.h"
 #include "DebugOut/debug.h"
+using std::vector;
 
 DECLARE_CHANNEL(params);
 DECLARE_CHANNEL(bricks);
@@ -57,7 +58,7 @@ ParameterWrapper::ParameterWrapper(NetDSCommandCode code)
 ParameterWrapper::~ParameterWrapper() {}
 
 OpenParams::OpenParams(int socket)
-    :ParameterWrapper(nds_OPEN){
+    :ParameterWrapper(nds_OPEN), bSize(3){
     if (socket != -1)
         initFromSocket(socket);
 }
@@ -81,14 +82,9 @@ BrickParams::BrickParams(int socket)
 }
 
 RotateParams::RotateParams(int socket)
-    :ParameterWrapper(nds_ROTATION), matSize(16) {
-    rotMatrix = new float[matSize];
+    :ParameterWrapper(nds_ROTATION), rotMatrix(16) {
     if (socket != -1)
         initFromSocket(socket);
-}
-
-RotateParams::~RotateParams() {
-    delete rotMatrix;
 }
 
 SimpleParams::SimpleParams(NetDSCommandCode code)
@@ -127,7 +123,12 @@ ShutdownParams::ShutdownParams(NetDSCommandCode code)
 /*#################################*/
 
 void OpenParams::initFromSocket(int socket) {
-    ru16(socket, &len);
+    r_multiple(socket, bSize, true);
+    r_single(socket, minmaxMode);
+    r_single(socket, width);
+    r_single(socket, height);
+
+    r_single(socket, len);
 
     filename = new char[len];
     readFromSocket(socket, filename, len*sizeof(char));
@@ -135,7 +136,7 @@ void OpenParams::initFromSocket(int socket) {
 }
 
 void CloseParams::initFromSocket(int socket) {
-    ru16(socket, &len);
+    r_single(socket, len);
 
     filename = new char[len];
     readFromSocket(socket, filename, len*sizeof(char));
@@ -143,21 +144,20 @@ void CloseParams::initFromSocket(int socket) {
 }
 
 void BatchSizeParams::initFromSocket(int socket) {
-    rsizet(socket, &newBatchSize);
+    r_single(socket, newBatchSize);
 
     TRACE(params, "BATCHSIZE %zu", newBatchSize);
 }
 
 void RotateParams::initFromSocket(int socket) {
-    rf32v_d(socket, &rotMatrix[0], matSize);
+    r_multiple(socket, rotMatrix, true);
     TRACE(params, "ROTATE");
 }
 
 void BrickParams::initFromSocket(int socket) {
-    ru8(socket, &type);
-    ru32(socket, &lod);
-    ru32(socket, &bidx);
-    TRACE(params, "BRICK lod=%u, bidx=%u", lod, bidx);
+    r_single(socket, lod);
+    r_single(socket, bidx);
+    TRACE(params, "BRICK lod=%zu, bidx=%zu", lod, bidx);
 }
 
 void SimpleParams::initFromSocket(int socket) {(void)socket;}
@@ -166,38 +166,39 @@ void SimpleParams::initFromSocket(int socket) {(void)socket;}
 /*#################################*/
 /*######  Writing to socket  ######*/
 /*#################################*/
-
+//Not up to date
+/*
 void OpenParams::writeToSocket(int socket) {
-    wru8(socket, code);
-    wru16(socket, len);
+    wr_single(socket, code);
+    wr_single(socket, len);
     wr(socket, filename, len);
 }
 
 void CloseParams::writeToSocket(int socket) {
-    wru8(socket, code);
-    wru16(socket, len);
+    wr_single(socket, code);
+    wr_single(socket, len);
     wr(socket, filename, len);
 }
 
 void BatchSizeParams::writeToSocket(int socket) {
-    wru8(socket, code);
-    wrsizet(socket, newBatchSize);
+    wr_single(socket, code);
+    wr_single(socket, newBatchSize);
 }
 
 void RotateParams::writeToSocket(int socket) {
-    wru8(socket, code);
+    wr_single(socket, code);
     wrf32v(socket, rotMatrix, 16);
 }
 
 void BrickParams::writeToSocket(int socket) {
-    wru8(socket, code);
-    wru32(socket, lod);
-    wru32(socket, bidx);
+    wr_single(socket, code);
+    wr_single(socket, lod);
+    wr_single(socket, bidx);
 }
 
 void SimpleParams::writeToSocket(int socket) {
-    wru8(socket, code);
-}
+    wr_single(socket, code);
+}*/
 
 
 /*#################################*/
@@ -273,7 +274,11 @@ void SimpleParams::mpi_sync(int rank, int srcRank) {(void)rank; (void)srcRank;}
 
 void OpenParams::perform(int socket, int socketB, CallPerformer* object) {
     (void)socketB;
-    bool opened = object->openFile(filename);
+
+    object->width   = width;
+    object->height  = height;
+
+    bool opened = object->openFile(filename, bSize, minmaxMode);
 
 #if MPI_ACTIVE
     int rank;
@@ -283,19 +288,19 @@ void OpenParams::perform(int socket, int socketB, CallPerformer* object) {
 #endif
 
     if(!opened) {
-        wrsizet(socket, 0); //No LODs
+        wr_single(socket, (size_t)0);
         return;
     }
 
     //send LODs
     size_t lodCount = object->getDataSet()->GetLODLevelCount();
-    wrsizet(socket, lodCount);
+    wr_single(socket, lodCount);
 
     if(lodCount == 0)
         return;
 
     const uint8_t ntype = (uint8_t)netTypeForDataset(object->getDataSet());
-    wru8(socket, ntype);
+    wr_single(socket, ntype);
 
     //Send layouts
     size_t layoutsCount = lodCount * 3;
@@ -306,11 +311,11 @@ void OpenParams::perform(int socket, int socketB, CallPerformer* object) {
         layouts[lod * 3 + 1] = layout.y;
         layouts[lod * 3 + 2] = layout.z;
     }
-    wru32v(socket, &layouts[0], layoutsCount);
+    wr_multiple(socket, &layouts[0], layoutsCount, true);
 
     //write total count of bricks out
     size_t brickCount = object->getDataSet()->GetTotalBrickCount();
-    wrsizet(socket, brickCount);
+    wr_single(socket, brickCount);
 
     //We need the brick Keys
     size_t lods[brickCount];
@@ -342,11 +347,11 @@ void OpenParams::perform(int socket, int socketB, CallPerformer* object) {
         md_n_voxels[i*3 + 2] = md.n_voxels.z;
     }
 
-    wrsizetv_d(socket, &lods[0], brickCount);
-    wrsizetv_d(socket, &idxs[0], brickCount);
-    wrf32v_d(socket, &md_centers[0], brickCount * 3);
-    wrf32v_d(socket, &md_extents[0], brickCount * 3);
-    wru32v_d(socket, &md_n_voxels[0], brickCount * 3);
+    wr_multiple(socket, &lods[0], brickCount, false);
+    wr_multiple(socket, &idxs[0], brickCount, false);
+    wr_multiple(socket, &md_centers[0], brickCount * 3, false);
+    wr_multiple(socket, &md_extents[0], brickCount * 3, false);
+    wr_multiple(socket, &md_n_voxels[0], brickCount * 3, false);
 }
 
 void CloseParams::perform(int socket, int socketB, CallPerformer* object) {
@@ -362,15 +367,28 @@ void BatchSizeParams::perform(int socket, int socketB, CallPerformer *object) {
 }
 
 template <class T>
-void startBrickSendLoop(int socket, int socketB, CallPerformer *object, std::vector<tuvok::BrickKey>& allKeys) {
+void startBrickSendLoop(int socket, int socketB, CallPerformer *object, vector<tuvok::BrickKey>& allKeys) {
     uint8_t moreDataComing = 1;
     size_t offset = 0;
 
+    vector<size_t> lods(allKeys.size());
+    vector<size_t> idxs(allKeys.size());
+    for(size_t i = 0; i < allKeys.size(); i++) {
+        const tuvok::BrickKey& bk = allKeys[i];
+        lods[i] = std::get<1>(bk);
+        idxs[i] = std::get<2>(bk);
+    }
+
+    //Tell the client all the keys of bricks to be expected
+    size_t brickCount = allKeys.size();
+    wr_single(socket, brickCount);
+    wr_multiple(socket, &lods[0], lods.size(), false);
+    wr_multiple(socket, &idxs[0], lods.size(), false);
+
+
     size_t maxBatchSize = object->maxBatchSize;
-    std::vector<size_t> lods(maxBatchSize);
-    std::vector<size_t> idxs(maxBatchSize);
-    std::vector<size_t> brickSizes(maxBatchSize);
-    std::vector<std::vector<T>> batchBricks(maxBatchSize);
+    vector<size_t> brickSizes(allKeys.size());
+    vector<vector<T>> batchBricks(maxBatchSize);
     while(moreDataComing) {
         //In case there is a new request from the client arriving,
         //we have to stop sending the current bricks.
@@ -379,52 +397,37 @@ void startBrickSendLoop(int socket, int socketB, CallPerformer *object, std::vec
         // Therefore we always send a last "empty batch" that the client can handle.
         if(newDataOnSocket(socket)) {
             TRACE(bricks, "Received new request. Interrupting current brick-batch-sending.");
-            wrsizet(socketB, 0);
-            wru8(socketB, 0);
+            wr_single(socketB, (size_t)0);
+            wr_single(socketB, (uint8_t)0);
             break;
         }
 
-        //Reset
-        lods.resize(0);
-        idxs.resize(0);
-        //brickSizes.resize(0);
-/*
-        for(size_t i = 0; i < batchBricks.size(); i++)
-            batchBricks[i].resize(0);
-        batchBricks.clear();
-        batchBricks.resize();*/
-
-        //Get the brick keys for this batch
-        for(size_t i = 0; i < maxBatchSize && (i + offset) < allKeys.size(); i++) {
-            const tuvok::BrickKey& bk = allKeys[i + offset];
-            lods.push_back(std::get<1>(bk));
-            idxs.push_back(std::get<2>(bk));
-        }
-
         //Retrieve amount of bricks in this batch and increment the offset
-        size_t actualBatchSize = lods.size();
-        offset += actualBatchSize;
-        moreDataComing = (offset == (allKeys.size() - 1)) ? 0 : 1;
+        size_t actualBatchSize = std::min(maxBatchSize, (allKeys.size() - 1) - offset);
+        moreDataComing = ((offset + actualBatchSize) == (allKeys.size() - 1)) ? 0 : 1;
 
         //Tell client how many bricks to expect
-        wrsizet(socketB, actualBatchSize);
-        wru8(socketB, moreDataComing);
+        wr_single(socketB, actualBatchSize);
+        wr_single(socketB, moreDataComing);
 
         if(actualBatchSize > 0) {
             for(size_t i = 0; i < actualBatchSize; i++) {
-                object->brick_request(lods[i], idxs[i], batchBricks[i]);
+                size_t in_index = offset + 1;
+                object->brick_request(lods[in_index], idxs[in_index], batchBricks[i]);
                 brickSizes[i] = batchBricks[i].size();
             }
 
-            wrsizetv_d(socketB, &lods[0], actualBatchSize);
-            wrsizetv_d(socketB, &idxs[0], actualBatchSize);
-            wrsizetv_d(socketB, &brickSizes[0], actualBatchSize);
+            wr_multiple(socketB, &lods[offset], actualBatchSize, false);
+            wr_multiple(socketB, &idxs[offset], actualBatchSize, false);
+            wr_multiple(socketB, &brickSizes[0], actualBatchSize, false);
 
             for(size_t i = 0; i < actualBatchSize; i++) {
                 if(brickSizes[i] > 0)
                     wr_multiple(socketB, &batchBricks[i][0], brickSizes[i], false);
             }
         }
+
+        offset += actualBatchSize;
     }
 }
 
@@ -438,8 +441,8 @@ void RotateParams::perform(int socket, int socketB, CallPerformer *object) {
 #endif
 
     //renders the scene
-    object->rotate(rotMatrix);
-    std::vector<tuvok::BrickKey> allKeys = object->getRenderedBrickKeys();
+    object->rotate(&rotMatrix[0]);
+    vector<tuvok::BrickKey> allKeys = object->getRenderedBrickKeys();
 
     NetDataType dType = netTypeForDataset(object->getDataSet());
     if(dType == N_UINT8)
@@ -484,7 +487,7 @@ void ListFilesParams::perform(int socket, int socketB, CallPerformer* object) {
 #endif
     vector<std::string> filenames = object->listFiles();
 
-    wru16(socket, (uint16_t)filenames.size());
+    wr_single(socket, (uint16_t)filenames.size());
     for(std::string name : filenames) {
         const char* cstr = name.c_str();
         wrCStr(socket, cstr);

@@ -61,7 +61,7 @@ DEPENDPATH       += $$incpath
 INCLUDEPATH      += $$incpath
 
 #We unfortunately need to link against the original tuvok lib
-QMAKE_LIBDIR += Build IO/expressions
+QMAKE_LIBDIR += Build
 LIBS         += -lTuvok -lz
 !macx:LIBS   += -lGLU -lX11
 
@@ -70,9 +70,9 @@ SOURCES += \
     TuvokServer/tvkserver.cpp \
     TuvokServer/callperformer.cpp \
     IO/sockethelper/parameterwrapper.cpp \
-    IO/sockethelper/sockhelp.c \
-    IO/netds.c \
-    DebugOut/debug.c
+    DebugOut/debug.c \
+    IO/netds.cpp \
+    IO/sockethelper/sockhelp.cpp
 
 HEADERS += \
     TuvokServer/tvkserver.h \

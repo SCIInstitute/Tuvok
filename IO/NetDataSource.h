@@ -9,12 +9,14 @@
 #include "FileBackedDataset.h"
 #include "LinearIndexDataset.h"
 #include "netds.h"
+using NETDS::DSMetaData;
+using NETDS::BatchInfo;
 
 namespace tuvok {
 
 class NetDataSource : public LinearIndexDataset, public FileBackedDataset {
 public:
-  NetDataSource(int socksrc, const struct DSMetaData& dsm);
+  NetDataSource(const struct DSMetaData& dsm);
 
   virtual ~NetDataSource();
   void SetCache(std::shared_ptr<BrickCache> cache);
@@ -76,7 +78,6 @@ public:
 
 private:
   struct DSMetaData dsm;
-  int src;
   std::shared_ptr<BrickCache> cache;
 };
 

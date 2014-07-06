@@ -1328,8 +1328,9 @@ IOManager::LoadNetDataset(const UINTVECTOR3 bsize,
   }
   if(bsize.volume() == 0) { T_ERROR("null brick size"); return NULL; }
 
-  FIXME(netcreate, "should check that the brick size of the NetDataSource "
-        "matches what DynamicBrickingDS will use");
+  //FIXME(netcreate, "should check that the brick size of the NetDataSource "
+  //      "matches what DynamicBrickingDS will use");
+  // Should be solved because the brick size is handed over with the open call
   const std::array<size_t,3> tgt_bsize = {{bsize[0], bsize[1], bsize[2]}};
 
   const size_t cache_size = static_cast<size_t>(
@@ -1339,7 +1340,7 @@ IOManager::LoadNetDataset(const UINTVECTOR3 bsize,
     static_cast<enum DynamicBrickingDS::MinMaxMode>(minmaxMode);
 
   std::shared_ptr<NetDataSource> ds(
-    new NetDataSource(netds_dataSocket(), netds_clientMetaData())
+    new NetDataSource(NETDS::clientMetaData())
   );
 
   return new DynamicBrickingDS(ds, tgt_bsize, cache_size, mm);

@@ -5,15 +5,34 @@ DECLARE_CHANNEL(netsrc);
 
 namespace tuvok {
 
-NetDataSource::NetDataSource(int socksrc, const struct DSMetaData& meta) :
-  dsm(meta),
-  src(socksrc)
+NetDataSource::NetDataSource(const struct DSMetaData& meta) :
+  dsm(meta)
 {
-  //start_receiving_thread(socksrc); // maybe?
-  FIXME(netsrc, "we need to do a bunch of AddBrick calls here, one per brick");
+    std::vector<BrickKey> keys;
+    std::vector<BrickMD> brickMDs;
+
+    keys.reserve(meta.brickCount);
+    brickMDs.reserve(meta.brickCount);
+
+    #pragma omp parallel for
+    for(size_t i = 0; i < meta.brickCount; i++) {
+        keys.push_back(BrickKey(0, meta.lods[i], meta.idxs[i]));
+
+        FLOATVECTOR3 center(meta.md_centers[i*3 + 0], meta.md_centers[i*3 + 1], meta.md_centers[i*3 + 2]);
+        FLOATVECTOR3 extent(meta.md_extents[i*3 + 0], meta.md_extents[i*3 + 1], meta.md_extents[i*3 + 2]);
+        UINTVECTOR3 voxels(meta.md_n_voxels[i*3 + 0], meta.md_n_voxels[i*3 + 1], meta.md_n_voxels[i*3 + 2]);
+        brickMDs.push_back({center, extent, voxels});
+    }
+
+    //Wasn't sure if addBrick was thread-safe, so a separate loop for it
+    for(size_t i = 0; i < meta.brickCount; i++) {
+        AddBrick(keys[i], brickMDs[i]);
+    }
+
+    //start_receiving_thread(socksrc); // maybe?
 }
 NetDataSource::~NetDataSource() {
-  FIXME(netsrc, "should we close 'src' here?");
+    NETDS::closeFile(Filename());
 }
 void
 NetDataSource::SetCache(std::shared_ptr<BrickCache> ch) { this->cache = ch; }
@@ -22,67 +41,74 @@ NetDataSource::SetCache(std::shared_ptr<BrickCache> ch) { this->cache = ch; }
 /// socket SOCK *without* user intervention.  That is, that BK exists in the
 /// list of bricks the server will send us without us sending a new rotation or
 /// whatever.
-static bool data_are_coming(int sock, const BrickKey& bk) {
-  FIXME(netsrc, "Rainer needs to implement me.");
-  (void) sock;
-  (void) bk;
-  return true;
+static bool data_are_coming(const BrickKey& bk) {
+    const NETDS::RotateInfo* rInfo = NETDS::getLastRotationKeys();
+    if(rInfo == NULL)
+        return false;
+
+    size_t keyLoD = std::get<1>(bk);
+    size_t keyBidx = std::get<2>(bk);
+
+    for(size_t i = 0; i < rInfo->brickCount; i++) {
+        if(rInfo->lods[i] == keyLoD && rInfo->idxs[i] == keyBidx)
+            return true;
+    }
+    return false;
 }
 
 /// @returns the brick key at the i'th index in the info.
 static BrickKey construct_key(const struct BatchInfo bi, size_t index) {
-  assert(index < bi.batchSize);
-  FIXME(netsrc, "Rainer needs to implement me.");
-  return BrickKey(0,0,0);
+    assert(index < bi.batchSize);
+    return BrickKey(0, bi.lods[index], bi.idxs[index]);
 }
 /// @returns the number of *elements* (*not* bytes!) in the index'th brick.
 static size_t bsize(const struct BatchInfo bi, size_t index) {
   assert(index < bi.batchSize);
-  FIXME(netsrc, "Rainer needs to implement me.");
-  return 42;
+  return bi.brickSizes[index];
 }
 
 namespace {
 template<typename T> bool
-getbrick(const BrickKey& key, std::vector<T>& data, int socket,
+getbrick(const BrickKey& key, std::vector<T>& data,
          std::shared_ptr<BrickCache> bc, const Dataset* ds)
 {
-  struct BatchInfo binfo;
-  while(data_are_coming(socket, key)) {
-    uint8_t** bricks = netds_readBrickBatch_ui8(&binfo);
-    for(size_t i=0; i < binfo.batchSize; ++i) {
-      // the cache can only accept data in vector form.
-      std::vector<uint8_t> tmpdata(bsize(binfo, i));
-      std::copy(bricks[i], bricks[i]+bsize(binfo, i), tmpdata.begin());
+    struct BatchInfo binfo;
+    vector<vector<uint8_t>> batchData;
 
-      const BrickKey bkey = construct_key(binfo, i);
-      bc->add(bkey, tmpdata);
-    }
-    FIXME(netsrc, "we probably need to free 'bricks' here, somehow.");
+    while(data_are_coming(key)) {
+        if(!NETDS::readBrickBatch(binfo, batchData)) {
+            FIXME(netsrc, "Somehow handle failure...");
+            abort();
+        }
 
-    // did we get the data we were looking for?
-    const uint8_t* dptr = (const uint8_t*)bc->lookup(key, uint8_t());
-    const size_t nvoxels = ds->GetEffectiveBrickSize(key).volume();
-    if(NULL != dptr) {
-      std::copy(dptr, dptr+nvoxels, data.begin());
-      return true;
+        for(size_t i=0; i < binfo.batchSize; ++i) {
+            const BrickKey bkey = construct_key(binfo, i);
+            bc->add(bkey, batchData[i]);
+        }
+
+        // did we get the data we were looking for?
+        const uint8_t* dptr = (const uint8_t*)bc->lookup(key, uint8_t());
+        const size_t nvoxels = ds->GetEffectiveBrickSize(key).volume();
+        if(NULL != dptr) {
+            std::copy(dptr, dptr+nvoxels, data.begin());
+            return true;
+        }
     }
-  }
-  return false;
+    return false;
 }
 } // end anonymous namespace.
 
 bool
 NetDataSource::GetBrick(const BrickKey& k, std::vector<uint8_t>& data) const {
-  return getbrick<uint8_t>(k, data, this->src, this->cache, this);
+  return getbrick<uint8_t>(k, data, this->cache, this);
 }
 bool
 NetDataSource::GetBrick(const BrickKey& k, std::vector<uint16_t>& data) const {
-  return getbrick<uint16_t>(k, data, this->src, this->cache, this);
+  return getbrick<uint16_t>(k, data, this->cache, this);
 }
 bool
 NetDataSource::GetBrick(const BrickKey& k, std::vector<uint32_t>& data) const {
-  return getbrick<uint32_t>(k, data, this->src, this->cache, this);
+  return getbrick<uint32_t>(k, data, this->cache, this);
 }
 
 // we don't expect that this function is needed, and want to be notified if it
@@ -114,8 +140,7 @@ NetDataSource::GetBrickOverlapSize() const {
 
 unsigned
 NetDataSource::GetBitWidth() const {
-  FIXME(netsrc, "Rainer: return 8 or 16 etc depending on underlying data type");
-  return 8;
+    return NETDS::clientMetaData().typeInfo.bitwidth;
 }
 MinMaxBlock
 NetDataSource::MaxMinForKey(const BrickKey&) const {

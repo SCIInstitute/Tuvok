@@ -21,6 +21,8 @@
 /** if endianness needs to be fixed up between client/server */
 static bool shouldReencode = true;
 
+namespace SOCK {
+
 void checkEndianness(int socket) {
     //Get own endianness
     uint8_t ownEndianness;
@@ -38,10 +40,10 @@ void checkEndianness(int socket) {
         ownEndianness = 3;
     }
 
-    wru8(socket, ownEndianness);
+    wr_single(socket, ownEndianness);
 
     uint8_t otherEndianness;
-    ru8(socket, &otherEndianness);
+    r_single(socket, otherEndianness);
 
     if(ownEndianness != otherEndianness
             || ownEndianness == 3
@@ -131,7 +133,7 @@ bool wrmsg(int fd, const void* buf, const size_t len) {
 bool write2(int fd, const void* buffer_, const size_t len) {
   if(fd == -1) { return false; }
   assert(len > 0);
-  const char* buf = buffer_;
+  const char* buf = (const char*)buffer_;
   struct pollfd pll;
 
   pll.fd = fd;
@@ -157,81 +159,65 @@ bool write2(int fd, const void* buffer_, const size_t len) {
   return true;
 }
 
-bool wru8(int fd, const uint8_t buf) {
+
+bool wr_single(int fd, const uint8_t buf){
   return wr(fd, &buf, sizeof(uint8_t));
 }
-
-bool wru16(int fd, const uint16_t buf) {
+bool wr_single(int fd, const uint16_t buf) {
     if(!shouldReencode)
         return wr(fd, &buf, sizeof(uint16_t));
 
     const uint16_t data = htons(buf);
     return wr(fd, &data, sizeof(uint16_t));
 }
-
-bool wru32(int fd, const uint32_t buf) {
+bool wr_single(int fd, const uint32_t buf) {
     if(!shouldReencode)
         return wr(fd, &buf, sizeof(uint32_t));
 
     const uint32_t data = htonl(buf);
     return wr(fd, &data, sizeof(uint32_t));
 }
-
-bool wrsizet(int fd, const size_t buf) {
-    return wru32(fd, (uint32_t) buf);
+bool wr_single(int fd, const size_t buf) {
+    return wr_single(fd, (uint32_t) buf);
+}
+bool wr_single(int fd, const NetDSCommandCode code) {
+    return wr_single(fd, (uint8_t)code);
 }
 
-bool wru8v(int fd, const uint8_t* buf, size_t count) {
-    wrsizet(fd, count);//Telling the other side how many elements there are
-    return wru8v_d(fd, buf, count);
-}
 
-bool wru16v(int fd, const uint16_t* buf, size_t count) {
-    wrsizet(fd, count);//Telling the other side how many elements there are
-    return wru16v_d(fd, buf, count);
-}
 
-bool wru32v(int fd, const uint32_t* buf, size_t count) {
-    wrsizet(fd, count);//Telling the other side how many elements there are
-    return wru32v_d(fd, buf, count);
-}
+bool wr_multiple(int fd, const uint8_t* buf, size_t count, bool announce) {
+    if(announce)
+        wr_single(fd, count);
 
-bool wrf32v(int fd, const float* buf, size_t count) {
-    assert(count <= 4294967296);
-    wrsizet(fd, count);//Telling the other side how many elements there are
-    return wrf32v_d(fd, buf, count);
-}
-
-bool wrsizetv(int fd, const size_t *buf, size_t count) {
-    wrsizet(fd, count);
-    return wrsizetv_d(fd, buf, count);
-}
-
-bool wru8v_d(int fd, const uint8_t* buf, size_t count) {
     return wr(fd, buf, sizeof(uint8_t)*count);
 }
+bool wr_multiple(int fd, const uint16_t* buf, size_t count, bool announce) {
+    if(announce)
+        wr_single(fd, count);
 
-bool wru16v_d(int fd, const uint16_t* buf, size_t count) {
     if(!shouldReencode) {
         return wr(fd, buf, sizeof(uint16_t)*count);
     }
     else {
-        uint16_t* netData = malloc(sizeof(uint16_t)*count);
+        uint16_t* netData = new uint16_t[count];
         for(size_t i = 0; i < count; i++) {
             netData[i] = htons(buf[i]);
         }
         bool retValue = wr(fd, netData, sizeof(uint16_t)*count);
-        free(netData);
+        delete netData;
         return retValue;
     }
 }
+bool wr_multiple(int fd, const uint32_t* buf, size_t count, bool announce) {
+    if(announce)
+        wr_single(fd, count);
 
-bool wru32v_d(int fd, const uint32_t* buf, size_t count) {
     if(!shouldReencode) {
         return wr(fd, buf, sizeof(uint32_t)*count);
     }
     else {
-        uint32_t* netData = malloc(sizeof(uint32_t)*count);
+        uint32_t* netData = new uint32_t[count];
         for(size_t i = 0; i < count; i++) {
             netData[i] = htonl(buf[i]);
         }
@@ -240,12 +226,15 @@ bool wru32v_d(int fd, const uint32_t* buf, size_t count) {
         return retValue;
     }
 }
-bool wrf32v_d(int fd, const float* buf, size_t count) {
+bool wr_multiple(int fd, const float* buf, size_t count, bool announce) {
+    if(announce)
+        wr_single(fd, count);
+
     if(!shouldReencode) {
         return wr(fd, buf, sizeof(float)*count);
     }
 
-    float* swapped = malloc(sizeof(float)*count);
+    float* swapped = new float[count];
     for(float* b = swapped; b < swapped+count; ++b) {
         *b = htonl(*b);
     }
@@ -253,22 +242,23 @@ bool wrf32v_d(int fd, const float* buf, size_t count) {
     free(swapped);
     return rv;
 }
-
-bool wrsizetv_d(int fd, const size_t* buf, size_t count) {
+bool wr_multiple(int fd, const size_t* buf, size_t count, bool announce) {
     uint32_t newBuffer[count];
     for(size_t i = 0; i < count; i++) {
         newBuffer[i] = (uint32_t)buf[i];
     }
-    return wru32v_d(fd, &newBuffer[0], count);
+    return wr_multiple(fd, &newBuffer[0], count, announce);
 }
+
+
 
 bool wrCStr(int fd, const char *cstr) {
     size_t len = strlen(cstr)+1;
 
-    if(!wru16(fd, len) || !wr(fd, cstr, len)) {
-        return false;
+    if(wr_single(fd, len) && wr(fd, cstr, len)) {
+        return true;
     }
-    return true;
+    return false;
 }
 
 /*#################################*/
@@ -319,80 +309,77 @@ int readFromSocket(int socket, void *buffer, size_t len) {
     return byteCount;
 }
 
-bool ru8(int socket, uint8_t* value) {
-    return 0 < (readFromSocket(socket, value, 1));
+bool r_single(int socket, uint8_t& value) {
+    return 0 < (readFromSocket(socket, &value, sizeof(uint8_t)));
 }
-
-bool ru16(int socket, uint16_t* value) {
-    bool success = 0 < (readFromSocket(socket, value, sizeof(uint16_t)));
-    
-    if (shouldReencode)
-        *value = ntohs(*value);
-    
-    return success;
-}
-
-bool ru32(int socket, uint32_t* value) {
-    bool success = 0 < (readFromSocket(socket, value, sizeof(uint32_t)));
-    
-    if (shouldReencode)
-        *value = ntohl(*value);
-    
-    return success;
-}
-
-bool rf32(int socket, float* value) {
-    bool success = 0 < (readFromSocket(socket, value, sizeof(float)));
+bool r_single(int socket, uint16_t& value) {
+    bool success = 0 < (readFromSocket(socket, &value, sizeof(uint16_t)));
 
     if (shouldReencode)
-        *value = ntohl(*value);
+        value = ntohs(value);
 
     return success;
 }
+bool r_single(int socket, uint32_t& value) {
+    bool success = 0 < (readFromSocket(socket, &value, sizeof(uint32_t)));
 
-bool rsizet(int socket, size_t *value) {
+    if (shouldReencode)
+        value = ntohl(value);
+
+    return success;
+}
+bool r_single(int socket, float& value) {
+    bool success = 0 < (readFromSocket(socket, &value, sizeof(float)));
+
+    if (shouldReencode)
+        value = ntohl(value);
+
+    return success;
+}
+bool r_single(int socket, size_t& value) {
     uint32_t tmp_val;
-    bool success = ru32(socket, &tmp_val);
-    *value = (size_t)tmp_val;
+    bool success = r_single(socket, tmp_val);
+    value = (size_t)tmp_val;
     return success;
 }
-
-bool ru8v(int socket, uint8_t** buffer, size_t* count) {
-    rsizet(socket, count);
-    *buffer = malloc(sizeof(uint8_t)*(*count));
-    return ru8v_d(socket, *buffer, *count);
+bool r_single(int socket, NetDSCommandCode& value) {
+    uint8_t tmp;
+    return r_single(socket, tmp);
+    value = (NetDSCommandCode)tmp;
 }
 
-bool ru16v(int socket, uint16_t** buffer, size_t* count) {
-    rsizet(socket, count);
-    *buffer = malloc(sizeof(uint16_t)*(*count));
-    return ru16v_d(socket, *buffer, *count);
+
+//private
+template<typename T>
+size_t getCountAndAlloc(int socket, vector<T>&  buffer, bool sizeIsPredetermined) {
+    size_t count;
+
+    if(sizeIsPredetermined)
+        count = buffer.size();
+    else {
+        r_single(socket, count);
+        buffer.resize(count);
+    }
+
+   // if(count == 0)
+     //   abort(); //are you sure, that you want this? o_O
+
+    return count;
 }
 
-bool ru32v(int socket, uint32_t** buffer, size_t* count) {
-    rsizet(socket, count);
-    *buffer = malloc(sizeof(uint32_t)*(*count));
-    return ru32v_d(socket, *buffer, *count);
-}
+bool r_multiple(int socket, vector<uint8_t>&  buffer, bool sizeIsPredetermined) {
+    size_t count = getCountAndAlloc(socket, buffer, sizeIsPredetermined);
+    if(count == 0)
+        return true;
 
-bool rf32v(int socket, float **buffer, size_t *count) {
-    rsizet(socket, count);
-    *buffer = malloc(sizeof(float)*(*count));
-    return rf32v_d(socket, *buffer, *count);
+    return 0 < (readFromSocket(socket, &buffer[0], sizeof(uint8_t)*count));
 }
+bool r_multiple(int socket, vector<uint16_t>&  buffer, bool sizeIsPredetermined) {
+    size_t count = getCountAndAlloc(socket, buffer, sizeIsPredetermined);
+    if(count == 0)
+        return true;
 
-bool rsizetv(int socket, size_t **buffer, size_t *count) {
-    rsizet(socket, count);
-    *buffer = malloc(sizeof(size_t)*(*count));
-    return rsizetv_d(socket, *buffer, *count);
-}
-
-bool ru8v_d(int socket, uint8_t* buffer, size_t count) {
-    return 0 < (readFromSocket(socket, buffer, sizeof(uint8_t)*count));
-}
-
-bool ru16v_d(int socket, uint16_t* buffer, size_t count) {
-    bool success = 0 < (readFromSocket(socket, buffer, sizeof(uint16_t)*count));
+    bool success = 0 < (readFromSocket(socket, &buffer[0], sizeof(uint16_t)*count));
     if (shouldReencode) {
         for(size_t i = 0; i < count; i++) {
             buffer[i] = ntohs(buffer[i]);
@@ -400,9 +387,12 @@ bool ru16v_d(int socket, uint16_t* buffer, size_t count) {
     }
     return success;
 }
+bool r_multiple(int socket, vector<uint32_t>&  buffer, bool sizeIsPredetermined) {
+    size_t count = getCountAndAlloc(socket, buffer, sizeIsPredetermined);
+    if(count == 0)
+        return true;
 
-bool ru32v_d(int socket, uint32_t* buffer, size_t count) {
-    bool success = 0 < (readFromSocket(socket, buffer, sizeof(uint32_t)*count));
+    bool success = 0 < (readFromSocket(socket, &buffer[0], sizeof(uint32_t)*count));
     if (shouldReencode) {
         for(size_t i = 0; i < count; i++) {
             buffer[i] = ntohl(buffer[i]);
@@ -410,9 +400,12 @@ bool ru32v_d(int socket, uint32_t* buffer, size_t count) {
     }
     return success;
 }
+bool r_multiple(int socket, vector<float>&  buffer, bool sizeIsPredetermined) {
+    size_t count = getCountAndAlloc(socket, buffer, sizeIsPredetermined);
+    if(count == 0)
+        return true;
 
-bool rf32v_d(int socket, float* buffer, size_t count) {
-    bool success = 0 < (readFromSocket(socket, buffer, sizeof(float)*count));
+    bool success = 0 < (readFromSocket(socket, &buffer[0], sizeof(float)*count));
     if (shouldReencode) {
         for(size_t i = 0; i < count; i++) {
             buffer[i] = ntohl(buffer[i]);
@@ -420,11 +413,13 @@ bool rf32v_d(int socket, float* buffer, size_t count) {
     }
     return success;
 }
+bool r_multiple(int socket, vector<size_t>&  buffer, bool sizeIsPredetermined) {
+    size_t count = getCountAndAlloc(socket, buffer, sizeIsPredetermined);
+    if(count == 0)
+        return true;
 
-//Careful... slow!
-bool rsizetv_d(int socket, size_t* buffer, size_t count) {
-    uint32_t newBuffer[count];
-    bool success = ru32v_d(socket, &newBuffer[0], count);
+    vector<uint32_t> newBuffer(count);
+    bool success = r_multiple(socket, newBuffer, sizeIsPredetermined);
 
     if(success) {
         for(size_t i = 0; i < count; i++) {
@@ -436,12 +431,14 @@ bool rsizetv_d(int socket, size_t* buffer, size_t count) {
 }
 
 bool rCStr(int socket, char **buffer, size_t *countOrNULL) {
-    uint16_t len;
-    ru16(socket, &len);
+    size_t len;
+    r_single(socket, len);
     
     if (countOrNULL != NULL)
         *countOrNULL = len;
 
-    *buffer = malloc(sizeof(char)*len);
+    *buffer = new char[len];
     return readFromSocket(socket, *buffer, len);
+}
+
 }

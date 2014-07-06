@@ -276,14 +276,15 @@ bool AbstrRenderer::LoadRebricked(const std::string& filename,
 bool AbstrRenderer::LoadNetDS(const std::string& filename,
                               const UINTVECTOR3 bsize,
                               size_t minmaxMode) {
-  // filename is expected to be used in order to figure out metadata and then
-  // call setClientMetaData ...
-  (void) filename; // ... but we haven't implemented that yet!
-  const IOManager& iomgr = Controller::Const().IOMan();
-  FIXME(netload, "Rainer: must add setClientMetaData before iomgr call here!");
-  Dataset* ds = iomgr.LoadNetDataset(bsize, minmaxMode);
-  Controller::Instance().MemMan()->AddDataset(ds, this);
-  return this->RegisterDataset(ds);
+
+    NETDS::DSMetaData metaData;
+    std::array<size_t, 3> tgtBsize = {{bsize[0], bsize[1], bsize[2]}};
+    NETDS::openFile(filename, metaData, minmaxMode, tgtBsize, 1920, 1080);
+
+    const IOManager& iomgr = Controller::Const().IOMan();
+    Dataset* ds = iomgr.LoadNetDataset(bsize, minmaxMode);
+    Controller::Instance().MemMan()->AddDataset(ds, this);
+    return this->RegisterDataset(ds);
 }
 
 AbstrRenderer::~AbstrRenderer() {
@@ -508,7 +509,7 @@ LuaClassInstance AbstrRenderer::LuaGetFirst3DRegion() {
 void AbstrRenderer::SetRotationRR(RenderRegion *renderRegion,
                                   const FLOATMATRIX4& rotation) {
     //TODO somehow derive type
-  netds_rotation(rotation.array);
+  NETDS::rotate(rotation.array);
   renderRegion->rotation = rotation;
   ScheduleWindowRedraw(renderRegion);
 }
