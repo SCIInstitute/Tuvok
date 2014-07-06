@@ -17,13 +17,16 @@ using namespace NETDS;
 using namespace SOCK;
 
 void printVar(uint8_t var) {
-    printf("%" PRIu8 "\n", var);
+    std::cout << var << "\n";
+    //printf("%" PRIu8 "\n", var);
 }
 void printVar(uint16_t var) {
-    printf("%" PRIu16 "\n", var);
+    std::cout << var << "\n";
+    //printf("%" PRIu16 "\n", var);
 }
 void printVar(uint32_t var) {
-    printf("%" PRIu32 "\n", var);
+    std::cout << var << "\n";
+    //printf("%" PRIu32 "\n", var);
 }
 
 template <typename T>
