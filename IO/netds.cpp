@@ -29,7 +29,7 @@ static const unsigned short portA = 4445;
 static const unsigned short portB = 4446; //For batches
 
 static NETDS::RotateInfo* lastKeys = NULL;
-static NETDS::DSMetaData dsmd = { .lodCount = 0 };
+static NETDS::DSMetaData* dsmd;
 
 using namespace SOCK;
 
@@ -243,13 +243,18 @@ bool readBrickBatch(BatchInfo &out_info, vector<vector<uint32_t>>& buffer){
 }
 
 
-void setClientMetaData(struct DSMetaData d) { dsmd = d; }
+void setClientMetaData(struct DSMetaData d) {
+    if(dsmd != NULL) {
+        delete dsmd;
+    }
+    dsmd = new DSMetaData(d);
+}
 struct DSMetaData clientMetaData() {
-    if(dsmd.lodCount == 0) {
+    if(dsmd == NULL) {
         FIXME(net, "dataset metadata not yet initialized! Rainer, you must setup");
         assert(false);
     }
-    return dsmd;
+    return *dsmd;
 }
 
 bool openFile(const string& filenameString, DSMetaData& out_meta, size_t minmaxMode, std::array<size_t, 3> bSize, uint32_t width, uint32_t height)
