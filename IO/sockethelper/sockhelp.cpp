@@ -15,6 +15,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include "order32.h"
+#include <limits>
 
 #define DEBUG_BYTES 0
 
