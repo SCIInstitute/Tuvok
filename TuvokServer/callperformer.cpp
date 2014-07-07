@@ -233,9 +233,9 @@ std::vector<tuvok::BrickKey> CallPerformer::getRenderedBrickKeys() {
     const std::vector<UINTVECTOR4> hash = glren->GetNeededBricks();
     const tuvok::LinearIndexDataset& linearDS = dynamic_cast<const tuvok::LinearIndexDataset&>(*getDataSet());
 
-    size_t totalBrickCount = hash.size();
-    std::vector<tuvok::BrickKey> allKeys(totalBrickCount);
+    std::vector<tuvok::BrickKey> allKeys(0);
     for(UINTVECTOR4 b : hash) {
+        //printf("Test: x:%d y:%d z:%d, w:%d\n", b.x, b.y, b.z, b.w);
         allKeys.push_back(linearDS.IndexFrom4D(b, 0));
     }
 

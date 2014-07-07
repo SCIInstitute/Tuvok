@@ -7,7 +7,7 @@
 //
 
 #define DEBUG_BRICK 0
-#define DEBUG_MBRICK 1
+#define DEBUG_MBRICK 0
 #include <iostream>
 #include "netds.h"
 #include <inttypes.h>
@@ -75,8 +75,6 @@ void typedMultiTest(DSMetaData metaData) {
             printVar(result[i][j]);
         }
         printf("Brick %zu: End of list.\n", i);
-#else
-        (void)data2;
 #endif
     }
     printf("End of brick-list!\n");
@@ -87,7 +85,7 @@ void typedRotationTest(DSMetaData metaData) {
     (void)metaData;
 
     printf("\nRequesting rotation with identity matrix.\n");
-    NETDS::setBatchSize(20);
+    NETDS::setBatchSize(4);
     
     float identityMatrix[16] = {1, 0, 0, 0,
                                 0, 1, 0, 0,
@@ -95,6 +93,13 @@ void typedRotationTest(DSMetaData metaData) {
                                 0, 0, 0, 1};
     NETDS::rotate(identityMatrix);
     
+    const NETDS::RotateInfo* rotInfo = NETDS::getLastRotationKeys();
+    printf("We should be receiving the following %zu bricks:\n", rotInfo->brickCount);
+    for(size_t i = 0; i < rotInfo->brickCount; i++) {
+        printf("lod: %zu, idx: %zu\n", rotInfo->lods[i], rotInfo->idxs[i]);
+    }
+    printf("End of list\n");
+
     bool done = false;
 
     vector<vector<T>> batchData;
@@ -104,9 +109,9 @@ void typedRotationTest(DSMetaData metaData) {
         if(!NETDS::readBrickBatch(bInfo, batchData))
             abort();
 
-        printf("Received a batch of size %zu\n", bInfo.batchSize);
+        printf("\nReceived a batch of size %zu\n", bInfo.batchSize);
         for (size_t i = 0; i < bInfo.batchSize; i++) {
-            printf("Brick %zu has size: %zu\n", i, bInfo.brickSizes[i]);
+            printf("Brick %zu (lod: %zu, idx: %zu) has size: %zu\n", i, bInfo.lods[i], bInfo.idxs[i], bInfo.brickSizes[i]);
         }
         printf("End of batch!\n");
         

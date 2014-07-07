@@ -383,6 +383,7 @@ void startBrickSendLoop(int socket, int socketB, CallPerformer *object, vector<t
 
 
     size_t maxBatchSize = object->maxBatchSize;
+    //printf("max batch size: %zu\n", maxBatchSize);
     vector<size_t> brickSizes(allKeys.size());
     vector<vector<T>> batchBricks(maxBatchSize);
     while(moreDataComing) {
@@ -399,8 +400,8 @@ void startBrickSendLoop(int socket, int socketB, CallPerformer *object, vector<t
         }
 
         //Retrieve amount of bricks in this batch and increment the offset
-        size_t actualBatchSize = std::min(maxBatchSize, (allKeys.size() - 1) - offset);
-        moreDataComing = ((offset + actualBatchSize) == (allKeys.size() - 1)) ? 0 : 1;
+        size_t actualBatchSize = std::min(maxBatchSize, allKeys.size() - offset);
+        moreDataComing = ((offset + actualBatchSize) == allKeys.size()) ? 0 : 1;
 
         //Tell client how many bricks to expect
         wr_single(socketB, actualBatchSize);
@@ -408,7 +409,7 @@ void startBrickSendLoop(int socket, int socketB, CallPerformer *object, vector<t
 
         if(actualBatchSize > 0) {
             for(size_t i = 0; i < actualBatchSize; i++) {
-                size_t in_index = offset + 1;
+                size_t in_index = offset + i;
                 object->brick_request(lods[in_index], idxs[in_index], batchBricks[i]);
                 brickSizes[i] = batchBricks[i].size();
             }
