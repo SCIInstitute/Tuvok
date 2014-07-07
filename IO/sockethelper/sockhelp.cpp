@@ -20,8 +20,70 @@
 
 /** if endianness needs to be fixed up between client/server */
 static bool shouldReencode = true;
+typedef bool (msgsend)(int, const void*, const size_t);
 
 namespace SOCK {
+    bool wrmsg(int  fd, const void* buffer, const size_t len);
+    bool write2(int fd, const void* buffer, const size_t len);
+    int readFromSocket(int socket, void *buffer, size_t len);
+    static msgsend* wr = wrmsg;
+
+/* returns file descriptor of connected socket. */
+int connect_server(unsigned short port) {
+    const char* host = getenv("IV3D_SERVER");
+    if(host == NULL) {
+        fprintf(stderr, "You need to set the IV3D_SERVER environment variable to "
+                "the host name or IP address of the server.\n");
+        return -1;
+    }
+    if(getenv("IV3D_USE_WRITE2") != NULL) {
+        printf("USE_WRITE2 set; using write(2) for socket comm.\n");
+        wr = write2;
+    }
+    char portc[16];
+    if(snprintf(portc, 15, "%hu", port) != 4) {
+        fprintf(stderr, "port conversion to string failed\n");
+        return -1;
+    }
+
+    struct addrinfo hints;
+    memset(&hints, 0, sizeof(struct addrinfo));
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    struct addrinfo* servlist;
+    int addrerr;
+    if((addrerr = getaddrinfo(host, portc, &hints, &servlist)) != 0) {
+        fprintf(stderr, "error getting address info for '%s': %d\n", host,
+                addrerr);
+        return -1;
+    }
+
+    int sfd = -1;
+    for(struct addrinfo* addr=servlist; addr != NULL; addr = addr->ai_next) {
+        sfd = socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
+        if(sfd == -1) {
+            continue;
+        }
+        if(connect(sfd, addr->ai_addr, addr->ai_addrlen) == -1) {
+            close(sfd);
+            sfd = -1;
+            continue;
+        }
+        break;
+    }
+    freeaddrinfo(servlist);
+    if(sfd == -1) {
+        fprintf(stderr, "could not connect to server '%s'\n", host);
+        return -1;
+    }
+    if(wr(sfd, "IV3D", (size_t)4) == false) {
+        fprintf(stderr, "error sending protocol header to server\n");
+        close(sfd);
+        return -1;
+    }
+    SOCK::checkEndianness(sfd);
+    return sfd;
+}
 
 void checkEndianness(int socket) {
     //Get own endianness
@@ -183,7 +245,27 @@ bool wr_single(int fd, const size_t buf) {
 bool wr_single(int fd, const NetDSCommandCode code) {
     return wr_single(fd, (uint8_t)code);
 }
+bool wrCStr(int fd, const char *cstr) {
+    size_t len = strlen(cstr);
+    if(len == 0) {
+        fprintf(stderr, "no filename, ignoring (not sending) close notification\n");
+        abort();
+    }
+    if(len > std::numeric_limits<uint16_t>::max()) {
+        fprintf(stderr, "error, ridiculously long (%zu-byte) filename\n", len);
+        abort();
+    }
 
+    len++; //For nulltermination
+
+    if(wr_single(fd, len) && wr(fd, cstr, len)) {
+        return true;
+    }
+    return false;
+}
+bool wr_single(int fd, const string buf) {
+    return wrCStr(fd, buf.c_str());
+}
 
 
 bool wr_multiple(int fd, const uint8_t* buf, size_t count, bool announce) {
@@ -248,16 +330,6 @@ bool wr_multiple(int fd, const size_t* buf, size_t count, bool announce) {
     return wr_multiple(fd, &newBuffer[0], count, announce);
 }
 
-
-
-bool wrCStr(int fd, const char *cstr) {
-    size_t len = strlen(cstr)+1;
-
-    if(wr_single(fd, len) && wr(fd, cstr, len)) {
-        return true;
-    }
-    return false;
-}
 
 /*#################################*/
 /*#######       Read        #######*/
@@ -342,10 +414,32 @@ bool r_single(int socket, size_t& value) {
 }
 bool r_single(int socket, NetDSCommandCode& value) {
     uint8_t tmp;
-    return r_single(socket, tmp);
+    bool success = r_single(socket, tmp);
     value = (NetDSCommandCode)tmp;
+    return success;
 }
+bool rCStr(int socket, char **buffer, size_t *countOrNULL) {
+    size_t len;
+    r_single(socket, len);
 
+    if (countOrNULL != NULL)
+        *countOrNULL = len;
+
+    *buffer = new char[len];
+    return readFromSocket(socket, *buffer, len);
+}
+bool r_single(int socket, string& value) {
+    char* tmp;
+    bool success = rCStr(socket, &tmp, NULL);
+    if(!success) {
+        delete tmp;
+        fprintf(stderr, "Could not read string from stream!\n");
+        return false;
+    }
+    value = tmp;
+    delete tmp;
+    return success;
+}
 
 //private
 template<typename T>
@@ -427,16 +521,12 @@ bool r_multiple(int socket, vector<size_t>&  buffer, bool sizeIsPredetermined) {
 
     return success;
 }
+bool r_multiple(int socket, vector<char>& buffer, bool sizeIsPredetermined) {
+    size_t count = getCountAndAlloc(socket, buffer, sizeIsPredetermined);
+    if(count == 0)
+        return true;
 
-bool rCStr(int socket, char **buffer, size_t *countOrNULL) {
-    size_t len;
-    r_single(socket, len);
-    
-    if (countOrNULL != NULL)
-        *countOrNULL = len;
-
-    *buffer = new char[len];
-    return readFromSocket(socket, *buffer, len);
+    return 0 < (readFromSocket(socket, &buffer[0], sizeof(uint8_t)*count));
 }
 
 }

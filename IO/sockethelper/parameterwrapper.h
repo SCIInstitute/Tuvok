@@ -36,9 +36,7 @@ public:
     size_t minmaxMode;
     uint32_t width;
     uint32_t height;
-
-    uint16_t len;
-    char *filename;
+    std::string filename;
 
     OpenParams(int socket = -1);
     void initFromSocket(int socket);
@@ -50,8 +48,7 @@ public:
 class CloseParams : public ParameterWrapper
 {
 public:
-    uint16_t len;
-    char *filename;
+    std::string filename;
 
     CloseParams(int socket = -1);
     void initFromSocket(int socket);

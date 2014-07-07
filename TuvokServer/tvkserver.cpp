@@ -1,6 +1,8 @@
 #include "tvkserver.h"
 #include "sockhelp.h"
 #include "DebugOut/debug.h"
+#include <vector>
+using std::vector;
 
 #define DEBUG_PEER 1
 #define DEBUG_SERVER 1
@@ -55,7 +57,7 @@ int listenAndBind(unsigned short port) {
         if (listen_s == -1)
             continue;
 
-        // @TODO: Remove setsockopt again, only for debug reasons!
+        /// @TODO: Remove setsockopt again, only for debug reasons!
         int foo = 1;
         setsockopt(listen_s, SOL_SOCKET, SO_REUSEADDR, &foo, sizeof(int));
 
@@ -89,10 +91,8 @@ TvkServer::TvkServer(unsigned short port, unsigned short portB) {
 }
 
 bool magicCheck(int socket) {
-    char buf[4];
-    int byteCount = readFromSocket(socket, buf, sizeof(char)*4);
-
-    if (byteCount < 4) {
+    vector<char> buf(4);
+    if(!r_multiple(socket, buf, true)) {
         ERR(log, "Could not find magic on stream (not enough data)!");
         return false;
     }
@@ -133,7 +133,7 @@ int acceptOnListeningPort(int listen_s) {
 }
 
 bool TvkServer::waitAndAccept() {
-    TRACE(log, "Waiting for a new client connection...");
+    printf("Waiting for a new client connection...\n");
     conn_a = acceptOnListeningPort(listen_a);
     conn_b = acceptOnListeningPort(listen_b);
     // @TODO: should also check for same address

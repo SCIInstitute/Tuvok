@@ -33,64 +33,6 @@ static NETDS::DSMetaData* dsmd;
 
 using namespace SOCK;
 
-/* returns file descriptor of connected socket. */
-static int
-connect_server(unsigned short port) {
-    const char* host = getenv("IV3D_SERVER");
-    if(host == NULL) {
-        fprintf(stderr, "You need to set the IV3D_SERVER environment variable to "
-                "the host name or IP address of the server.\n");
-        return -1;
-    }
-    if(getenv("IV3D_USE_WRITE2") != NULL) {
-        printf("USE_WRITE2 set; using write(2) for socket comm.\n");
-        wr = write2;
-    }
-    char portc[16];
-    if(snprintf(portc, 15, "%hu", port) != 4) {
-        fprintf(stderr, "port conversion to string failed\n");
-        return -1;
-    }
-
-    struct addrinfo hints;
-    memset(&hints, 0, sizeof(struct addrinfo));
-    hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-    struct addrinfo* servlist;
-    int addrerr;
-    if((addrerr = getaddrinfo(host, portc, &hints, &servlist)) != 0) {
-        fprintf(stderr, "error getting address info for '%s': %d\n", host,
-                addrerr);
-        return -1;
-    }
-
-    int sfd = -1;
-    for(struct addrinfo* addr=servlist; addr != NULL; addr = addr->ai_next) {
-        sfd = socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
-        if(sfd == -1) {
-            continue;
-        }
-        if(connect(sfd, addr->ai_addr, addr->ai_addrlen) == -1) {
-            close(sfd);
-            sfd = -1;
-            continue;
-        }
-        break;
-    }
-    freeaddrinfo(servlist);
-    if(sfd == -1) {
-        fprintf(stderr, "could not connect to server '%s'\n", host);
-        return -1;
-    }
-    if(SOCK::wr(sfd, "IV3D", (size_t)4) == false) {
-        fprintf(stderr, "error sending protocol header to server\n");
-        close(sfd);
-        return -1;
-    }
-    SOCK::checkEndianness(sfd);
-    return sfd;
-}
-
 static void
 force_connect() {
     if(remote == -1) {
@@ -257,29 +199,17 @@ struct DSMetaData clientMetaData() {
     return *dsmd;
 }
 
-bool openFile(const string& filenameString, DSMetaData& out_meta, size_t minmaxMode, std::array<size_t, 3> bSize, uint32_t width, uint32_t height)
+bool openFile(const string& filename, DSMetaData& out_meta, size_t minmaxMode, std::array<size_t, 3> bSize, uint32_t width, uint32_t height)
 {
-    const char* filename = filenameString.c_str();
-
     force_connect();
-    const size_t len = strlen(filename)+1;
-    if(len > std::numeric_limits<uint16_t>::max()) {
-        fprintf(stderr, "error, ridiculously long (%zu-byte) filename\n", len);
-        abort();
-    }
-    if(len == 0) {
-        fprintf(stderr, "open of blank filename?  ignoring.\n");
-        return false;
-    }
+
     wr_single(remote, nds_OPEN);
 
     wr_multiple(remote, &bSize[0], 3, false);
     wr_single(remote, minmaxMode);
     wr_single(remote, width);
     wr_single(remote, height);
-
-    wr_single(remote, len);
-    wr(remote, filename, len);
+    wr_single(remote, filename);
 
     //Read meta-data from server
     r_single(remote, out_meta.lodCount);
@@ -319,23 +249,13 @@ bool openFile(const string& filenameString, DSMetaData& out_meta, size_t minmaxM
     return true;
 }
 
-void closeFile(const string& filenameString)
+void closeFile(const string& filename)
 {
-    const char* filename = filenameString.c_str();
-
-    if(remote == -1) { return; }
-    const size_t len = strlen(filename);
-    if(len == 0) {
-        fprintf(stderr, "no filename, ignoring (not sending) close notification\n");
-        close(remote);
+    if(remote == -1) {
         return;
     }
-    if(len > std::numeric_limits<uint16_t>::max()) {
-        fprintf(stderr, "error, ridiculously long (%zu-byte) filename\n", len);
-        abort();
-    }
     wr_single(remote, nds_CLOSE);
-    wrCStr(remote, filename);
+    wr_single(remote, filename);
 }
 
 void shutdownServer() {
@@ -369,6 +289,7 @@ const RotateInfo* getLastRotationKeys() {
 bool listFiles(vector<string>& resultBuffer)
 {
     force_connect();
+
     wr_single(remote, nds_LIST_FILES);
 
     uint16_t tmp_count;
@@ -376,15 +297,7 @@ bool listFiles(vector<string>& resultBuffer)
 
     resultBuffer.resize(tmp_count);
     for (size_t i = 0; i < tmp_count; i++) {
-        char* tmp;
-        if(!rCStr(remote, &tmp, NULL)) {
-            delete tmp;
-            ERR(net, "Could not read string from stream!\n");
-            return false;
-        }
-
-        resultBuffer[i] = tmp;
-        delete tmp;
+        r_single(remote, resultBuffer[i]);
     }
 
     return true;

@@ -77,7 +77,7 @@ vector<std::string> CallPerformer::listFiles() {
             if(ent->d_type != DT_DIR) {
                 std::string fname = ent->d_name;
 
-                printf("%s\n", fname.c_str());
+                //printf("%s\n", fname.c_str());
 
                 //Only files ending in .uvf
                 if (fname.find(extension, (fname.length() - extension.length())) != std::string::npos) {
@@ -116,7 +116,7 @@ std::shared_ptr<tuvok::Context> createContext(uint32_t width, uint32_t height,
   return ctx;
 }
 
-bool CallPerformer::openFile(const char* filename, const std::vector<size_t>& bSize, size_t minmaxMode) {
+bool CallPerformer::openFile(const std::string& filename, const std::vector<size_t>& bSize, size_t minmaxMode) {
     const char* folder = getenv("IV3D_FILES_FOLDER");
     if(folder == NULL) {
         folder = "./";
@@ -154,15 +154,18 @@ bool CallPerformer::openFile(const char* filename, const std::vector<size_t>& bS
     sprintf(buff, "{%d, %d}", res.x, res.y);
     std::string resStr(buff);
 
-    ss->cexec(rn+".loadDataset", effectiveFilename);
+    TRACE(file, "Opening file: %s\n", effectiveFilename.c_str());
+    ss->cexec(rn+".loadDataset", effectiveFilename.c_str());
 
-    sprintf(buff, "%s.loadRebricked(%s, %s, %zu)",
+    sprintf(buff, "%s.loadRebricked(\"%s\", %s, %zu)",
             rn.c_str(),
             effectiveFilename.c_str(),
             maxBSStr.c_str(),
             minmaxMode);
     std::string loadRebrickedString(buff);
 
+    printf("Load rebricked string: %s\n", loadRebrickedString.c_str());
+    FIXME(file, "This call claims that there would be no such file...");
     ss->exec(loadRebrickedString);
     dsInst = ss->cexecRet<tuvok::LuaClassInstance>(rn+".getDataset");
     ss->cexec(rn+".addShaderPath", SHADER_PATH);
@@ -180,7 +183,7 @@ bool CallPerformer::openFile(const char* filename, const std::vector<size_t>& bS
     return true;
 }
 
-void CallPerformer::closeFile(const char* filename) {
+void CallPerformer::closeFile(const std::string& filename) {
     (void)filename; /// @TODO: keep it around to see which file to close?
 
     invalidateRenderer();

@@ -128,19 +128,15 @@ void OpenParams::initFromSocket(int socket) {
     r_single(socket, width);
     r_single(socket, height);
 
-    r_single(socket, len);
+    r_single(socket, filename);
 
-    filename = new char[len];
-    readFromSocket(socket, filename, len*sizeof(char));
-    TRACE(params, "OPEN (%d) %s", len, filename);
+    TRACE(params, "OPEN (%zu) %s", strlen(filename.c_str()), filename.c_str());
 }
 
 void CloseParams::initFromSocket(int socket) {
-    r_single(socket, len);
+    r_single(socket, filename);
 
-    filename = new char[len];
-    readFromSocket(socket, filename, len*sizeof(char));
-    TRACE(params, "CLOSE (%d) %s", len, filename);
+    TRACE(params, "CLOSE (%zu) %s", strlen(filename.c_str()), filename.c_str());
 }
 
 void BatchSizeParams::initFromSocket(int socket) {
@@ -489,8 +485,7 @@ void ListFilesParams::perform(int socket, int socketB, CallPerformer* object) {
 
     wr_single(socket, (uint16_t)filenames.size());
     for(std::string name : filenames) {
-        const char* cstr = name.c_str();
-        wrCStr(socket, cstr);
+        wr_single(socket, name);
     }
 }
 

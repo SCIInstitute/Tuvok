@@ -33,8 +33,8 @@ public:
 
     //File handling
     vector<std::string> listFiles();
-    bool openFile(const char* filename, const std::vector<size_t>& bSize, size_t minmaxMode);
-    void closeFile(const char* filename);
+    bool openFile(const std::string& filename, const std::vector<size_t>& bSize, size_t minmaxMode);
+    void closeFile(const std::string& filename);
     void rotate(const float* matrix);
     std::vector<tuvok::BrickKey> getRenderedBrickKeys();
 
