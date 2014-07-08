@@ -165,7 +165,7 @@ bool CallPerformer::openFile(const std::string& filename, const std::vector<size
     std::string loadRebrickedString(buff);
 
     printf("Load rebricked string: %s\n", loadRebrickedString.c_str());
-    FIXME(file, "This call claims that there would be no such file...");
+    //FIXME(file, "This call claims that there would be no such file when using full path on OSX...dafuq");
     ss->exec(loadRebrickedString);
     dsInst = ss->cexecRet<tuvok::LuaClassInstance>(rn+".getDataset");
     ss->cexec(rn+".addShaderPath", SHADER_PATH);

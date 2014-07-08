@@ -28,8 +28,9 @@ static int remote2  = -1;
 static const unsigned short portA = 4445;
 static const unsigned short portB = 4446; //For batches
 
-static NETDS::RotateInfo* lastKeys = NULL;
-static NETDS::DSMetaData* dsmd;
+static shared_ptr<NETDS::RotateInfo> lastKeys(nullptr);
+static shared_ptr<NETDS::DSMetaData> dsmd(nullptr);
+static shared_ptr<NETDS::MMInfo> minMaxInfo(nullptr);
 
 using namespace SOCK;
 
@@ -186,17 +187,61 @@ bool readBrickBatch(BatchInfo &out_info, vector<vector<uint32_t>>& buffer){
 
 
 void setClientMetaData(struct DSMetaData d) {
-    if(dsmd != NULL) {
-        delete dsmd;
-    }
-    dsmd = new DSMetaData(d);
+    dsmd = std::make_shared<DSMetaData>(d);
 }
 struct DSMetaData clientMetaData() {
-    if(dsmd == NULL) {
-        FIXME(net, "dataset metadata not yet initialized! Rainer, you must setup");
+    if(!dsmd) {
+        FIXME(net, "Can't read metaData: openFile must be called first!");
         assert(false);
     }
     return *dsmd;
+}
+
+
+void setMinMaxInfo(const MMInfo& info) {
+    minMaxInfo = std::make_shared<MMInfo>(info);
+}
+bool calcMinMax(MMInfo& result) {
+    force_connect();
+
+    wr_single(remote, nds_CALC_MINMAX);
+
+    if(!r_single(remote, result.brickCount)) {
+        ERR(net, "Could not read amount of bricks from socket during minMax call!\n");
+        return false;
+    }
+
+    result.lods.resize(result.brickCount);
+    result.idxs.resize(result.brickCount);
+    result.minScalars.resize(result.brickCount);
+    result.maxScalars.resize(result.brickCount);
+    result.minGradients.resize(result.brickCount);
+    result.maxGradients.resize(result.brickCount);
+
+    bool success = (r_multiple(remote, result.lods, true)
+            && r_multiple(remote, result.idxs, true)
+            && r_multiple(remote, result.minScalars, true)
+            && r_multiple(remote, result.maxScalars, true)
+            && r_multiple(remote, result.minGradients, true)
+            && r_multiple(remote, result.maxGradients, true));
+
+    if(success)
+        setMinMaxInfo(result);
+    else {
+        ERR(net, "Could not read minMax result from socket!\n");
+    }
+
+    return success;
+}
+shared_ptr<MMInfo> getMinMaxInfo() {
+    if(!minMaxInfo) {
+        FIXME(net, "MinMaxInfo not yet set!!! call calcMinMax first!");
+        assert(false);
+    }
+    return minMaxInfo;
+}
+void clearMinMaxValues() {
+    minMaxInfo.reset();
 }
 
 bool openFile(const string& filename, DSMetaData& out_meta, size_t minmaxMode, std::array<size_t, 3> bSize, uint32_t width, uint32_t height)
@@ -256,6 +301,10 @@ void closeFile(const string& filename)
     }
     wr_single(remote, nds_CLOSE);
     wr_single(remote, filename);
+
+    lastKeys.reset();
+    dsmd.reset();
+    minMaxInfo.reset();
 }
 
 void shutdownServer() {
@@ -272,8 +321,8 @@ void rotate(const float m[16]) {
     wr_multiple(remote, &m[0], 16, false);
 
     //Answer represents all keys of bricks needed to be rendered
-    if(lastKeys == NULL) {
-        lastKeys = new RotateInfo;
+    if(!lastKeys) {
+        lastKeys = std::make_shared<RotateInfo>();
     }
     r_single(remote, lastKeys->brickCount);
     lastKeys->lods.resize(lastKeys->brickCount);
@@ -282,8 +331,12 @@ void rotate(const float m[16]) {
     r_multiple(remote, lastKeys->idxs, true);
 }
 
-const RotateInfo* getLastRotationKeys() {
+shared_ptr<RotateInfo> getLastRotationKeys() {
     return lastKeys;
+}
+
+void clearRotationKeys() {
+    lastKeys.reset();
 }
 
 bool listFiles(vector<string>& resultBuffer)

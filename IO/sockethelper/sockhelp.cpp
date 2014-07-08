@@ -21,6 +21,7 @@
 
 /** if endianness needs to be fixed up between client/server */
 static bool shouldReencode = true;
+static bool shouldReencodeFloat = shouldReencode;
 typedef bool (msgsend)(int, const void*, const size_t);
 
 namespace SOCK {
@@ -113,11 +114,13 @@ void checkEndianness(int socket) {
             || otherEndianness == 3) {
         printf("Different byte order between systems, have to reencode data!\n");
         shouldReencode = true;
+        shouldReencodeFloat = shouldReencode;
     }
     else {
         printf("Both systems have the same endianness (%d), "
                "don't need to reencode data before transfer.\n", ownEndianness);
         shouldReencode = false;
+        shouldReencodeFloat = shouldReencode;
     }
 }
 
@@ -222,23 +225,72 @@ bool write2(int fd, const void* buffer_, const size_t len) {
   return true;
 }
 
+template<typename T> T  netEncode(const T& hostVal);
+template<> uint8_t      netEncode(const uint8_t& hostInt)  {
+    fprintf(stderr, "Should never be necessary!\n");
+    abort();
+    return hostInt;
+}
+template<> uint16_t     netEncode(const uint16_t& hostInt) {return htons(hostInt);}
+template<> uint32_t     netEncode(const uint32_t& hostInt) {return htonl(hostInt);}
+template<> float        netEncode(const float& hostFloat)  {
+    float retVal;
+    char *floatToConvert = ( char* ) & hostFloat;
+    char *returnFloat = ( char* ) & retVal;
+
+    // swap the bytes into a temporary buffer
+    size_t byteCount = sizeof(float);
+    for(size_t i = 0; i < byteCount; i++) {
+        returnFloat[i] = floatToConvert[byteCount-1-i];
+    }
+
+    return retVal;
+}
+template<> double       netEncode(const double& hostDouble){
+    double retVal;
+    char *floatToConvert = ( char* ) & hostDouble;
+    char *returnFloat = ( char* ) & retVal;
+
+    // swap the bytes into a temporary buffer
+    size_t byteCount = sizeof(double);
+    for(size_t i = 0; i < byteCount; i++) {
+        returnFloat[i] = floatToConvert[byteCount-1-i];
+    }
+
+    return retVal;
+}
+
+template<typename T> void  hostEncode(T& netVal);
+template<> void hostEncode(uint8_t&)         {
+    fprintf(stderr, "Should never be necessary!\n");
+    abort();
+}
+template<> void hostEncode(uint16_t& netInt) {netInt = ntohs(netInt);}
+template<> void hostEncode(uint32_t& netInt) {netInt = ntohl(netInt);}
+template<> void hostEncode(char&)            {
+    fprintf(stderr, "Should never be necessary!\n");
+    abort();
+}
+template<> void hostEncode(float&)           {/*should not be necessary*/}
+template<> void hostEncode(double&)          {/*should not be necessary*/}
+
+template<typename T>
+bool templatedWr_single(int fd, const T buf) {
+    if(!shouldReencode)
+        return wr(fd, &buf, sizeof(T));
+
+    const T data = netEncode(buf);
+    return wr(fd, &data, sizeof(T));
+}
 
 bool wr_single(int fd, const uint8_t buf){
-  return wr(fd, &buf, sizeof(uint8_t));
+    return wr(fd, &buf, sizeof(uint8_t));
 }
 bool wr_single(int fd, const uint16_t buf) {
-    if(!shouldReencode)
-        return wr(fd, &buf, sizeof(uint16_t));
-
-    const uint16_t data = htons(buf);
-    return wr(fd, &data, sizeof(uint16_t));
+    return templatedWr_single(fd, buf);
 }
 bool wr_single(int fd, const uint32_t buf) {
-    if(!shouldReencode)
-        return wr(fd, &buf, sizeof(uint32_t));
-
-    const uint32_t data = htonl(buf);
-    return wr(fd, &data, sizeof(uint32_t));
+    return templatedWr_single(fd, buf);
 }
 bool wr_single(int fd, const size_t buf) {
     return wr_single(fd, (uint32_t) buf);
@@ -268,60 +320,35 @@ bool wr_single(int fd, const string buf) {
     return wrCStr(fd, buf.c_str());
 }
 
-
-bool wr_multiple(int fd, const uint8_t* buf, size_t count, bool announce) {
+template<typename T> bool
+templatedWr_multiple(int fd, const T* buf, size_t count, bool announce, bool reencode) {
     if(announce)
         wr_single(fd, count);
 
-    return wr(fd, buf, sizeof(uint8_t)*count);
+    if(!reencode)
+        return wr(fd, buf, sizeof(T)*count);
+    else {
+        T netData[count];
+        for(size_t i = 0; i < count; i++) {
+            netData[i] = netEncode(buf[i]);
+        }
+        return wr(fd, &netData[0], sizeof(T)*count);
+    }
+}
+bool wr_multiple(int fd, const uint8_t* buf, size_t count, bool announce) {
+    return templatedWr_multiple(fd, buf, count, announce, false);
 }
 bool wr_multiple(int fd, const uint16_t* buf, size_t count, bool announce) {
-    if(announce)
-        wr_single(fd, count);
-
-    if(!shouldReencode) {
-        return wr(fd, buf, sizeof(uint16_t)*count);
-    }
-    else {
-        uint16_t netData[count];
-        for(size_t i = 0; i < count; i++) {
-            netData[i] = htons(buf[i]);
-        }
-        bool retValue = wr(fd, &netData[0], sizeof(uint16_t)*count);
-        return retValue;
-    }
+    return templatedWr_multiple(fd, buf, count, announce, shouldReencode);
 }
 bool wr_multiple(int fd, const uint32_t* buf, size_t count, bool announce) {
-    if(announce)
-        wr_single(fd, count);
-
-    if(!shouldReencode) {
-        return wr(fd, buf, sizeof(uint32_t)*count);
-    }
-    else {
-        uint32_t netData[count];
-        for(size_t i = 0; i < count; i++) {
-            netData[i] = htonl(buf[i]);
-        }
-        bool retValue = wr(fd, &netData[0], sizeof(uint32_t)*count);
-        return retValue;
-    }
+    return templatedWr_multiple(fd, buf, count, announce, shouldReencode);
 }
 bool wr_multiple(int fd, const float* buf, size_t count, bool announce) {
-    if(announce)
-        wr_single(fd, count);
-
-    if(!shouldReencode) {
-        return wr(fd, buf, sizeof(float)*count);
-    }
-
-    float* swapped = new float[count];
-    for(float* b = swapped; b < swapped+count; ++b) {
-        *b = htonl(*b);
-    }
-    const bool rv = wr(fd, swapped, sizeof(float)*count);
-    free(swapped);
-    return rv;
+    return templatedWr_multiple(fd, buf, count, announce, shouldReencodeFloat);
+}
+bool wr_multiple(int fd, const double* buf, size_t count, bool announce) {
+    return templatedWr_multiple(fd, buf, count, announce, shouldReencodeFloat);
 }
 bool wr_multiple(int fd, const size_t* buf, size_t count, bool announce) {
     uint32_t newBuffer[count];
@@ -380,32 +407,26 @@ int readFromSocket(int socket, void *buffer, size_t len) {
     return byteCount;
 }
 
+template<typename T>
+bool templatedR_single(int socket, T& value, bool reencode) {
+    bool success = 0 < (readFromSocket(socket, &value, sizeof(T)));
+
+    if(reencode)
+        hostEncode(value);
+
+    return success;
+}
 bool r_single(int socket, uint8_t& value) {
-    return 0 < (readFromSocket(socket, &value, sizeof(uint8_t)));
+    return templatedR_single(socket, value, false);
 }
 bool r_single(int socket, uint16_t& value) {
-    bool success = 0 < (readFromSocket(socket, &value, sizeof(uint16_t)));
-
-    if (shouldReencode)
-        value = ntohs(value);
-
-    return success;
+    return templatedR_single(socket, value, shouldReencode);
 }
 bool r_single(int socket, uint32_t& value) {
-    bool success = 0 < (readFromSocket(socket, &value, sizeof(uint32_t)));
-
-    if (shouldReencode)
-        value = ntohl(value);
-
-    return success;
+    return templatedR_single(socket, value, shouldReencode);
 }
 bool r_single(int socket, float& value) {
-    bool success = 0 < (readFromSocket(socket, &value, sizeof(float)));
-
-    if (shouldReencode)
-        value = ntohl(value);
-
-    return success;
+    return templatedR_single(socket, value, shouldReencodeFloat);
 }
 bool r_single(int socket, size_t& value) {
     uint32_t tmp_val;
@@ -460,74 +481,53 @@ size_t getCountAndAlloc(int socket, vector<T>&  buffer, bool sizeIsPredetermined
     return count;
 }
 
-bool r_multiple(int socket, vector<uint8_t>&  buffer, bool sizeIsPredetermined) {
+template<typename T>
+bool templatedR_multiple(int socket, vector<T>&  buffer, bool sizeIsPredetermined, bool reencode) {
     size_t count = getCountAndAlloc(socket, buffer, sizeIsPredetermined);
     if(count == 0)
         return true;
 
-    return 0 < (readFromSocket(socket, &buffer[0], sizeof(uint8_t)*count));
+    bool success = 0 < (readFromSocket(socket, &buffer[0], sizeof(T)*count));
+    if(reencode) {
+        for(size_t i = 0; i < count; i++) {
+            hostEncode(buffer[i]);
+        }
+    }
+    return success;
+}
+
+bool r_multiple(int socket, vector<uint8_t>&  buffer, bool sizeIsPredetermined) {
+    return templatedR_multiple(socket, buffer, sizeIsPredetermined, false);
 }
 bool r_multiple(int socket, vector<uint16_t>&  buffer, bool sizeIsPredetermined) {
-    size_t count = getCountAndAlloc(socket, buffer, sizeIsPredetermined);
-    if(count == 0)
-        return true;
-
-    bool success = 0 < (readFromSocket(socket, &buffer[0], sizeof(uint16_t)*count));
-    if (shouldReencode) {
-        for(size_t i = 0; i < count; i++) {
-            buffer[i] = ntohs(buffer[i]);
-        }
-    }
-    return success;
+    return templatedR_multiple(socket, buffer, sizeIsPredetermined, shouldReencode);
 }
 bool r_multiple(int socket, vector<uint32_t>&  buffer, bool sizeIsPredetermined) {
-    size_t count = getCountAndAlloc(socket, buffer, sizeIsPredetermined);
-    if(count == 0)
-        return true;
-
-    bool success = 0 < (readFromSocket(socket, &buffer[0], sizeof(uint32_t)*count));
-    if (shouldReencode) {
-        for(size_t i = 0; i < count; i++) {
-            buffer[i] = ntohl(buffer[i]);
-        }
-    }
-    return success;
+    return templatedR_multiple(socket, buffer, sizeIsPredetermined, shouldReencode);
 }
 bool r_multiple(int socket, vector<float>&  buffer, bool sizeIsPredetermined) {
-    size_t count = getCountAndAlloc(socket, buffer, sizeIsPredetermined);
-    if(count == 0)
-        return true;
-
-    bool success = 0 < (readFromSocket(socket, &buffer[0], sizeof(float)*count));
-    if (shouldReencode) {
-        for(size_t i = 0; i < count; i++) {
-            buffer[i] = ntohl(buffer[i]);
-        }
-    }
-    return success;
+    return templatedR_multiple(socket, buffer, sizeIsPredetermined, shouldReencodeFloat);
+}
+bool r_multiple(int socket, vector<double>&  buffer, bool sizeIsPredetermined) {
+    return templatedR_multiple(socket, buffer, sizeIsPredetermined, shouldReencodeFloat);
+}
+bool r_multiple(int socket, vector<char>& buffer, bool sizeIsPredetermined) {
+    return templatedR_multiple(socket, buffer, sizeIsPredetermined, false);
 }
 bool r_multiple(int socket, vector<size_t>&  buffer, bool sizeIsPredetermined) {
-    size_t count = getCountAndAlloc(socket, buffer, sizeIsPredetermined);
-    if(count == 0)
-        return true;
-
-    vector<uint32_t> newBuffer(count);
+    vector<uint32_t> newBuffer(buffer.size());
     bool success = r_multiple(socket, newBuffer, sizeIsPredetermined);
 
     if(success) {
-        for(size_t i = 0; i < count; i++) {
+        if(!sizeIsPredetermined)
+            buffer.resize(newBuffer.size());
+
+        for(size_t i = 0; i < buffer.size(); i++) {
             buffer[i] = (size_t)newBuffer[i];
         }
     }
 
     return success;
-}
-bool r_multiple(int socket, vector<char>& buffer, bool sizeIsPredetermined) {
-    size_t count = getCountAndAlloc(socket, buffer, sizeIsPredetermined);
-    if(count == 0)
-        return true;
-
-    return 0 < (readFromSocket(socket, &buffer[0], sizeof(uint8_t)*count));
 }
 
 }

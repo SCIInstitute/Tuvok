@@ -51,25 +51,40 @@ void NetDynDS::Clear() { this->ds->Clear(); }
 /// Data access
 ///@{
 bool NetDynDS::GetBrick(const BrickKey& k, std::vector<uint8_t>& data) const {
+    FIXME(netsrc, "Actually check if it's in the cash");
+    bool cashHasBrick = true;
+    if(cashHasBrick)
+        return this->ds->GetBrick(k, data);
+
     if(!NETDS::getBrick(std::get<1>(k), std::get<2>(k), data))
         return false;
 
     FIXME(netsrc, "Actually write the data to the cash");
-    return this->ds->GetBrick(k, data);
+    return true;
 }
 bool NetDynDS::GetBrick(const BrickKey& k, std::vector<uint16_t>& data) const {
+    FIXME(netsrc, "Actually check if it's in the cash");
+    bool cashHasBrick = true;
+    if(cashHasBrick)
+        return this->ds->GetBrick(k, data);
+
     if(!NETDS::getBrick(std::get<1>(k), std::get<2>(k), data))
         return false;
 
     FIXME(netsrc, "Actually write the data to the cash");
-    return this->ds->GetBrick(k, data);
+    return true;
 }
 bool NetDynDS::GetBrick(const BrickKey& k, std::vector<uint32_t>& data) const {
+    FIXME(netsrc, "Actually check if it's in the cash");
+    bool cashHasBrick = true;
+    if(cashHasBrick)
+        return this->ds->GetBrick(k, data);
+
     if(!NETDS::getBrick(std::get<1>(k), std::get<2>(k), data))
         return false;
 
     FIXME(netsrc, "Actually write the data to the cash");
-    return this->ds->GetBrick(k, data);
+    return true;
 }
 ///@}
 

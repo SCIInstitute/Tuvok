@@ -93,7 +93,7 @@ void typedRotationTest(DSMetaData metaData) {
                                 0, 0, 0, 1};
     NETDS::rotate(identityMatrix);
     
-    const NETDS::RotateInfo* rotInfo = NETDS::getLastRotationKeys();
+    shared_ptr<NETDS::RotateInfo> rotInfo = NETDS::getLastRotationKeys();
     printf("We should be receiving the following %zu bricks:\n", rotInfo->brickCount);
     for(size_t i = 0; i < rotInfo->brickCount; i++) {
         printf("lod: %zu, idx: %zu\n", rotInfo->lods[i], rotInfo->idxs[i]);

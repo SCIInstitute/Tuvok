@@ -20,7 +20,8 @@ namespace SOCK {
         nds_SHUTDOWN,
         nds_ROTATION,
         nds_BATCHSIZE,
-        nds_CANCEL_BATCHES
+        nds_CANCEL_BATCHES,
+        nds_CALC_MINMAX
     };
 
     //treat as uint8_t
@@ -57,6 +58,7 @@ namespace SOCK {
     bool wr_multiple(int fd, const uint16_t* buf, size_t count, bool announce);
     bool wr_multiple(int fd, const uint32_t* buf, size_t count, bool announce);
     bool wr_multiple(int fd, const float* buf, size_t count, bool announce);
+    bool wr_multiple(int fd, const double* buf, size_t count, bool announce);
     bool wr_multiple(int fd, const size_t* buf, size_t count, bool announce);
 
  //   bool wrCStr(int fd, const char* cstr);
@@ -78,6 +80,7 @@ namespace SOCK {
     bool r_multiple(int socket, vector<uint16_t>&  buffer, bool sizeIsPredetermined);
     bool r_multiple(int socket, vector<uint32_t>&  buffer, bool sizeIsPredetermined);
     bool r_multiple(int socket, vector<float>&  buffer, bool sizeIsPredetermined);
+    bool r_multiple(int socket, vector<double>&  buffer, bool sizeIsPredetermined);
     bool r_multiple(int socket, vector<size_t>&  buffer, bool sizeIsPredetermined);
     bool r_multiple(int socket, vector<char>& buffer, bool sizeIsPredetermined);
 

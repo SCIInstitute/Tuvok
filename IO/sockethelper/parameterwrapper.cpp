@@ -104,6 +104,20 @@ ListFilesParams::ListFilesParams(NetDSCommandCode code)
 #endif
 }
 
+MinMaxParams::MinMaxParams(NetDSCommandCode code)
+    :SimpleParams(code) {
+
+#if MPI_ACTIVE
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    if(rank == 0) {
+        TRACE(params, "MinMaxCalc");
+    }
+#else
+    TRACE(params, "MinMaxCalc");
+#endif
+}
+
 ShutdownParams::ShutdownParams(NetDSCommandCode code)
     :SimpleParams(code) {
 #if MPI_ACTIVE
@@ -488,6 +502,40 @@ void ListFilesParams::perform(int socket, int socketB, CallPerformer* object) {
     for(std::string name : filenames) {
         wr_single(socket, name);
     }
+}
+
+void MinMaxParams::perform(int socket, int socketB, CallPerformer *object) {
+    (void)socketB;
+
+    size_t brickCount = object->getDataSet()->GetTotalBrickCount();
+    vector<size_t> lods (brickCount);
+    vector<size_t> idxs (brickCount);
+    vector<double> minScalars (brickCount);
+    vector<double> maxScalars (brickCount);
+    vector<double> minGradients (brickCount);
+    vector<double> maxGradients (brickCount);
+
+    //TODO: Retrieve values
+    size_t i = 0;
+    for(auto brick = object->getDataSet()->BricksBegin(); brick != object->getDataSet()->BricksEnd(); brick++, i++) {
+        tuvok::BrickKey key    = brick->first;
+        lods[i] = std::get<1>(key);
+        idxs[i] = std::get<2>(key);
+
+        tuvok::MinMaxBlock mm = object->getDataSet()->MaxMinForKey(key);
+        minScalars[i]   = mm.minScalar;
+        maxScalars[i]   = mm.maxScalar;
+        minGradients[i] = mm.minGradient;
+        maxGradients[i] = mm.maxGradient;
+    }
+
+    wr_single(socket, brickCount);
+    wr_multiple(socket, &lods[0], lods.size(), false);
+    wr_multiple(socket, &lods[0], idxs.size(), false);
+    wr_multiple(socket, &lods[0], minScalars.size(), false);
+    wr_multiple(socket, &lods[0], maxScalars.size(), false);
+    wr_multiple(socket, &lods[0], minGradients.size(), false);
+    wr_multiple(socket, &lods[0], maxGradients.size(), false);
 }
 
 void ShutdownParams::perform(int socket, int socketB, CallPerformer* object) {

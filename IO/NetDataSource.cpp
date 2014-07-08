@@ -42,7 +42,7 @@ NetDataSource::SetCache(std::shared_ptr<BrickCache> ch) { this->cache = ch; }
 /// list of bricks the server will send us without us sending a new rotation or
 /// whatever.
 static bool data_are_coming(const BrickKey& bk) {
-    const NETDS::RotateInfo* rInfo = NETDS::getLastRotationKeys();
+    std::shared_ptr<NETDS::RotateInfo> rInfo = NETDS::getLastRotationKeys();
     if(rInfo == NULL)
         return false;
 
@@ -143,9 +143,23 @@ NetDataSource::GetBitWidth() const {
     return NETDS::clientMetaData().typeInfo.bitwidth;
 }
 MinMaxBlock
-NetDataSource::MaxMinForKey(const BrickKey&) const {
-  FIXME(netsrc, "Rainer: need to fill in a tuvok MinMaxBlock here!");
-  return MinMaxBlock();
+NetDataSource::MaxMinForKey(const BrickKey& bk) const {
+    std::shared_ptr<NETDS::MMInfo> mmInfo = NETDS::getMinMaxInfo();
+    size_t tgtLod = std::get<1>(bk);
+    size_t tgtIdx = std::get<2>(bk);
+
+    FIXME(netsrc, "Replace with find method instead of loop!");
+    for(size_t i = 0; i < mmInfo->brickCount; i++) {
+        if(mmInfo->lods[i] == tgtLod && mmInfo->idxs[i] == tgtIdx)
+            return MinMaxBlock(mmInfo->minScalars[i],
+                               mmInfo->maxScalars[i],
+                               mmInfo->minGradients[i],
+                               mmInfo->maxGradients[i]);
+    }
+
+    WARN(netsrc, "BrickKey (lod=%zu, idx=%zu) not found in minMaxInfo!", tgtLod, tgtIdx);
+    abort();
+    return MinMaxBlock();
 }
 
 bool NetDataSource::GetIsSigned() const { return false; }

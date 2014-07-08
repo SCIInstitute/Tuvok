@@ -129,7 +129,14 @@ public:
     void perform(int socket, int socketB, CallPerformer* object);
 };
 
+class MinMaxParams : public SimpleParams
+{
+public:
+    MinMaxParams(NetDSCommandCode code);
+    void perform(int socket, int socketB, CallPerformer* object);
+};
 
+//Just a wrapper to return the proper class associated
 class ParamFactory
 {
 public:
