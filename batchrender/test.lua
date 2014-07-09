@@ -15,8 +15,12 @@ end
 print("Initializing renderer")
 ren = tuvok.renderer.new(tuvok.renderer.types.OpenGL_SBVR, true, false,
                          false, false)
+ren.addShaderPath("Shaders")
 bsize = {36, 36, 36} -- size of the bricks to use/rebrick into.
-ren.loadNetDS(machine.dataset.engine, bsize, MM_PRECOMPUTE)
+netSuccess = ren.loadNetDS(machine.dataset.engine, bsize, MM_PRECOMPUTE)
+if not netSuccess then
+  error("Could not load net dataset!")
+end
 
 -- Parameters are: Framebuffer width and height, color bits, depth bits,
 --                 stencil bits, double buffer, and if visible.
