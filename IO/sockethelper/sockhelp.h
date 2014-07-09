@@ -51,6 +51,8 @@ namespace SOCK {
     bool wr_single(int fd, const uint16_t buf);
     bool wr_single(int fd, const uint32_t buf);
     bool wr_single(int fd, const uint64_t buf);
+    bool wr_single(int fd, const float buf);
+    bool wr_single(int fd, const double buf);
     bool wr_single(int fd, const NetDSCommandCode code);
     bool wr_single(int fd, const std::string buf);
 
@@ -79,6 +81,7 @@ namespace SOCK {
     bool r_single(int socket, uint32_t& value);
     bool r_single(int socket, uint64_t& value);
     bool r_single(int socket, float& value);
+    bool r_single(int socket, double& value);
     bool r_single(int socket, NetDSCommandCode& value);
     bool r_single(int socket, string& value);
 

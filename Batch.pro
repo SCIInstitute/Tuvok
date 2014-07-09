@@ -44,7 +44,7 @@ incpath          += IO IO/sockethelper TuvokServer/BatchRenderer TuvokServer/Qui
 DEPENDPATH       += $$incpath
 INCLUDEPATH      += $$incpath
 
-# We unfortunately need to link against the original tuvok lib
+# We need to link against the tuvok lib
 QMAKE_LIBDIR += Build
 LIBS         += -lTuvok -lz
 !macx:LIBS   += -lGLU -lX11
@@ -53,7 +53,8 @@ LIBS         += -lTuvok -lz
 SOURCES += \
   batchrender/main.cpp \
   batchrender/TuvokLuaScriptExec.cpp \
-  TuvokServer/BatchRenderer/BatchContext.cpp
+  TuvokServer/BatchRenderer/BatchContext.cpp \
+  IO/netds.cpp
 
 unix:!macx  { SOURCES += TuvokServer/BatchRenderer/GLXContext.cpp }
 macx        { SOURCES += TuvokServer/BatchRenderer/CGLContext.cpp }
@@ -67,4 +68,5 @@ HEADERS += \
   TuvokServer/BatchRenderer/NSContext.h \
   TuvokServer/BatchRenderer/GLXContext.h \
   TuvokServer/BatchRenderer/WGLContext.h \
-  TuvokServer/QuickTests/Tests.h
+  TuvokServer/QuickTests/Tests.h \
+  IO/netds.h

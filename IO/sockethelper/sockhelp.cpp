@@ -301,8 +301,8 @@ template<> void hostEncode(float&)           {/*should not be necessary*/}
 template<> void hostEncode(double&)          {/*should not be necessary*/}
 
 template<typename T>
-bool templatedWr_single(int fd, const T buf) {
-    if(!shouldReencode)
+bool templatedWr_single(int fd, const T buf, bool encode) {
+    if(!encode)
         return wr(fd, &buf, sizeof(T));
 
     const T data = netEncode(buf);
@@ -310,17 +310,24 @@ bool templatedWr_single(int fd, const T buf) {
 }
 
 bool wr_single(int fd, const uint8_t buf){
-    return wr(fd, &buf, sizeof(uint8_t));
+    return templatedWr_single(fd, buf, false);
 }
 bool wr_single(int fd, const uint16_t buf) {
-    return templatedWr_single(fd, buf);
+    return templatedWr_single(fd, buf, shouldReencode);
 }
 bool wr_single(int fd, const uint32_t buf) {
-    return templatedWr_single(fd, buf);
+    return templatedWr_single(fd, buf, shouldReencode);
 }
 bool wr_single(int fd, const uint64_t buf) {
-    return templatedWr_single(fd, buf);
+    return templatedWr_single(fd, buf, shouldReencode);
 }
+bool wr_single(int fd, const float buf) {
+    return templatedWr_single(fd, buf, shouldReencodeFloat);
+}
+bool wr_single(int fd, const double buf) {
+    return templatedWr_single(fd, buf, shouldReencodeFloat);
+}
+
 bool wr_single(int fd, const NetDSCommandCode code) {
     return wr_single(fd, (uint8_t)code);
 }
@@ -464,6 +471,9 @@ bool r_single(int socket, uint64_t& value) {
     return templatedR_single(socket, value, shouldReencode);
 }
 bool r_single(int socket, float& value) {
+    return templatedR_single(socket, value, shouldReencodeFloat);
+}
+bool r_single(int socket, double &value) {
     return templatedR_single(socket, value, shouldReencodeFloat);
 }
 bool r_single(int socket, NetDSCommandCode& value) {

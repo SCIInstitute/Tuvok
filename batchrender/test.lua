@@ -5,7 +5,7 @@ print("Hostname is: " .. hostname)
 if hostname == "takeo" then
   print("Loading takeo.lua...")
   require "takeo"
-elseif hostname == "dhcp-wlcd106227.zim.uni-duisburg-essen.de" then
+elseif hostname == "MBPRO-Infi.local" then
   print("Loading rakeo.lua...")
   require "rakeo"
 else
@@ -16,7 +16,7 @@ print("Initializing renderer")
 ren = tuvok.renderer.new(tuvok.renderer.types.OpenGL_SBVR, true, false,
                          false, false)
 ren.addShaderPath("Shaders")
-bsize = {36, 36, 36} -- size of the bricks to use/rebrick into.
+bsize = {35, 35, 35} -- size of the bricks to use/rebrick into.
 netSuccess = ren.loadNetDS(machine.dataset.engine, bsize, MM_PRECOMPUTE)
 if not netSuccess then
   error("Could not load net dataset!")

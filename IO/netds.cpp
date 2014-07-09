@@ -273,6 +273,9 @@ bool openFile(const string& filename, DSMetaData& out_meta, size_t minmaxMode, s
     out_meta.overlap.resize(3);
     r_multiple(remote, out_meta.overlap, true);
 
+    r_single(remote, out_meta.range1);
+    r_single(remote, out_meta.range2);
+
     size_t brickCount;
     r_sizet(remote, brickCount);
     out_meta.brickCount    = brickCount;

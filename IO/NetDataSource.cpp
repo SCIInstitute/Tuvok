@@ -146,7 +146,6 @@ NetDataSource::MaxMinForKey(const BrickKey& bk) const {
     size_t tgtLod = std::get<1>(bk);
     size_t tgtIdx = std::get<2>(bk);
 
-    FIXME(netsrc, "Replace with find method instead of loop!");
     for(size_t i = 0; i < mmInfo->brickCount; i++) {
         if(mmInfo->lods[i] == tgtLod && mmInfo->idxs[i] == tgtIdx)
             return MinMaxBlock(mmInfo->minScalars[i],
@@ -165,8 +164,7 @@ bool NetDataSource::GetIsFloat() const { return dsm.typeInfo.is_float; }
 bool NetDataSource::IsSameEndianness() const { return true; }
 std::pair<double,double>
 NetDataSource::GetRange() const {
-  DO_NOT_THINK_NEEDED;
-  return std::make_pair(0.0, 1000.0);
+    return std::make_pair(this->dsm.range1, this->dsm.range2);
 }
 UINT64VECTOR3
 NetDataSource::GetDomainSize(const size_t lod, const size_t) const {

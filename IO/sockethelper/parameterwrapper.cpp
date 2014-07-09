@@ -335,6 +335,10 @@ void OpenParams::perform(int socket, int socketB, CallPerformer* object) {
     uint32_t overlap[3] = {ovl.x, ovl.y, ovl.z};
     wr_multiple(socket, &overlap[0], 3, false);
 
+    std::pair<double, double> range = object->getDataSet()->GetRange();
+    wr_single(socket, range.first);
+    wr_single(socket, range.second);
+
     //write total count of bricks out
     size_t brickCount = object->getDataSet()->GetTotalBrickCount();
     wr_sizet(socket, brickCount);

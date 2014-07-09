@@ -19,6 +19,9 @@ namespace NETDS {
         vector<uint64_t> domainSizes; //3 uint64_t per LOD
         vector<uint32_t> overlap;
 
+        double range1;
+        double range2;
+
         size_t brickCount; //total count of bricks
 
         //For the keys... Reconstruct using BrickKey(0, lods[i], idxs[i]);
