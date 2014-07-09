@@ -1,6 +1,15 @@
 require "util"
-if util.hostname() == "takeo" then
+
+hostname = util.hostname()
+print("Hostname is: " .. hostname)
+if hostname == "takeo" then
+  print("Loading takeo.lua...")
   require "takeo"
+elseif hostname == "dhcp-wlcd106227.zim.uni-duisburg-essen.de" then
+  print("Loading rakeo.lua...")
+  require "rakeo"
+else
+  error("Can't load proper host file...")
 end
 
 print("Initializing renderer")

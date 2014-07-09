@@ -12,7 +12,9 @@ unix:DEFINES    += LZHAM_ANSI_CPLUSPLUS=1
 #add shaders to build dir
 shaders.path    = $$OUT_PWD/batchrender/Shaders
 shaders.files  += Shaders/*
-INSTALLS       += shaders
+luas.path       = $$OUT_PWD/batchrender
+luas.files     += batchrender/*.lua
+INSTALLS       += shaders luas
 
 # Operating system definitions now in the makefile instead of
 # a header file.

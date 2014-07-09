@@ -270,6 +270,10 @@ bool AbstrRenderer::LoadRebricked(const std::string& filename,
                                   size_t minmaxMode) {
   const IOManager& iomgr = Controller::Const().IOMan();
   Dataset* ds = iomgr.LoadRebrickedDataset(filename, bsize, minmaxMode);
+  if(ds == NULL) {
+      return false;
+  }
+
   Controller::Instance().MemMan()->AddDataset(ds, this);
   return this->RegisterDataset(ds);
 }
@@ -279,7 +283,9 @@ bool AbstrRenderer::LoadNetDS(const std::string& filename,
 
     NETDS::DSMetaData metaData;
     std::array<size_t, 3> tgtBsize = {{bsize[0], bsize[1], bsize[2]}};
-    NETDS::openFile(filename, metaData, minmaxMode, tgtBsize, 1920, 1080);
+    bool netSuccess = NETDS::openFile(filename, metaData, minmaxMode, tgtBsize, 1920, 1080);
+    if(!netSuccess)
+        return false;
 
     const IOManager& iomgr = Controller::Const().IOMan();
     Dataset* ds = iomgr.LoadNetDataset(bsize, minmaxMode);
