@@ -51,9 +51,12 @@ namespace SOCK {
     bool wr_single(int fd, const uint16_t buf);
     bool wr_single(int fd, const uint32_t buf);
     bool wr_single(int fd, const uint64_t buf);
-    bool wr_single(int fd, const size_t buf);
     bool wr_single(int fd, const NetDSCommandCode code);
     bool wr_single(int fd, const std::string buf);
+
+    //Has to be separate because size_t varies between platforms,
+    //but we need a fixed length on the network
+    bool wr_sizet(int fd, const size_t buf);
 
     bool wr_multiple(int fd, const uint8_t* buf, size_t count, bool announce);
     bool wr_multiple(int fd, const uint16_t* buf, size_t count, bool announce);
@@ -61,7 +64,10 @@ namespace SOCK {
     bool wr_multiple(int fd, const uint64_t* buf, size_t count, bool announce);
     bool wr_multiple(int fd, const float* buf, size_t count, bool announce);
     bool wr_multiple(int fd, const double* buf, size_t count, bool announce);
-    bool wr_multiple(int fd, const size_t* buf, size_t count, bool announce);
+
+    //Has to be separate because size_t varies between platforms,
+    //but we need a fixed length on the network
+    bool wr_mult_sizet(int fd, const size_t* buf, size_t count, bool announce);
 
  //   bool wrCStr(int fd, const char* cstr);
 
@@ -73,9 +79,12 @@ namespace SOCK {
     bool r_single(int socket, uint32_t& value);
     bool r_single(int socket, uint64_t& value);
     bool r_single(int socket, float& value);
-    bool r_single(int socket, size_t& value);
     bool r_single(int socket, NetDSCommandCode& value);
     bool r_single(int socket, string& value);
+
+    //Has to be separate because size_t varies between platforms,
+    //but we need a fixed length on the network
+    bool r_sizet(int socket, size_t& value);
 
     //If sizeIsPredetermined == true, reads as many elements from the socket as the buffers size.
     //if sizeIsPredetermined == false, reads the size from stream and initializes based on that
@@ -85,8 +94,11 @@ namespace SOCK {
     bool r_multiple(int socket, vector<uint64_t>&  buffer, bool sizeIsPredetermined);
     bool r_multiple(int socket, vector<float>&  buffer, bool sizeIsPredetermined);
     bool r_multiple(int socket, vector<double>&  buffer, bool sizeIsPredetermined);
-    bool r_multiple(int socket, vector<size_t>&  buffer, bool sizeIsPredetermined);
     bool r_multiple(int socket, vector<char>& buffer, bool sizeIsPredetermined);
+
+    //Has to be separate because size_t varies between platforms,
+    //but we need a fixed length on the network
+    bool r_mult_sizet(int socket, vector<size_t>&  buffer, bool sizeIsPredetermined);
 
    // bool rCStr(int socket, char** buffer, size_t* countOrNULL); //since string lengths can always be recalculated, you can also just pass NULL. count will include \0
 }

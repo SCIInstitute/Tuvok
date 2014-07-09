@@ -137,8 +137,8 @@ ShutdownParams::ShutdownParams(NetDSCommandCode code)
 /*#################################*/
 
 void OpenParams::initFromSocket(int socket) {
-    r_multiple(socket, bSize, true);
-    r_single(socket, minmaxMode);
+    r_mult_sizet(socket, bSize, true);
+    r_sizet(socket, minmaxMode);
     r_single(socket, width);
     r_single(socket, height);
 
@@ -154,7 +154,7 @@ void CloseParams::initFromSocket(int socket) {
 }
 
 void BatchSizeParams::initFromSocket(int socket) {
-    r_single(socket, newBatchSize);
+    r_sizet(socket, newBatchSize);
 
     TRACE(params, "BATCHSIZE %zu", newBatchSize);
 }
@@ -165,8 +165,8 @@ void RotateParams::initFromSocket(int socket) {
 }
 
 void BrickParams::initFromSocket(int socket) {
-    r_single(socket, lod);
-    r_single(socket, bidx);
+    r_sizet(socket, lod);
+    r_sizet(socket, bidx);
     TRACE(params, "BRICK lod=%zu, bidx=%zu", lod, bidx);
 }
 
@@ -298,13 +298,13 @@ void OpenParams::perform(int socket, int socketB, CallPerformer* object) {
 #endif
 
     if(!opened) {
-        wr_single(socket, (size_t)0);
+        wr_sizet(socket, (size_t)0);
         return;
     }
 
     //send LODs
     size_t lodCount = object->getDataSet()->GetLODLevelCount();
-    wr_single(socket, lodCount);
+    wr_sizet(socket, lodCount);
 
     if(lodCount == 0)
         return;
@@ -333,7 +333,7 @@ void OpenParams::perform(int socket, int socketB, CallPerformer* object) {
 
     //write total count of bricks out
     size_t brickCount = object->getDataSet()->GetTotalBrickCount();
-    wr_single(socket, brickCount);
+    wr_sizet(socket, brickCount);
 
     //We need the brick Keys
     size_t lods[brickCount];
@@ -365,8 +365,8 @@ void OpenParams::perform(int socket, int socketB, CallPerformer* object) {
         md_n_voxels[i*3 + 2] = md.n_voxels.z;
     }
 
-    wr_multiple(socket, &lods[0], brickCount, false);
-    wr_multiple(socket, &idxs[0], brickCount, false);
+    wr_mult_sizet(socket, &lods[0], brickCount, false);
+    wr_mult_sizet(socket, &idxs[0], brickCount, false);
     wr_multiple(socket, &md_centers[0], brickCount * 3, false);
     wr_multiple(socket, &md_extents[0], brickCount * 3, false);
     wr_multiple(socket, &md_n_voxels[0], brickCount * 3, false);
@@ -399,9 +399,9 @@ void startBrickSendLoop(int socket, int socketB, CallPerformer *object, vector<t
 
     //Tell the client all the keys of bricks to be expected
     size_t brickCount = allKeys.size();
-    wr_single(socket, brickCount);
-    wr_multiple(socket, &lods[0], lods.size(), false);
-    wr_multiple(socket, &idxs[0], lods.size(), false);
+    wr_sizet(socket, brickCount);
+    wr_mult_sizet(socket, &lods[0], lods.size(), false);
+    wr_mult_sizet(socket, &idxs[0], lods.size(), false);
 
 
     size_t maxBatchSize = object->maxBatchSize;
@@ -416,7 +416,7 @@ void startBrickSendLoop(int socket, int socketB, CallPerformer *object, vector<t
         // Therefore we always send a last "empty batch" that the client can handle.
         if(newDataOnSocket(socket)) {
             TRACE(bricks, "Received new request. Interrupting current brick-batch-sending.");
-            wr_single(socketB, (size_t)0);
+            wr_sizet(socketB, (size_t)0);
             wr_single(socketB, (uint8_t)0);
             break;
         }
@@ -426,7 +426,7 @@ void startBrickSendLoop(int socket, int socketB, CallPerformer *object, vector<t
         moreDataComing = ((offset + actualBatchSize) == allKeys.size()) ? 0 : 1;
 
         //Tell client how many bricks to expect
-        wr_single(socketB, actualBatchSize);
+        wr_sizet(socketB, actualBatchSize);
         wr_single(socketB, moreDataComing);
 
         if(actualBatchSize > 0) {
@@ -436,9 +436,9 @@ void startBrickSendLoop(int socket, int socketB, CallPerformer *object, vector<t
                 brickSizes[i] = batchBricks[i].size();
             }
 
-            wr_multiple(socketB, &lods[offset], actualBatchSize, false);
-            wr_multiple(socketB, &idxs[offset], actualBatchSize, false);
-            wr_multiple(socketB, &brickSizes[0], actualBatchSize, false);
+            wr_mult_sizet(socketB, &lods[offset], actualBatchSize, false);
+            wr_mult_sizet(socketB, &idxs[offset], actualBatchSize, false);
+            wr_mult_sizet(socketB, &brickSizes[0], actualBatchSize, false);
 
             for(size_t i = 0; i < actualBatchSize; i++) {
                 if(brickSizes[i] > 0)
@@ -537,13 +537,13 @@ void MinMaxParams::perform(int socket, int socketB, CallPerformer *object) {
         maxGradients[i] = mm.maxGradient;
     }
 
-    wr_single(socket, brickCount);
-    wr_multiple(socket, &lods[0], lods.size(), false);
-    wr_multiple(socket, &lods[0], idxs.size(), false);
-    wr_multiple(socket, &lods[0], minScalars.size(), false);
-    wr_multiple(socket, &lods[0], maxScalars.size(), false);
-    wr_multiple(socket, &lods[0], minGradients.size(), false);
-    wr_multiple(socket, &lods[0], maxGradients.size(), false);
+    wr_sizet(socket, brickCount);
+    wr_mult_sizet(socket, &lods[0], lods.size(), false);
+    wr_mult_sizet(socket, &idxs[0], idxs.size(), false);
+    wr_multiple(socket, &minScalars[0], minScalars.size(), false);
+    wr_multiple(socket, &maxScalars[0], maxScalars.size(), false);
+    wr_multiple(socket, &minGradients[0], minGradients.size(), false);
+    wr_multiple(socket, &maxGradients[0], maxGradients.size(), false);
 }
 
 void ShutdownParams::perform(int socket, int socketB, CallPerformer* object) {

@@ -321,9 +321,6 @@ bool wr_single(int fd, const uint32_t buf) {
 bool wr_single(int fd, const uint64_t buf) {
     return templatedWr_single(fd, buf);
 }
-bool wr_single(int fd, const size_t buf) {
-    return wr_single(fd, (uint32_t) buf);
-}
 bool wr_single(int fd, const NetDSCommandCode code) {
     return wr_single(fd, (uint8_t)code);
 }
@@ -340,7 +337,7 @@ bool wrCStr(int fd, const char *cstr) {
 
     len++; //For nulltermination
 
-    if(wr_single(fd, len) && wr(fd, cstr, len)) {
+    if(wr_sizet(fd, len) && wr(fd, cstr, len)) {
         return true;
     }
     return false;
@@ -348,11 +345,14 @@ bool wrCStr(int fd, const char *cstr) {
 bool wr_single(int fd, const string buf) {
     return wrCStr(fd, buf.c_str());
 }
+bool wr_sizet(int fd, const size_t buf) {
+    return wr_single(fd, (uint32_t) buf);
+}
 
 template<typename T> bool
 templatedWr_multiple(int fd, const T* buf, size_t count, bool announce, bool reencode) {
     if(announce)
-        wr_single(fd, count);
+        wr_sizet(fd, count);
 
     if(!reencode)
         return wr(fd, buf, sizeof(T)*count);
@@ -382,7 +382,10 @@ bool wr_multiple(int fd, const float* buf, size_t count, bool announce) {
 bool wr_multiple(int fd, const double* buf, size_t count, bool announce) {
     return templatedWr_multiple(fd, buf, count, announce, shouldReencodeFloat);
 }
-bool wr_multiple(int fd, const size_t* buf, size_t count, bool announce) {
+bool wr_mult_sizet(int fd, const size_t* buf, size_t count, bool announce) {
+    //if(sizeof(size_t) == 4)
+    //    return wr_multiple(fd, &buf[0], count, announce);
+
     uint32_t newBuffer[count];
     for(size_t i = 0; i < count; i++) {
         newBuffer[i] = (uint32_t)buf[i];
@@ -463,12 +466,6 @@ bool r_single(int socket, uint64_t& value) {
 bool r_single(int socket, float& value) {
     return templatedR_single(socket, value, shouldReencodeFloat);
 }
-bool r_single(int socket, size_t& value) {
-    uint32_t tmp_val;
-    bool success = r_single(socket, tmp_val);
-    value = (size_t)tmp_val;
-    return success;
-}
 bool r_single(int socket, NetDSCommandCode& value) {
     uint8_t tmp;
     bool success = r_single(socket, tmp);
@@ -477,7 +474,7 @@ bool r_single(int socket, NetDSCommandCode& value) {
 }
 bool rCStr(int socket, char **buffer, size_t *countOrNULL) {
     size_t len;
-    r_single(socket, len);
+    r_sizet(socket, len);
 
     if (countOrNULL != NULL)
         *countOrNULL = len;
@@ -497,6 +494,12 @@ bool r_single(int socket, string& value) {
     delete tmp;
     return success;
 }
+bool r_sizet(int socket, size_t& value) {
+    uint32_t tmp_val;
+    bool success = r_single(socket, tmp_val);
+    value = (size_t)tmp_val;
+    return success;
+}
 
 //private
 template<typename T>
@@ -506,7 +509,7 @@ size_t getCountAndAlloc(int socket, vector<T>&  buffer, bool sizeIsPredetermined
     if(sizeIsPredetermined)
         count = buffer.size();
     else {
-        r_single(socket, count);
+        r_sizet(socket, count);
         buffer.resize(count);
     }
 
@@ -552,7 +555,12 @@ bool r_multiple(int socket, vector<double>&  buffer, bool sizeIsPredetermined) {
 bool r_multiple(int socket, vector<char>& buffer, bool sizeIsPredetermined) {
     return templatedR_multiple(socket, buffer, sizeIsPredetermined, false);
 }
-bool r_multiple(int socket, vector<size_t>&  buffer, bool sizeIsPredetermined) {
+bool r_mult_sizet(int socket, vector<size_t>&  buffer, bool sizeIsPredetermined) {
+    //Does not work on osx -_-
+    /*if(sizeof(size_t) == 4) {
+        return r_multiple(socket, buffer, sizeIsPredetermined);
+    }*/
+
     vector<uint32_t> newBuffer(buffer.size());
     bool success = r_multiple(socket, newBuffer, sizeIsPredetermined);
 

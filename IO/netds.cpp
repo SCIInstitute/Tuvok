@@ -72,11 +72,11 @@ bool sharedSingleBrickStuff(const size_t LoD, const size_t brickidx, vector<T>& 
     }
 
     //Tell the other side which data type to use
-    if(!wr_single(remote, LoD)) {
+    if(!wr_sizet(remote, LoD)) {
         ERR(net, "Could not send brick-LOD to server!\n");
         return false;
     }
-    if(!wr_single(remote, brickidx)) {
+    if(!wr_sizet(remote, brickidx)) {
         ERR(net, "Could not send brick-index to server!\n");
         return false;
     }
@@ -129,7 +129,7 @@ template<typename T>
 bool sharedBatchReadStuff(BatchInfo& out_info, vector<vector<T>>& buffer) {
     force_connect();
     size_t batchSize;
-    if(!r_single(remote2, batchSize)) {
+    if(!r_sizet(remote2, batchSize)) {
         ERR(net, "Could not read batchsize from socket!\n");
         return false;
     }
@@ -151,15 +151,15 @@ bool sharedBatchReadStuff(BatchInfo& out_info, vector<vector<T>>& buffer) {
     if(batchSize <= 0)
         return true;
 
-    if(!r_multiple(remote2, out_info.lods, true)) {
+    if(!r_mult_sizet(remote2, out_info.lods, true)) {
         ERR(net, "Could not read batch-lods from socket!\n");
         return false;
     }
-    if(!r_multiple(remote2, out_info.idxs, true)) {
+    if(!r_mult_sizet(remote2, out_info.idxs, true)) {
         ERR(net, "Could not read batch-idxs from socket!\n");
         return false;
     }
-    if(!r_multiple(remote2, out_info.brickSizes, true)) {
+    if(!r_mult_sizet(remote2, out_info.brickSizes, true)) {
         ERR(net, "Could not read batch-brickSizes from socket!\n");
         return false;
     }
@@ -206,7 +206,7 @@ bool calcMinMax(MMInfo& result) {
 
     wr_single(remote, nds_CALC_MINMAX);
 
-    if(!r_single(remote, result.brickCount)) {
+    if(!r_sizet(remote, result.brickCount)) {
         ERR(net, "Could not read amount of bricks from socket during minMax call!\n");
         return false;
     }
@@ -218,8 +218,8 @@ bool calcMinMax(MMInfo& result) {
     result.minGradients.resize(result.brickCount);
     result.maxGradients.resize(result.brickCount);
 
-    bool success = (r_multiple(remote, result.lods, true)
-            && r_multiple(remote, result.idxs, true)
+    bool success = (r_mult_sizet(remote, result.lods, true)
+            && r_mult_sizet(remote, result.idxs, true)
             && r_multiple(remote, result.minScalars, true)
             && r_multiple(remote, result.maxScalars, true)
             && r_multiple(remote, result.minGradients, true)
@@ -250,14 +250,14 @@ bool openFile(const string& filename, DSMetaData& out_meta, size_t minmaxMode, s
 
     wr_single(remote, nds_OPEN);
 
-    wr_multiple(remote, &bSize[0], 3, false);
-    wr_single(remote, minmaxMode);
+    wr_mult_sizet(remote, &bSize[0], 3, false);
+    wr_sizet(remote, minmaxMode);
     wr_single(remote, width);
     wr_single(remote, height);
     wr_single(remote, filename);
 
     //Read meta-data from server
-    r_single(remote, out_meta.lodCount);
+    r_sizet(remote, out_meta.lodCount);
     if (out_meta.lodCount == 0) {
         return false;
     }
@@ -271,7 +271,7 @@ bool openFile(const string& filename, DSMetaData& out_meta, size_t minmaxMode, s
     assert(out_meta.layouts.size() == out_meta.lodCount*3);
 
     size_t brickCount;
-    r_single(remote, brickCount);
+    r_sizet(remote, brickCount);
     out_meta.brickCount    = brickCount;
     out_meta.lods.resize(brickCount);
     out_meta.idxs.resize(brickCount);
@@ -280,8 +280,8 @@ bool openFile(const string& filename, DSMetaData& out_meta, size_t minmaxMode, s
     out_meta.md_n_voxels.resize(brickCount * 3);
 
     //Retrieve key-data
-    r_multiple(remote, out_meta.lods, true);
-    r_multiple(remote, out_meta.idxs, true);
+    r_mult_sizet(remote, out_meta.lods, true);
+    r_mult_sizet(remote, out_meta.idxs, true);
 
     //Retrieve BrickMDs
     r_multiple(remote, out_meta.md_centers, true);
@@ -325,11 +325,11 @@ void rotate(const float m[16]) {
     if(!lastKeys) {
         lastKeys = std::make_shared<RotateInfo>();
     }
-    r_single(remote, lastKeys->brickCount);
+    r_sizet(remote, lastKeys->brickCount);
     lastKeys->lods.resize(lastKeys->brickCount);
     lastKeys->idxs.resize(lastKeys->brickCount);
-    r_multiple(remote, lastKeys->lods, true);
-    r_multiple(remote, lastKeys->idxs, true);
+    r_mult_sizet(remote, lastKeys->lods, true);
+    r_mult_sizet(remote, lastKeys->idxs, true);
 }
 
 shared_ptr<RotateInfo> getLastRotationKeys() {
@@ -359,7 +359,7 @@ bool listFiles(vector<string>& resultBuffer)
 
 void setBatchSize(size_t maxBatchSize) {
     wr_single(remote, nds_BATCHSIZE);
-    wr_single(remote, maxBatchSize);
+    wr_sizet(remote, maxBatchSize);
 }
 
 /*
