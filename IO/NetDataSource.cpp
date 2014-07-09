@@ -11,17 +11,17 @@ NetDataSource::NetDataSource(const struct DSMetaData& meta) :
     std::vector<BrickKey> keys;
     std::vector<BrickMD> brickMDs;
 
-    keys.reserve(meta.brickCount);
-    brickMDs.reserve(meta.brickCount);
+    keys.resize(meta.brickCount);
+    brickMDs.resize(meta.brickCount);
 
     #pragma omp parallel for
     for(size_t i = 0; i < meta.brickCount; i++) {
-        keys.push_back(BrickKey(0, meta.lods[i], meta.idxs[i]));
+        keys[i] = BrickKey(0, meta.lods[i], meta.idxs[i]);
 
         FLOATVECTOR3 center(meta.md_centers[i*3 + 0], meta.md_centers[i*3 + 1], meta.md_centers[i*3 + 2]);
         FLOATVECTOR3 extent(meta.md_extents[i*3 + 0], meta.md_extents[i*3 + 1], meta.md_extents[i*3 + 2]);
         UINTVECTOR3 voxels(meta.md_n_voxels[i*3 + 0], meta.md_n_voxels[i*3 + 1], meta.md_n_voxels[i*3 + 2]);
-        brickMDs.push_back({center, extent, voxels});
+        brickMDs[i] = {center, extent, voxels};
     }
 
     //Wasn't sure if addBrick was thread-safe, so a separate loop for it
