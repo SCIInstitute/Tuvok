@@ -3,6 +3,7 @@ Makefile.tvk
 Makefile.tvkSrv
 Makefile.Batch
 Build
+shadowBuild
 .gitignore
 *.o
 *.swp

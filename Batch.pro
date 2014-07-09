@@ -54,7 +54,8 @@ SOURCES += \
   batchrender/main.cpp \
   batchrender/TuvokLuaScriptExec.cpp \
   TuvokServer/BatchRenderer/BatchContext.cpp \
-  IO/netds.cpp
+  IO/netds.cpp \
+  IO/NetDataSource.cpp
 
 unix:!macx  { SOURCES += TuvokServer/BatchRenderer/GLXContext.cpp }
 macx        { SOURCES += TuvokServer/BatchRenderer/CGLContext.cpp }
@@ -69,4 +70,5 @@ HEADERS += \
   TuvokServer/BatchRenderer/GLXContext.h \
   TuvokServer/BatchRenderer/WGLContext.h \
   TuvokServer/QuickTests/Tests.h \
-  IO/netds.h
+  IO/netds.h \
+  IO/NetDataSource.h
