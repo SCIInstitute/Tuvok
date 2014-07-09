@@ -331,6 +331,10 @@ void OpenParams::perform(int socket, int socketB, CallPerformer* object) {
     wr_multiple(socket, &layouts[0], layoutsCount, true);
     wr_multiple(socket, &domainSizes[0], layoutsCount, true);
 
+    UINTVECTOR3 ovl = object->getDataSet()->GetBrickOverlapSize();
+    uint32_t overlap[3] = {ovl.x, ovl.y, ovl.z};
+    wr_multiple(socket, &overlap[0], 3, false);
+
     //write total count of bricks out
     size_t brickCount = object->getDataSet()->GetTotalBrickCount();
     wr_sizet(socket, brickCount);

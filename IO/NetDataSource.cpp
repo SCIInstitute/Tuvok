@@ -133,9 +133,7 @@ NetDataSource::GetBrickLayout(size_t lod, size_t /*ts*/) const {
 }
 UINTVECTOR3
 NetDataSource::GetBrickOverlapSize() const {
-  FIXME(netsrc, "is 2 voxels per-dimension correct?  4 might be.  or 0.  "
-        "or this is never called...");
-  return UINTVECTOR3(2,2,2); // hack?  or accurate?
+    return UINTVECTOR3(this->dsm.overlap[0], this->dsm.overlap[1], this->dsm.overlap[2]);
 }
 
 unsigned
