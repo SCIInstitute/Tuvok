@@ -140,7 +140,7 @@ NetDataSource::GetBrickOverlapSize() const {
 
 unsigned
 NetDataSource::GetBitWidth() const {
-    return NETDS::clientMetaData().typeInfo.bitwidth;
+    return dsm.typeInfo.bitwidth;
 }
 MinMaxBlock
 NetDataSource::MaxMinForKey(const BrickKey& bk) const {
@@ -162,8 +162,8 @@ NetDataSource::MaxMinForKey(const BrickKey& bk) const {
     return MinMaxBlock();
 }
 
-bool NetDataSource::GetIsSigned() const { return false; }
-bool NetDataSource::GetIsFloat() const { return false; }
+bool NetDataSource::GetIsSigned() const { return dsm.typeInfo.is_signed; }
+bool NetDataSource::GetIsFloat() const { return dsm.typeInfo.is_float; }
 bool NetDataSource::IsSameEndianness() const { return true; }
 std::pair<double,double>
 NetDataSource::GetRange() const {
@@ -171,8 +171,10 @@ NetDataSource::GetRange() const {
   return std::make_pair(0.0, 1000.0);
 }
 UINT64VECTOR3
-NetDataSource::GetDomainSize(const size_t, const size_t) const {
-  DO_NOT_THINK_NEEDED; return UINT64VECTOR3(0,0,0);
+NetDataSource::GetDomainSize(const size_t lod, const size_t) const {
+    return UINT64VECTOR3(   dsm.domainSizes[lod*3+0],
+                            dsm.domainSizes[lod*3+1],
+                            dsm.domainSizes[lod*3+2]);
 }
 // multicomponent data would be nice, but... well, ignore for now.
 uint64_t NetDataSource::GetComponentCount() const { return 1; }

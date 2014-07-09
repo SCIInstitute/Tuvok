@@ -267,6 +267,7 @@ bool openFile(const string& filename, DSMetaData& out_meta, size_t minmaxMode, s
     out_meta.typeInfo = bitWidthFromNType((NetDataType)ntype);
 
     r_multiple(remote, out_meta.layouts, false);
+    r_multiple(remote, out_meta.domainSizes, false);
     assert(out_meta.layouts.size() == out_meta.lodCount*3);
 
     size_t brickCount;

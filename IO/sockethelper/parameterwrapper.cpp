@@ -315,13 +315,21 @@ void OpenParams::perform(int socket, int socketB, CallPerformer* object) {
     //Send layouts
     size_t layoutsCount = lodCount * 3;
     uint32_t layouts[layoutsCount];
+    uint64_t domainSizes[layoutsCount];
     for(size_t lod=0; lod < lodCount; ++lod) {
         UINTVECTOR3 layout = object->getDataSet()->GetBrickLayout(lod, 0);
         layouts[lod * 3 + 0] = layout.x;
         layouts[lod * 3 + 1] = layout.y;
         layouts[lod * 3 + 2] = layout.z;
+
+        UINT64VECTOR3 domainSize = object->getDataSet()->GetDomainSize(lod, 0);
+        domainSizes[lod * 3 + 0] = domainSize.x;
+        domainSizes[lod * 3 + 1] = domainSize.y;
+        domainSizes[lod * 3 + 2] = domainSize.z;
+
     }
     wr_multiple(socket, &layouts[0], layoutsCount, true);
+    wr_multiple(socket, &domainSizes[0], layoutsCount, true);
 
     //write total count of bricks out
     size_t brickCount = object->getDataSet()->GetTotalBrickCount();

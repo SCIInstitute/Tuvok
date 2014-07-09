@@ -16,6 +16,7 @@ namespace NETDS {
     struct DSMetaData {
         size_t lodCount;
         vector<unsigned> layouts; //3 unsigned per LOD
+        vector<uint64_t> domainSizes; //3 uint64_t per LOD
 
         size_t brickCount; //total count of bricks
 

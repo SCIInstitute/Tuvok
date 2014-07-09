@@ -50,6 +50,7 @@ namespace SOCK {
     bool wr_single(int fd, const uint8_t buf);
     bool wr_single(int fd, const uint16_t buf);
     bool wr_single(int fd, const uint32_t buf);
+    bool wr_single(int fd, const uint64_t buf);
     bool wr_single(int fd, const size_t buf);
     bool wr_single(int fd, const NetDSCommandCode code);
     bool wr_single(int fd, const std::string buf);
@@ -57,6 +58,7 @@ namespace SOCK {
     bool wr_multiple(int fd, const uint8_t* buf, size_t count, bool announce);
     bool wr_multiple(int fd, const uint16_t* buf, size_t count, bool announce);
     bool wr_multiple(int fd, const uint32_t* buf, size_t count, bool announce);
+    bool wr_multiple(int fd, const uint64_t* buf, size_t count, bool announce);
     bool wr_multiple(int fd, const float* buf, size_t count, bool announce);
     bool wr_multiple(int fd, const double* buf, size_t count, bool announce);
     bool wr_multiple(int fd, const size_t* buf, size_t count, bool announce);
@@ -69,6 +71,7 @@ namespace SOCK {
     bool r_single(int socket, uint8_t& value);
     bool r_single(int socket, uint16_t& value);
     bool r_single(int socket, uint32_t& value);
+    bool r_single(int socket, uint64_t& value);
     bool r_single(int socket, float& value);
     bool r_single(int socket, size_t& value);
     bool r_single(int socket, NetDSCommandCode& value);
@@ -79,6 +82,7 @@ namespace SOCK {
     bool r_multiple(int socket, vector<uint8_t>&  buffer, bool sizeIsPredetermined);
     bool r_multiple(int socket, vector<uint16_t>&  buffer, bool sizeIsPredetermined);
     bool r_multiple(int socket, vector<uint32_t>&  buffer, bool sizeIsPredetermined);
+    bool r_multiple(int socket, vector<uint64_t>&  buffer, bool sizeIsPredetermined);
     bool r_multiple(int socket, vector<float>&  buffer, bool sizeIsPredetermined);
     bool r_multiple(int socket, vector<double>&  buffer, bool sizeIsPredetermined);
     bool r_multiple(int socket, vector<size_t>&  buffer, bool sizeIsPredetermined);
