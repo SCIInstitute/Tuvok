@@ -45,7 +45,7 @@ bool VTKConverter::CanRead(const std::string& fn,
 
 /// scans through a file until it finds the given line.
 /// a subsequent read will return data from the beginning of that line.
-std::istream& scan_for_line(std::istream& is, const std::string& start) {
+static std::istream& scan_for_line(std::istream& is, const std::string& start) {
   std::streampos loc;
   std::string temporary;
   do {
@@ -67,7 +67,7 @@ std::istream& scan_for_line(std::istream& is, const std::string& start) {
 /// VTK's strings into our variables.
 /// Note that only the type fields are set as a postcondition; we don't know
 /// how many elements there will be, for example.
-struct BStreamDescriptor vtk_to_tuvok_type(const std::string& vtktype) {
+static struct BStreamDescriptor vtk_to_tuvok_type(const std::string& vtktype) {
   struct BStreamDescriptor bs;
   bs.components = 1;
   bs.big_endian = true; // legacy VTK files are *always* big-endian.

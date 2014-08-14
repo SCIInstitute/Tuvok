@@ -1385,7 +1385,7 @@ void ExtendedOctreeConverter::PermuteInputData(ExtendedOctree &tree, LargeRAWFil
                                                pLargeRAWFileIn, uint64_t iInOffset,
                                                bool bClampToEdge) {
   std::vector<uint8_t> vData;
-  UINT64VECTOR3 baseBricks = tree.GetBrickCount(0);
+  const UINT64VECTOR3 baseBricks = tree.GetBrickCount(0);
 
   uint64_t iCurrentOutOffset = tree.ComputeHeaderSize();
   for (uint64_t z = 0;z<baseBricks.z;z++) {
