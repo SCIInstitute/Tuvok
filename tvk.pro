@@ -189,6 +189,7 @@ HEADERS += \
            IO/AbstrGeoConverter.h \
            IO/AmiraConverter.h \
            IO/AnalyzeConverter.h \
+           IO/BMinMax.h \
            IO/BOVConverter.h \
            IO/BrickCache.h \
            IO/BrickedDataset.h \
@@ -527,6 +528,7 @@ SOURCES += \
            IO/AbstrGeoConverter.cpp \
            IO/AmiraConverter.cpp \
            IO/AnalyzeConverter.cpp \
+           IO/BMinMax.cpp \
            IO/BOVConverter.cpp \
            IO/BrickCache.cpp \
            IO/BrickedDataset.cpp \

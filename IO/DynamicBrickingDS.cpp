@@ -11,6 +11,7 @@
 #include <string>
 #include <unordered_map>
 #include "Basics/SysTools.h"
+#include "BMinMax.h"
 #include "Controller/Controller.h"
 #include "Controller/StackTimer.h"
 #include "BrickCache.h"
@@ -620,47 +621,6 @@ bool DynamicBrickingDS::dbinfo::Brick(const DynamicBrickingDS& ds,
   StackTimer copies(PERF_DY_BRICK_COPY);
   return this->CopyBrick<T>(data, sdata, components, pre.tgt_bs, pre.src_bs,
                             pre.src_offset);
-}
-
-
-namespace {
-  template<typename T> MinMaxBlock mm(const BrickKey& bk,
-                                      const BrickedDataset& ds) {
-    std::vector<T> data(ds.GetMaxBrickSize().volume());
-    ds.GetBrick(bk, data);
-    auto mmax = std::minmax_element(data.begin(), data.end());
-    return MinMaxBlock(*mmax.first, *mmax.second, DBL_MAX, -FLT_MAX);
-  }
-}
-
-MinMaxBlock minmax_brick(const BrickKey& bk, const BrickedDataset& ds) {
-  // identify type (float, etc)
-  const unsigned size = ds.GetBitWidth() / 8;
-  assert(ds.GetComponentCount() == 1);
-  const bool sign = ds.GetIsSigned();
-  const bool fp = ds.GetIsFloat();
-
-  // giant if-block to simply call the right compile-time function w/ knowledge
-  // we only know at run-time.
-  if(!sign && !fp && size == 1) {
-    return mm<uint8_t>(bk, ds);
-  } else if(!sign && !fp && size == 2) {
-    return mm<uint16_t>(bk, ds);
-  } else if(!sign && !fp && size == 4) {
-    return mm<uint32_t>(bk, ds);
-  } else if(sign && !fp && size == 1) {
-    return mm<int8_t>(bk, ds);
-  } else if(sign && !fp && size == 2) {
-    return mm<int16_t>(bk, ds);
-  } else if(sign && !fp && size == 4) {
-    return mm<int32_t>(bk, ds);
-  } else if(sign && fp && size == 4) {
-    return mm<float>(bk, ds);
-  } else {
-    T_ERROR("unsupported type.");
-    assert(false);
-  }
-  return MinMaxBlock();
 }
 
 /// we can cache the precomputed brick min/maxes in a file, and then
