@@ -18,7 +18,6 @@
 #include "DynamicBrickingDS.h"
 #include "FileBackedDataset.h"
 #include "IOManager.h"
-#include "const-brick-iterator.h"
 #include "uvfDataset.h"
 
 // This file deals with some tricky indexing.  The convention here is that a
@@ -1195,39 +1194,6 @@ static bool test() {
   assert(to3d(sz, 192)[1] == 1);
   assert(to3d(sz, 192)[2] == 0);
 
-  {
-    std::array<uint64_t, 3> voxels = {{8,8,1}};
-    BrickSize bsize = {{4,8,1}};
-    std::array<float,3> low = {{ 0.0f, 0.0f, 0.0f }};
-    std::array<float,3> high = {{ 10.0f, 5.0f, 19.0f }};
-    std::array<std::array<float,3>,2> extents = {{ low, high }};
-    auto beg = begin(voxels, bsize, extents);
-    assert(beg != end());
-    assert(std::get<0>((*beg).first) == 0); // timestep
-    assert(std::get<1>((*beg).first) == 0); // LOD
-    assert(std::get<2>((*beg).first) == 0); // index
-    assert((*beg).second.n_voxels[0] ==  4);
-    assert((*beg).second.n_voxels[1] ==  8);
-    assert((*beg).second.n_voxels[2] ==  1);
-    ++beg;
-    assert(beg != end());
-    assert(std::get<0>((*beg).first) == 0); // timestep
-    assert(std::get<1>((*beg).first) == 0); // LOD
-    assert(std::get<2>((*beg).first) == 1); // index
-    assert((*beg).second.n_voxels[0] ==  4);
-    assert((*beg).second.n_voxels[1] ==  8);
-    assert((*beg).second.n_voxels[2] ==  1);
-    ++beg;
-    assert(beg != end());
-    assert(std::get<0>((*beg).first) == 0); // timestep
-    assert(std::get<1>((*beg).first) == 1); // LOD
-    assert(std::get<2>((*beg).first) == 0); // index
-    assert((*beg).second.n_voxels[0] ==  4);
-    assert((*beg).second.n_voxels[1] ==  4);
-    assert((*beg).second.n_voxels[2] ==  1);
-    ++beg;
-    assert(beg == end());
-  }
   return true;
 }
 static bool dybr = test();
