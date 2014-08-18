@@ -12,7 +12,7 @@ LIBS             += -lTuvok -ltuvokexpr
 unix:LIBS        += -lz
 unix:!macx:LIBS  += -lrt -lGLU -lGL
 win32:LIBS       += shlwapi.lib
-unix:QMAKE_CXXFLAGS += -std=c++0x
+unix:QMAKE_CXXFLAGS += -std=c++0x -D_GLIBCXX_DEBUG
 unix:!macx:QMAKE_CXXFLAGS += -fopenmp
 unix:!macx:QMAKE_LFLAGS += -fopenmp
 unix:QMAKE_CXXFLAGS += -fno-strict-aliasing
@@ -51,7 +51,8 @@ contains(QMAKE_PRL_CONFIG, shared) {
   QTPLUGIN += qgif qjpeg
 }
 
-TEST_HEADERS=quantize.h largefile.h rebricking.h cbi.h bcache.h
+#TEST_HEADERS=quantize.h largefile.h rebricking.h cbi.h bcache.h
+TEST_HEADERS=quantize.h largefile.h rebricking.h bcache.h
 
 TG_PARAMS=--have-eh --abort-on-fail --no-static-init --error-printer
 alltests.target = alltests.cpp
