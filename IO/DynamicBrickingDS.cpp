@@ -33,10 +33,6 @@ typedef std::array<size_t,3> BrickSize;
 
 namespace tuvok {
 
-#ifndef NDEBUG
-static bool test();
-#endif
-
 struct GBPrelim {
   const BrickKey skey;
   const BrickSize tgt_bs;
@@ -99,10 +95,10 @@ struct DynamicBrickingDS::dbinfo {
                  VoxelIndex src_offset);
 };
 
-BrickSize SourceMaxBrickSize(const BrickedDataset&);
+static BrickSize SourceMaxBrickSize(const BrickedDataset&);
 
-BrickSize ComputedTargetBrickSize(BrickIndex idx, VoxelLayout voxels,
-                                  BrickSize bsize);
+static BrickSize ComputedTargetBrickSize(BrickIndex idx, VoxelLayout voxels,
+                                         BrickSize bsize);
 
 // gives the number of ghost voxels (per dimension) in a brick.  must be the
 // same for both source and target.
@@ -209,7 +205,7 @@ BrickLayout SourceBrickLayout(const std::shared_ptr<LinearIndexDataset> ds,
   return tmp;
 }
 
-BrickSize BrickSansGhost(BrickSize bsize) {
+static BrickSize BrickSansGhost(BrickSize bsize) {
 #if 0
   bsize[0] = bsize[0] > ghost() ? bsize[0]-ghost() : bsize[0];
   bsize[1] = bsize[1] > ghost() ? bsize[1]-ghost() : bsize[1];
@@ -250,7 +246,8 @@ static const BrickLayout GenericBrickLayout(
 // stuffing into one brick.
 // this fits in integer numbers because we enforce that rebricking subdivides
 // the original volume/bricks nicely.
-std::array<unsigned,3> TargetBricksPerSource(BrickSize src, BrickSize tgt) {
+static std::array<unsigned,3> TargetBricksPerSource(BrickSize src,
+                                                    BrickSize tgt) {
   std::array<unsigned,3> rv = {{
     static_cast<unsigned>(src[0] / tgt[0]),
     static_cast<unsigned>(src[1] / tgt[1]),
@@ -273,9 +270,9 @@ std::array<unsigned,3> TargetBricksPerSource(BrickSize src, BrickSize tgt) {
 //   4. identify how many bricks we have in the target data set for each brick
 //      in the source dataset.
 //   5. divide the computed index (3) by our ratio (4).  lop off any remainder.
-BrickIndex SourceBrickIndex(const BrickKey& k,
-                            const BrickedDataset& ds,
-                            const BrickSize bsize)
+static BrickIndex SourceBrickIndex(const BrickKey& k,
+                                   const BrickedDataset& ds,
+                                   const BrickSize bsize)
 {
   // See the comment Rebrick: we shouldn't have more LODs than the source data.
   assert(std::get<1>(k) < ds.GetLODLevelCount());
@@ -305,9 +302,9 @@ BrickIndex SourceBrickIndex(const BrickKey& k,
   return rv;
 }
 
-VoxelIndex OffsetIntoSource(const BrickedDataset& src,
-                            const BrickKey& tgtkey,
-                            const BrickSize bsize /* target */)
+static VoxelIndex OffsetIntoSource(const BrickedDataset& src,
+                                   const BrickKey& tgtkey,
+                                   const BrickSize bsize /* target */)
 {
   // See the comment Rebrick: we shouldn't have more LODs than the source data.
   assert(std::get<1>(tgtkey) < src.GetLODLevelCount());
@@ -338,7 +335,7 @@ VoxelIndex OffsetIntoSource(const BrickedDataset& src,
 }
 
 // @returns the number of voxels in the given level of detail.
-VoxelLayout VoxelsInLOD(const Dataset& ds, size_t lod) {
+static VoxelLayout VoxelsInLOD(const Dataset& ds, size_t lod) {
   const size_t timestep = 0; /// @todo properly implement.
   UINT64VECTOR3 domain = ds.GetDomainSize(lod, timestep);
   VoxelLayout tmp = {{ domain[0], domain[1], domain[2] }};
@@ -348,7 +345,7 @@ VoxelLayout VoxelsInLOD(const Dataset& ds, size_t lod) {
 // @return the brick size which the given dataset *tries* to use.  Of course,
 // if the bricks don't fit evenly, there will be some bricks on the edge which
 // are smaller.
-BrickSize SourceMaxBrickSize(const BrickedDataset& ds) {
+static BrickSize SourceMaxBrickSize(const BrickedDataset& ds) {
   BrickSize src_bs = {{
     static_cast<size_t>(ds.GetMaxBrickSize()[0])-ghost(ds),
     static_cast<size_t>(ds.GetMaxBrickSize()[1])-ghost(ds),
@@ -361,8 +358,8 @@ BrickSize SourceMaxBrickSize(const BrickedDataset& ds) {
 }
 
 // with the source brick index, give a brick key for the source dataset.
-BrickKey SourceKey(const BrickIndex brick_idx, size_t lod,
-                   const BrickedDataset& ds) {
+static BrickKey SourceKey(const BrickIndex brick_idx, size_t lod,
+                          const BrickedDataset& ds) {
   const VoxelLayout src_voxels = VoxelsInLOD(ds, lod);
   const BrickSize src_bricksize = SourceMaxBrickSize(ds);
   const size_t timestep = 0; /// @todo properly implement
@@ -398,7 +395,7 @@ static VoxelIndex Index(
 
 // index of the first voxel of the given brick, among the whole level.
 VoxelIndex TargetIndex(const BrickKey& k, const Dataset& ds,
-                       const BrickSize bricksize) {
+                              const BrickSize bricksize) {
   const size_t idx1d = std::get<2>(k);
   const size_t lod = std::get<1>(k);
 
@@ -414,8 +411,8 @@ VoxelIndex SourceIndex(const BrickKey& k, const BrickedDataset& ds) {
   return Index(ds, lod, idx1d, src_bs);
 }
 
-BrickSize ComputedTargetBrickSize(BrickIndex idx, VoxelLayout voxels,
-                                  BrickSize bsize) {
+static BrickSize ComputedTargetBrickSize(BrickIndex idx, VoxelLayout voxels,
+                                         BrickSize bsize) {
   const VoxelIndex bl = layout(voxels, BrickSansGhost(bsize));
   std::array<bool,3> last = {{
     idx[0] == bl[0]-1,
@@ -437,7 +434,7 @@ BrickSize ComputedTargetBrickSize(BrickIndex idx, VoxelLayout voxels,
 }
 
 // gives the size of the given brick from the target DS
-BrickSize TargetBrickSize(const Dataset& tgt, const BrickKey& k) {
+static BrickSize TargetBrickSize(const Dataset& tgt, const BrickKey& k) {
   const BrickedDataset& b = dynamic_cast<const BrickedDataset&>(tgt);
   UINTVECTOR3 sz = b.GetBrickMetadata(k).n_voxels;
   BrickSize tmp = {{
@@ -448,7 +445,7 @@ BrickSize TargetBrickSize(const Dataset& tgt, const BrickKey& k) {
   return tmp;
 }
 // gives the size of the given brick from the source DS
-BrickSize SourceBrickSize(const BrickedDataset& src, const BrickKey& k) {
+static BrickSize SourceBrickSize(const BrickedDataset& src, const BrickKey& k) {
   const BrickedDataset& b = dynamic_cast<const BrickedDataset&>(src);
   UINTVECTOR3 sz = b.GetBrickMetadata(k).n_voxels;
   BrickSize tmp = {{
@@ -969,7 +966,7 @@ static bool integer_multiple(unsigned a, unsigned b) {
 // what are the low/high points of our data set?  Interestingly, we don't have
 // a way to query this from the Dataset itself.  So we find a LOD which is just
 // one brick, and then see how big that brick is.
-std::array<std::array<float,3>,2>
+static std::array<std::array<float,3>,2>
 DatasetExtents(const std::shared_ptr<Dataset>& ds) {
   std::shared_ptr<BrickedDataset> bds =
     std::dynamic_pointer_cast<BrickedDataset>(ds);
@@ -1027,7 +1024,7 @@ void DynamicBrickingDS::dbinfo::VerifyBrick(
 }
 
 struct ExtCenter { FLOATVECTOR3 exts, center; };
-ExtCenter BrickMetadata(size_t x, size_t y, size_t z,
+static ExtCenter BrickMetadata(size_t x, size_t y, size_t z,
                         const BrickSize& size,
                         const BrickSize& bsize,
                         const VoxelLayout voxels,
@@ -1205,7 +1202,7 @@ static bool dybr = test();
 
    The MIT License
 
-   Copyright (c) 2013 IVDA Group
+   Copyright (c) 2013--2014 IVDA Group
 
 
    Permission is hereby granted, free of charge, to any person obtaining a
