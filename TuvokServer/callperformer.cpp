@@ -112,6 +112,11 @@ std::shared_ptr<tuvok::Context> createContext(uint32_t width, uint32_t height,
     std::cerr << "Could not utilize context.";
     return std::shared_ptr<tuvok::BatchContext>();
   }
+  else {
+      printf("Created GL-Context with version:");
+      printf((char*)glGetString(GL_VERSION));
+      printf("\n");
+  }
 
   return ctx;
 }
