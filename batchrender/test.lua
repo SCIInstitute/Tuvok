@@ -5,11 +5,11 @@ print("Hostname is: " .. hostname)
 if hostname == "takeo" then
   print("Loading takeo.lua...")
   require "takeo"
-elseif hostname == "MBPRO-Infi.local" then
+elseif hostname == "MBPRO-Infi.local" or hostname == "Rainer-Schlonvoigts-Tower-PC.local" then
   print("Loading rakeo.lua...")
   require "rakeo"
 else
-  error("Can't load proper host file...")
+  error("Can't load proper host file for host " .. hostname .. "...")
 end
 
 print("Initializing renderer")
