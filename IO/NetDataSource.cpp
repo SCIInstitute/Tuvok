@@ -234,7 +234,7 @@ NetDataSource*
 NetDataSource::Create(const std::string&, uint64_t,bool) const {
   DO_NOT_THINK_NEEDED; return NULL;
 }
-std::string NetDataSource::Filename() const { DO_NOT_THINK_NEEDED; return ""; }
+std::string NetDataSource::Filename() const {return dsm.filename;}
 const char* NetDataSource::Name() const { DO_NOT_THINK_NEEDED; return "netDS"; }
 
 bool
@@ -253,7 +253,7 @@ NetDataSource::Extensions() const {
 
 float
 NetDataSource::MaxGradientMagnitude() const {
-  DO_NOT_THINK_NEEDED; return 0.0f;
+    return dsm.maxGradientMagnitude;
 }
 
 bool

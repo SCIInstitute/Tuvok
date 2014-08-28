@@ -381,6 +381,10 @@ void OpenParams::perform(int socket, int socketB, CallPerformer* object) {
     wr_multiple(socket, &md_centers[0], brickCount * 3, false);
     wr_multiple(socket, &md_extents[0], brickCount * 3, false);
     wr_multiple(socket, &md_n_voxels[0], brickCount * 3, false);
+
+    wr_single(socket, object->getDataSet()->MaxGradientMagnitude());
+
+    //TODO: send block 0 ?
 }
 
 void CloseParams::perform(int socket, int socketB, CallPerformer* object) {
@@ -409,11 +413,13 @@ void startBrickSendLoop(int socket, int socketB, CallPerformer *object, vector<t
     }
 
     //Tell the client all the keys of bricks to be expected
-    size_t brickCount = allKeys.size();
-    wr_sizet(socket, brickCount);
+    wr_sizet(socket, allKeys.size());
+    if(allKeys.size() == 0) {
+        TRACE(bricks, "No bricks to be send to the client.");
+        return;
+    }
     wr_mult_sizet(socket, &lods[0], lods.size(), false);
-    wr_mult_sizet(socket, &idxs[0], lods.size(), false);
-
+    wr_mult_sizet(socket, &idxs[0], idxs.size(), false);
 
     size_t maxBatchSize = object->maxBatchSize;
     //printf("max batch size: %zu\n", maxBatchSize);
@@ -482,7 +488,7 @@ void RotateParams::perform(int socket, int socketB, CallPerformer *object) {
     else if(dType == N_UINT32)
         startBrickSendLoop<uint32_t>(socket, socketB, object, allKeys);
 
-    printf("Done sending bricks!\n");
+    TRACE(bricks, "Done sending bricks!\n");
 }
 
 void BrickParams::perform(int socket, int socketB, CallPerformer* object) {

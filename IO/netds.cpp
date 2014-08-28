@@ -257,6 +257,7 @@ bool openFile(const string& filename, DSMetaData& out_meta, size_t minmaxMode, s
     wr_single(remote, filename);
 
     //Read meta-data from server
+    out_meta.filename = filename;
     r_sizet(remote, out_meta.lodCount);
     if (out_meta.lodCount == 0) {
         return false;
@@ -293,6 +294,8 @@ bool openFile(const string& filename, DSMetaData& out_meta, size_t minmaxMode, s
     r_multiple(remote, out_meta.md_centers, true);
     r_multiple(remote, out_meta.md_extents, true);
     r_multiple(remote, out_meta.md_n_voxels, true);
+
+    r_single(remote, out_meta.maxGradientMagnitude);
 
     //TODO: Receive brick zero?
 

@@ -14,6 +14,8 @@ using std::shared_ptr;
 namespace NETDS {
 
     struct DSMetaData {
+        string filename;
+
         size_t lodCount;
         vector<unsigned> layouts; //3 unsigned per LOD
         vector<uint64_t> domainSizes; //3 uint64_t per LOD
@@ -35,6 +37,8 @@ namespace NETDS {
 
         //To find out the type of data inside the set
         struct PlainTypeInfo typeInfo;
+
+        float maxGradientMagnitude;
 
         //brick zero
         //void* brickZero;

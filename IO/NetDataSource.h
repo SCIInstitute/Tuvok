@@ -14,7 +14,7 @@ using NETDS::BatchInfo;
 
 namespace tuvok {
 
-class NetDataSource : public LinearIndexDataset {//, public FileBackedDataset {
+class NetDataSource : public LinearIndexDataset, public FileBackedDataset {
 public:
   NetDataSource(const struct DSMetaData& dsm);
 
