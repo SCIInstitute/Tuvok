@@ -41,6 +41,7 @@ public:
   virtual bool GetIsFloat() const;
   virtual bool IsSameEndianness() const;
   virtual std::pair<double,double> GetRange() const;
+  void GetHistograms(size_t ts);
 
   /// Acceleration queries.
   virtual bool ContainsData(const BrickKey&, double /*isoval*/) const;

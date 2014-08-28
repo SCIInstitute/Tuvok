@@ -29,10 +29,15 @@ NetDataSource::NetDataSource(const struct DSMetaData& meta) :
         AddBrick(keys[i], brickMDs[i]);
     }
 
+    NETDS::MMInfo minMaxInfo;
+    NETDS::calcMinMax(minMaxInfo);
+    GetHistograms(0);
     //start_receiving_thread(socksrc); // maybe?
 }
 NetDataSource::~NetDataSource() {
     NETDS::closeFile(Filename());
+    NETDS::clearMinMaxValues();
+    NETDS::clearRotationKeys();
 }
 void
 NetDataSource::SetCache(std::shared_ptr<BrickCache> ch) { this->cache = ch; }
@@ -65,6 +70,32 @@ static BrickKey construct_key(const struct BatchInfo bi, size_t index) {
 static size_t bsize(const struct BatchInfo bi, size_t index) {
   assert(index < bi.batchSize);
   return bi.brickSizes[index];
+}
+
+void
+NetDataSource::GetHistograms(size_t) {
+    FIXME(netsrc, "The histogram is not being generated properly... this is just a placeholder. @Tom plz check if this makes sense");
+
+    // generate a zero 1D histogram (max 4k) if none is found in the file
+    m_pHist1D.reset(new Histogram1D(
+                        std::min(MAX_TRANSFERFUNCTION_SIZE, 1<<GetBitWidth())));
+
+    // set all values to one so "getFilledsize" later does not return a
+    // completely empty dataset
+    for (size_t i = 0;i<m_pHist1D->GetSize();i++) {
+        m_pHist1D->Set(i, 1);
+    }
+
+    VECTOR2<size_t> vec(256, std::min(MAX_TRANSFERFUNCTION_SIZE, 1<<GetBitWidth()));
+
+    m_pHist2D.reset(new Histogram2D(vec));
+    for (size_t y=0; y < m_pHist2D->GetSize().y; y++) {
+        // set all values to one so "getFilledsize" later does not return a
+        // completely empty dataset
+        for (size_t x=0; x < m_pHist2D->GetSize().x; x++) {
+            m_pHist2D->Set(x,y,1);
+        }
+    }
 }
 
 namespace {
@@ -176,19 +207,27 @@ NetDataSource::GetDomainSize(const size_t lod, const size_t) const {
 uint64_t NetDataSource::GetComponentCount() const { return 1; }
 
 bool
-NetDataSource::ContainsData(const BrickKey&, double /*isoval*/) const {
-  DO_NOT_THINK_NEEDED; return false;
+NetDataSource::ContainsData(const BrickKey& k, double isoval) const {
+    const MinMaxBlock maxMinElement = MaxMinForKey(k);
+    return (isoval <= maxMinElement.maxScalar);
 }
 bool
-NetDataSource::ContainsData(const BrickKey&, double /*fMin*/,
-                            double /*fMax*/) const {
-  DO_NOT_THINK_NEEDED; return false;
+NetDataSource::ContainsData(const BrickKey& k, double fMin,
+                            double fMax) const {
+
+    const MinMaxBlock maxMinElement = MaxMinForKey(k);
+    return (fMax >= maxMinElement.minScalar && fMin <= maxMinElement.maxScalar);
 }
 bool
-NetDataSource::ContainsData(const BrickKey&, double /*fMin*/, double /*fMax*/,
-                            double /*fMinGradient*/,
-                            double /*fMaxGradient*/) const {
-  DO_NOT_THINK_NEEDED; return false;
+NetDataSource::ContainsData(const BrickKey& k, double fMin, double fMax,
+                            double fMinGradient,
+                            double fMaxGradient) const {
+    const MinMaxBlock maxMinElement = MaxMinForKey(k);
+    return (fMax >= maxMinElement.minScalar &&
+            fMin <= maxMinElement.maxScalar)
+                           &&
+           (fMaxGradient >= maxMinElement.minGradient &&
+            fMinGradient <= maxMinElement.maxGradient);
 }
 
 NetDataSource*

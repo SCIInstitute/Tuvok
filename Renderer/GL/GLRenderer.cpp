@@ -192,7 +192,10 @@ bool GLRenderer::Initialize(std::shared_ptr<Context> ctx) {
                           m_pDataset->Get1DHistogram()->GetFilledSize());
   } else {
     MESSAGE("Creating empty 1D TF.");
-    mm.GetEmpty1DTrans(m_pDataset->Get1DHistogram()->GetFilledSize(), this,
+    std::shared_ptr<const Histogram1D> histo = m_pDataset->Get1DHistogram();
+    size_t filledSize = histo->GetFilledSize();
+
+    mm.GetEmpty1DTrans(filledSize, this,
                        &m_p1DTrans, &m_p1DTransTex);
   }
   // This is a bit of a kludge, but there's currently no way for AbstrRenderer

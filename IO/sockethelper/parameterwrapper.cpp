@@ -32,6 +32,9 @@ ParameterWrapper* ParamFactory::createFrom(NetDSCommandCode cmd, int socket) {
     case nds_BATCHSIZE:
         return new BatchSizeParams(socket);
         break;
+    case nds_CALC_MINMAX:
+        return new MinMaxParams(cmd);
+        break;
     default:
         printf("Unknown command received.\n");
         break;
