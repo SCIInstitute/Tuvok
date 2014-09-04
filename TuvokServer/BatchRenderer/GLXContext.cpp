@@ -62,6 +62,11 @@ GLXBatchContext::GLXBatchContext(uint32_t w, uint32_t h, uint8_t,
           "is better to let the GLX library choose the \"best\" visual.");
   *this->xi = x_connect(w, h, double_buffer, visible);
   glx_init(xi->display, xi->visual, xi->ctx);
+
+  if(!glXIsDirect(xi->display, xi->ctx)) {
+    WARNING("The context is not a direct rendering context!");
+  }
+
   this->makeCurrent();
   MESSAGE("Current context: %p", glXGetCurrentContext());
 }

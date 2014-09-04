@@ -185,7 +185,7 @@ bool CallPerformer::openFile(const std::string& filename, const std::vector<size
     //getRenderer()->Initialize(ctx);
     ss->cexec(rn+".initialize", ctx);
     ss->exec(rn+".resize("+resStr+")");
-    //ss->cexec(rn+".setRendererTarget", tuvok::AbstrRenderer::RT_HEADLESS); //From CMDRenderer.cpp... but no idea why
+    ss->cexec(rn+".setRendererTarget", tuvok::AbstrRenderer::RT_HEADLESS); //From CMDRenderer.cpp... but no idea why
     ss->cexec(rn+".paint");
 
     return true;

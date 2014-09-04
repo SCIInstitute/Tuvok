@@ -274,14 +274,22 @@ void GLFBOTex::Write(unsigned int iTargetBuffer, int iBuffer, bool bCheckBuffer)
   assert(iBuffer>=0);
   assert(iBuffer<m_iNumBuffers);
   m_LastAttachment[iBuffer]=target;
+
   GL(glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, target, GL_TEXTURE_2D,
                                m_hTexture[iBuffer], 0));
+
+if (bCheckBuffer) {
+#ifdef _DEBUG
+  CheckFBO("Write c");
+#endif
+  }
+
   if (m_hDepthBuffer)
     GL(glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT,
                                  GL_TEXTURE_2D, m_hDepthBuffer, 0));
   if (bCheckBuffer) {
 #ifdef _DEBUG
-  if (!CheckFBO("Write")) return;
+  if (!CheckFBO("Write d")) return;
 #endif
   }
 }
