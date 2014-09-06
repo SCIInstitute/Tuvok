@@ -10,6 +10,7 @@
 #include "RenderRegion.h"
 using tuvok::DynamicBrickingDS;
 using tuvok::UVFDataset;
+using std::string;
 
 #define SHADER_PATH "Shaders"
 
@@ -56,14 +57,14 @@ AbstrRenderer* CallPerformer::getRenderer() {
 }
 
 //File handling
-vector<std::string> CallPerformer::listFiles() {
+vector<string> CallPerformer::listFiles() {
     const char* folder = getenv("IV3D_FILES_FOLDER");
     if(folder == NULL) {
         folder = "./";
     }
 
-    vector<std::string> retVector;
-    std::string extension = ".uvf";
+    vector<string> retVector;
+    string extension = ".uvf";
 
     DIR *dir;
     struct dirent *ent;
@@ -75,13 +76,13 @@ vector<std::string> CallPerformer::listFiles() {
 
             //No directories
             if(ent->d_type != DT_DIR) {
-                std::string fname = ent->d_name;
+                string fname = ent->d_name;
 
                 //printf("%s\n", fname.c_str());
 
                 //Only files ending in .uvf
-                if (fname.find(extension, (fname.length() - extension.length())) != std::string::npos) {
-                    std::string tmp_string = ent->d_name;
+                if (fname.find(extension, (fname.length() - extension.length())) != string::npos) {
+                    string tmp_string = ent->d_name;
                     printf("%s,\n", tmp_string.c_str());
                     retVector.push_back(tmp_string);
                 }
@@ -113,39 +114,25 @@ std::shared_ptr<tuvok::Context> createContext(uint32_t width, uint32_t height,
     return std::shared_ptr<tuvok::BatchContext>();
   }
   else {
-      printf("Created GL-Context with version:");
-      printf((char*)glGetString(GL_VERSION));
-      printf("\n");
+      char* glVersion = (char*)glGetString(GL_VERSION);
+      printf("Created GL-Context with version: %s\n", glVersion);
   }
 
   return ctx;
 }
 
-bool CallPerformer::openFile(const std::string& filename, const std::vector<size_t>& bSize, size_t minmaxMode) {
+bool CallPerformer::openFile(const string& filename, const std::vector<size_t>& bSize, size_t minmaxMode) {
     const char* folder = getenv("IV3D_FILES_FOLDER");
     if(folder == NULL) {
         folder = "./";
     }
 
-    std::string effectiveFilename = folder;
+    string effectiveFilename = folder;
     if(effectiveFilename.back() != '/') {
         effectiveFilename.append("/");
     }
     effectiveFilename.append(filename);
-
-    //Create renderer
-    std::shared_ptr<tuvok::LuaScripting> ss = tuvok::Controller::Instance().LuaScript();
-
-    rendererInst = ss->cexecRet<tuvok::LuaClassInstance>(
-                "tuvok.renderer.new",
-                tuvok::MasterController::OPENGL_GRIDLEAPER, true, false,
-                false, false);
-
-    if(!rendererInst.isValid(ss)) {
-        abort(); //@TODO: properly handle
-    }
-
-    std::string rn = rendererInst.fqName();
+    TRACE(file, "Opening file: %s\n", effectiveFilename.c_str());
 
     char buff[200];
 
@@ -155,43 +142,60 @@ bool CallPerformer::openFile(const std::string& filename, const std::vector<size
 
     //Dirty hack because the lua binding cannot work with MATRIX or VECTOR
     sprintf(buff, "{%d, %d, %d}", maxBS.x, maxBS.y, maxBS.z);
-    std::string maxBSStr(buff);
+    string maxBSStr(buff);
     sprintf(buff, "{%d, %d}", res.x, res.y);
-    std::string resStr(buff);
+    string resStr(buff);
 
-    TRACE(file, "Opening file: %s\n", effectiveFilename.c_str());
-    ss->cexec(rn+".loadDataset", effectiveFilename.c_str());
+    //Start Lua scripting
+    {
+        std::shared_ptr<tuvok::LuaScripting> ss = tuvok::Controller::Instance().LuaScript();
 
-    sprintf(buff, "%s.loadRebricked(\"%s\", %s, %zu)",
-            rn.c_str(),
-            effectiveFilename.c_str(),
-            maxBSStr.c_str(),
-            minmaxMode);
-    std::string loadRebrickedString(buff);
+        //Create openGL-context
+        std::shared_ptr<tuvok::Context> ctx = createContext(width, height, 32, 24, 8, true, false);
 
-    printf("Load rebricked string: %s\n", loadRebrickedString.c_str());
-    //FIXME(file, "This call claims that there would be no such file when using full path on OSX...dafuq");
-    if(!ss->execRet<bool>(loadRebrickedString)) {
-        return false;
+        //Create renderer
+        rendererInst = ss->cexecRet<tuvok::LuaClassInstance>(
+                    "tuvok.renderer.new",
+                    tuvok::MasterController::OPENGL_GRIDLEAPER, true, false,
+                    false, false);
+
+        if(!rendererInst.isValid(ss)) {
+            abort(); //@TODO: properly handle
+        }
+
+        string rn = rendererInst.fqName();
+        ss->cexec(rn+".addShaderPath", SHADER_PATH);
+
+        ss->cexec(rn+".loadDataset", effectiveFilename.c_str());
+        dsInst = ss->cexecRet<tuvok::LuaClassInstance>(rn+".getDataset");
+
+        //Load rebricked
+        {
+            sprintf(buff, "%s.loadRebricked(\"%s\", %s, %zu)",
+                    rn.c_str(),
+                    effectiveFilename.c_str(),
+                    maxBSStr.c_str(),
+                    minmaxMode);
+            string loadRebrickedString(buff);
+            printf("Load rebricked string: %s\n", loadRebrickedString.c_str());
+
+            //FIXME(file, "This call claims that there would be no such file when using full path on OSX...dafuq");
+            if(!ss->execRet<bool>(loadRebrickedString)) {
+                return false;
+            }
+        }
+
+        //Render init
+        ss->cexec(rn+".initialize", ctx);
+        ss->exec(rn+".resize("+resStr+")");
+        ss->cexec(rn+".setRendererTarget", tuvok::AbstrRenderer::RT_HEADLESS); //From CMDRenderer.cpp... but no idea why
+        ss->cexec(rn+".paint");
     }
-
-    dsInst = ss->cexecRet<tuvok::LuaClassInstance>(rn+".getDataset");
-    ss->cexec(rn+".addShaderPath", SHADER_PATH);
-
-    //Create openGL-context
-    std::shared_ptr<tuvok::Context> ctx = createContext(width, height, 32, 24, 8, true, false);
-
-    //Render init
-    //getRenderer()->Initialize(ctx);
-    ss->cexec(rn+".initialize", ctx);
-    ss->exec(rn+".resize("+resStr+")");
-    ss->cexec(rn+".setRendererTarget", tuvok::AbstrRenderer::RT_HEADLESS); //From CMDRenderer.cpp... but no idea why
-    ss->cexec(rn+".paint");
 
     return true;
 }
 
-void CallPerformer::closeFile(const std::string& filename) {
+void CallPerformer::closeFile(const string& filename) {
     (void)filename; /// @TODO: keep it around to see which file to close?
 
     invalidateRenderer();
@@ -207,14 +211,14 @@ void CallPerformer::rotate(const float *matrix) {
 #if 0
     //const FLOATMATRIX4 rotation(matrix);
     //Dirty hack because the lua binding cannot work with MATRIX or VECTOR
-    std::string matString = "{";
+    string matString = "{";
     for(size_t i = 0; i < 15; i++) {
         matString += std::to_string(matrix[i]) + ", ";
     }
     matString += std::to_string(matrix[15]);
     matString += "}";
 
-    const std::string rn = rendererInst.fqName();
+    const string rn = rendererInst.fqName();
     FIXME(renderer, "For some reason we cannot retrieve the renderRegion...");
     tuvok::LuaClassInstance renderRegion = ss->cexecRet<tuvok::LuaClassInstance>(rn+".getFirst3DRenderRegion");
     ss->exec(renderRegion.fqName()+".setRotation4x4("+matString+")");
@@ -222,7 +226,7 @@ void CallPerformer::rotate(const float *matrix) {
     AbstrRenderer* ren = rendererInst.getRawPointer<AbstrRenderer>(ss);
     std::shared_ptr<tuvok::RenderRegion3D> rr3d = ren->GetFirst3DRegion();
     ren->SetRotationRR(rr3d.get(), FLOATMATRIX4(matrix));
-    const std::string rn = rendererInst.fqName();
+    const string rn = rendererInst.fqName();
 #endif
     ss->cexec(rn+".paint");
 }

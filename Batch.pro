@@ -72,3 +72,9 @@ HEADERS += \
   TuvokServer/QuickTests/Tests.h \
   IO/netds.h \
   IO/NetDataSource.h
+
+OTHER_FILES += \
+    batchrender/test.lua \
+    batchrender/rakeo.lua \
+    batchrender/takeo.lua \
+    batchrender/util.lua

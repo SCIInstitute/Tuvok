@@ -463,7 +463,7 @@ class AbstrRenderer {
                                const UINTVECTOR3 bsize,
                                size_t minmaxMode);
     bool LoadNetDS(const std::string& filename, const UINTVECTOR3 bsize,
-                   size_t minmaxMode);
+                   size_t minmaxMode, uint32_t width, uint32_t height);
 
     virtual bool Initialize(std::shared_ptr<Context> ctx);
 

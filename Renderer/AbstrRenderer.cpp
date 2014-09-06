@@ -279,11 +279,13 @@ bool AbstrRenderer::LoadRebricked(const std::string& filename,
 }
 bool AbstrRenderer::LoadNetDS(const std::string& filename,
                               const UINTVECTOR3 bsize,
-                              size_t minmaxMode) {
+                              size_t minmaxMode,
+                              uint32_t width,
+                              uint32_t height) {
 
     NETDS::DSMetaData metaData;
     std::array<size_t, 3> tgtBsize = {{bsize[0], bsize[1], bsize[2]}};
-    bool netSuccess = NETDS::openFile(filename, metaData, minmaxMode, tgtBsize, 1920, 1080);
+    bool netSuccess = NETDS::openFile(filename, metaData, minmaxMode, tgtBsize, width, height);
     if(!netSuccess)
         return false;
 

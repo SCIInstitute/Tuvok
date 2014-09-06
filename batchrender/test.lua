@@ -17,7 +17,7 @@ ren = tuvok.renderer.new(tuvok.renderer.types.OpenGL_SBVR, true, false,
                          false, false)
 ren.addShaderPath("Shaders")
 bsize = {35, 35, 35} -- size of the bricks to use/rebrick into.
-netSuccess = ren.loadNetDS(machine.dataset.engine, bsize, MM_PRECOMPUTE)
+netSuccess = ren.loadNetDS(machine.dataset.engine, bsize, MM_PRECOMPUTE, 640, 640)
 if not netSuccess then
   error("Could not load net dataset!")
 end
