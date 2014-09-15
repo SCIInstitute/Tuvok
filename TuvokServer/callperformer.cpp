@@ -20,9 +20,36 @@ DECLARE_CHANNEL(dataset);
 DECLARE_CHANNEL(renderer);
 DECLARE_CHANNEL(file);
 
+std::shared_ptr<tuvok::BatchContext> createContext(uint32_t width, uint32_t height,
+                                            int32_t color_bits,
+                                            int32_t depth_bits,
+                                            int32_t stencil_bits,
+                                            bool double_buffer, bool visible)
+{
+  std::shared_ptr<tuvok::BatchContext> ctx(
+      tuvok::BatchContext::Create(width,height, color_bits,depth_bits,stencil_bits,
+                           double_buffer,visible));
+  if(!ctx->isValid() || ctx->makeCurrent() == false)
+  {
+    std::cerr << "Could not utilize context.";
+    return std::shared_ptr<tuvok::BatchContext>();
+  }
+  else {
+      char* glVersion = (char*)glGetString(GL_VERSION);
+      printf("Created GL-Context with version: %s\n", glVersion);
+  }
+
+  return ctx;
+}
+
 CallPerformer::CallPerformer()
 :maxBatchSize(defaultBatchSize)
 {
+    std::shared_ptr<tuvok::LuaScripting> ss = tuvok::Controller::Instance().LuaScript();
+
+    //Create openGL-context
+    ss->registerFunction(createContext, "tuvok.createContext",
+                         "Creates a rendering context and returns it.", false);
 }
 
 CallPerformer::~CallPerformer() {
@@ -101,28 +128,6 @@ vector<string> CallPerformer::listFiles() {
     return retVector;
 }
 
-std::shared_ptr<tuvok::BatchContext> createContext(uint32_t width, uint32_t height,
-                                            int32_t color_bits,
-                                            int32_t depth_bits,
-                                            int32_t stencil_bits,
-                                            bool double_buffer, bool visible)
-{
-  std::shared_ptr<tuvok::BatchContext> ctx(
-      tuvok::BatchContext::Create(width,height, color_bits,depth_bits,stencil_bits,
-                           double_buffer,visible));
-  if(!ctx->isValid() || ctx->makeCurrent() == false)
-  {
-    std::cerr << "Could not utilize context.";
-    return std::shared_ptr<tuvok::BatchContext>();
-  }
-  else {
-      char* glVersion = (char*)glGetString(GL_VERSION);
-      printf("Created GL-Context with version: %s\n", glVersion);
-  }
-
-  return ctx;
-}
-
 bool CallPerformer::openFile(const string& filename, const std::vector<size_t>& bSize, size_t minmaxMode) {
     const char* folder = getenv("IV3D_FILES_FOLDER");
     if(folder == NULL) {
@@ -172,9 +177,7 @@ bool CallPerformer::openFile(const string& filename, const std::vector<size_t>& 
     {
         std::shared_ptr<tuvok::LuaScripting> ss = tuvok::Controller::Instance().LuaScript();
 
-        //Create openGL-context
-        ss->registerFunction(createContext, "tuvok.createContext",
-                             "Creates a rendering context and returns it.", false);
+        //Create context
         std::shared_ptr<tuvok::Context> ctx = ss->cexecRet<std::shared_ptr<tuvok::Context>>(
                     "tuvok.createContext",
                     width, height,
@@ -222,7 +225,7 @@ bool CallPerformer::openFile(const string& filename, const std::vector<size_t>& 
 
         ss->exec(rn+".resize("+resStr+")");
         ss->cexec(rn+".setRendererTarget", tuvok::AbstrRenderer::RT_HEADLESS); //From CMDRenderer.cpp... but no idea why
-        ss->cexec(rn+".setBlendPrecision", tuvok::AbstrRenderer::EBlendPrecision::BP_8BIT);
+        //ss->cexec(rn+".setBlendPrecision", tuvok::AbstrRenderer::EBlendPrecision::BP_8BIT);
         ss->cexec(rn+".paint");
     }
 
