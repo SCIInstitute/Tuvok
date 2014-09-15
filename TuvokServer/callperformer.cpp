@@ -8,6 +8,8 @@
 #include "BatchContext.h"
 #include "LuaScripting/TuvokSpecific/LuaDatasetProxy.h"
 #include "RenderRegion.h"
+#include "Renderer/GL/QtGLContext.h"
+#include "Renderer/GL/GLStateManager.h"
 using tuvok::DynamicBrickingDS;
 using tuvok::UVFDataset;
 using std::string;
@@ -99,7 +101,7 @@ vector<string> CallPerformer::listFiles() {
     return retVector;
 }
 
-std::shared_ptr<tuvok::Context> createContext(uint32_t width, uint32_t height,
+std::shared_ptr<tuvok::BatchContext> createContext(uint32_t width, uint32_t height,
                                             int32_t color_bits,
                                             int32_t depth_bits,
                                             int32_t stencil_bits,
@@ -146,12 +148,38 @@ bool CallPerformer::openFile(const string& filename, const std::vector<size_t>& 
     sprintf(buff, "{%d, %d}", res.x, res.y);
     string resStr(buff);
 
+    //Without Lua
+    /*{
+        tuvok::MasterController& controller = tuvok::Controller::Instance();
+
+        std::shared_ptr<tuvok::Context> ctx = createContext(width, height, 32, 24, 8, true, false);
+        AbstrRenderer* renderer = controller.RequestNewVolumeRenderer(
+                    tuvok::MasterController::OPENGL_GRIDLEAPER,
+                    true, false, false, false);
+
+        renderer->AddShaderPath(SHADER_PATH);
+
+        renderer->LoadFile(effectiveFilename);
+        renderer->LoadRebricked(effectiveFilename, maxBS, minmaxMode);
+
+        renderer->Initialize(ctx);
+        renderer->Resize(res);
+        renderer->SetRendererTarget(tuvok::AbstrRenderer::RT_HEADLESS);
+        renderer->Paint();
+    }*/
+
     //Start Lua scripting
     {
         std::shared_ptr<tuvok::LuaScripting> ss = tuvok::Controller::Instance().LuaScript();
 
         //Create openGL-context
-        std::shared_ptr<tuvok::Context> ctx = createContext(width, height, 32, 24, 8, true, false);
+        ss->registerFunction(createContext, "tuvok.createContext",
+                             "Creates a rendering context and returns it.", false);
+        std::shared_ptr<tuvok::Context> ctx = ss->cexecRet<std::shared_ptr<tuvok::Context>>(
+                    "tuvok.createContext",
+                    width, height,
+                    32, 24, 8,
+                    true, false);
 
         //Create renderer
         rendererInst = ss->cexecRet<tuvok::LuaClassInstance>(
@@ -186,9 +214,15 @@ bool CallPerformer::openFile(const string& filename, const std::vector<size_t>& 
         }
 
         //Render init
-        ss->cexec(rn+".initialize", ctx);
+        bool renderInit = ss->cexecRet<bool>(rn+".initialize", ctx);
+        if(!renderInit) {
+            printf("Could not initalize renderer with given context!!!\n");
+            abort();
+        }
+
         ss->exec(rn+".resize("+resStr+")");
         ss->cexec(rn+".setRendererTarget", tuvok::AbstrRenderer::RT_HEADLESS); //From CMDRenderer.cpp... but no idea why
+        ss->cexec(rn+".setBlendPrecision", tuvok::AbstrRenderer::EBlendPrecision::BP_8BIT);
         ss->cexec(rn+".paint");
     }
 

@@ -97,6 +97,11 @@ int main(int argc, char *argv[])
     TvkServer *server           = new TvkServer();
     CallPerformer *performer    = new CallPerformer();
 
+    tuvok::Controller::Debug::Out().SetShowErrors(true);
+    tuvok::Controller::Debug::Out().SetShowMessages(true);
+    tuvok::Controller::Debug::Out().SetShowOther(true);
+    tuvok::Controller::Debug::Out().SetShowWarnings(true);
+
     int shouldShutdown = false;
     while(!shouldShutdown) {
 
