@@ -565,6 +565,7 @@
     <ClCompile Include="IO\3rdParty\lzma\LzmaDec.c" />
     <ClCompile Include="IO\3rdParty\lzma\LzmaEnc.c" />
     <ClCompile Include="IO\AmiraConverter.cpp" />
+    <ClCompile Include="IO\BMinMax.cpp" />
     <ClCompile Include="IO\BrickCache.cpp" />
     <ClCompile Include="IO\GeomViewConverter.cpp" />
     <ClCompile Include="IO\Images\StackExporter.cpp" />
@@ -1414,6 +1415,7 @@
     <ClInclude Include="IO\3rdParty\lzma\LzmaEnc.h" />
     <ClInclude Include="IO\3rdParty\lzma\Types.h" />
     <ClInclude Include="IO\AmiraConverter.h" />
+    <ClInclude Include="IO\BMinMax.h" />
     <ClInclude Include="IO\BrickCache.h" />
     <ClInclude Include="IO\GeomViewConverter.h" />
     <ClInclude Include="IO\Images\StackExporter.h" />
