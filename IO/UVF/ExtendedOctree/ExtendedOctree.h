@@ -68,7 +68,7 @@ enum COMPRESSION_TYPE {
   CT_LZMA,        // brick is compressed using LZMA
   CT_LZ4,         // brick is compressed using LZ4
   CT_BZLIB,       // brick is compressed using BZIP2
-  CT_LZHAM,       // brick is compressed using LZHAM
+  CT_LZHAM,       // brick is compressed using LZHAM, which is not supported anymore by Tuvok but we keep the enum to respond with a proper error
   CT_UNKNOWN
 };
 

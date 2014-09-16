@@ -32,7 +32,6 @@
 #include "LzmaCompression.h"
 #include "Lz4Compression.h"
 #include "BzlibCompression.h"
-#include "LzhamCompression.h"
 
 ExtendedOctree::ExtendedOctree() :
   m_eComponentType(CT_UINT8), 
@@ -353,8 +352,7 @@ void ExtendedOctree::GetBrickData(uint8_t* pData, uint64_t index) const {
                  out, uncompressedSize);
     break;
   case CT_LZHAM:
-    lzhamDecompress(buf, size_t(m_vTOC[size_t(index)].m_iLength),
-                    out, uncompressedSize);
+    throw std::runtime_error("lzham compression format is not supported anymore by Tuvok");
     break;
   default:
     throw std::runtime_error("unknown compression format");

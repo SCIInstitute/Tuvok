@@ -40,7 +40,6 @@
 #include "LzmaCompression.h"
 #include "Lz4Compression.h"
 #include "BzlibCompression.h"
-#include "LzhamCompression.h"
 
 // simple/generic progress update message
 #define PROGRESS \
@@ -528,8 +527,7 @@ void ExtendedOctreeConverter::ComputeStatsAndCompressAll(ExtendedOctree& tree)
                             tree.m_iCompressionLevel); // 1..9
         break;
       case CT_LZHAM:
-        newlen = lzhamCompress(BrickData, BrickSize(tree, i), compressed,
-                               tree.m_iCompressionLevel); // 0..10 (0 no comp)
+        throw std::runtime_error("lzham compression format is not supported anymore by Tuvok");
         break;
       default:
         throw std::runtime_error("unknown compression format");
@@ -614,8 +612,7 @@ ExtendedOctreeConverter::Fetch(ExtendedOctree& tree,
                                  tree.m_iCompressionLevel); // 1..9
         break;
       case CT_LZHAM:
-        iCompressed = lzhamCompress(pData, record.m_iLength, pCompressed,
-                                    tree.m_iCompressionLevel); // 0..10 (0 no comp)
+        throw std::runtime_error("lzham compression format is not supported anymore by Tuvok");
         break;
       default:
         throw std::runtime_error("unknown compression format");

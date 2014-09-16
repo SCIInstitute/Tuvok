@@ -3,7 +3,6 @@ win32:TEMPLATE    = vclib
 CONFIG           += warn_on qt rtti static staticlib stl largefile
 CONFIG           += exceptions
 macx:DEFINES     += QT_MAC_USE_COCOA=1 LUA_USE_MACOSX=1
-unix:DEFINES     += LZHAM_ANSI_CPLUSPLUS=1
 DEFINES          += _FILE_OFFSET_BITS=64
 TARGET            = Build/Tuvok
 win32 {
@@ -13,7 +12,7 @@ win32 {
 RCC_DIR           = Build/rcc
 OBJECTS_DIR       = Build/objects
 DEPENDPATH       += . Basics Controller DebugOut IO Renderer
-INCLUDEPATH      += . 3rdParty/GLEW IO/3rdParty/boost IO/3rdParty/zlib IO/3rdParty/lzma IO/3rdParty/lz4 IO/3rdParty/lzham
+INCLUDEPATH      += . 3rdParty/GLEW IO/3rdParty/boost IO/3rdParty/zlib IO/3rdParty/lzma IO/3rdParty/lz4
 INCLUDEPATH      += Basics IO/exception
 QT               += opengl
 QMAKE_LIBDIR     += IO/expressions
@@ -141,35 +140,6 @@ HEADERS += \
            IO/3rdParty/jpeglib/transupp.h \
            IO/3rdParty/lz4/lz4.h \
            IO/3rdParty/lz4/lz4hc.h \
-           IO/3rdParty/lzham/lzham_assert.h \
-           IO/3rdParty/lzham/lzham_checksum.h \
-           IO/3rdParty/lzham/lzham_comp.h \
-           IO/3rdParty/lzham/lzham_config.h \
-           IO/3rdParty/lzham/lzham_core.h \
-           IO/3rdParty/lzham/lzham_decomp.h \
-           IO/3rdParty/lzham/lzham.h \
-           IO/3rdParty/lzham/lzham_helpers.h \
-           IO/3rdParty/lzham/lzham_huffman_codes.h \
-           IO/3rdParty/lzham/lzham_lzbase.h \
-           IO/3rdParty/lzham/lzham_lzcomp_internal.h \
-           IO/3rdParty/lzham/lzham_lzdecompbase.h \
-           IO/3rdParty/lzham/lzham_match_accel.h \
-           IO/3rdParty/lzham/lzham_math.h \
-           IO/3rdParty/lzham/lzham_mem.h \
-           IO/3rdParty/lzham/lzham_null_threading.h \
-           IO/3rdParty/lzham/lzham_platform.h \
-           IO/3rdParty/lzham/lzham_polar_codes.h \
-           IO/3rdParty/lzham/lzham_prefix_coding.h \
-           IO/3rdParty/lzham/lzham_pthreads_threading.h \
-           IO/3rdParty/lzham/lzham_static_lib.h \
-           IO/3rdParty/lzham/lzham_symbol_codec.h \
-           IO/3rdParty/lzham/lzham_threading.h \
-           IO/3rdParty/lzham/lzham_timer.h \
-           IO/3rdParty/lzham/lzham_traits.h \
-           IO/3rdParty/lzham/lzham_types.h \
-           IO/3rdParty/lzham/lzham_utils.h \
-           IO/3rdParty/lzham/lzham_vector.h \
-           IO/3rdParty/lzham/lzham_win32_threading.h \
            IO/3rdParty/lzma/LzFind.h \
            IO/3rdParty/lzma/LzHash.h \
            IO/3rdParty/lzma/LzmaDec.h \
@@ -241,7 +211,6 @@ HEADERS += \
            IO/UVF/ExtendedOctree/ExtendedOctree.h \
            IO/UVF/ExtendedOctree/Hilbert.h \
            IO/UVF/ExtendedOctree/Lz4Compression.h \
-           IO/UVF/ExtendedOctree/LzhamCompression.h \
            IO/UVF/ExtendedOctree/LzmaCompression.h \
            IO/UVF/ExtendedOctree/VolumeTools.h \
            IO/UVF/ExtendedOctree/ZlibCompression.h \
@@ -466,27 +435,6 @@ SOURCES += \
            IO/3rdParty/jpeglib/transupp.c \
            IO/3rdParty/lz4/lz4.c \
            IO/3rdParty/lz4/lz4hc.c \
-           IO/3rdParty/lzham/lzham_api.cpp \
-           IO/3rdParty/lzham/lzham_assert.cpp \
-           IO/3rdParty/lzham/lzham_checksum.cpp \
-           IO/3rdParty/lzham/lzham_huffman_codes.cpp \
-           IO/3rdParty/lzham/lzham_lib.cpp \
-           IO/3rdParty/lzham/lzham_lzbase.cpp \
-           IO/3rdParty/lzham/lzham_lzcomp.cpp \
-           IO/3rdParty/lzham/lzham_lzcomp_internal.cpp \
-           IO/3rdParty/lzham/lzham_lzcomp_state.cpp \
-           IO/3rdParty/lzham/lzham_lzdecompbase.cpp \
-           IO/3rdParty/lzham/lzham_lzdecomp.cpp \
-           IO/3rdParty/lzham/lzham_match_accel.cpp \
-           IO/3rdParty/lzham/lzham_mem.cpp \
-           IO/3rdParty/lzham/lzham_platform.cpp \
-           IO/3rdParty/lzham/lzham_polar_codes.cpp \
-           IO/3rdParty/lzham/lzham_prefix_coding.cpp \
-           IO/3rdParty/lzham/lzham_pthreads_threading.cpp \
-           IO/3rdParty/lzham/lzham_symbol_codec.cpp \
-           IO/3rdParty/lzham/lzham_timer.cpp \
-           IO/3rdParty/lzham/lzham_vector.cpp \
-           IO/3rdParty/lzham/lzham_win32_threading.cpp \
            IO/3rdParty/lzma/LzFind.c \
            IO/3rdParty/lzma/LzmaDec.c \
            IO/3rdParty/lzma/LzmaEnc.c \
@@ -575,7 +523,6 @@ SOURCES += \
            IO/UVF/ExtendedOctree/ExtendedOctreeConverter.cpp \
            IO/UVF/ExtendedOctree/ExtendedOctree.cpp \
            IO/UVF/ExtendedOctree/Lz4Compression.cpp \
-           IO/UVF/ExtendedOctree/LzhamCompression.cpp \
            IO/UVF/ExtendedOctree/LzmaCompression.cpp \
            IO/UVF/ExtendedOctree/VolumeTools.cpp \
            IO/UVF/ExtendedOctree/ZlibCompression.cpp \
