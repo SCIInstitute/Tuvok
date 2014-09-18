@@ -931,9 +931,16 @@ namespace SysTools {
     return out.str();
   }
 
-  wstring  FindNextSequenceName(const wstring& fileName, const wstring& ext, const wstring& dir) {
+  wstring  FindNextSequenceName(const wstring& fileName, const wstring& ext,
+                                const wstring& dir) {
     wstringstream out;
     vector<wstring> files = GetDirContents(dir, fileName+L"*", ext);
+
+    // chop of original filename (in case it also ends with numbers)
+    for (auto i=files.begin(); i < files.end(); ++i) {
+      std::wstring tmp = GetFilename(*i);
+      (*i) = tmp.substr(fileName.length(), tmp.length()-fileName.length());
+    }
 
     // Get a list of all the trailing numeric values.
     std::vector<size_t> values;
@@ -941,13 +948,13 @@ namespace SysTools {
     std::transform(files.begin(), files.end(), std::back_inserter(values),
                    fileNumber<std::wstring>());
 
-    // No files in the dir?  Default to 0.
+    // No files in the dir?  Default to 1.
     if(values.empty()) {
-      out << dir << fileName << 0 << L"." << ext;
+      out << dir << fileName << "_" << 1 << "." << ext;
     } else {
       // Otherwise, the next number is the current max + 1.
       size_t max_val = *(std::max_element(values.begin(), values.end()));
-      out << dir << fileName << max_val+1 << L"." << ext;
+      out << dir << fileName << L"_" << max_val+1 << L"." << ext;
     }
 
     return out.str();
