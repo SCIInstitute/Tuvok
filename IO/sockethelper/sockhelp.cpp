@@ -331,6 +331,9 @@ bool wr_single(int fd, const double buf) {
 bool wr_single(int fd, const NetDSCommandCode code) {
     return wr_single(fd, (uint8_t)code);
 }
+bool wr_single(int fd, const NetDataType code) {
+    return wr_single(fd, (uint8_t)code);
+}
 bool wrCStr(int fd, const char *cstr) {
     size_t len = strlen(cstr);
     if(len == 0) {
@@ -480,6 +483,12 @@ bool r_single(int socket, NetDSCommandCode& value) {
     uint8_t tmp;
     bool success = r_single(socket, tmp);
     value = (NetDSCommandCode)tmp;
+    return success;
+}
+bool r_single(int socket, NetDataType& value) {
+    uint8_t tmp;
+    bool success = r_single(socket, tmp);
+    value = (NetDataType)tmp;
     return success;
 }
 bool rCStr(int socket, char **buffer, size_t *countOrNULL) {

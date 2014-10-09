@@ -55,7 +55,7 @@ namespace NETDS {
 
 //Requesting a single brick
 template<typename T>
-bool sharedSingleBrickStuff(const size_t LoD, const size_t brickidx, vector<T>& resultBuffer) {
+bool sharedSingleBrickStuff(const NetDataType type, const size_t LoD, const size_t brickidx, vector<T>& resultBuffer) {
     force_connect();
     if(LoD > std::numeric_limits<uint32_t>::max()) {
         ERR(net, "LoD is absurd (%zu).  Bug elsewhere.\n", LoD);
@@ -66,12 +66,16 @@ bool sharedSingleBrickStuff(const size_t LoD, const size_t brickidx, vector<T>& 
         abort();
     }
 
-    if(!wr_single(remote, (uint8_t)nds_BRICK)) {
+    if(!wr_single(remote, nds_BRICK)) {
         ERR(net, "Could not send brick-requestCode to server!\n");
         return false;
     }
 
-    //Tell the other side which data type to use
+    if(!wr_single(remote, type)) {
+        ERR(net, "Could not tell the server which brick-datatype to use!\n");
+        return false;
+    }
+
     if(!wr_sizet(remote, LoD)) {
         ERR(net, "Could not send brick-LOD to server!\n");
         return false;
@@ -89,13 +93,13 @@ bool sharedSingleBrickStuff(const size_t LoD, const size_t brickidx, vector<T>& 
     return true;
 }
 bool getBrick(const size_t lod, const size_t bidx, vector<uint8_t>& resultBuffer) {
-    return sharedSingleBrickStuff(lod, bidx, resultBuffer);
+    return sharedSingleBrickStuff(N_UINT8, lod, bidx, resultBuffer);
 }
 bool getBrick(const size_t lod, const size_t bidx, vector<uint16_t>& resultBuffer) {
-    return sharedSingleBrickStuff(lod, bidx, resultBuffer);
+    return sharedSingleBrickStuff(N_UINT16, lod, bidx, resultBuffer);
 }
 bool getBrick(const size_t lod, const size_t bidx, vector<uint32_t>& resultBuffer) {
-    return sharedSingleBrickStuff(lod, bidx, resultBuffer);
+    return sharedSingleBrickStuff(N_UINT32, lod, bidx, resultBuffer);
 }
 
 
@@ -263,9 +267,9 @@ bool openFile(const string& filename, DSMetaData& out_meta, size_t minmaxMode, s
         return false;
     }
 
-    uint8_t ntype;
+    NetDataType ntype;
     r_single(remote, ntype);
-    out_meta.typeInfo = bitWidthFromNType((NetDataType)ntype);
+    out_meta.typeInfo = bitWidthFromNType(ntype);
 
     r_multiple(remote, out_meta.layouts, false);
     r_multiple(remote, out_meta.domainSizes, false);

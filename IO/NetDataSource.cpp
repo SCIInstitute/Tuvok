@@ -42,7 +42,7 @@ NetDataSource::~NetDataSource() {
 void
 NetDataSource::SetCache(std::shared_ptr<BrickCache> ch) { this->cache = ch; }
 
-/// @returns true iff it is reasonable to assume the brick BK will arrive on
+/// @returns true if it is reasonable to assume the brick BK will arrive on
 /// socket SOCK *without* user intervention.  That is, that BK exists in the
 /// list of bricks the server will send us without us sending a new rotation or
 /// whatever.
@@ -125,7 +125,12 @@ getbrick(const BrickKey& key, std::vector<T>& data,
             return true;
         }
     }
-    return false;
+
+    //If we arrive here, we requested a key that was not in the queue
+    WARN(netsrc, "A brick was requested that is not in the sending queue! Falling back to requesting it!");
+    size_t keyLoD = std::get<1>(key);
+    size_t keyBidx = std::get<2>(key);
+    return NETDS::getBrick(keyLoD, keyBidx, data);
 }
 } // end anonymous namespace.
 

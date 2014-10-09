@@ -54,6 +54,7 @@ namespace SOCK {
     bool wr_single(int fd, const float buf);
     bool wr_single(int fd, const double buf);
     bool wr_single(int fd, const NetDSCommandCode code);
+    bool wr_single(int fd, const NetDataType type);
     bool wr_single(int fd, const std::string buf);
 
     //Has to be separate because size_t varies between platforms,
@@ -83,6 +84,7 @@ namespace SOCK {
     bool r_single(int socket, float& value);
     bool r_single(int socket, double& value);
     bool r_single(int socket, NetDSCommandCode& value);
+    bool r_single(int socket, NetDataType& value);
     bool r_single(int socket, string& value);
 
     //Has to be separate because size_t varies between platforms,

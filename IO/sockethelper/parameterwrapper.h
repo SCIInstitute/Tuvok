@@ -95,6 +95,7 @@ class BrickParams : public ParameterWrapper
     }
 
 public:
+    NetDataType dType;
     size_t lod;
     size_t bidx;
 

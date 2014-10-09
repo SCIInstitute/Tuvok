@@ -168,6 +168,7 @@ void RotateParams::initFromSocket(int socket) {
 }
 
 void BrickParams::initFromSocket(int socket) {
+    r_single(socket, dType);
     r_sizet(socket, lod);
     r_sizet(socket, bidx);
     TRACE(params, "BRICK lod=%zu, bidx=%zu", lod, bidx);
@@ -312,7 +313,7 @@ void OpenParams::perform(int socket, int socketB, CallPerformer* object) {
     if(lodCount == 0)
         return;
 
-    const uint8_t ntype = (uint8_t)netTypeForDataset(object->getDataSet());
+    NetDataType ntype = netTypeForDataset(object->getDataSet());
     wr_single(socket, ntype);
 
     //Send layouts
@@ -503,7 +504,8 @@ void BrickParams::perform(int socket, int socketB, CallPerformer* object) {
     // => get from another MPI process that has brick in cash
 #endif
 
-    NetDataType dType = netTypeForDataset(object->getDataSet());
+    //Unfortunately we need the type from the client -_-
+    //NetDataType dType = netTypeForDataset(object->getDataSet());
 
     if(dType == N_UINT8)
         internal_brickPerform<uint8_t>(socket, object);

@@ -184,7 +184,9 @@ find_visual(Display *d, bool double_buffered)
 
     ret_v = glXChooseVisual(d, DefaultScreen(d), attr);
     MESSAGE("ChooseVisual got us %p", (const void*)ret_v);
-    MESSAGE("Depth: %d, rgb-bits: %d, red: %ul, green: %ul, blue: %ul", ret_v->depth, ret_v->bits_per_rgb, ret_v->red_mask, ret_v->green_mask, ret_v->blue_mask);
+
+    if(ret_v != NULL)
+        MESSAGE("Screen: %d, Depth: %d, class:%d, colormap-size: %d, rgb-bits: %d, red: %ul, green: %ul, blue: %ul", ret_v->screen, ret_v->depth, ret_v->c_class, ret_v->colormap_size, ret_v->bits_per_rgb, ret_v->red_mask, ret_v->green_mask, ret_v->blue_mask);
     return ret_v;
 }
 

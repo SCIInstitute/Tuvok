@@ -10,9 +10,6 @@
 #include "RenderRegion.h"
 #include "Renderer/GL/QtGLContext.h"
 #include "Renderer/GL/GLStateManager.h"
-using tuvok::DynamicBrickingDS;
-using tuvok::UVFDataset;
-using std::string;
 
 #define SHADER_PATH "Shaders"
 
@@ -20,19 +17,22 @@ DECLARE_CHANNEL(dataset);
 DECLARE_CHANNEL(renderer);
 DECLARE_CHANNEL(file);
 
-std::shared_ptr<tuvok::BatchContext> createContext(uint32_t width, uint32_t height,
+using namespace tuvok;
+using namespace std;
+
+shared_ptr<BatchContext> createContext(uint32_t width, uint32_t height,
                                             int32_t color_bits,
                                             int32_t depth_bits,
                                             int32_t stencil_bits,
                                             bool double_buffer, bool visible)
 {
-  std::shared_ptr<tuvok::BatchContext> ctx(
-      tuvok::BatchContext::Create(width,height, color_bits,depth_bits,stencil_bits,
+  shared_ptr<BatchContext> ctx(
+      BatchContext::Create(width,height, color_bits,depth_bits,stencil_bits,
                            double_buffer,visible));
   if(!ctx->isValid() || ctx->makeCurrent() == false)
   {
-    std::cerr << "Could not utilize context.";
-    return std::shared_ptr<tuvok::BatchContext>();
+    cerr << "Could not utilize context.";
+    return shared_ptr<BatchContext>();
   }
   else {
       char* glVersion = (char*)glGetString(GL_VERSION);
@@ -45,7 +45,7 @@ std::shared_ptr<tuvok::BatchContext> createContext(uint32_t width, uint32_t heig
 CallPerformer::CallPerformer()
 :maxBatchSize(defaultBatchSize)
 {
-    std::shared_ptr<tuvok::LuaScripting> ss = tuvok::Controller::Instance().LuaScript();
+    shared_ptr<LuaScripting> ss = Controller::Instance().LuaScript();
 
     //Create openGL-context
     ss->registerFunction(createContext, "tuvok.createContext",
@@ -57,10 +57,10 @@ CallPerformer::~CallPerformer() {
 }
 
 void CallPerformer::invalidateRenderer() {
-    std::shared_ptr<tuvok::LuaScripting> ss = tuvok::Controller::Instance().LuaScript();
+    shared_ptr<LuaScripting> ss = Controller::Instance().LuaScript();
     if (rendererInst.isValid(ss)) {
         ss->cexec(rendererInst.fqName() + ".cleanup");
-        tuvok::Controller::Instance().ReleaseVolumeRenderer(rendererInst);
+        Controller::Instance().ReleaseVolumeRenderer(rendererInst);
         rendererInst.invalidate();
     }
     if (dsInst.isValid(ss)) {
@@ -69,20 +69,20 @@ void CallPerformer::invalidateRenderer() {
 }
 
 DynamicBrickingDS* CallPerformer::getDataSet() {
-    std::shared_ptr<tuvok::LuaScripting> ss = tuvok::Controller::Instance().LuaScript();
+    shared_ptr<LuaScripting> ss = Controller::Instance().LuaScript();
     if(!dsInst.isValid(ss))
         return NULL;
 
-    tuvok::LuaDatasetProxy* ds = dsInst.getRawPointer<tuvok::LuaDatasetProxy>(ss);
+    LuaDatasetProxy* ds = dsInst.getRawPointer<LuaDatasetProxy>(ss);
     return (DynamicBrickingDS*)ds->getDataset();
 }
 
 AbstrRenderer* CallPerformer::getRenderer() {
-    std::shared_ptr<tuvok::LuaScripting> ss = tuvok::Controller::Instance().LuaScript();
+    shared_ptr<LuaScripting> ss = Controller::Instance().LuaScript();
     if(!rendererInst.isValid(ss))
         return NULL;
 
-    return rendererInst.getRawPointer<tuvok::AbstrRenderer>(ss);
+    return rendererInst.getRawPointer<AbstrRenderer>(ss);
 }
 
 //File handling
@@ -128,7 +128,7 @@ vector<string> CallPerformer::listFiles() {
     return retVector;
 }
 
-bool CallPerformer::openFile(const string& filename, const std::vector<size_t>& bSize, size_t minmaxMode) {
+bool CallPerformer::openFile(const string& filename, const vector<size_t>& bSize, size_t minmaxMode) {
     const char* folder = getenv("IV3D_FILES_FOLDER");
     if(folder == NULL) {
         folder = "./";
@@ -155,11 +155,11 @@ bool CallPerformer::openFile(const string& filename, const std::vector<size_t>& 
 
     //Without Lua
     /*{
-        tuvok::MasterController& controller = tuvok::Controller::Instance();
+        MasterController& controller = Controller::Instance();
 
-        std::shared_ptr<tuvok::Context> ctx = createContext(width, height, 32, 24, 8, true, false);
+        shared_ptr<Context> ctx = createContext(width, height, 32, 24, 8, true, false);
         AbstrRenderer* renderer = controller.RequestNewVolumeRenderer(
-                    tuvok::MasterController::OPENGL_GRIDLEAPER,
+                    MasterController::OPENGL_GRIDLEAPER,
                     true, false, false, false);
 
         renderer->AddShaderPath(SHADER_PATH);
@@ -169,25 +169,25 @@ bool CallPerformer::openFile(const string& filename, const std::vector<size_t>& 
 
         renderer->Initialize(ctx);
         renderer->Resize(res);
-        renderer->SetRendererTarget(tuvok::AbstrRenderer::RT_HEADLESS);
+        renderer->SetRendererTarget(AbstrRenderer::RT_HEADLESS);
         renderer->Paint();
     }*/
 
     //Start Lua scripting
     {
-        std::shared_ptr<tuvok::LuaScripting> ss = tuvok::Controller::Instance().LuaScript();
+        shared_ptr<LuaScripting> ss = Controller::Instance().LuaScript();
 
         //Create context
-        std::shared_ptr<tuvok::Context> ctx = ss->cexecRet<std::shared_ptr<tuvok::Context>>(
+        shared_ptr<Context> ctx = ss->cexecRet<shared_ptr<Context>>(
                     "tuvok.createContext",
                     width, height,
                     32, 24, 8,
                     true, false);
 
         //Create renderer
-        rendererInst = ss->cexecRet<tuvok::LuaClassInstance>(
+        rendererInst = ss->cexecRet<LuaClassInstance>(
                     "tuvok.renderer.new",
-                    tuvok::MasterController::OPENGL_GRIDLEAPER, true, false,
+                    MasterController::OPENGL_GRIDLEAPER, true, false,
                     false, false);
 
         if(!rendererInst.isValid(ss)) {
@@ -198,7 +198,7 @@ bool CallPerformer::openFile(const string& filename, const std::vector<size_t>& 
         ss->cexec(rn+".addShaderPath", SHADER_PATH);
 
         ss->cexec(rn+".loadDataset", effectiveFilename.c_str());
-        dsInst = ss->cexecRet<tuvok::LuaClassInstance>(rn+".getDataset");
+        dsInst = ss->cexecRet<LuaClassInstance>(rn+".getDataset");
 
         //Load rebricked
         {
@@ -224,9 +224,29 @@ bool CallPerformer::openFile(const string& filename, const std::vector<size_t>& 
         }
 
         ss->exec(rn+".resize("+resStr+")");
-        ss->cexec(rn+".setRendererTarget", tuvok::AbstrRenderer::RT_HEADLESS); //From CMDRenderer.cpp... but no idea why
-        //ss->cexec(rn+".setBlendPrecision", tuvok::AbstrRenderer::EBlendPrecision::BP_8BIT);
+        ss->cexec(rn+".setRendererTarget", AbstrRenderer::RT_HEADLESS);
+        //For test reasons
+        /*
+        {
+            // For some reason lua does not want me to push a FLOATMATRIX4
+            // I hate LUA so much...
+            //FLOATMATRIX4 mat = ss->execRet<FLOATMATRIX4>("matrix.rotateY(80) * matrix.rotateZ(-20) * matrix.rotateX(30)");
+            //vector<LuaClassInstance> renderRegions = ss->cexecRet<vector<LuaClassInstance>>(rn+".getRenderRegions");
+            //ss->cexec(renderRegions[0].fqName()+".setRotation4x4", mat);
+
+            FLOATMATRIX4 mat = ss->execRet<FLOATMATRIX4>("matrix.rotateY(80) * matrix.rotateZ(-20) * matrix.rotateX(30)");
+            AbstrRenderer* ren = rendererInst.getRawPointer<AbstrRenderer>(ss);
+            shared_ptr<RenderRegion3D> rr3d = ren->GetFirst3DRegion();
+            ren->SetRotationRR(rr3d.get(), mat);
+            //ren.setSampleRateModifier(8.0)
+        }*/
         ss->cexec(rn+".paint");
+
+        //For test reasons
+        {
+            ss->cexec(rn+".setRendererTarget", AbstrRenderer::RT_CAPTURE);
+            ss->cexec(rn+".captureSingleFrame", "render.png", true);
+        }
     }
 
     return true;
@@ -239,50 +259,34 @@ void CallPerformer::closeFile(const string& filename) {
 }
 
 void CallPerformer::rotate(const float *matrix) {
-    std::shared_ptr<tuvok::LuaScripting> ss = tuvok::Controller::Instance().LuaScript();
+    shared_ptr<LuaScripting> ss = Controller::Instance().LuaScript();
     if(!rendererInst.isValid(ss)) {
         WARN(renderer, "No renderer created! Aborting request.");
         return;
     }
 
-#if 0
-    //const FLOATMATRIX4 rotation(matrix);
-    //Dirty hack because the lua binding cannot work with MATRIX or VECTOR
-    string matString = "{";
-    for(size_t i = 0; i < 15; i++) {
-        matString += std::to_string(matrix[i]) + ", ";
-    }
-    matString += std::to_string(matrix[15]);
-    matString += "}";
-
-    const string rn = rendererInst.fqName();
-    FIXME(renderer, "For some reason we cannot retrieve the renderRegion...");
-    tuvok::LuaClassInstance renderRegion = ss->cexecRet<tuvok::LuaClassInstance>(rn+".getFirst3DRenderRegion");
-    ss->exec(renderRegion.fqName()+".setRotation4x4("+matString+")");
-#else
     AbstrRenderer* ren = rendererInst.getRawPointer<AbstrRenderer>(ss);
-    std::shared_ptr<tuvok::RenderRegion3D> rr3d = ren->GetFirst3DRegion();
+    shared_ptr<RenderRegion3D> rr3d = ren->GetFirst3DRegion();
     ren->SetRotationRR(rr3d.get(), FLOATMATRIX4(matrix));
-    const string rn = rendererInst.fqName();
-#endif
-    ss->cexec(rn+".paint");
+
+    ss->cexec(rendererInst.fqName()+".paint");
 }
 
-std::vector<tuvok::BrickKey> CallPerformer::getRenderedBrickKeys() {
-    std::shared_ptr<tuvok::LuaScripting> ss = tuvok::Controller::Instance().LuaScript();
+vector<BrickKey> CallPerformer::getRenderedBrickKeys() {
+    shared_ptr<LuaScripting> ss = Controller::Instance().LuaScript();
     if(!rendererInst.isValid(ss) || !dsInst.isValid(ss)) {
         WARN(renderer, "Renderer or DataSet not initialized! Aborting request.");
-        return std::vector<tuvok::BrickKey>(0);
+        return vector<BrickKey>(0);
     }
 
     //Retrieve a list of bricks that need to be send to the client
     AbstrRenderer* tmp_ren = getRenderer();
-    const tuvok::GLGridLeaper* glren = dynamic_cast<tuvok::GLGridLeaper*>(tmp_ren);
+    const GLGridLeaper* glren = dynamic_cast<GLGridLeaper*>(tmp_ren);
     assert(glren && "not a grid leaper?  wrong renderer in us?");
-    const std::vector<UINTVECTOR4> hash = glren->GetNeededBricks();
-    const tuvok::LinearIndexDataset& linearDS = dynamic_cast<const tuvok::LinearIndexDataset&>(*getDataSet());
+    const vector<UINTVECTOR4> hash = glren->GetNeededBricks();
+    const LinearIndexDataset& linearDS = dynamic_cast<const LinearIndexDataset&>(*getDataSet());
 
-    std::vector<tuvok::BrickKey> allKeys(0);
+    vector<BrickKey> allKeys(0);
     for(UINTVECTOR4 b : hash) {
         //printf("Test: x:%d y:%d z:%d, w:%d\n", b.x, b.y, b.z, b.w);
         allKeys.push_back(linearDS.IndexFrom4D(b, 0));
