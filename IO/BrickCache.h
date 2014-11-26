@@ -50,6 +50,9 @@ class BrickCache {
     /// @returns cache size currently in use (in bytes)
     size_t size() const;
 
+    /// empties the cache.
+    void clear();
+
   private:
     struct bcinfo;
     std::unique_ptr<bcinfo> ci;

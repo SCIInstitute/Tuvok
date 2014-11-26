@@ -169,6 +169,9 @@ struct BrickCache::bcinfo {
       }
       assert(this->size() == this->bytes);
     }
+    void clear() {
+      this->cache.clear();
+    }
     size_t size() const { return this->bytes; }
 
   private:
@@ -301,6 +304,7 @@ const void* BrickCache::add(const BrickKey& k,
 }
 
 void BrickCache::remove() { this->ci->remove(); }
+void BrickCache::clear() { return this->ci->clear(); }
 size_t BrickCache::size() const { return this->ci->size(); }
 
 }

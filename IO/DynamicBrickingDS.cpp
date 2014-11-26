@@ -705,7 +705,9 @@ void DynamicBrickingDS::dbinfo::ComputeMinMaxes(BrickedDataset& ds) {
       MESSAGE("precomputing brick %u of %u", i, len);
       MinMaxBlock mm = minmax_brick(b->first, ds);
       this->minmax.insert(std::make_pair(b->first, mm));
-      while(this->cache.size() > this->cacheBytes) { this->cache.remove(); }
+      // minmax_brick added something to our cache; we don't want to cache
+      // here, though, only when the brick is /actually/ used.
+      this->cache.clear();
     }
   }
   // remove all cached bricks
