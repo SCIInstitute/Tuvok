@@ -171,6 +171,7 @@ struct BrickCache::bcinfo {
     }
     void clear() {
       this->cache.clear();
+      this->bytes = 0;
     }
     size_t size() const { return this->bytes; }
 
