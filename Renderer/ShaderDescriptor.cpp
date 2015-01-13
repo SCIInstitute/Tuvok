@@ -314,17 +314,52 @@ vectorStringToString(std::vector<std::string> const& vs) {
   return defines;
 }
 
+
+size_t findNextLineAfterVersionDirective(std::string const& source) {
+  std::string const version = "#version";
+  size_t pos = source.find(version);
+  if (pos != std::string::npos) {
+    pos = source.find("\n", pos);
+    if (pos != std::string::npos) {
+      pos += 1; // get next position where to insert our defines
+    }
+    else
+      pos = 0;
+  }
+  else
+    pos = 0;
+  return pos;
+}
+
+std::string includeDefines(std::string const& defines, std::string const& source) {
+  size_t pos = findNextLineAfterVersionDirective(source);
+
+  // no #version directive found, proceed as usual
+  if (pos == 0) {
+    return defines + source;
+  }
+
+  std::string modifiedSource = source.substr(0, pos);
+  modifiedSource += defines;
+  modifiedSource += source.substr(pos);
+  return modifiedSource;
+}
+
 std::pair<std::string, std::string>
 ShaderDescriptor::SIterator::operator*() const {
+  // #version is required to be the first statement in a shader file
+  // and may not be repeated
+  // thus we need to set all defines after this statement
+  std::string const defines = vectorStringToString(this->si->sd->si->defines);
+  std::string source = includeDefines(defines, this->si->location->first);
+
   std::pair<std::string, std::string> rv(
-    std::make_pair(vectorStringToString(this->si->sd->si->defines) +
-                   this->si->location->first, "(in-memory)")
+    std::make_pair(source, "(in-memory)")
   );
   if(this->si->location->second == SHADER_VERTEX_DISK ||
      this->si->location->second == SHADER_FRAGMENT_DISK) {
     // load it from disk and replace those parameters.
-    rv.first = vectorStringToString(this->si->sd->si->defines) +
-               readfile(this->si->location->first);
+    rv.first = includeDefines(defines, readfile(this->si->location->first));
     rv.second = this->si->location->first;
   }
   return rv;
