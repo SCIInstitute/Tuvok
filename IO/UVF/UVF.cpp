@@ -440,7 +440,7 @@ bool UVF::DropBlockFromFile(size_t iBlockIndex) {
     uint64_t iSourcePos = m_DataBlocks[i]->m_iOffsetInFile +
                           m_GlobalHeader.GetDataPos();
     uint64_t iTargetPos = iSourcePos-iShiftSize;
-    uint64_t iSize      = m_DataBlocks[i]->GetBlockSize();
+    uint64_t iSize      = m_DataBlocks[i]->m_block->GetOffsetToNextBlock();
     if (!m_streamFile->CopyRAW(iSize, iSourcePos, iTargetPos,
                                pBuffer.get(), BLOCK_COPY_SIZE)) {
       return false;
