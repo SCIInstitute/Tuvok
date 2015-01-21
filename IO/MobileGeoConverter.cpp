@@ -63,6 +63,12 @@ bool MobileGeoConverter::ConvertToNative(const Mesh& m,
   geometry.info.isOpaque = false;
   geometry.info.numberPrimitives = 
     uint32_t(m.GetVertexIndices().size() / m.GetVerticesPerPoly());
+
+  if (geometry.info.numberPrimitives == 0) {
+    T_ERROR("No primitives to export.");
+    return false; // nothing to export
+  }
+
   geometry.info.primitiveType = (m.GetMeshType() == Mesh::MT_TRIANGLES) 
                                       ? G3D::Triangle : G3D::Line;
   geometry.info.numberIndices = uint32_t(m.GetVertexIndices().size());
