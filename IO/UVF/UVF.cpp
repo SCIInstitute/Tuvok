@@ -113,8 +113,9 @@ void UVF::Close() {
           // for now we only support changes in the datablock that do
           // not influence its size TODO: will need to extend this to
           // arbitrary changes once we add more features
-          assert(m_DataBlocks[i]->m_block->GetOffsetToNextBlock() ==
-                 m_DataBlocks[i]->GetBlockSize());
+          
+          // Note by Alex: This assert will always fail for the last block where GetBlockSize() is defined to be zero!
+          //assert(m_DataBlocks[i]->m_block->GetOffsetToNextBlock() == m_DataBlocks[i]->GetBlockSize());
 
           m_DataBlocks[i]->m_block->CopyToFile(
             m_streamFile,
