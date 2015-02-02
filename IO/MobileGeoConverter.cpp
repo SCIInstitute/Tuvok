@@ -141,12 +141,39 @@ MobileGeoConverter::ConvertToMesh(const std::string& strFilename) {
 	  else if (*it == G3D::Tex) texcoords = TexCoordVec((FLOATVECTOR2*)geometry.vertexAttributes.at(i), (FLOATVECTOR2*)geometry.vertexAttributes.at(i) + geometry.info.numberVertices);
 	  ++i;
   }
+
+  if (vertices.size() == normals.size()) NormalIndices = VertIndices;
+  if (vertices.size() == colors.size()) COLIndices = VertIndices;
+  if (vertices.size() == texcoords.size()) TCIndices = VertIndices;
+
+  bool success = false;
+  Mesh::EMeshType mtype;
+  switch (geometry.info.primitiveType) {
+  case G3D::Point:
+    T_ERROR("Unsupported primitive type.");
+    break;
+  case G3D::Line:
+    mtype = Mesh::MT_LINES;
+    success = true;
+    break;
+  case G3D::Triangle:
+    mtype = Mesh::MT_TRIANGLES;
+    success = true;
+    break;
+  default:
+    T_ERROR("Unknown primitive type.");
+    break;
+  }
+
   G3D::clean(&geometry);
+
+  if (!success)
+    return nullptr;
 
   std::string desc = m_vConverterDesc + " data converted from " + SysTools::GetFilename(strFilename);
   return std::shared_ptr<Mesh>(
     new Mesh(vertices,normals,texcoords,colors,
              VertIndices,NormalIndices,TCIndices,COLIndices,
-             false, false, desc, Mesh::MT_TRIANGLES)
+             false, false, desc, mtype)
   );
 }
