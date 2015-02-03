@@ -123,10 +123,12 @@ public:
     const IndexVec& vIndices, const IndexVec& nIndices, 
     const IndexVec& tIndices, const IndexVec& cIndices,
     bool bBuildKDTree, bool bScaleToUnitCube, 
-    const std::string& desc, EMeshType meshType);
+    const std::string& desc, EMeshType meshType,
+    const FLOATVECTOR4& defColor = {1, 1, 1, 1});
   Mesh(const BasicMeshData& bmd,
        bool bBuildKDTree, bool bScaleToUnitCube, 
-       const std::string& desc, EMeshType meshType);
+       const std::string& desc, EMeshType meshType,
+       const FLOATVECTOR4& defColor = {1, 1, 1, 1});
   virtual ~Mesh();
 
   void Clone(const Mesh* other);

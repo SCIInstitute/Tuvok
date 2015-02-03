@@ -49,10 +49,11 @@ Mesh::Mesh() :
 
 Mesh::Mesh(const BasicMeshData& bmd,
   bool bBuildKDTree, bool bScaleToUnitCube,
-  const std::string& desc, EMeshType meshType) :
+  const std::string& desc, EMeshType meshType,
+  const FLOATVECTOR4& defColor) :
   m_KDTree(0),
   m_Data(bmd),
-  m_DefColor(1,1,1,1),
+  m_DefColor(defColor),
   m_MeshDesc(desc),
   m_meshType(meshType)
 {
@@ -68,10 +69,11 @@ Mesh::Mesh(const VertVec& vertices, const NormVec& normals,
            const IndexVec& vIndices, const IndexVec& nIndices,
            const IndexVec& tIndices, const IndexVec& cIndices,
            bool bBuildKDTree, bool bScaleToUnitCube,
-           const std::string& desc, EMeshType meshType) :
+           const std::string& desc, EMeshType meshType,
+           const FLOATVECTOR4& defColor) :
   m_KDTree(0),
   m_Data(vertices,normals,texcoords,colors,vIndices,nIndices,tIndices,cIndices),
-  m_DefColor(1,1,1,1),
+  m_DefColor(defColor),
   m_MeshDesc(desc),
   m_meshType(meshType)
 {

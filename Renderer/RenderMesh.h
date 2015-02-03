@@ -84,6 +84,7 @@ public:
        const IndexVec& tIndices, const IndexVec& cIndices,
        bool bBuildKDTree, bool bScaleToUnitCube,
        const std::string& desc, EMeshType meshType,
+       const FLOATVECTOR4& defColor,
        float fTransTreshhold=1.0f);
 
   virtual void InitRenderer() = 0;

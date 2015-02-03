@@ -52,7 +52,8 @@ public:
        const IndexVec& vIndices, const IndexVec& nIndices, 
        const IndexVec& tIndices, const IndexVec& cIndices,
        bool bBuildKDTree, bool bScaleToUnitCube,       
-       const std::string& desc, EMeshType meshType);
+       const std::string& desc, EMeshType meshType,
+       const FLOATVECTOR4& defColor);
   ~RenderMeshGL();
 
   virtual void InitRenderer();
