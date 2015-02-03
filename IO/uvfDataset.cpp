@@ -1243,7 +1243,8 @@ const std::vector<std::pair<std::string, std::string>> UVFDataset::GetMetadata()
 }
 
 bool UVFDataset::GeometryTransformToFile(size_t iMeshIndex,
-                                         const FLOATMATRIX4& m) {
+                                         const FLOATMATRIX4& m,
+                                         const FLOATVECTOR4& c) {
   Close();
 
   MESSAGE("Attempting to reopen file in readwrite mode.");
@@ -1322,6 +1323,10 @@ bool UVFDataset::GeometryTransformToFile(size_t iMeshIndex,
       normals[i+2] = n.z;
     }
     block->SetNormals(normals);
+
+    // also write default color
+    std::vector<float> defaultColor { c.x, c.y, c.z, c.w };
+    block->SetDefaultColor(defaultColor);
 
     MESSAGE("Writing changes to disk");
     Close();

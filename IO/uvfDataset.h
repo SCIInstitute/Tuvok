@@ -175,7 +175,8 @@ public:
 
   bool AppendMesh(std::shared_ptr<const Mesh> m);
   bool RemoveMesh(size_t iMeshIndex);
-  bool GeometryTransformToFile(size_t iMeshIndex, const FLOATMATRIX4& m);
+  // args: mesh index, transform matrix, default color
+  bool GeometryTransformToFile(size_t iMeshIndex, const FLOATMATRIX4& m, const FLOATVECTOR4& c);
 
   virtual std::string Filename() const { return m_strFilename; }
   virtual bool CanRead(const std::string&, const std::vector<int8_t>&) const;
