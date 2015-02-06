@@ -31,6 +31,9 @@
 //
 //!    Copyright (C) 2010 DFKI Institute
 
+#include <algorithm>
+#include <functional>
+
 #include "MobileGeoConverter.h"
 #include "Controller/Controller.h"
 #include "SysTools.h"
