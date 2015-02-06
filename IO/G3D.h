@@ -139,6 +139,7 @@ public:
 	static void print(const Geometry * const geometry, std::ostream & output);
 	static void clean(GeometryAoS * geometry);
 	static void clean(GeometrySoA * geometry);
+	static bool merge(GeometrySoA * a, const GeometrySoA * const b); // merge a and b into a
 
 private:
 	static void writeHeader(std::fstream & fs, const GeometryInfo & info, const uint32_t * const vertexType = NULL);

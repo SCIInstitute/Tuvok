@@ -38,6 +38,7 @@
 
 #include "../StdTuvokDefines.h"
 #include "AbstrGeoConverter.h"
+#include "G3D.h"
 
 namespace tuvok {
   class Mesh;
@@ -51,6 +52,11 @@ namespace tuvok {
       ConvertToMesh(const std::string& strFilename);
     virtual bool ConvertToNative(const Mesh& m, 
                                  const std::string& strTargetFilename);
+
+    virtual std::shared_ptr<const G3D::GeometrySoA>
+      ConvertToNative(const Mesh& m, float*& colors);
+    virtual std::shared_ptr<G3D::GeometrySoA>
+      ConvertToNative(const Mesh& m, float*& colors, bool bCopy);
 
     virtual bool CanExportData() const { return true; }
     virtual bool CanImportData() const { return true; }
