@@ -354,8 +354,13 @@ std::string GLVolumePool::GetShaderFragment(uint32_t iMetaTextureUnit,
  // get the maximum precision for floats (larger precisions would just append
  // zeroes)
   ss << std::setprecision(36);
-  ss << "\n"
-     << "layout(binding = " << m_iMetaTextureUnit << ") uniform usampler3D metaData;\n"
+  ss << "\n";
+  // HACK START: for NVIDIA GeForce GTX 560 Ti
+  if (m_iMetaTextureUnit > 0)
+    for (uint32_t i = 0; i < m_iMetaTextureUnit; ++i)
+      ss << "layout(binding = " << i << ") uniform sampler1D dummy" << i << ";\n";
+  // HACK END: for NVIDIA GeForce GTX 560 Ti
+  ss << "layout(binding = " << m_iMetaTextureUnit << ") uniform usampler3D metaData;\n"
      << "#define iMetaTextureSize uvec3("
      << m_pPoolMetadataTexture->GetSize().x << ", "
      << m_pPoolMetadataTexture->GetSize().y << ", "

@@ -1,5 +1,7 @@
 #version 420 core
 
+layout(binding=0) uniform sampler1D dummy0;
+layout(binding=1) uniform sampler1D dummy1;
 layout(binding=2) uniform sampler2D transferFunction;
 
 uniform float fTransScale;
