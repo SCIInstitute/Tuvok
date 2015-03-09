@@ -447,10 +447,10 @@ void GLSLProgram::Load(const ShaderDescriptor& sd)
     }
 
     if(linked != GL_TRUE) {
-      GLchar linkerr[2048];
-      linkerr[2047]=0;
+      GLchar linkerr[20048];
+      linkerr[20047]=0;
       GLsizei len=256;
-      glGetProgramInfoLog(this->m_hProgram, 2047, &len, linkerr);
+      glGetProgramInfoLog(this->m_hProgram, 20047, &len, linkerr);
       linkerr[len] = 0;
       T_ERROR("Program could not link (%d): '%s'", len, linkerr);
       detach_shaders(this->m_hProgram);
