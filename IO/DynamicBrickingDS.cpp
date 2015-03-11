@@ -594,7 +594,7 @@ bool DynamicBrickingDS::dbinfo::Brick(const DynamicBrickingDS& ds,
   std::vector<T> srcdata;
   {
     StackTimer loadBrick(PERF_DY_RESERVE_BRICK);
-    srcdata.resize(this->ds->GetMaxBrickSize().volume());
+    srcdata.resize(this->ds->GetBrickVoxelCounts(pre.skey).volume());
   }
   {
     StackTimer loadBrick(PERF_DY_LOAD_BRICK);
@@ -705,9 +705,13 @@ void DynamicBrickingDS::dbinfo::ComputeMinMaxes(BrickedDataset& ds) {
       MESSAGE("precomputing brick %u of %u", i, len);
       MinMaxBlock mm = minmax_brick(b->first, ds);
       this->minmax.insert(std::make_pair(b->first, mm));
+
+      // we do want to cache to save decompression time
+      while (this->cache.size() > this->cacheBytes) { this->cache.remove(); }
+
       // minmax_brick added something to our cache; we don't want to cache
       // here, though, only when the brick is /actually/ used.
-      this->cache.clear();
+      //this->cache.clear();
     }
   }
   // remove all cached bricks
@@ -736,6 +740,11 @@ size_t DynamicBrickingDS::dbinfo::GetCacheSize() const {
 
 /// @returns true if 'bytes' bytes will fit into the current cache
 bool DynamicBrickingDS::dbinfo::FitsInCache(size_t bytes) const {
+  // if cache is enabled and nothing is cached we allow to store any given brick
+  // to avoid an endless loop if the total cache size is smaller than the loaded
+  // brick
+  if (cache.size() == 0)
+    return true;
   return (bytes + cache.size()) < this->cacheBytes;
 }
 
