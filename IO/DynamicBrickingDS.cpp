@@ -958,7 +958,7 @@ static uint64_t nbricks(const VoxelLayout& voxels,
 static bool integer_multiple(unsigned a, unsigned b) {
   // we need to limit it somewhere so that we ensure a*i doesn't overflow.
   // this is overly conservative, but more than okay for the uses right now.
-  assert(a <= 256);
+  assert(a <= 2048);
   for(size_t i=0; i < 128; ++i) {
     if(a*i == b) { return true; }
   }
