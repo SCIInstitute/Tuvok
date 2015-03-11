@@ -736,7 +736,7 @@ size_t DynamicBrickingDS::dbinfo::GetCacheSize() const {
 
 /// @returns true if 'bytes' bytes will fit into the current cache
 bool DynamicBrickingDS::dbinfo::FitsInCache(size_t bytes) const {
-  return bytes < this->cacheBytes;
+  return (bytes + cache.size()) < this->cacheBytes;
 }
 
 bool DynamicBrickingDS::GetBrick(const BrickKey& k, std::vector<uint8_t>& data) const
