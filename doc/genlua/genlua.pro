@@ -2,6 +2,7 @@ TEMPLATE       = app
 win32:TEMPLATE = vcapp
 CONFIG = exceptions largefile qt rtti static stl warn_on
 QT += core opengl
+DESTDIR = Build
 TARGET = bluebook
 DEPENDPATH = .
 INCLUDEPATH  = ../../
