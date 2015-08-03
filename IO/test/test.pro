@@ -12,7 +12,7 @@ LIBS             += -lTuvok -ltuvokexpr
 unix:LIBS        += -lz
 unix:!macx:LIBS  += -lrt -lGLU -lGL
 win32:LIBS       += shlwapi.lib
-unix:QMAKE_CXXFLAGS += -std=c++0x -D_GLIBCXX_DEBUG
+unix:QMAKE_CXXFLAGS += -std=c++0x
 unix:!macx:QMAKE_CXXFLAGS += -fopenmp
 unix:!macx:QMAKE_LFLAGS += -fopenmp
 unix:QMAKE_CXXFLAGS += -fno-strict-aliasing
