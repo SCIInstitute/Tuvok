@@ -269,7 +269,7 @@ private:
   std::vector<tuvok::AbstrGeoConverter*>        m_vpGeoConverters;
   std::vector<std::shared_ptr<AbstrConverter>>  m_vpConverters;
   std::shared_ptr<AbstrConverter>               m_pFinalConverter;
-  std::auto_ptr<tuvok::io::DSFactory>           m_dsFactory;
+  std::unique_ptr<tuvok::io::DSFactory>         m_dsFactory;
 
   uint64_t m_iMaxBrickSize;
   uint64_t m_iBuilderBrickSize;
