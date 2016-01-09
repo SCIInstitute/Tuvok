@@ -880,15 +880,11 @@ bool DynamicBrickingDS::Export(uint64_t lod, const std::string& to,
   return di->ds->Export(lod, to, append);
 }
 
-bool DynamicBrickingDS::ApplyFunction(uint64_t lod,
-                        bool (*brickFunc)(void* pData,
-                                          const UINT64VECTOR3& vBrickSize,
-                                          const UINT64VECTOR3& vBrickOffset,
-                                          void* pUserContext),
-                        void *pUserContext,
-                        uint64_t iOverlap) const {
+bool
+DynamicBrickingDS::ApplyFunction(uint64_t lod, Dataset::bfqn* bfunc, void* ctx,
+                                 uint64_t nghost) const {
   T_ERROR("This probably doesn't work.");
-  return di->ds->ApplyFunction(lod, brickFunc, pUserContext, iOverlap);
+  return di->ds->ApplyFunction(lod, bfunc, ctx, nghost);
 }
 
 const char* DynamicBrickingDS::Name() const {

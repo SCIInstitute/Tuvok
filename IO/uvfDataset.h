@@ -159,13 +159,8 @@ public:
   virtual bool Export(uint64_t iLODLevel, const std::string& targetFilename,
     bool bAppend) const;
 
-  virtual bool ApplyFunction(uint64_t iLODLevel, 
-                        bool (*brickFunc)(void* pData, 
-                                          const UINT64VECTOR3& vBrickSize,
-                                          const UINT64VECTOR3& vBrickOffset,
-                                          void* pUserContext),
-                        void *pUserContext= NULL,
-                        uint64_t iOverlap=0) const;
+  virtual bool ApplyFunction(uint64_t iLODLevel, bfqn* bfunc,
+                             void* userContext, uint64_t iOverlap=0) const;
 
   virtual const std::vector<std::pair<std::string, std::string>> GetMetadata() const;
 

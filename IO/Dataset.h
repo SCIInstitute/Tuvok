@@ -121,7 +121,9 @@ public:
 
   /// If the underlying file format supports it, crop the dataset at the
   /// given plane, i.e. set all values one side to zero
-  virtual bool Crop( const PLANE<float>& , const std::string&, bool, bool, bool ) {return false;}
+  virtual bool Crop(const PLANE<float>&, const std::string&, bool, bool, bool) {
+    return false;
+  }
 
   virtual unsigned GetLODLevelCount() const = 0;
   /// @todo FIXME, should be pure virtual && overridden in derived
@@ -155,13 +157,9 @@ public:
   virtual bool Export(uint64_t iLODLevel, const std::string& targetFilename, 
     bool bAppend) const = 0;
 
-  virtual bool ApplyFunction(uint64_t iLODLevel, 
-                        bool (*brickFunc)(void* pData, 
-                                          const UINT64VECTOR3& vBrickSize,
-                                          const UINT64VECTOR3& vBrickOffset,
-                                          void* pUserContext),
-                        void *pUserContext,
-                        uint64_t iOverlap) const = 0;
+  typedef bool (bfqn)(void*, const UINT64VECTOR3&, const UINT64VECTOR3&, void*);
+  virtual bool ApplyFunction(uint64_t iLODLevel, bfqn* bfunc,
+                             void* userContext, uint64_t noverlap) const = 0;
 
   /// Virtual constructor.
   virtual Dataset* Create(const std::string&, uint64_t, bool) const=0;  
@@ -175,12 +173,12 @@ public:
   ) const;
 
 protected:
-  std::shared_ptr<Histogram1D>          m_pHist1D;
-  std::shared_ptr<Histogram2D>          m_pHist2D;
-  std::vector<std::shared_ptr<Mesh>>   m_vpMeshList;
+  std::shared_ptr<Histogram1D>       m_pHist1D;
+  std::shared_ptr<Histogram2D>       m_pHist2D;
+  std::vector<std::shared_ptr<Mesh>> m_vpMeshList;
 
-  DOUBLEVECTOR3      m_UserScale;
-  DOUBLEVECTOR3      m_DomainScale;
+  DOUBLEVECTOR3 m_UserScale;
+  DOUBLEVECTOR3 m_DomainScale;
 
   void DeleteMeshes();
 };

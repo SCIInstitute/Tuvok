@@ -98,13 +98,8 @@ public:
   virtual bool Export(uint64_t iLODLevel, const std::string& targetFilename,
                       bool bAppend) const;
 
-  virtual bool ApplyFunction(uint64_t iLODLevel, 
-                        bool (*brickFunc)(void* pData, 
-                                          const UINT64VECTOR3& vBrickSize,
-                                          const UINT64VECTOR3& vBrickOffset,
-                                          void* pUserContext),
-                        void *pUserContext,
-                        uint64_t iOverlap) const;
+  virtual bool ApplyFunction(uint64_t iLODLevel, Dataset::bfqn* bfunc,
+                             void* context, uint64_t nghost) const;
 
   /// Virtual constructor.
   virtual DynamicBrickingDS* Create(const std::string&, uint64_t, bool) const;

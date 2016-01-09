@@ -908,14 +908,8 @@ bool UVFDataset::Export(uint64_t iLODLevel, const std::string& targetFilename,
   }
 }
 
-bool UVFDataset::ApplyFunction(uint64_t iLODLevel,
-                      bool (*brickFunc)(void* pData,
-                                        const UINT64VECTOR3& vBrickSize,
-                                        const UINT64VECTOR3& vBrickOffset,
-                                        void* pUserContext),
-                      void *pUserContext,
-                      uint64_t iOverlap) const {
-
+bool UVFDataset::ApplyFunction(uint64_t iLODLevel, bfqn* brickFunc,
+                               void *pUserContext, uint64_t iOverlap) const {
  if (m_bToCBlock) {
     bool okay = true;
     for(std::vector<Timestep*>::const_iterator ts = m_timesteps.begin();
