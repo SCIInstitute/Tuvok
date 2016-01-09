@@ -231,6 +231,7 @@ HEADERS += \
            IO/UVF/UVF.h \
            IO/UVF/UVFTables.h \
            IO/VariantArray.h \
+           IO/VDBDataset.h \
            IO/VFFConverter.h \
            IO/VGIHeaderParser.h \
            IO/VGStudioConverter.h \
@@ -542,6 +543,7 @@ SOURCES += \
            IO/UVF/UVF.cpp \
            IO/UVF/UVFTables.cpp \
            IO/VariantArray.cpp \
+           IO/VDBDataset.cpp \
            IO/VFFConverter.cpp \
            IO/VGIHeaderParser.cpp \
            IO/VGStudioConverter.cpp \
