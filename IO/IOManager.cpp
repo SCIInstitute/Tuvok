@@ -70,6 +70,7 @@
 #include "UVF/GeometryDataBlock.h"
 #include "UVF/Histogram1DDataBlock.h"
 #include "UVF/Histogram2DDataBlock.h"
+#include "VDBDataset.h"
 
 #include "AmiraConverter.h"
 #include "AnalyzeConverter.h"
@@ -181,6 +182,7 @@ IOManager::IOManager() :
   m_vpConverters.push_back(std::shared_ptr<AbstrConverter>(new MRCConverter()));
   m_vpConverters.push_back(std::shared_ptr<AbstrConverter>(new VTKConverter()));
   m_dsFactory->AddReader(shared_ptr<UVFDataset>(new UVFDataset()));
+  m_dsFactory->AddReader(shared_ptr<VDBDataset>(new VDBDataset()));
 }
 
 

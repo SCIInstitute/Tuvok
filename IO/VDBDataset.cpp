@@ -1,13 +1,101 @@
 #include <cinttypes>
+#include <limits>
+#include <utility>
+#include <vector>
+#include <openvdb/openvdb.h>
 #include <openvdb/version.h>
 #include "Controller/Controller.h"
 #include "VDBDataset.h"
 
 namespace tuvok {
 
+// In version 3.0.0 of OpenVDB, and perhaps others, File's destructor will not
+// close an open file.
+struct vdbfile {
+	vdbfile(const std::string& f) : v(f) {
+		bool dont_read_now = true;
+		this->v.open(dont_read_now);
+	}
+	~vdbfile() {
+		this->v.close();
+	}
+	openvdb::io::File v;
+};
+
+static bool
+openable(const std::string& f) {
+	vdbfile vdb(f);
+	return vdb.v.isOpen();
+}
+
+// We need some way to convey the field name to read without recompiling all of
+// Tuvok.  There's no mechanism in the IV3D UI for setting any kind of option
+// or querying the user for help reading a file (sans the raw dialog, which is
+// 100% special-cased ...), so we hack it for now.
+static std::string
+field_name() {
+	const char* const fld = getenv("IV3D_READ_FIELD");
+	if(NULL == fld) {
+		return std::string("density");
+	}
+	return std::string(fld);
+}
+
+// Computes the minmax in a VDB file.  Slowly/poorly.
+static std::pair<float,float>
+minmax(openvdb::io::File& vdb) {
+	assert(vdb.isOpen());
+	const openvdb::GridBase::Ptr voidfld = vdb.readGrid(field_name());
+	const openvdb::FloatGrid::Ptr fieldf = openvdb::gridPtrCast<
+		openvdb::FloatGrid>(fieldf);
+	const float mx = std::numeric_limits<float>::max();
+	std::pair<float,float> mm(mx, -mx);
+	for(openvdb::FloatGrid::ValueOnIter i = fieldf->beginValueOn(); i; ++i) {
+		mm.first = std::min(mm.first, i.getValue());
+		mm.second = std::max(mm.second, i.getValue());
+	}
+	assert(mm.second >= mm.first);
+	if(mm.first == mm.second) {
+		WARNING("Strangely, the data consist of only a single value: %f", mm.first);
+	}
+	return mm;
+}
+
+static std::vector<uint32_t>
+compute_histogram(openvdb::io::File& vdb) {
+	assert(vdb.isOpen());
+	openvdb::GridBase::Ptr voidfld = vdb.readGrid(field_name());
+	openvdb::FloatGrid::Ptr fieldf = openvdb::gridPtrCast<openvdb::FloatGrid>(
+		voidfld
+	);
+	// we assume we're always quantizing float down to 4096 bins.
+	const size_t hist_size = 4096;
+	const std::pair<float,float> mmax = minmax(vdb);
+	std::vector<uint32_t> hist(hist_size);
+	std::fill(hist.begin(), hist.end(), 0);
+	const float qfactor = (hist_size-1) / (mmax.second-mmax.first);
+	for(openvdb::FloatGrid::ValueOnIter i = fieldf->beginValueOn(); i; ++i) {
+		const float v = i.getValue();
+		const size_t hidx = std::min(hist_size-1, size_t((v-mmax.first)*qfactor));
+		hist[hidx]++;
+	}
+	return hist;
+}
+
+VDBDataset::VDBDataset() { }
 VDBDataset::VDBDataset(const std::string& fname) : filename(fname) {
+	openvdb::initialize();
+	if(!openable(fname)) {
+		WARNING("could not open %s", fname.c_str());
+	}
+	vdbfile vdb(filename);
+	if(!vdb.v.isOpen()) {
+		vdb.v.open();
+	}
+	std::vector<uint32_t> histo = compute_histogram(vdb.v);
 }
 VDBDataset::~VDBDataset() {
+	openvdb::uninitialize();
 }
 
 float
@@ -153,9 +241,10 @@ std::string VDBDataset::Filename() const {
 bool
 VDBDataset::CanRead(const std::string&,
                     const std::vector<int8_t>& bytes) const {
-	const int32_t magic = bytes[0] << 3 | bytes[1] << 2 | bytes[2] << 1 |
-	                      bytes[3];
-	return magic == openvdb::OPENVDB_MAGIC;
+	const uint32_t magic = bytes[0] << 0*8 | bytes[1] << 1*8 | bytes[2] << 2*8 |
+	                       bytes[3] << 3*8;
+	MESSAGE("magic: 0x%x, vdb magic: 0x%x", magic, openvdb::OPENVDB_MAGIC);
+	return (int32_t)magic == openvdb::OPENVDB_MAGIC;
 }
 
 /// @return a list of file extensions readable by this format

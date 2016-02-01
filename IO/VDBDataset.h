@@ -14,6 +14,7 @@ namespace tuvok {
 // practice actually do not care about these other levels.
 class VDBDataset : public LinearIndexDataset, public FileBackedDataset {
 public:
+	VDBDataset();
 	VDBDataset(const std::string& fname);
 	virtual ~VDBDataset();
 
