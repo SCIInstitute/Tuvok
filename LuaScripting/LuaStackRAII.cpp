@@ -91,14 +91,14 @@ LuaStackRAII::~LuaStackRAII()
       // with LuaScripting.
       ostringstream os;
       os << "log.warn([==[LuaStackRAII: unexpected stack size. Expected: "
-         << stackTarget << ". Actual: " << stackTop << ".\n";
+         << stackTarget << ". Actual: " << stackTop << ".";
 
       // To ensure we don't wipe out Lua error messages (generally, these will
       // be caught by lua_atpanic).
       if (lua_isstring(mL, -1))
       {
         std::string str = lua_tostring(mL, -1);
-        os << " String on the top of the stack: " << str;
+        os << "  String on the top of the stack: " << str;
       }
 
       os << "]==])\n"
