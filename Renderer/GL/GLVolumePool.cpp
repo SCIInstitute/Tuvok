@@ -981,7 +981,8 @@ namespace {
               visibility.Get2DTransfer().fMinGradient <= vMinMaxGradient[iBrickID].max);
       break;
     case AbstrRenderer::RM_ISOSURFACE:
-      return (visibility.GetIsoSurface().fIsoValue <= vMinMaxScalar[iBrickID].max);
+      return (visibility.GetIsoSurface().fIsoValue >= vMinMaxScalar[iBrickID].min &&
+              visibility.GetIsoSurface().fIsoValue <= vMinMaxScalar[iBrickID].max);
       break;
     }
     return true;
