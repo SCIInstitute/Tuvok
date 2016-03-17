@@ -104,7 +104,7 @@ public:
 
   VECTOR2<T>(): x(0), y(0) {}
   template <class S> explicit VECTOR2<T>( const std::vector<S>& v, const T& defaultVal = T(0) ) {
-    x = T(!v.empty() ? v[0] : defaultVal);
+    x = T(v.size()>0 ? v[0] : defaultVal);
     y = T(v.size()>1 ? v[1] : defaultVal);
   }
   VECTOR2<T>(const VECTOR2<T> &other): x(other.x), y(other.y) {}
@@ -127,6 +127,7 @@ public:
   VECTOR2<T> operator - ( const VECTOR2& other ) const {return VECTOR2<T>(x-other.x,y-other.y);}
   VECTOR2<T> operator / ( const VECTOR2& other ) const {return VECTOR2<T>(x/other.x,y/other.y);}
   VECTOR2<T> operator * ( const VECTOR2& other ) const {return VECTOR2<T>(x*other.x,y*other.y);} // component product
+  VECTOR2<T> operator % ( const VECTOR2& other ) const {return VECTOR2<T>(x%other.x,y%other.y);} // component modulo
   T operator ^ ( const VECTOR2<T>& other ) const {return T(x*other.x+y*other.y);} // dot product
 
   // unary operators
@@ -164,7 +165,8 @@ public:
 
   VECTOR2<T> abs() const {return VECTOR2<T>(fabs(x),fabs(y));}
   T area() const {return x*y;}
-  T length() const {return sqrt(T(x*x+y*y));}
+  T length() const {return sqrt(sqLength());}
+  T sqLength() const {return T(x*x+y*y);}
   void normalize() {T len = length(); x/=len;y/=len;}
   T maxVal() const {return MAX(x,y);}
   T minVal() const {return MIN(x,y);}
@@ -216,9 +218,9 @@ public:
 
   VECTOR3<T>(): x(0), y(0),z(0) {}
   template <class S> explicit VECTOR3<T>( const std::vector<S>& v, const T& defaultVal = T(0) ) {
-    x = T(!v.empty() ? v[0] : defaultVal);
-    y = T(!v.empty() ? v[1] : defaultVal);
-    z = T(!v.empty() ? v[2] : defaultVal);
+    x = T(v.size()>0 ? v[0] : defaultVal);
+    y = T(v.size()>1 ? v[1] : defaultVal);
+    z = T(v.size()>2 ? v[2] : defaultVal);
   }
 
   VECTOR3<T>(const VECTOR3<T> &other): x(other.x), y(other.y), z(other.z) {}
@@ -226,7 +228,6 @@ public:
   VECTOR3<T>(const VECTOR2<T> &other, const T _z): x(other.x), y(other.y), z(_z) {}
   VECTOR3<T>(const T _x, const T _y, const T _z) : x(_x), y(_y), z(_z) {}
   VECTOR3<T>(const T* vec) : x(vec[0]), y(vec[1]), z(vec[2]) {}
-
 
   bool operator == ( const VECTOR3<T>& other ) const {return (other.x==x && other.y==y && other.z==z); }
   bool operator != ( const VECTOR3<T>& other ) const {return (other.x!=x || other.y!=y || other.z!=z); }
@@ -246,7 +247,7 @@ public:
   VECTOR3<T> operator % ( const VECTOR3<T>& other ) const {return VECTOR3<T>(y*other.z-z*other.y,z*other.x-x*other.z,x*other.y-y*other.x);} // cross product
   T operator ^ ( const VECTOR3<T>& other ) const {return T(x*other.x+y*other.y+z*other.z);} // dot product
 
-  // unary opartors
+  // unary operators
   VECTOR3<T> operator + () const {return *this;}
   VECTOR3<T> operator - () const {return *this * -1;}
   VECTOR3<T> operator ~ () const {return VECTOR3<T>(T(1)/x,T(1)/y,T(1)/z);}
@@ -292,9 +293,8 @@ public:
   T maxVal() const FUNC_CONST {return MAX(x,MAX(y,z));}
   T minVal() const FUNC_CONST {return MIN(x,MIN(y,z));}
   T volume() const FUNC_CONST {return x*y*z;}
-  T length() const { return sqrt(
-    T(this->x*this->x + this->y*this->y + this->z*this->z));
-  }
+  T length() const {return sqrt(sqLength());}
+  T sqLength() const {return T(x*x+y*y+z*z);}
   void normalize() {T len = length(); x/=len;y/=len;z/=len;}
   void normalize(T epsilon, const VECTOR3<T>& replacement=VECTOR3<T>(T(0),T(0),T(1))) {
     T len = length();
@@ -400,10 +400,10 @@ public:
 
   VECTOR4<T>(): x(0), y(0),z(0), w(0) {}
   template <class S> explicit VECTOR4<T>( const std::vector<S>& v, const T& defaultVal = T(0) ) {
-    x = T(!v.empty() ? v[0] : defaultVal);
-    y = T(!v.empty() ? v[1] : defaultVal);
-    z = T(!v.empty() ? v[2] : defaultVal);
-    w = T(!v.empty() ? v[3] : defaultVal);
+    x = T(v.size()>0 ? v[0] : defaultVal);
+    y = T(v.size()>1 ? v[1] : defaultVal);
+    z = T(v.size()>2 ? v[2] : defaultVal);
+    w = T(v.size()>3 ? v[3] : defaultVal);
   }
   VECTOR4<T>(const VECTOR2<T> &other, const T _z, const T _w): x(other.x), y(other.y), z(_z), w(_w) {}
   VECTOR4<T>(const VECTOR3<T> &other, const T _w): x(other.x), y(other.y), z(other.z), w(_w) {}
@@ -708,9 +708,9 @@ public:
     MATRIX3<T> result;
     for (int x = 0;x<9;x+=3)
       for (int y = 0;y<3;y++)
-        result[x+y] = array[1+x]  * other.array[0+y]+
-                      array[2+x]  * other.array[3+y]+
-                      array[3+x]  * other.array[6+y];
+        result[x+y] = array[0+x]  * other.array[0+y]+
+                      array[1+x]  * other.array[3+y]+
+                      array[2+x]  * other.array[6+y];
 
     return result;
   }
@@ -782,19 +782,21 @@ public:
   }
 
   MATRIX3<T> inverse() const {
-    T determ = 1.0f/(array[0]*(array[4]*array[8]-array[5]*array[7]) - array[1]*(array[3]*array[8]-array[5]*array[6]) + array[2]*(array[3]*array[7]-array[4]*array[6]));
-
     MATRIX3<T> result;
+    
+    T det = m11*(m22*m33 - m23*m32) + m12*(m23*m31 - m21*m33) + m13*(m21*m32 - m22*m31);
 
-    result.array[0]=determ*(array[4]*array[8]-array[5]*array[7]);
-    result.array[3]=determ*(array[2]*array[7]-array[1]*array[8]);
-    result.array[6]=determ*(array[1]*array[5]-array[2]*array[4]);
-    result.array[1]=determ*(array[5]*array[6]-array[3]*array[8]);
-    result.array[4]=determ*(array[0]*array[8]-array[2]*array[6]);
-    result.array[7]=determ*(array[2]*array[3]-array[0]*array[5]);
-    result.array[2]=determ*(array[3]*array[7]-array[4]*array[6]);
-    result.array[5]=determ*(array[1]*array[6]-array[0]*array[7]);
-    result.array[8]=determ*(array[0]*array[4]-array[1]*array[3]);
+    result.m11 = (m22*m33 - m23*m32) / det;
+    result.m12 = (m13*m32 - m12*m33) / det;
+    result.m13 = (m12*m23 - m13*m22) / det;
+
+    result.m21 = (m23*m31 - m21*m33) / det;
+    result.m22 = (m11*m33 - m13*m31) / det;
+    result.m23 = (m13*m21 - m11*m23) / det;
+
+    result.m31 = (m21*m32 - m22*m31) / det;
+    result.m32 = (m12*m31 - m11*m32) / det;
+    result.m33 = (m11*m22 - m12*m21) / det;
 
     return result;
   }
@@ -894,7 +896,7 @@ public:
   bool operator == ( const MATRIX4<T>& other ) const {return (other.m11==m11 && other.m12==m12 && other.m13==m13 && other.m14==m14 &&
                                 other.m21==m21 && other.m22==m22 && other.m23==m23 && other.m24==m24 &&
                                 other.m31==m31 && other.m32==m32 && other.m33==m33 && other.m34==m34 &&
-                                other.m31==m41 && other.m32==m42 && other.m33==m43 && other.m44==m44); }
+                                other.m41==m41 && other.m42==m42 && other.m43==m43 && other.m44==m44); }
   bool operator != ( const MATRIX4<T>& other ) const {return (other.m11!=m11 || other.m12!=m12 || other.m13!=m13 || other.m14!=m14 ||
                                 other.m21!=m21 || other.m22!=m22 || other.m23!=m23 || other.m24!=m24 ||
                                 other.m31!=m31 || other.m32!=m32 || other.m33!=m33 || other.m34!=m34 ||
@@ -1423,10 +1425,10 @@ public:
   PLANE<T>(): VECTOR4<T>(0,0,0,0) {}
   // plane from paramters (usually all 4 are given)
   template <class S> explicit PLANE<T>( const std::vector<S>& v ) {
-    this->x = T(!v.empty() ? v[0] : 0);
-    this->y = T(!v.empty() ? v[1] : 0);
-    this->z = T(!v.empty() ? v[2] : 0);
-    this->w = T(!v.empty() ? v[3] : 0);
+    this->x = T(v.size()>0 ? v[0] : 0);
+    this->y = T(v.size()>1 ? v[1] : 0);
+    this->z = T(v.size()>2 ? v[2] : 0);
+    this->w = T(v.size()>3 ? v[3] : 0);
   }
   // plane from points
   template <class S> explicit PLANE<T>( const VECTOR3<S>& v0, const VECTOR3<S>& v1, const VECTOR3<S>& v2 ) {
