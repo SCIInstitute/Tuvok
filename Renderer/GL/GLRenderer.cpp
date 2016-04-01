@@ -1813,9 +1813,9 @@ GLRenderer::SetBrickDepShaderVarsSlice(const UINTVECTOR3& vVoxelCount) const
 float GLRenderer::CalculateScaling()
 {
   double fMaxValue   = MaxValue();
-  uint32_t iMaxRange = uint32_t(1<<m_pDataset->GetBitWidth());
+  uint32_t iMaxValue = uint32_t(1<<m_pDataset->GetBitWidth()) - 1;
   return (m_pDataset->GetBitWidth() != 8 && m_bDownSampleTo8Bits) ?
-    1.0f : float(iMaxRange/fMaxValue);
+    1.0f : float(iMaxValue/fMaxValue);
 }
 
 void GLRenderer::SetConstantShaderVars()
