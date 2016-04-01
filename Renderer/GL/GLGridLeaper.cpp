@@ -739,7 +739,7 @@ void GLGridLeaper::SetupRaycastShader(GLSLProgram* shaderProgram, RenderRegion3D
       FLOATVECTOR3 scale = 1.0f/vScale;
 
       FLOATVECTOR3 vModelSpaceLightDir = ( FLOATVECTOR4(m_vLightDir,0.0f) * emm ).xyz().normalized();
-      FLOATVECTOR3 vModelSpaceEyePos   = (FLOATVECTOR4(0,0,0,1) * emm).xyz();
+      FLOATVECTOR3 vModelSpaceEyePos   = ( FLOATVECTOR4(m_vEye,1.0f) * emm).xyz();
 
       shaderProgram->Set("vLightAmbient",a.x,a.y,a.z);
       shaderProgram->Set("vLightDiffuse",d.x,d.y,d.z);
