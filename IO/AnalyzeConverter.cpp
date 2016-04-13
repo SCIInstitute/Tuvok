@@ -37,8 +37,9 @@
 
 AnalyzeConverter::AnalyzeConverter()
 {
-  m_vConverterDesc = "Analyze 7.5";
+  m_vConverterDesc = "Analyze 7.5/NIfTI-1";
   m_vSupportedExt.push_back("HDR");
+  m_vSupportedExt.push_back("NII");
 }
 
 struct analyze_hdr {
@@ -54,6 +55,7 @@ struct analyze_hdr {
   short bpp;
   float aspect[3];
   float voxel_offset;
+  char magic[4];
 };
 
 enum AnalyzeDataTypes {
@@ -75,7 +77,17 @@ bool AnalyzeConverter::CanRead(const std::string& fn,
   if(!AbstrConverter::CanRead(fn, start)) {
     return false;
   }
-
+  
+  if (start.size() > 347) {
+    // For NIfTI-1 files magic MUST be "ni1\0" for .hdr/.img file pair or
+    // "n+1\0" for single .nii file that includes header infomation and volume
+    // data.
+    const std::string magic((const char*)&start[344], 3);
+    MESSAGE("NIfTI-1 magic bytes: %s", magic.c_str());
+    if (magic == "ni1" || magic == "n+1")
+      return true;
+  }
+  
   if((start[0] == '#' && start[1] == '\n') ||
      (start[0] == ' ' && start[1] == '\n' && start[2] == '\n')) {
     WARNING("Looks like an ascii file... not mine.");
@@ -138,6 +150,8 @@ bool AnalyzeConverter::ConvertToRAW(const std::string& strSourceFilename,
   // 'voxel_offset' really is a float that stores a byte offset.  Seriously.
   // Maybe some of the same people that wrote DICOM made Analyze as well.
   analyze.read(reinterpret_cast<char*>(&hdr.voxel_offset), 4);
+  analyze.seekg(344, std::ios_base::beg);
+  analyze.read(hdr.magic, 4); // MUST be "ni1\0" or "n+1\0" for NIfTI-1 files.
 
   // The header size was meant to be used in case the analyze format
   // was extended.  It never was.  Thus the headers are always 348
@@ -226,11 +240,27 @@ bool AnalyzeConverter::ConvertToRAW(const std::string& strSourceFilename,
   }
   iHeaderSkip = static_cast<uint64_t>(hdr.voxel_offset);
   MESSAGE("Skipping %llu bytes.", iHeaderSkip);
-
-  strIntermediateFile = SysTools::RemoveExt(strSourceFilename) + ".img";
-  MESSAGE("Using intermediate file %s", strIntermediateFile.c_str());
-  bDeleteIntermediateFile = false;
-
+  
+  const std::string magic(hdr.magic, 3);
+  
+  if (SysTools::ToUpperCase(SysTools::GetExt(strSourceFilename)) == "HDR" || magic == "ni1")
+  {
+    strIntermediateFile = SysTools::RemoveExt(strSourceFilename) + ".img";
+    MESSAGE("Using intermediate file %s", strIntermediateFile.c_str());
+    bDeleteIntermediateFile = false;
+  }
+  else if (SysTools::ToUpperCase(SysTools::GetExt(strSourceFilename)) == "NII" || magic == "n+1")
+  {
+    strIntermediateFile = strSourceFilename;
+    MESSAGE("Using intermediate file %s", strIntermediateFile.c_str());
+    bDeleteIntermediateFile = false;
+  }
+  else
+  {
+    T_ERROR("Unknown file extension or magic bytes.");
+    return false;
+  }
+  
   return true;
 }
 
