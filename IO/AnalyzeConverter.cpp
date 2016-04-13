@@ -134,7 +134,7 @@ bool AnalyzeConverter::ConvertToRAW(const std::string& strSourceFilename,
   analyze.read(reinterpret_cast<char*>(&hdr.aspect[0]), 4);
   analyze.read(reinterpret_cast<char*>(&hdr.aspect[1]), 4);
   analyze.read(reinterpret_cast<char*>(&hdr.aspect[2]), 4);
-  analyze.seekg(12, std::ios_base::cur); // 4 unused aspect values
+  analyze.seekg(16, std::ios_base::cur); // 4 unused aspect values
   // 'voxel_offset' really is a float that stores a byte offset.  Seriously.
   // Maybe some of the same people that wrote DICOM made Analyze as well.
   analyze.read(reinterpret_cast<char*>(&hdr.voxel_offset), 4);
