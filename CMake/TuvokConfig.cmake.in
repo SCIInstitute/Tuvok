@@ -1,0 +1,5 @@
+if(NOT TARGET Tuvok_ALIAS)
+  if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/TuvokTargets.cmake")
+    include("${CMAKE_CURRENT_LIST_DIR}/TuvokTargets.cmake")
+  endif()
+endif()
