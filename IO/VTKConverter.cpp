@@ -75,8 +75,14 @@ static struct BStreamDescriptor vtk_to_tuvok_type(const std::string& vtktype) {
     bs.width = sizeof(float);
     bs.fp = true;
     bs.is_signed = true;
+  } else if(vtktype == "double") {
+    bs.width = sizeof(double);
+    bs.fp = true;
+    bs.is_signed = true;
   } else {
-    throw std::logic_error("unhandled vtk type case");
+    std::ostringstream err;
+    err << "Unhandled vtk type '" << vtktype << "'!";
+    throw std::logic_error(err.str());
   }
   return bs;
 }
@@ -159,8 +165,8 @@ bool VTKConverter::ConvertToRAW(
     const uint64_t elems = vVolumeSize.volume();
     float cur;
     for(uint64_t i=0; i < elems; ++i) {
-      vtk.read(reinterpret_cast<char*>(&cur), sizeof(float));
-      raw.write(reinterpret_cast<char*>(&cur), sizeof(float));
+      vtk.read(reinterpret_cast<char*>(&cur), bs.width);
+      raw.write(reinterpret_cast<char*>(&cur), bs.width);
     }
     raw.close();
   }
