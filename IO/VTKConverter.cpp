@@ -142,17 +142,17 @@ bool VTKConverter::ConvertToRAW(
     T_ERROR("No scalar data in file!");
     return false;
   }
-  std::string type, one;
-  vtk >> junk >> current >> type >> one;
+  std::string type;
+  vtk >> junk >> current >> type;
   assert(junk == "SCALARS"); // if not, then scan_for_line failed.
   strTitle = current + " from VTK converter";
   MESSAGE("Reading field '%s' from the VTK file...", current.c_str());
-  assert(one == "1"); // this is always "1" in the files I have...
   BStreamDescriptor bs = vtk_to_tuvok_type(type);
   iComponentSize = bs.width * 8; // bytes to bits
   iComponentCount = bs.components;
   bSigned = bs.is_signed;
   bIsFloat = bs.fp;
+  scan_for_line(vtk, "LOOKUP_TABLE");
   // legacy VTK files are always Big endian, so we need to convert if we're
   // little endian.
   bConvertEndianness = EndianConvert::IsLittleEndian();
@@ -162,7 +162,10 @@ bool VTKConverter::ConvertToRAW(
   char newline;
   vtk.read(&newline, 1);
   // we can just skip to the binary data without creating a new file.  Do that.
+  strIntermediateFile = strSourceFilename;
+  bDeleteIntermediateFile = false;
   iHeaderSkip = static_cast<uint64_t>(vtk.tellg());
+
   {
     std::ofstream raw("rawdata-from-vtk.data", std::ios::binary);
     const uint64_t elems = vVolumeSize.volume();
@@ -173,9 +176,6 @@ bool VTKConverter::ConvertToRAW(
     }
     raw.close();
   }
-
-  strIntermediateFile = strSourceFilename;
-  bDeleteIntermediateFile = false;
 
   return true;
 }
