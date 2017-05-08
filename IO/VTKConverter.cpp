@@ -131,6 +131,9 @@ bool VTKConverter::ConvertToRAW(
   vtk >> junk >> vVolumeAspect[0] >> vVolumeAspect[1] >> vVolumeAspect[2];
   MESSAGE("aspect: %5.3fx%5.3fx%5.3f", vVolumeAspect[0], vVolumeAspect[1],
           vVolumeAspect[2]);
+  vVolumeAspect[0] = fabs(vVolumeAspect[0]);
+  vVolumeAspect[1] = fabs(vVolumeAspect[1]);
+  vVolumeAspect[2] = fabs(vVolumeAspect[2]);
 
   // now we now the basics of the data, but we can have multiple fields in the
   // file.  Scan through until we find the first SCALARS.
