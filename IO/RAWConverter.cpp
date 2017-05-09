@@ -1237,16 +1237,16 @@ bool RAWConverter::ConvertToUVF(const std::list<std::string>& files,
       LargeRAWFile input(*fn, *hdr);
       input.Open(false);
 
-      unsigned char *data = new unsigned char[GetIncoreSize()];
+      std::vector<uint8_t> data(GetIncoreSize());
       size_t bytes_written =0;
       do {
-        size_t elems = input.ReadRAW(data, GetIncoreSize());
+        size_t elems = input.ReadRAW(data.data(), GetIncoreSize());
         if(elems == 0) {
           WARNING("Input file '%s' ended before we expected.", fn->c_str());
           break;
         }
-        merged.WriteRAW(data, std::min(payload_sz - bytes_written,
-                                       static_cast<uint64_t>(elems)));
+        merged.WriteRAW(data.data(), std::min(payload_sz - bytes_written,
+                                              static_cast<uint64_t>(elems)));
         bytes_written += elems;
       } while(bytes_written < payload_sz);
 
