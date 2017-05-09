@@ -35,6 +35,7 @@
 */
 #include "Basics/StdDefines.h"
 #include <cerrno>
+#include <cinttypes>
 #include <cstdio>
 #include <cstring>
 #include <iterator>
@@ -82,6 +83,7 @@ namespace {
 static std::string convert_endianness(const std::string& strFilename,
                                       const std::string& strTempDir,
                                       uint64_t iHeaderSkip,
+                                      UINT64VECTOR3 dims,
                                       unsigned iComponentSize,
                                       size_t in_core_size)
 {
@@ -111,27 +113,34 @@ static std::string convert_endianness(const std::string& strFilename,
     throw DSOpenFailed(tmp_file.c_str(), "Unable to create file",
                        __FILE__, __LINE__);
   }
-  MESSAGE("Performing endianness conversion ...");
+  const uint64_t byte_length = WrongEndianData.GetCurrentSize();
+  MESSAGE("Performing endianness conversion from %" PRIu64 "-byte '%s'",
+          byte_length, strFilename.c_str());
+  const uint64_t nbytes = dims.volume() * (iComponentSize/8);
+  MESSAGE("actually converting %" PRIu64 " bytes.", nbytes);
 
-  uint64_t byte_length = WrongEndianData.GetCurrentSize();
-  size_t buffer_size = std::min<size_t>(static_cast<size_t>(byte_length),
+  size_t buffer_size = std::min<size_t>(static_cast<size_t>(nbytes),
                                         static_cast<size_t>(in_core_size));
   uint64_t bytes_converted = 0;
 
-  std::shared_ptr<unsigned char> buffer(
-    new unsigned char[buffer_size],
-    nonstd::DeleteArray<unsigned char>()
-  );
-
-  while(bytes_converted < byte_length) {
+  std::vector<uint8_t> buffer(buffer_size);
+  while(bytes_converted < nbytes) {
     using namespace boost;
-    size_t bytes_read = WrongEndianData.ReadRAW(buffer.get(), buffer_size);
-    switch(iComponentSize) {
-      case 16: change_endianness<uint16_t>(buffer.get(), bytes_read); break;
-      case 32: change_endianness<float>(buffer.get(), bytes_read); break;
-      case 64: change_endianness<double>(buffer.get(), bytes_read); break;
+    size_t bytes_read = WrongEndianData.ReadRAW(buffer.data(), buffer_size);
+
+    if(bytes_read == 0) {
+      std::ostringstream enderr;
+      enderr << "Stream finished after " << bytes_converted << " bytes, "
+                 "but should be " << nbytes << " bytes!\n";
+      throw IOException(enderr.str().c_str(), __FILE__, __LINE__);
     }
-    size_t bytes_written = ConvertedEndianData.WriteRAW(buffer.get(),
+
+    switch(iComponentSize) {
+      case 16: change_endianness<uint16_t>(buffer.data(), bytes_read); break;
+      case 32: change_endianness<float>(buffer.data(), bytes_read); break;
+      case 64: change_endianness<double>(buffer.data(), bytes_read); break;
+    }
+    size_t bytes_written = ConvertedEndianData.WriteRAW(buffer.data(),
                                                         bytes_read);
     if(bytes_read != bytes_written) {
       WrongEndianData.Close();
@@ -148,6 +157,7 @@ static std::string convert_endianness(const std::string& strFilename,
   }
   WrongEndianData.Close();
   ConvertedEndianData.Close();
+  MESSAGE("Wrote %" PRIu64 " of %" PRIu64 " bytes.", bytes_converted, nbytes);
 
   return tmp_file;
 }
@@ -472,6 +482,9 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
     return false;
   }
 
+  MESSAGE("volume: %" PRIu64 "x%" PRIu64 "x%" PRIu64, vVolumeSize[0],
+          vVolumeSize[1], vVolumeSize[2]);
+
   if(!(vVolumeSize.volume() > 0)) {
     T_ERROR("Data must be volumetric."); return false;
   }
@@ -492,8 +505,8 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
     size_t core_size = static_cast<size_t>(iTargetBrickSize*iTargetBrickSize*
                                            iTargetBrickSize * iComponentSize/8);
     string tmpEndianConvertedFile =
-      convert_endianness(strFilename, strTempDir, iHeaderSkip, iComponentSize,
-                         core_size);
+      convert_endianness(strFilename, strTempDir, iHeaderSkip, vVolumeSize,
+                         iComponentSize, core_size);
     iHeaderSkip = 0;  // the new file is straight raw without any header
     MESSAGE("temporary source data; no header skip.");
     sourceData = std::shared_ptr<LargeRAWFile>(
