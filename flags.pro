@@ -43,10 +43,10 @@
 	QMAKE_LFLAGS += -fopenmp
 }
 
-macx:QMAKE_CXXFLAGS += -stdlib=libc++ -mmacosx-version-min=10.9
-macx:QMAKE_CFLAGS += -mmacosx-version-min=10.9
-macx:LIBS += -stdlib=libc++ -framework CoreFoundation
-macx:LIBS += -mmacosx-version-min=10.9
+mac*:QMAKE_CXXFLAGS += -stdlib=libc++ -mmacosx-version-min=10.9
+mac*:QMAKE_CFLAGS += -mmacosx-version-min=10.9
+mac*:QMAKE_LFLAGS += -stdlib=libc++ -mmacosx-version-min=10.9
+mac*:LIBS += -framework CoreFoundation
 linux*|mac*:DEFINES += LUA_USE_MKSTEMP
 
 linux*:DEFINES += DETECTED_OS_LINUX

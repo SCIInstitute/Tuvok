@@ -13,9 +13,6 @@ QMAKE_LIBDIR += ../../IO/expressions
 QMAKE_LIBS             = -lTuvok -ltuvokexpr
 linux*:QMAKE_LIBS += -lz
 win32:QMAKE_LIBS      += shlwapi.lib
-macx:QMAKE_LIBS       += -stdlib=libc++
-macx:QMAKE_LIBS       += -mmacosx-version-min=10.7
-macx:QMAKE_LIBS       += -framework CoreFoundation
 linux*:QMAKE_LIBS += -lGL -lGLU
 include(../../flags.pro)
 

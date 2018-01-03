@@ -17,8 +17,6 @@ LIBS             += -lTuvok -ltuvokexpr -lz
 
 include(../../flags.pro)
 
-macx:LIBS        += -stdlib=libc++ -framework CoreFoundation -mmacosx-version-min=10.7
-
 ### Should we link Qt statically or as a shared lib?
 # Find the location of QtCore's prl file, and include it here so we can look at
 # the QMAKE_PRL_CONFIG variable.

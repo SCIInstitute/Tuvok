@@ -25,10 +25,6 @@ linux*:LIBS += -lz -lpthread
 win32:LIBS       += shlwapi.lib
 include(flags.pro)
 
-macx:QMAKE_CXXFLAGS += -stdlib=libc++ -mmacosx-version-min=10.7
-macx:QMAKE_CFLAGS += -mmacosx-version-min=10.7
-macx:LIBS        += -stdlib=libc++ -framework CoreFoundation -mmacosx-version-min=10.7
-
 # Find the location of QtGui's prl file, and include it here so we can look at
 # the QMAKE_PRL_CONFIG variable.
 TEMP = $$[QT_INSTALL_LIBS] libQtGui.prl
