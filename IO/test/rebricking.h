@@ -39,7 +39,14 @@ std::shared_ptr<UVFDataset> mk8x8testdata() {
   const char* outfn = "out.uvf"; ///< @todo fixme use a real temp filename
   mk8x8("abc"); ///< @todo fixme use a real temporary file
   mk_uvf("abc", outfn);
-  std::shared_ptr<UVFDataset> ds(new UVFDataset(outfn, 128, false));
+  std::shared_ptr<UVFDataset> ds(new UVFDataset(outfn, 128, false),
+    [outfn](UVFDataset* uvf) {
+      // Makes sure that the file gets deleted when this object goes away.
+      delete uvf;
+      remove("abc");
+      remove(outfn);
+    }
+  );
   return ds;
 }
 
