@@ -27,14 +27,14 @@
 	LIBS += -lGLU
 	# Try to link to GLU statically when we are a static bin.  This is the case
 	# for our binaries; distros probably want to make us shared, though.
-  static {
+	static {
 		gludirs = /usr/lib /usr/lib/x86_64-linux-gnu
 		for(d, gludirs) {
 			if(exists($${d}/libGLU.a)) {
 				LIBS += $${d}/libGLU.a
 			}
 		}
-  }
+	}
 }
 
 *g++* {
