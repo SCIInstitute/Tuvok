@@ -45,8 +45,8 @@ SOURCES += \
   ../context.cpp \
   empty.cpp
 
-unix:!macx { SOURCES += ../glx-context.cpp }
-macx { SOURCES += ../cgl-context.cpp ../agl-context.cpp }
+linux* { SOURCES += ../glx-context.cpp }
+mac* { SOURCES += ../cgl-context.cpp ../agl-context.cpp }
 win32 { SOURCES += ../wgl-context.cpp }
 
 HEADERS += \
