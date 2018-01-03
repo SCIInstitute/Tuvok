@@ -44,6 +44,12 @@
 	QMAKE_LFLAGS += -fopenmp
 }
 
+# Explicitly set Mac deployment target.  The mkspec has some logic to set this
+# internally, but it seems to be failing on Travis so let's just be explicit.
+mac* {
+  QMAKE_MACOSX_DEPLOYMENT_TARGET=10.9
+}
+
 mac*:QMAKE_CXXFLAGS += -stdlib=libc++ -mmacosx-version-min=10.9
 mac*:QMAKE_CFLAGS += -mmacosx-version-min=10.9
 mac*:QMAKE_LFLAGS += -stdlib=libc++ -mmacosx-version-min=10.9
