@@ -1,7 +1,6 @@
-*g++* {
+*g++*|*clang* {
 	flags =
 	flags += -fno-strict-aliasing
-	flags += -fopenmp
 	flags += -fPIC
 	flags += -Wall
 	flags += -Wextra
@@ -21,7 +20,6 @@
 	}
 	# not acceptable for C, just specify for C++ manually.
 	QMAKE_CXXFLAGS += -fvisibility-inlines-hidden
-	QMAKE_LFLAGS += -fopenmp
 	LIBS += -lGLU
 	# Try to link to GLU statically when we are a static bin.  This is the case
 	# for our binaries; distros probably want to make us shared, though.
@@ -34,6 +32,13 @@
 		}
   }
 }
+
+*g++* {
+	QMAKE_CXXFLAGS += -fopenmp
+	QMAKE_CFLAGS += -fopenmp
+	QMAKE_LFLAGS += -fopenmp
+}
+
 macx:QMAKE_CXXFLAGS += -stdlib=libc++ -mmacosx-version-min=10.11
 macx:QMAKE_CFLAGS += -mmacosx-version-min=10.11
 macx:LIBS += -stdlib=libc++ -framework CoreFoundation
