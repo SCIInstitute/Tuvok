@@ -6,7 +6,6 @@
 	flags += -Wextra
 	flags += -fstack-protector
 	flags += -fvisibility=hidden
-	flags += -fmax-errors=5
 	for(flag, flags) {
 		QMAKE_CXXFLAGS += $${flag}
 		QMAKE_CFLAGS += $${flag}
@@ -39,7 +38,9 @@
 
 *g++* {
 	QMAKE_CXXFLAGS += -fopenmp
+  QMAKE_CXXFLAGS += -fmax-errors=5
 	QMAKE_CFLAGS += -fopenmp
+  QMAKE_CFLAGS += -fmax-errors=5
 	QMAKE_LFLAGS += -fopenmp
 }
 
