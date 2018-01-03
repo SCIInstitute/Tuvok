@@ -6,7 +6,7 @@
 	flags += -Wextra
 	flags += -fstack-protector
 	flags += -fvisibility=hidden
-  flags += -fmax-errors=5
+	flags += -fmax-errors=5
 	for(flag, flags) {
 		QMAKE_CXXFLAGS += $${flag}
 		QMAKE_CFLAGS += $${flag}
