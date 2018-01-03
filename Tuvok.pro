@@ -1,7 +1,7 @@
 TEMPLATE          = lib
 win32:TEMPLATE    = vclib
-CONFIG           += warn_on qt rtti static staticlib stl largefile
-CONFIG           += exceptions
+CONFIG           += c++11 exceptions largefile qt rtti static staticlib stl
+CONFIG           += warn_on
 macx:DEFINES     += QT_MAC_USE_COCOA=1 LUA_USE_MACOSX=1
 DEFINES          += _FILE_OFFSET_BITS=64
 TARGET            = Build/Tuvok
@@ -21,26 +21,13 @@ INCLUDEPATH      += Basics IO/exception
 QT               += opengl
 QMAKE_LIBDIR     += IO/expressions
 LIBS              = -ltuvokexpr
-unix:LIBS        += -lz -lpthread
+linux*:LIBS += -lz -lpthread
 win32:LIBS       += shlwapi.lib
-unix:QMAKE_CXXFLAGS += -std=c++0x
-unix:QMAKE_CXXFLAGS += -fno-strict-aliasing
-unix:QMAKE_CFLAGS += -fno-strict-aliasing
-!macx:unix:QMAKE_CXXFLAGS += -fopenmp
-!macx:unix:QMAKE_LFLAGS += -fopenmp -bullshit-link-flag
-!macx:unix:LIBS  += -lGLU
+include(flags.pro)
 
 macx:QMAKE_CXXFLAGS += -stdlib=libc++ -mmacosx-version-min=10.7
 macx:QMAKE_CFLAGS += -mmacosx-version-min=10.7
 macx:LIBS        += -stdlib=libc++ -framework CoreFoundation -mmacosx-version-min=10.7
-# Try to link to GLU statically.
-gludirs = /usr/lib /usr/lib/x86_64-linux-gnu
-for(d, gludirs) {
-  if(exists($${d}/libGLU.a) && static) {
-    LIBS -= -lGLU;
-    LIBS += $${d}/libGLU.a
-  }
-}
 
 # Find the location of QtGui's prl file, and include it here so we can look at
 # the QMAKE_PRL_CONFIG variable.
@@ -302,7 +289,7 @@ HEADERS += \
            Renderer/writebrick.h \
            StdTuvokDefines.h
 
-unix:HEADERS += \
+linux*:HEADERS += \
   Basics/LargeFileAIO.h \
   Basics/LargeFileFD.h \
   Basics/LargeFileMMap.h
@@ -598,7 +585,7 @@ SOURCES += \
            Renderer/TFScaling.cpp \
            Renderer/VisibilityState.cpp
 
-unix:SOURCES += \
+linux*:SOURCES += \
   Basics/LargeFileAIO.cpp \
   Basics/LargeFileFD.cpp \
   Basics/LargeFileMMap.cpp \

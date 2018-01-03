@@ -1,19 +1,19 @@
-/* A Bison parser, made by GNU Bison 2.5.  */
+/* A Bison parser, made by GNU Bison 3.0.4.  */
 
 /* Skeleton interface for Bison GLR parsers in C
-   
-      Copyright (C) 2002-2011 Free Software Foundation, Inc.
-   
+
+   Copyright (C) 2002-2015 Free Software Foundation, Inc.
+
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version.
-   
+
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
-   
+
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
@@ -26,75 +26,80 @@
    special exception, which will cause the skeleton and the resulting
    Bison output files to be licensed under the GNU General Public
    License without this special exception.
-   
+
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
-
-/* Tokens.  */
-#ifndef YYTOKENTYPE
-# define YYTOKENTYPE
-   /* Put the tokens into the symbol table, so that GDB and other debuggers
-      know about them.  */
-   enum yytokentype {
-     INTEGER = 258,
-     DOUBLE = 259,
-     VOLUME = 260,
-     OPEN_BRACKET = 261,
-     CLOSE_BRACKET = 262,
-     OPEN_PAREN = 263,
-     CLOSE_PAREN = 264,
-     QUESTION_MARK = 265,
-     COLON = 266,
-     BAD = 267,
-     EQUAL_TO = 268,
-     LESS_THAN = 269,
-     GREATER_THAN = 270,
-     MULTIPLY = 271,
-     DIVIDE = 272,
-     MINUS = 273,
-     PLUS = 274
-   };
+#ifndef YY_YY_TVK_PARSE_PARSER_HPP_INCLUDED
+# define YY_YY_TVK_PARSE_PARSER_HPP_INCLUDED
+/* Debug traces.  */
+#ifndef YYDEBUG
+# define YYDEBUG 0
+#endif
+#if YYDEBUG
+extern int yydebug;
 #endif
 
+/* Token type.  */
+#ifndef YYTOKENTYPE
+# define YYTOKENTYPE
+  enum yytokentype
+  {
+    INTEGER = 258,
+    DOUBLE = 259,
+    VOLUME = 260,
+    OPEN_BRACKET = 261,
+    CLOSE_BRACKET = 262,
+    OPEN_PAREN = 263,
+    CLOSE_PAREN = 264,
+    QUESTION_MARK = 265,
+    COLON = 266,
+    BAD = 267,
+    PLUS = 268,
+    MINUS = 269,
+    DIVIDE = 270,
+    MULTIPLY = 271,
+    GREATER_THAN = 272,
+    LESS_THAN = 273,
+    EQUAL_TO = 274
+  };
+#endif
 
-#ifndef YYSTYPE
-typedef union YYSTYPE
+/* Value type.  */
+#if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
+
+union YYSTYPE
 {
-
-/* Line 2663 of glr.c  */
-#line 53 "tvk-parse.ypp"
+#line 52 "tvk-parse.ypp" /* glr.c:197  */
 
   double y_dbl;
   tuvok::expression::Node* y_tree;
   enum tuvok::expression::OpType y_otype;
 
+#line 80 "./tvk-parse.parser.hpp" /* glr.c:197  */
+};
 
-
-/* Line 2663 of glr.c  */
-#line 76 "./tvk-parse.parser.hpp"
-} YYSTYPE;
+typedef union YYSTYPE YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
+# define YYSTYPE_IS_DECLARED 1
 #endif
 
+/* Location type.  */
 #if ! defined YYLTYPE && ! defined YYLTYPE_IS_DECLARED
-typedef struct YYLTYPE
+typedef struct YYLTYPE YYLTYPE;
+struct YYLTYPE
 {
-
   int first_line;
   int first_column;
   int last_line;
   int last_column;
-
-} YYLTYPE;
+};
 # define YYLTYPE_IS_DECLARED 1
 # define YYLTYPE_IS_TRIVIAL 1
 #endif
 
 
 
+int yyparse (void);
 
-
-
-
-
+#endif /* !YY_YY_TVK_PARSE_PARSER_HPP_INCLUDED  */

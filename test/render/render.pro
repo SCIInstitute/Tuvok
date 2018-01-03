@@ -1,5 +1,6 @@
 TEMPLATE          = app
-CONFIG           += exceptions qt rtti staticlib static stl warn_on
+CONFIG           += c++11 exceptions qt rtti staticlib static stl warn_on
+linux*:CONFIG    += x11
 TARGET            = tuvok
 p                 = . ../ ../../
 p                += ../../Basics/3rdParty
@@ -15,20 +16,7 @@ QT               += opengl
 LIBS             += -lTuvok -ltuvokexpr -lz
 unix:LIBS        += -lGL -lX11
 unix:!macx:LIBS  += -lGLU
-# Try to link to GLU statically.
-gludirs = /usr/lib /usr/lib/x86_64-linux-gnu
-for(d, gludirs) {
-  if(exists($${d}/libGLU.a) && static) {
-    LIBS -= -lGLU;
-    LIBS += $${d}/libGLU.a
-  }
-}
-unix:QMAKE_CXXFLAGS += -std=c++0x
-unix:QMAKE_CXXFLAGS += -fno-strict-aliasing -g
-unix:QMAKE_CFLAGS += -fno-strict-aliasing -g
-macx:QMAKE_CXXFLAGS += -stdlib=libc++ -mmacosx-version-min=10.7
-macx:QMAKE_CFLAGS += -mmacosx-version-min=10.7
-macx:LIBS        += -stdlib=libc++ -framework CoreFoundation -mmacosx-version-min=10.7
+include(../../flags.pro)
 
 ### Should we link Qt statically or as a shared lib?
 # Find the location of QtCore's prl file, and include it here so we can look at

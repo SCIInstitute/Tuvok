@@ -1,0 +1,48 @@
+*g++* {
+	flags =
+	flags += -fno-strict-aliasing
+	flags += -fopenmp
+	flags += -fPIC
+	flags += -Wall
+	flags += -Wextra
+	flags += -fstack-protector
+	flags += -fvisibility=hidden
+  flags += -fmax-errors=5
+	for(flag, flags) {
+		QMAKE_CXXFLAGS += $${flag}
+		QMAKE_CFLAGS += $${flag}
+	}
+	debug {
+		DEFINES += _DEBUG
+		DEFINES += _GLIBCXX_CONCEPT_CHECK
+	} else {
+		flags += -O3
+		flags += -U_DEBUG
+	}
+	# not acceptable for C, just specify for C++ manually.
+	QMAKE_CXXFLAGS += -fvisibility-inlines-hidden
+	QMAKE_LFLAGS += -fopenmp
+	LIBS += -lGLU
+	# Try to link to GLU statically when we are a static bin.  This is the case
+	# for our binaries; distros probably want to make us shared, though.
+  static {
+		gludirs = /usr/lib /usr/lib/x86_64-linux-gnu
+		for(d, gludirs) {
+			if(exists($${d}/libGLU.a)) {
+				LIBS += $${d}/libGLU.a
+			}
+		}
+  }
+}
+macx:QMAKE_CXXFLAGS += -stdlib=libc++ -mmacosx-version-min=10.11
+macx:QMAKE_CFLAGS += -mmacosx-version-min=10.11
+macx:LIBS += -stdlib=libc++ -framework CoreFoundation
+macx:LIBS += -mmacosx-version-min=10.11
+linux*|macx:DEFINES += LUA_USE_MKSTEMP
+
+linux*:DEFINES += DETECTED_OS_LINUX
+mac*:DEFINES += DETECTED_OS_APPLE
+win*:DEFINES += DETECTED_OS_WINDOWS
+
+# We only use OpenMP on Linux, and don't want to cause complaints on other OSs.
+QMAKE_CXXFLAGS_WARN_ON += -Wno-unknown-pragmas

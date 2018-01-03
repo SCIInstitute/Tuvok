@@ -159,4 +159,3 @@ class FrameCapture {
   };
 };
 #endif // FRAMECAPTURE_H
-
