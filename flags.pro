@@ -14,9 +14,13 @@
 	debug {
 		DEFINES += _DEBUG
 		DEFINES += _GLIBCXX_CONCEPT_CHECK
+		DEFINES += _GLIBCXX_DEBUG
 	} else {
-		flags += -O3
-		flags += -U_DEBUG
+		QMAKE_CXXFLAGS += -O3
+		QMAKE_CXXFLAGS += -U_DEBUG
+		QMAKE_CFLAGS += -O3
+		QMAKE_CFLAGS += -U_DEBUG
+		DEFINES += NDEBUG
 	}
 	# not acceptable for C, just specify for C++ manually.
 	QMAKE_CXXFLAGS += -fvisibility-inlines-hidden
