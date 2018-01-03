@@ -17,8 +17,6 @@ macx:QMAKE_LIBS       += -stdlib=libc++
 macx:QMAKE_LIBS       += -mmacosx-version-min=10.7
 macx:QMAKE_LIBS       += -framework CoreFoundation
 linux*:QMAKE_LIBS += -lGL -lGLU
-# don't complain about not understanding OpenMP pragmas.
-QMAKE_CXXFLAGS      += -Wno-unknown-pragmas
 include(../../flags.pro)
 
 SOURCES = \
