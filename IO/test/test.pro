@@ -10,22 +10,11 @@ INCLUDEPATH      += ../../Basics
 QT               += core gui opengl
 QMAKE_LIBDIR     += ../../Build ../expressions
 LIBS             += -lTuvok -ltuvokexpr
-unix:LIBS        += -lz
-unix:!macx:LIBS  += -lrt -lGLU -lGL
+linux*|mac*:LIBS += -lz
+linux*:LIBS      += -lrt
 win32:LIBS       += shlwapi.lib
-unix:!macx:QMAKE_CXXFLAGS += -fopenmp
-unix:!macx:QMAKE_LFLAGS += -fopenmp
-unix:QMAKE_CXXFLAGS += -fno-strict-aliasing -fPIC
-unix:QMAKE_CFLAGS += -fno-strict-aliasing -fPIC
-unix:CONFIG(debug, debug|release) {
-  QMAKE_CFLAGS += -D_GLIBCXX_DEBUG
-  QMAKE_CXXFLAGS += -D_GLIBCXX_DEBUG
-  !macx LIBS += -lGLU
-}
 
-macx:QMAKE_CXXFLAGS += -stdlib=libc++ -mmacosx-version-min=10.7
-macx:QMAKE_CFLAGS += -mmacosx-version-min=10.7
-macx:LIBS        += -stdlib=libc++ -mmacosx-version-min=10.7 -framework CoreFoundation
+include(../../flags.pro)
 
 ### Should we link Qt statically or as a shared lib?
 # Find the location of QtGui's prl file, and include it here so we can look at
