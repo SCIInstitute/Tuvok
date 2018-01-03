@@ -47,7 +47,7 @@ macx:QMAKE_CXXFLAGS += -stdlib=libc++ -mmacosx-version-min=10.11
 macx:QMAKE_CFLAGS += -mmacosx-version-min=10.11
 macx:LIBS += -stdlib=libc++ -framework CoreFoundation
 macx:LIBS += -mmacosx-version-min=10.11
-linux*|macx:DEFINES += LUA_USE_MKSTEMP
+linux*|mac*:DEFINES += LUA_USE_MKSTEMP
 
 linux*:DEFINES += DETECTED_OS_LINUX
 mac*:DEFINES += DETECTED_OS_APPLE
