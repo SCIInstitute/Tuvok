@@ -46,11 +46,14 @@
 
 # Explicitly set Mac deployment target.  The mkspec has some logic to set this
 # internally, but it seems to be failing on Travis so let's just be explicit.
-QMAKE_MACOSX_DEPLOYMENT_TARGET=10.9
+QMAKE_MACOSX_DEPLOYMENT_TARGET=10.12
+# ... still not enough for Qt 5.10.  Seems "macos" is undefined there, causing
+# an issue in features/mac/default_post.pro on line 151, notably the
+# deployment_target variable is never set.  Let's provide a default.
+deployment_target=10.12
 
-mac*:QMAKE_CXXFLAGS += -stdlib=libc++ -mmacosx-version-min=10.9
-mac*:QMAKE_CFLAGS += -mmacosx-version-min=10.9
-mac*:QMAKE_LFLAGS += -stdlib=libc++ -mmacosx-version-min=10.9
+mac*:QMAKE_CXXFLAGS += -stdlib=libc++
+mac*:QMAKE_LFLAGS += -stdlib=libc++
 mac*:LIBS += -framework CoreFoundation
 linux*|mac*:DEFINES += LUA_USE_MKSTEMP
 
