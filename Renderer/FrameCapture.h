@@ -47,7 +47,7 @@
 #include "IO/TTIFFWriter/TTIFFWriter.h"
 
 #ifndef TUVOK_NO_QT
-# include <QtGui/QImage>
+# include <QImage>
 #endif
 
 

@@ -45,7 +45,7 @@
 #include "GPUMemMan.h"
 
 #ifndef TUVOK_NO_QT
-# include <QtGui/QImage>
+# include <QImage>
 # include <QtOpenGL/QGLWidget>
 #endif
 

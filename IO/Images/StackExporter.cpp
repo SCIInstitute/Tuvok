@@ -36,8 +36,8 @@
 #include <memory>
 
 #ifndef TUVOK_NO_QT
- #include <QtGui/QImage>
- #include <QtGui/QImageWriter>
+ #include <QImage>
+ #include <QImageWriter>
 #endif
 
 #include "StackExporter.h"

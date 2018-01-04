@@ -37,8 +37,8 @@
 
 #include "ImageParser.h"
 #ifndef TUVOK_NO_QT
-# include <QtGui/QImage>
-# include <QtGui/QColor>
+# include <QImage>
+# include <QColor>
 #endif
 #include <Basics/SysTools.h>
 #include <Controller/Controller.h>

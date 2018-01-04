@@ -51,8 +51,8 @@
 typedef void* QImage;
 typedef void* QPainter;
 #else
-# include <QtGui/QImage>
-# include <QtGui/QPainter>
+# include <QImage>
+# include <QPainter>
 #endif
 
 #include "Basics/Vectors.h"
