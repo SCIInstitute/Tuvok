@@ -8,7 +8,9 @@ TARGET            = tuvokexpr
 DEPENDPATH       += . ../../Basics ../
 INCLUDEPATH      += ../../ ../../Basics ../ ../3rdParty/boost
 include(../../flags.pro)
+# Generated flex/bison code isn't very diligent in regards to sign.
 *g++*:QMAKE_CXXFLAGS += -Wno-error=sign-compare
+QMAKE_MACOSX_DEPLOYMENT_TARGET=10.9
 
 include(flex.pri)
 include(bison.pri)
