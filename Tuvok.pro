@@ -38,11 +38,6 @@ exists($$PRL) {
   include($$PRL)
 }
 
-mac* {
-  QMAKE_CXXFLAGS += -framework QtGui
-  QMAKE_LFLAGS += -framework QtGui
-}
-
 ### Should we link Qt statically or as a shared lib?
 # If the PRL config contains the `shared' configuration, then the installed
 # Qt is shared.  In that case, disable the image plugins.
