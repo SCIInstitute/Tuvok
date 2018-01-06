@@ -1059,9 +1059,12 @@ namespace SysTools {
     path = std::string( tempPath.begin(), tempPath.begin() + static_cast<std::size_t>(result)  );
     return true;
   #else
-    char * pointer;
-    pointer = tmpnam(NULL);
-    path = GetPath(std::string( pointer ));
+    const char* tmp = getenv("TMPDIR");
+    if(NULL == tmp) {
+      path = std::string("/tmp");
+    } else {
+      path = std::string(tmp);
+    }
     return true;
   #endif
   }
@@ -1077,7 +1080,7 @@ namespace SysTools {
       path = std::wstring( tempPath.begin(), tempPath.begin() + static_cast<std::size_t>(result)  );
       return true;
   #else
-      // too lazy to find the unicode version for linux and mac
+      /// @todo unicode version for linux/mac
       std::string astrPath;
       if (!GetTempDirectory(astrPath)) return false;
       path = std::wstring( astrPath.begin(), astrPath.end());
