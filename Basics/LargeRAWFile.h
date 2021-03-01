@@ -169,6 +169,7 @@ typedef std::shared_ptr<LargeRAWFile> LargeRAWFile_ptr;
 class TempFile : public LargeRAWFile {
 public:
   TempFile(const std::string& filename) : LargeRAWFile(filename, 0) {}
+  TempFile(const std::wstring& filename) : LargeRAWFile(filename, 0) {}
   virtual ~TempFile() {
     Close();
     Delete();

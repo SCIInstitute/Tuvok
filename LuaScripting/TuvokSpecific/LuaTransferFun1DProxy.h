@@ -60,10 +60,10 @@ public:
 private:
 
   /// Auxiliary functions
-  bool proxyLoadWithFilenameAndSize(const std::string& file, size_t size);
+  bool proxyLoadWithFilenameAndSize(const std::wstring& file, size_t size);
   void proxySetStdFunction(float centerPoint, float invGradient, 
                            int component, bool invertedStep);
-  bool proxySave(const std::string& filename) const;
+  bool proxySave(const std::wstring& filename) const;
 
   /// Class registration we received from defineLuaInterface.
   /// @todo Change to unique pointer.

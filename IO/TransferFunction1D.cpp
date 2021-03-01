@@ -41,6 +41,7 @@
 #include <memory.h>
 #include <sstream>
 #include "Basics/MathTools.h"
+#include "Basics/SysTools.h"
 #include "Controller/Controller.h"
 #include "TransferFunction1D.h"
 
@@ -53,7 +54,7 @@ TransferFunction1D::TransferFunction1D(size_t iSize) :
   Resize(iSize);
 }
 
-TransferFunction1D::TransferFunction1D(const std::string& filename) :
+TransferFunction1D::TransferFunction1D(const std::wstring& filename) :
   m_pvColorData(new vector<FLOATVECTOR4>())
 {
   Load(filename);
@@ -237,9 +238,9 @@ void TransferFunction1D::Resample(size_t iTargetSize) {
   ComputeNonZeroLimits();
 }
 
-bool TransferFunction1D::Load(const std::string& filename, size_t iTargetSize) {
+bool TransferFunction1D::Load(const std::wstring& filename, size_t iTargetSize) {
   if (!Load(filename)) {
-    T_ERROR("Load from %s failed", filename.c_str());
+    T_ERROR("Load from %s failed", SysTools::toNarrow(filename).c_str());
     return false;
   } else {
     Resample(iTargetSize);
@@ -248,10 +249,10 @@ bool TransferFunction1D::Load(const std::string& filename, size_t iTargetSize) {
 }
 
 
-bool TransferFunction1D::Load(const std::string& filename) {
-  ifstream file(filename.c_str());
+bool TransferFunction1D::Load(const std::wstring& filename) {
+  ifstream file(SysTools::toNarrow(filename).c_str());
   if (!Load(file)) {
-    T_ERROR("Load of '%s' failed.", filename.c_str());
+    T_ERROR("Load of '%s' failed.", SysTools::toNarrow(filename).c_str());
     return false;
   }
   file.close();
@@ -269,8 +270,8 @@ bool TransferFunction1D::Load(std::istream& tf, size_t iTargetSize) {
   }
 }
 
-bool TransferFunction1D::Save(const std::string& filename) const {
-  ofstream file(filename.c_str());
+bool TransferFunction1D::Save(const std::wstring& filename) const {
+  ofstream file(SysTools::toNarrow(filename).c_str());
   if (!Save(file)) return false;
   file.close();
   return true;

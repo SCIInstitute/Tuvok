@@ -171,17 +171,17 @@ bool GLRenderer::Initialize(std::shared_ptr<Context> ctx) {
   // Try to guess filenames for a transfer functions.  We guess based on the
   // filename of the dataset, but it could be the case that our client gave us
   // an in-memory dataset.
-  std::string strPotential1DTransName;
-  std::string strPotential2DTransName;
+  std::wstring strPotential1DTransName;
+  std::wstring strPotential2DTransName;
   try {
     FileBackedDataset& ds = dynamic_cast<FileBackedDataset&>(*m_pDataset);
-    strPotential1DTransName = SysTools::ChangeExt(ds.Filename(), "1dt");
-    strPotential2DTransName = SysTools::ChangeExt(ds.Filename(), "2dt");
+    strPotential1DTransName = SysTools::ChangeExt(ds.Filename(), L"1dt");
+    strPotential2DTransName = SysTools::ChangeExt(ds.Filename(), L"2dt");
   } catch(std::bad_cast) {
     // Will happen when we don't have a file-backed dataset; just disable the
     // filename-guessing / automatic TF loading feature.
-    strPotential1DTransName = "";
-    strPotential2DTransName = "";
+    strPotential1DTransName = L"";
+    strPotential2DTransName = L"";
   }
 
   GPUMemMan &mm = *(Controller::Instance().MemMan());
@@ -261,22 +261,22 @@ bool GLRenderer::Initialize(std::shared_ptr<Context> ctx) {
   return true;
 }
 
-bool GLRenderer::LoadShaders(const string& volumeAccessFunction,
+bool GLRenderer::LoadShaders(const wstring& volumeAccessFunction,
                              bool bBindVolume) {
-  std::string tfqn = m_pDataset
+  std::wstring tfqn = m_pDataset
                      ? this->ColorData()
-                        ? "VRender1D-Color"
-                        : "VRender1D"
-                     : "VRender1D";
-  const std::string tfqnLit = m_pDataset
+                        ? L"VRender1D-Color"
+                        : L"VRender1D"
+                     : L"VRender1D";
+  const std::wstring tfqnLit = m_pDataset
                            ? this->ColorData()
-                              ? "VRender1DLit-Color.glsl"
-                              : "VRender1DLit.glsl"
-                           : "VRender1DLit.glsl";
-  const std::string bias = tfqn + "-BScale.glsl";
-  tfqn += ".glsl";
+                              ? L"VRender1DLit-Color.glsl"
+                              : L"VRender1DLit.glsl"
+                           : L"VRender1DLit.glsl";
+  const std::wstring bias = tfqn + L"-BScale.glsl";
+  tfqn += L".glsl";
 
-  MESSAGE("Loading '%s' volume rendering shader...", tfqn.c_str());
+  MESSAGE("Loading '%s' volume rendering shader...", SysTools::toNarrow(tfqn).c_str());
 
   // we want to call 'MemMan::GetGLSLProgram' repeatedly, always using the same
   // memory manager (duh), and always using the same context ID.
@@ -288,79 +288,81 @@ bool GLRenderer::LoadShaders(const string& volumeAccessFunction,
               m_pContext->GetShareGroupID());
 
   m_pProgramTrans = program(ShaderDescriptor::Create(m_vShaderSearchDirs,
-    "Transfer-VS.glsl", NULL,
-    "Transfer-FS.glsl", NULL)
+    L"Transfer-VS.glsl", NULL,
+    L"Transfer-FS.glsl", NULL)
   );
   m_pProgram1DTransSlice = program(ShaderDescriptor::Create(m_vShaderSearchDirs,
-    "Transfer-VS.glsl", NULL,
-    tfqn.c_str(), bias.c_str(), "lighting.glsl", "VRender1DProxy.glsl",
-    "1D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL)
+    L"Transfer-VS.glsl", NULL,
+    tfqn.c_str(), bias.c_str(), L"lighting.glsl", L"VRender1DProxy.glsl",
+    L"1D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL)
   );
   m_pProgram2DTransSlice = program(ShaderDescriptor::Create(m_vShaderSearchDirs,
-    "Transfer-VS.glsl", NULL,
-    "2D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL)
+    L"Transfer-VS.glsl", NULL,
+    L"2D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL)
   );
   m_pProgramMIPSlice = program(ShaderDescriptor::Create(m_vShaderSearchDirs,
-    "Transfer-VS.glsl", NULL,
-    "MIP-slice-FS.glsl", volumeAccessFunction.c_str(), NULL)
+    L"Transfer-VS.glsl", NULL,
+    L"MIP-slice-FS.glsl", volumeAccessFunction.c_str(), NULL)
   );
   m_pProgram1DTransSlice3D = program(ShaderDescriptor::Create(
     m_vShaderSearchDirs,
-    "SlicesIn3D.glsl", NULL,
-    tfqn.c_str(), bias.c_str(), "lighting.glsl", "VRender1DProxy.glsl",
-    "1D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL)
+    L"SlicesIn3D.glsl", NULL,
+    tfqn.c_str(), bias.c_str(), 
+    L"lighting.glsl", L"VRender1DProxy.glsl",
+    L"1D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL)
   );
   m_pProgram2DTransSlice3D = program(ShaderDescriptor::Create(
     m_vShaderSearchDirs,
-    "SlicesIn3D.glsl", NULL,
-    "2D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL)
+    L"SlicesIn3D.glsl", NULL,
+    L"2D-slice-FS.glsl", 
+    volumeAccessFunction.c_str(), NULL)
   );
   m_pProgramTransMIP = program(ShaderDescriptor::Create(m_vShaderSearchDirs,
-    "Transfer-VS.glsl", NULL,
-    "Transfer-MIP-FS.glsl", NULL)
+    L"Transfer-VS.glsl", NULL,
+    L"Transfer-MIP-FS.glsl", NULL)
   );
   m_pProgramIsoCompose = program(ShaderDescriptor::Create(m_vShaderSearchDirs,
-    "Transfer-VS.glsl", NULL,
-    "Compose-FS.glsl", NULL)
+    L"Transfer-VS.glsl", NULL,
+    L"Compose-FS.glsl", NULL)
   );
   m_pProgramColorCompose = program(ShaderDescriptor::Create(m_vShaderSearchDirs,
-    "Transfer-VS.glsl", NULL,
-    "Compose-Color-FS.glsl", NULL)
+    L"Transfer-VS.glsl", NULL,
+    L"Compose-Color-FS.glsl", NULL)
   );
   m_pProgramCVCompose = program(ShaderDescriptor::Create(m_vShaderSearchDirs,
-    "Transfer-VS.glsl", NULL,
-    "Compose-CV-FS.glsl", NULL)
+    L"Transfer-VS.glsl", NULL,
+    L"Compose-CV-FS.glsl", NULL)
   );
   m_pProgramComposeAnaglyphs = program(ShaderDescriptor::Create(
     m_vShaderSearchDirs,
-    "Transfer-VS.glsl", NULL,
-    "Compose-Anaglyphs-FS.glsl", NULL)
+    L"Transfer-VS.glsl", NULL,
+    L"Compose-Anaglyphs-FS.glsl", NULL)
   );
   m_pProgramSBSStereo = program(ShaderDescriptor::Create(
     m_vShaderSearchDirs,
-    "Transfer-VS.glsl", NULL,
-    "Compose-SBS-FS.glsl", NULL)
+    L"Transfer-VS.glsl", NULL,
+    L"Compose-SBS-FS.glsl", NULL)
   );
   m_pProgramAFStereo = program(ShaderDescriptor::Create(m_vShaderSearchDirs,
-    "Transfer-VS.glsl", NULL,
-    "Compose-AF-FS.glsl", NULL)
+    L"Transfer-VS.glsl", NULL,
+    L"Compose-AF-FS.glsl", NULL)
   );
   m_pProgramComposeScanlineStereo = program(ShaderDescriptor::Create(
     m_vShaderSearchDirs,
-    "Transfer-VS.glsl", NULL,
-    "Compose-Scanline-FS.glsl", NULL)
+    L"Transfer-VS.glsl", NULL,
+    L"Compose-Scanline-FS.glsl", NULL)
   );
   m_pProgramBBox = program(ShaderDescriptor::Create(m_vShaderSearchDirs,
-    "BBox-VS.glsl", NULL,
-    "BBox-FS.glsl", NULL)
+    L"BBox-VS.glsl", NULL,
+    L"BBox-FS.glsl", NULL)
   );
   m_pProgramMeshFTB = program(ShaderDescriptor::Create(m_vShaderSearchDirs,
-    "Mesh-VS.glsl", NULL,
-    "Mesh-FS.glsl","FTB.glsl","lighting.glsl",NULL)
+    L"Mesh-VS.glsl", NULL,
+    L"Mesh-FS.glsl",L"FTB.glsl",L"lighting.glsl",NULL)
   );
   m_pProgramMeshBTF = program(ShaderDescriptor::Create(m_vShaderSearchDirs,
-    "Mesh-VS.glsl", NULL,
-    "Mesh-FS.glsl","BTF.glsl","lighting.glsl", NULL)
+    L"Mesh-VS.glsl", NULL,
+    L"Mesh-FS.glsl",L"BTF.glsl",L"lighting.glsl", NULL)
   );
 
   m_pProgramTrans->ConnectTextureID("texColor",0);
@@ -491,17 +493,19 @@ void GLRenderer::ClearColorBuffer() const {
 
   if (m_bDoStereoRendering && m_eStereoMode == SM_RB) {
     // render anaglyphs against a black background only
-    glClearColor(0,0,0,0);
+    glClearColor(0,0,0,1);
     glClear(GL_COLOR_BUFFER_BIT);
   } else {
     // if top and bottom colors are the same simply clear ...
     if (m_vBackgroundColors[0] == m_vBackgroundColors[1]) {
       glClearColor(m_vBackgroundColors[0].x,
                    m_vBackgroundColors[0].y,
-                   m_vBackgroundColors[0].z, 0);
+                   m_vBackgroundColors[0].z, 1);
       glClear(GL_COLOR_BUFFER_BIT);
     } else {
       // ... draw a gradient image otherwise
+      glClearColor(0,0,0,1);
+      glClear(GL_COLOR_BUFFER_BIT);
       DrawBackGradient();
     }
   }
@@ -595,15 +599,15 @@ bool GLRenderer::Paint() {
     if (m_pFBOResizeQuickBlit) {
       m_pFBO3DImageLast->Write();
       glViewport(0,0,m_vWinSize.x,m_vWinSize.y);
-  
+
+      glClearColor(0,0,0,1);
+      glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
       m_pContext->GetStateManager()->SetEnableBlend(false);
 
       m_pFBOResizeQuickBlit->Read(0);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
       m_pFBOResizeQuickBlit->ReadDepth(1);
-
-      glClearColor(1,0,0,1);
-      glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
       m_pContext->GetStateManager()->SetEnableDepthTest(false);
       glClearColor(0,0,0,0);
@@ -617,8 +621,11 @@ bool GLRenderer::Paint() {
 
       m_pMasterController->MemMan()->FreeFBO(m_pFBOResizeQuickBlit);
       m_pFBOResizeQuickBlit = NULL;
+
     }
   } else {
+
+
     for (size_t i=0; i < renderRegions.size(); ++i) {
       if (renderRegions[i]->redrawMask) {
         SetRenderTargetArea(*renderRegions[i], this->decreaseScreenResNow);
@@ -657,8 +664,20 @@ bool GLRenderer::Paint() {
       }
       renderRegions[i]->isBlank = false;
     }
+
   }
   EndFrame(justCompletedRegions);
+
+  // make sure the final image is opaque
+  // i.e. clear alpha with "1" as Qt
+  // on some systems (notably mac os)
+  // uses the OpenGL transparency
+  // when compositing the window with the rest
+  // of the screen
+  glClearColor(0,0,0,1);
+  glColorMask(false, false, false, true);
+  glClear(GL_COLOR_BUFFER_BIT);
+  glColorMask(true, true, true, true);
 
   // reset render states
   m_bFirstDrawAfterResize = false;
@@ -686,8 +705,8 @@ void GLRenderer::FullscreenQuadRegions() const {
 }
 
 void GLRenderer::FullscreenQuadRegion(const RenderRegion* region,
-                                      bool decreaseScreenRes) const {
-  const float rescale = decreaseScreenRes ? 1.0f / m_fScreenResDecFactor : 1.0f;
+                                      bool _decreaseScreenRes) const {
+  const float rescale = _decreaseScreenRes ? 1.0f / m_fScreenResDecFactor : 1.0f;
 
   FLOATVECTOR2 minCoord(region->minCoord);
   FLOATVECTOR2 maxCoord(region->maxCoord);
@@ -779,6 +798,7 @@ void GLRenderer::EndFrame(const vector<char>& justCompletedRegions) {
         }
 
         m_TargetBinder.Bind(m_pFBO3DImageLast);
+        glClearColor(0,0,0,0);
         glClear(GL_COLOR_BUFFER_BIT);
 
         switch (m_eStereoMode) {
@@ -1355,7 +1375,6 @@ void GLRenderer::NewFrameClear(const RenderRegion& renderRegion) {
       GL(glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT));
     }
   }
-
   m_TargetBinder.Unbind();
 }
 
@@ -1538,6 +1557,7 @@ bool GLRenderer::Execute3DFrame(RenderRegion3D& renderRegion,
 
 void GLRenderer::CopyImageToDisplayBuffer() {
   GL(glViewport(0,0,m_vWinSize.x,m_vWinSize.y));
+
   if (m_bClearFramebuffer) ClearColorBuffer();
 
   GPUState localState = m_BaseState;
@@ -1675,7 +1695,7 @@ void GLRenderer::DrawBackGradient() const {
   glPopMatrix();
 }
 
-bool GLRenderer::CaptureSingleFrame(const std::string& strFilename,
+bool GLRenderer::CaptureSingleFrame(const std::wstring& strFilename,
                                     bool bPreserveTransparency) const {
   return m_FrameCapture.CaptureSingleFrame(strFilename, 
                                            GetLastFBO(),
@@ -1936,11 +1956,11 @@ void GLRenderer::SetBlendPrecision(EBlendPrecision eBlendPrecision) {
 }
 
 
-std::string GLRenderer::FindFileInDirs(const std::string& file, const std::vector<std::string> strDirs,bool subdirs) const {
+std::wstring GLRenderer::FindFileInDirs(const std::wstring& file, const std::vector<std::wstring> strDirs,bool subdirs) const {
 #ifdef DETECTED_OS_APPLE
   if (SysTools::FileExists(SysTools::GetFromResourceOnMac(file))) {
-    std::string res = SysTools::GetFromResourceOnMac(file);
-    MESSAGE("Found %s in bundle, using that.", file.c_str());
+    std::wstring res = SysTools::GetFromResourceOnMac(file);
+    MESSAGE("Found %s in bundle, using that.", SysTools::toNarrow(file).c_str());
     return res;
   }
 #endif
@@ -1955,30 +1975,30 @@ std::string GLRenderer::FindFileInDirs(const std::string& file, const std::vecto
       continue;
     }
 
-    string searchFile = strDirs[i] + "/" + file ;
-    if (FindFile(searchFile, subdirs) != "") {
+    wstring searchFile = strDirs[i] + L"/" + file ;
+    if (FindFile(searchFile, subdirs) != L"") {
       return searchFile;
     }
   }
-  return "";
+  return L"";
 }
 
 
-std::string GLRenderer::FindFile(const std::string& file, bool subdirs) const
+std::wstring GLRenderer::FindFile(const std::wstring& file, bool subdirs) const
 {
   if(!SysTools::FileExists(file)) {
     
     // if it doesn't exist but we allow subdir search, try harder
     if(subdirs) {
-      std::vector<std::string> dirs = SysTools::GetSubDirList(
+      std::vector<std::wstring> dirs = SysTools::GetSubDirList(
         Controller::ConstInstance().SysInfo().GetProgramPath()
       );
       dirs.push_back(Controller::ConstInstance().SysInfo().GetProgramPath());
 
-      std::string raw_fn = SysTools::GetFilename(file);
-      for(std::vector<std::string>::const_iterator d = dirs.begin();
+      std::wstring raw_fn = SysTools::GetFilename(file);
+      for(std::vector<std::wstring>::const_iterator d = dirs.begin();
           d != dirs.end(); ++d) {
-        std::string testfn = *d + "/" + raw_fn;
+        std::wstring testfn = *d + L"/" + raw_fn;
         if(SysTools::FileExists(testfn)) {
           return testfn;
         }
@@ -1986,7 +2006,7 @@ std::string GLRenderer::FindFile(const std::string& file, bool subdirs) const
     }
 
     WARNING("Could not find '%s'", file.c_str());
-    return "";
+    return L"";
   }
 
   return file;
@@ -2007,31 +2027,31 @@ namespace {
 }
 
 bool GLRenderer::LoadAndVerifyShader(GLSLProgram** program,
-                                     const std::vector<std::string> strDirs,
+                                     const std::vector<std::wstring> strDirs,
                                      ...)
 {
   // first build list of fragment shaders
-  std::vector<std::string> vertex;
-  std::vector<std::string> frag;
+  std::vector<std::wstring> vertex;
+  std::vector<std::wstring> frag;
 
   va_list args;
   va_start(args, strDirs);
   {
-    const char* filename;
+    const wchar_t* filename;
     // We expect two NULLs; the first terminates the vertex shader list, the
     // latter terminates the fragment shader list.
 
-    while(NULL != (filename = va_arg(args, const char*)) ) {
-      std::string shader = FindFileInDirs(std::string(filename), strDirs, false);
-      if(shader == "") {
+    while(NULL != (filename = va_arg(args, const wchar_t*)) ) {
+      std::wstring shader = FindFileInDirs(std::wstring(filename), strDirs, false);
+      if(shader == L"") {
         WARNING("Could not find VS shader '%s'!", filename);
       }
       vertex.push_back(shader);
     }
 
-    while(NULL != (filename = va_arg(args, const char*)) ) {
-      std::string shader = FindFileInDirs(std::string(filename), strDirs, false);
-      if(shader == "") {
+    while(NULL != (filename = va_arg(args, const wchar_t*)) ) {
+      std::wstring shader = FindFileInDirs(std::wstring(filename), strDirs, false);
+      if(shader == L"") {
         WARNING("Could not find FS shader '%s'!", filename);
       } 
       frag.push_back(shader);
@@ -2049,11 +2069,11 @@ bool GLRenderer::LoadAndVerifyShader(GLSLProgram** program,
   return false;
 }
 
-bool GLRenderer::LoadAndVerifyShader(std::vector<std::string> vert,
-                                     std::vector<std::string> frag,
+bool GLRenderer::LoadAndVerifyShader(std::vector<std::wstring> vert,
+                                     std::vector<std::wstring> frag,
                                      GLSLProgram** program) const
 {
-  for(std::vector<std::string>::iterator v = vert.begin(); v != vert.end(); ++v)
+  for(std::vector<std::wstring>::iterator v = vert.begin(); v != vert.end(); ++v)
   {
     *v = FindFile(*v, false);
     if(v->empty()) {
@@ -2061,7 +2081,7 @@ bool GLRenderer::LoadAndVerifyShader(std::vector<std::string> vert,
     }
   }
       
-  for(std::vector<std::string>::iterator f = frag.begin(); f != frag.end();
+  for(std::vector<std::wstring>::iterator f = frag.begin(); f != frag.end();
       ++f) {
     *f = FindFile(*f, false);
     if(f->empty()) {
@@ -2747,7 +2767,7 @@ bool GLRenderer::Render3DView(const RenderRegion3D& renderRegion,
   return true;
 }
 
-void GLRenderer::SetLogoParams(std::string strLogoFilename, int iLogoPos) {
+void GLRenderer::SetLogoParams(const std::wstring& strLogoFilename, int iLogoPos) {
   AbstrRenderer::SetLogoParams(strLogoFilename, iLogoPos);
 
   GPUMemMan &mm = *(m_pMasterController->MemMan());
@@ -2755,7 +2775,7 @@ void GLRenderer::SetLogoParams(std::string strLogoFilename, int iLogoPos) {
     mm.FreeTexture(m_pLogoTex);
     m_pLogoTex =NULL;
   }
-  if (m_strLogoFilename != "")
+  if (m_strLogoFilename != L"")
     m_pLogoTex = mm.Load2DTextureFromFile(m_strLogoFilename, m_pContext->GetShareGroupID());
   ScheduleCompleteRedraw();
 }
@@ -2950,7 +2970,7 @@ GLint GLRenderer::ComputeGLFilter() const {
 }
 
 
-bool GLRenderer::CropDataset(const std::string& strTempDir, bool bKeepOldData) {
+bool GLRenderer::CropDataset(const std::wstring& strTempDir, bool bKeepOldData) {
   ExtendedPlane p = GetClipPlane();
   FLOATMATRIX4 trans = GetFirst3DRegion()->rotation * GetFirst3DRegion()->translation;
 

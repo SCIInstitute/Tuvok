@@ -48,10 +48,10 @@ class StackExporter
 {
 public:
 
-  static std::vector<std::pair<std::string,std::string>> GetSuportedImageFormats();
+  static std::vector<std::pair<std::wstring,std::wstring>> GetSuportedImageFormats();
 
-  static bool WriteStacks(const std::string& strRAWFilename, 
-                          const std::string& strTargetFilename,
+  static bool WriteStacks(const std::wstring& strRAWFilename, 
+                          const std::wstring& strTargetFilename,
                           const TransferFunction1D* pTrans,
                           uint64_t iBitWidth,
                           uint64_t iComponentCount,
@@ -60,7 +60,7 @@ public:
                           bool bAllDirs);
 
   static bool WriteImage(unsigned char* pData,
-                  const std::string& strTargetFilename,
+                  const std::wstring& strTargetFilename,
                   const UINT64VECTOR2& vSize,
                   uint64_t iComponentCount);
 protected:
@@ -96,7 +96,7 @@ protected:
   static bool WriteSlice(unsigned char* pData,
                   const TransferFunction1D* pTrans,
                   uint64_t iBitWidth,
-                  const std::string& strCurrentDiFilename,
+                  const std::wstring& strCurrentDiFilename,
                   const UINT64VECTOR2& vSize,
                   float fRescale,
                   uint64_t iComponentCount);

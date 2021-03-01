@@ -85,7 +85,7 @@ class GLRenderer : public AbstrRenderer {
     /** Paint the image */
     virtual bool Paint();
 
-    virtual bool CropDataset(const std::string& strTempDir, bool bKeepOldData);
+    virtual bool CropDataset(const std::wstring& strTempDir, bool bKeepOldData);
 
     /// registers a data set with this renderer.  this renderer then 'owns' it.
     virtual bool RegisterDataset(tuvok::Dataset*);
@@ -95,7 +95,7 @@ class GLRenderer : public AbstrRenderer {
      * \param vWinSize  new width and height of the view window */
     virtual void Resize(const UINTVECTOR2& vWinSize);
 
-    virtual void SetLogoParams(std::string strLogoFilename, int iLogoPos);
+    virtual void SetLogoParams(const std::wstring& strLogoFilename, int iLogoPos);
 
     virtual void RenderSlice(const RenderRegion2D& region, double fSliceIndex,
                      FLOATVECTOR3 vMinCoords, FLOATVECTOR3 vMaxCoords,
@@ -152,7 +152,7 @@ class GLRenderer : public AbstrRenderer {
                         bool& completedJob);
     void DrawLogo() const;
     void DrawBackGradient() const;
-    bool CaptureSingleFrame(const std::string& strFilename,
+    bool CaptureSingleFrame(const std::wstring& strFilename,
                             bool bPreserveTransparency) const;
 
     virtual bool Continue3DDraw();
@@ -183,13 +183,13 @@ class GLRenderer : public AbstrRenderer {
     virtual void RenderHQMIPPostLoop() {}
 
     virtual void CreateOffscreenBuffers();
-    std::string FindFile(const std::string& file, bool subdirs) const;
-    std::string FindFileInDirs(const std::string& file, const std::vector<std::string> strDirs,bool subdirs) const;
+    std::wstring FindFile(const std::wstring& file, bool subdirs) const;
+    std::wstring FindFileInDirs(const std::wstring& file, const std::vector<std::wstring> strDirs,bool subdirs) const;
     virtual bool LoadAndVerifyShader(GLSLProgram**,
-                                     const std::vector<std::string> strDirs,
+                                     const std::vector<std::wstring> strDirs,
                                      ...);
-    virtual bool LoadAndVerifyShader(std::vector<std::string> vert,
-                                     std::vector<std::string> frag,
+    virtual bool LoadAndVerifyShader(std::vector<std::wstring> vert,
+                                     std::vector<std::wstring> frag,
                                      GLSLProgram**) const;
 
     virtual bool Render3DRegion(RenderRegion3D& region3D);
@@ -225,8 +225,8 @@ class GLRenderer : public AbstrRenderer {
     virtual bool BindVolumeTex(const BrickKey& bkey,
                                const uint64_t iIntraFrameCounter);
     virtual bool UnbindVolumeTex();
-    virtual bool LoadShaders() { return LoadShaders("Volume3D.glsl", true); }
-    virtual bool LoadShaders(const std::string& volumeAccessFunction, bool bBindVolume);
+    virtual bool LoadShaders() { return LoadShaders(L"Volume3D.glsl", true); }
+    virtual bool LoadShaders(const std::wstring& volumeAccessFunction, bool bBindVolume);
     virtual void InitBaseState();
     void CleanupShader(GLSLProgram** p);
 

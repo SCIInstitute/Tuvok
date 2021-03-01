@@ -54,7 +54,7 @@ class TransferFunction1D
 {
 public:
   TransferFunction1D(size_t iSize = 0);
-  TransferFunction1D(const std::string& filename);
+  TransferFunction1D(const std::wstring& filename);
   ~TransferFunction1D(void);
 
   void SetStdFunction(float fCenterPoint=0.5f, float fInvGradient=0.5f);
@@ -72,12 +72,12 @@ public:
   FLOATVECTOR4 GetColor(size_t index) const;
   void SetColor(size_t index, FLOATVECTOR4 color);
 
-  bool Load(const std::string& filename);
-  bool Load(const std::string& filename, size_t iTargetSize);
+  bool Load(const std::wstring& filename);
+  bool Load(const std::wstring& filename, size_t iTargetSize);
   bool Load(std::istream& file);
   bool Load(std::istream& file, size_t iTargetSize);
   bool Save(std::ostream& file) const;
-  bool Save(const std::string& filename) const;
+  bool Save(const std::wstring& filename) const;
 
   void Clear();
 

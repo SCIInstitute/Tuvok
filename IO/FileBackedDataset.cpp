@@ -35,6 +35,6 @@
 
 namespace tuvok {
 
-bool FileBackedDataset::Verify(const std::string&) const { return true; }
+bool FileBackedDataset::Verify(const std::wstring&) const { return true; }
 
 } // namespace tuvok

@@ -31,6 +31,7 @@
 
 #include <vector>
 #include "Basics/MinMaxBlock.h"
+#include "Basics/SysTools.h"
 #include "Controller/Controller.h"
 #include "UVF/RasterDataBlock.h"
 #include "UVF/MaxMinDataBlock.h"
@@ -101,7 +102,7 @@ namespace tuvok {
 
 class UVFDataset : public LinearIndexDataset, public FileBackedDataset {
 public:
-  UVFDataset(const std::string& strFilename, uint64_t iMaxAcceptableBricksize,
+  UVFDataset(const std::wstring& strFilename, uint64_t iMaxAcceptableBricksize,
              bool bVerify, bool bMustBeSameVersion = true);
   UVFDataset();
   virtual ~UVFDataset();
@@ -156,16 +157,16 @@ public:
   void ComputeRange();
 
   // Global "Operations" and additional data not from the UVF file
-  virtual bool Export(uint64_t iLODLevel, const std::string& targetFilename,
+  virtual bool Export(uint64_t iLODLevel, const std::wstring& targetFilename,
     bool bAppend) const;
 
   virtual bool ApplyFunction(uint64_t iLODLevel, bfqn* bfunc,
                              void* userContext, uint64_t iOverlap=0) const;
 
-  virtual const std::vector<std::pair<std::string, std::string>> GetMetadata() const;
+  virtual const std::vector<std::pair<std::wstring, std::wstring>> GetMetadata() const;
 
   virtual bool SaveRescaleFactors();
-  virtual bool Crop( const PLANE<float>& plane, const std::string& strTempDir, 
+  virtual bool Crop( const PLANE<float>& plane, const std::wstring& strTempDir, 
                      bool bKeepOldData, bool bUseMedianFilter, bool bClampToEdge);
 
   bool AppendMesh(std::shared_ptr<const Mesh> m);
@@ -173,18 +174,18 @@ public:
   // args: mesh index, transform matrix, default color
   bool GeometryTransformToFile(size_t iMeshIndex, const FLOATMATRIX4& m, const FLOATVECTOR4& c);
 
-  virtual std::string Filename() const { return m_strFilename; }
-  virtual bool CanRead(const std::string&, const std::vector<int8_t>&) const;
-  virtual bool Verify(const std::string&) const;
-  virtual Dataset* Create(const std::string&, uint64_t, bool) const;
-  virtual std::list<std::string> Extensions() const;
+  virtual std::wstring Filename() const { return m_strFilename; }
+  virtual bool CanRead(const std::wstring&, const std::vector<int8_t>&) const;
+  virtual bool Verify(const std::wstring&) const;
+  virtual Dataset* Create(const std::wstring&, uint64_t, bool) const;
+  virtual std::list<std::wstring> Extensions() const;
   const UVF* GetUVFFile() const {return m_pDatasetFile;}
 
-  virtual const char* Name() const { 
+  virtual std::wstring Name() const {
     if(!m_timesteps.empty()) {
-      return m_timesteps[0]->m_pVolumeDataBlock->strBlockID.c_str(); 
+      return SysTools::toWide(m_timesteps[0]->m_pVolumeDataBlock->strBlockID).c_str();
     } else {
-      return "Generic UVF Dataset"; 
+      return L"Generic UVF Dataset"; 
     }
   }
 
@@ -230,7 +231,7 @@ private:
   bool                                  m_bIsSameEndianness;
 
   UVF*                                  m_pDatasetFile;
-  const std::string                     m_strFilename;
+  const std::wstring                    m_strFilename;
   std::pair<double,double>              m_CachedRange;
 
   uint64_t                              m_iMaxAcceptableBricksize;

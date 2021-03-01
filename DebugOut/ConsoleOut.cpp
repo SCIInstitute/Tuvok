@@ -44,10 +44,14 @@ static const char C_DGRAY[]  = "\033[01;30m";
 static const char C_NORM[]   = "\033[00m";
 static const char C_RED[]    = "\033[01;31m";
 static const char C_YELLOW[] = "\033[01;33m";
+static const char C_LBLUE[]  = "\033[01;36m";
+
+/*
+// unused, but may be usefull for future additions
+static const char C_WHITE[]  = "\033[01;27m";
 static const char C_GREEN[]  = "\033[01;32m";
 static const char C_MAG[]    = "\033[01;35m";
-static const char C_LBLUE[]  = "\033[01;36m";
-static const char C_WHITE[]  = "\033[01;27m";
+*/
 ///@}
 
 

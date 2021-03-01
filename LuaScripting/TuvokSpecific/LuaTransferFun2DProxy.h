@@ -63,8 +63,8 @@ private:
 
   /// Proxies to split apart overloaded functions.
   /// @{
-  bool proxyLoadWithSize(const std::string& file, const VECTOR2<size_t>& size);
-  bool proxySave(const std::string& file);
+  bool proxyLoadWithSize(const std::wstring& file, const VECTOR2<size_t>& size);
+  bool proxySave(const std::wstring& file);
   /// @}
 
   /// Update1DTrans proxy exists because IO does not understand Lua types

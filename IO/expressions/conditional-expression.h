@@ -35,7 +35,7 @@ namespace tuvok { namespace expression {
 
 class ConditionalExpression: public Expression {
   public:
-    virtual void Analyze() const throw(semantic::Error);
+    virtual void Analyze() const;
     virtual void Print(std::ostream&) const;
 
     virtual double Evaluate(size_t idx) const;

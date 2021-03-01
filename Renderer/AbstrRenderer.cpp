@@ -89,7 +89,7 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_bRenderLocalBBox(false),
   m_vWinSize(0,0),
   m_iLogoPos(3),
-  m_strLogoFilename(""),
+  m_strLogoFilename(L""),
   m_iDebugView(0),
   m_eInterpolant(Linear),
   m_bSupportsMeshes(false),
@@ -178,14 +178,14 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
 
   RestartTimers();
 
-  if(SysTools::FileExists("Shaders")) {
-    m_vShaderSearchDirs.push_back("Shaders");
+  if(SysTools::FileExists(L"Shaders")) {
+    m_vShaderSearchDirs.push_back(L"Shaders");
   }
-  if(SysTools::FileExists("Tuvok/Shaders")) {
-    m_vShaderSearchDirs.push_back("Tuvok/Shaders");
+  if(SysTools::FileExists(L"Tuvok/Shaders")) {
+    m_vShaderSearchDirs.push_back(L"Tuvok/Shaders");
   }
-  if(SysTools::FileExists("../Tuvok/Shaders")) {
-    m_vShaderSearchDirs.push_back("../Tuvok/Shaders");
+  if(SysTools::FileExists(L"../Tuvok/Shaders")) {
+    m_vShaderSearchDirs.push_back(L"../Tuvok/Shaders");
   }
   // trim out directories which are nonsense.  Gets rid of some warnings.
   m_vShaderSearchDirs = ShaderDescriptor::ValidPaths(m_vShaderSearchDirs);
@@ -218,7 +218,7 @@ bool AbstrRenderer::Initialize(std::shared_ptr<Context> ctx) {
   return m_pDataset != NULL;
 }
 
-bool AbstrRenderer::LoadFile(const std::string& filename) {
+bool AbstrRenderer::LoadFile(const std::wstring& filename) {
   if(NULL == m_pMasterController) { return false; }
   if(NULL == m_pMasterController->IOMan()) {
     T_ERROR("no IOManager!  can't load DS");
@@ -226,7 +226,7 @@ bool AbstrRenderer::LoadFile(const std::string& filename) {
   }
   Dataset* ds = m_pMasterController->IOMan()->LoadDataset(filename, this);
   if(NULL == ds) {
-    T_ERROR("IOManager could not load '%s', giving up", filename.c_str());
+    T_ERROR("IOManager could not load '%s', giving up", SysTools::toNarrow(filename).c_str());
     return false;
   }
   MESSAGE("Load successful, initializing renderer!");
@@ -263,7 +263,7 @@ bool AbstrRenderer::RegisterDataset(Dataset* ds) {
   return true;
 }
 
-bool AbstrRenderer::LoadRebricked(const std::string& filename,
+bool AbstrRenderer::LoadRebricked(const std::wstring& filename,
                                   const UINTVECTOR3 bsize,
                                   size_t minmaxMode) {
   const IOManager& iomgr = Controller::Const().IOMan();
@@ -1360,7 +1360,7 @@ void AbstrRenderer::SetCVFocusPos(LuaClassInstance renderRegion,
   }
 }
 
-void AbstrRenderer::SetLogoParams(string strLogoFilename, int iLogoPos) {
+void AbstrRenderer::SetLogoParams(const std::wstring& strLogoFilename, int iLogoPos) {
   m_strLogoFilename = strLogoFilename;
   m_iLogoPos        = iLogoPos;
 }
@@ -1756,7 +1756,7 @@ void AbstrRenderer::ClearRendererMeshes() {
   m_Meshes.clear();
 }
 
-bool AbstrRenderer::CaptureSingleFrame(const std::string&, bool) const {
+bool AbstrRenderer::CaptureSingleFrame(const std::wstring&, bool) const {
   return false;
 }
 
@@ -1769,9 +1769,9 @@ bool AbstrRenderer::PH_Converged() const {
   AbstrRenderer* ren = const_cast<AbstrRenderer*>(this);
   return ren->CheckForRedraw();
 }
-bool AbstrRenderer::PH_OpenBrickAccessLogfile(const std::string&) { return false; }
+bool AbstrRenderer::PH_OpenBrickAccessLogfile(const std::wstring&) { return false; }
 bool AbstrRenderer::PH_CloseBrickAccessLogfile() { return false; }
-bool AbstrRenderer::PH_OpenLogfile(const std::string&) { return false; }
+bool AbstrRenderer::PH_OpenLogfile(const std::wstring&) { return false; }
 bool AbstrRenderer::PH_CloseLogfile() { return false; }
 void AbstrRenderer::PH_SetOptimalFrameAverageCount(size_t) { }
 size_t AbstrRenderer::PH_GetOptimalFrameAverageCount() const { return 0; }

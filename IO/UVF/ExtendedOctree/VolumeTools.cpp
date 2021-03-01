@@ -65,7 +65,11 @@ uint64_t MortonLayout::GetLinearIndex(UINT64VECTOR3 const& vSpatialPosition)
 
   for (uint64_t i = 0; i < iIterations; ++i)
   {
-    uint64_t const bit = 1u << i;
+#ifdef DETECTED_OS_WINDOWS
+    uint64_t const bit = 1i64 << i;
+#else
+    uint64_t const bit = 1 << i;
+#endif
 
     iIndex |= (vSpatialPosition.x & bit) << ((i * 2) + 0);
     iIndex |= (vSpatialPosition.y & bit) << ((i * 2) + 1);

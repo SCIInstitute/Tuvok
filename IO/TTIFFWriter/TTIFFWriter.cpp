@@ -1,55 +1,56 @@
 #include "TTIFFWriter.h"
+#include "Basics/SysTools.h"
 
-void TTIFFWriter::Write(const std::string& filename,
+void TTIFFWriter::Write(const std::wstring& filename,
                         uint32_t width, uint32_t height, TTDataType dataType,
                         const std::vector<uint8_t>& data) {
   if (!VerifyVector(width, height, dataType, data))
     throw ttiff_error("Data vector too small");
   
   std::ofstream file;
-  file.open(filename.c_str(), std::ios::binary);
+  file.open(SysTools::toNarrow(filename).c_str(), std::ios::binary);
   if (file.bad()) throw ttiff_error("Unable to open file");
   WriteHeader(file);
   WriteIDF(file, width, height, 1, dataType, false);
   WriteData(file, width, height, dataType, data);
 }
 
-void TTIFFWriter::Write(const std::string& filename,
+void TTIFFWriter::Write(const std::wstring& filename,
                         uint32_t width, uint32_t height, TTDataType dataType,
                         const std::vector<uint16_t>& data) {
   if (!VerifyVector(width, height, dataType, data))
     throw ttiff_error("Data vector too small");
   
   std::ofstream file;
-  file.open(filename.c_str(), std::ios::binary);
+  file.open(SysTools::toNarrow(filename).c_str(), std::ios::binary);
   if (file.bad()) throw ttiff_error("Unable to open file");
   WriteHeader(file);
   WriteIDF(file, width, height, 2, dataType, false);
   WriteData(file, width, height, dataType, data);
 }
 
-void TTIFFWriter::Write(const std::string& filename,
+void TTIFFWriter::Write(const std::wstring& filename,
                         uint32_t width, uint32_t height, TTDataType dataType,
                         const std::vector<uint32_t>& data) {
   if (!VerifyVector(width, height, dataType, data))
     throw ttiff_error("Data vector too small");
   
   std::ofstream file;
-  file.open(filename.c_str(), std::ios::binary);
+  file.open(SysTools::toNarrow(filename).c_str(), std::ios::binary);
   if (file.bad()) throw ttiff_error("Unable to open file");
   WriteHeader(file);
   WriteIDF(file, width, height, 4, dataType, false);
   WriteData(file, width, height, dataType, data);
 }
 
-void TTIFFWriter::Write(const std::string& filename,
+void TTIFFWriter::Write(const std::wstring& filename,
                         uint32_t width, uint32_t height, TTDataType dataType,
                         const std::vector<float>& data) {
   if (!VerifyVector(width, height, dataType, data))
     throw ttiff_error("Data vector too small");
   
   std::ofstream file;
-  file.open(filename.c_str(), std::ios::binary);
+  file.open(SysTools::toNarrow(filename).c_str(), std::ios::binary);
   if (file.bad()) throw ttiff_error("Unable to open file");
   WriteHeader(file);
   WriteIDF(file, width, height, 4, dataType, true);
@@ -68,23 +69,23 @@ void TTIFFWriter::WriteHeader(std::ofstream& file) {
 
 class TagItem {
 public:  
-  TagItem(uint16_t _tag) : tag(_tag) {}
+  TagItem(uint16_t _tag) : m_tag(_tag) {}
 
-  TagItem(uint16_t _tag, uint16_t data) : tag(_tag)
-  {data16.push_back(data);}
+  TagItem(uint16_t _tag, uint16_t data) : m_tag(_tag)
+  {m_data16.push_back(data);}
   
-  TagItem(uint16_t _tag, uint32_t data) : tag(_tag)
-  {data32.push_back(data);}
+  TagItem(uint16_t _tag, uint32_t data) : m_tag(_tag)
+  {m_data32.push_back(data);}
   
   TagItem(uint16_t _tag, const std::vector<uint16_t>& data) :
-  tag(_tag),  data16(data) {}
+  m_tag(_tag),  m_data16(data) {}
   
   TagItem(uint16_t _tag, const std::vector<uint32_t>& data) :
-  tag(_tag), data32(data) {}
+  m_tag(_tag), m_data32(data) {}
   
   uint16_t GetAdditionalOffset() {    
-    if (data16.size() > 1 || data32.size() > 1)
-      return uint16_t(data16.size()*2 + data32.size()*4);
+    if (m_data16.size() > 1 || m_data32.size() > 1)
+      return uint16_t(m_data16.size()*2 + m_data32.size()*4);
     else
       return 0;
   }
@@ -92,46 +93,46 @@ public:
   
   void Write(std::ofstream& file, uint16_t iCurrentOffset,
              uint16_t iTotalOffset) {
-    if (data16.size() == 1) {
-      WriteTag(file, tag, 1, data16[0]);
+    if (m_data16.size() == 1) {
+      WriteTag(file, m_tag, 1, m_data16[0]);
       return;
     }
-    if (data32.size() == 1) {
-      WriteTag(file, tag, 1, data32[0]);
+    if (m_data32.size() == 1) {
+      WriteTag(file, m_tag, 1, m_data32[0]);
       return;      
     }    
-    if (data16.size() > 1) {
-      WriteTag(file, tag, uint32_t(data16.size()), iCurrentOffset);
+    if (m_data16.size() > 1) {
+      WriteTag(file, m_tag, uint32_t(m_data16.size()), iCurrentOffset);
       return;
     }
-    if (data32.size() > 1) {
-      WriteTag(file, tag, uint32_t(data32.size()), iCurrentOffset);
+    if (m_data32.size() > 1) {
+      WriteTag(file, m_tag, uint32_t(m_data32.size()), iCurrentOffset);
       return;
     }
     
     // special case: write the offset as data (normally used for image location)
-    WriteTag(file, tag, 1, iTotalOffset);
+    WriteTag(file, m_tag, 1, iTotalOffset);
   }
 
   void WriteVectorData(std::ofstream& file) {
-    if (data16.size() > 1) {
-      for (std::vector<uint16_t>::iterator elem = data16.begin();
-           elem<data16.end();elem++) {
+    if (m_data16.size() > 1) {
+      for (std::vector<uint16_t>::iterator elem = m_data16.begin();
+           elem<m_data16.end();elem++) {
         file.write((const char*)&(*elem), 2);
       }
     }
-    if (data32.size() > 1) {
-      for (std::vector<uint32_t>::iterator elem = data32.begin();
-           elem<data32.end();elem++) {
+    if (m_data32.size() > 1) {
+      for (std::vector<uint32_t>::iterator elem = m_data32.begin();
+           elem<m_data32.end();elem++) {
         file.write((const char*)&(*elem), 4);
       }      
     }      
   }
   
 private:
-  uint16_t tag;
-  std::vector<uint16_t> data16;
-  std::vector<uint32_t> data32;
+  uint16_t m_tag;
+  std::vector<uint16_t> m_data16;
+  std::vector<uint32_t> m_data32;
   
   void WriteTag(std::ofstream& file, uint16_t tag, uint32_t size, uint16_t data) {
     file.write((const char*)&tag, 2);
@@ -154,7 +155,7 @@ private:
 
 class TagVector {
 public:
-  TagVector() : iOffset(0) {}
+  TagVector() {}
   void add(const TagItem& tag) {
     tags.push_back(tag);
   }
@@ -200,7 +201,6 @@ public:
   
 private:
   std::vector<TagItem> tags;
-  uint16_t iOffset;
 
 };
 

@@ -37,9 +37,9 @@
 
 AnalyzeConverter::AnalyzeConverter()
 {
-  m_vConverterDesc = "Analyze 7.5/NIfTI-1";
-  m_vSupportedExt.push_back("HDR");
-  m_vSupportedExt.push_back("NII");
+  m_vConverterDesc = L"Analyze 7.5/NIfTI-1";
+  m_vSupportedExt.push_back(L"HDR");
+  m_vSupportedExt.push_back(L"NII");
 }
 
 struct analyze_hdr {
@@ -71,7 +71,7 @@ enum AnalyzeDataTypes {
   DT_ALL=255
 };
 
-bool AnalyzeConverter::CanRead(const std::string& fn,
+bool AnalyzeConverter::CanRead(const std::wstring& fn,
                                const std::vector<int8_t>& start) const
 {
   if(!AbstrConverter::CanRead(fn, start)) {
@@ -97,8 +97,8 @@ bool AnalyzeConverter::CanRead(const std::string& fn,
   return true;
 }
 
-bool AnalyzeConverter::ConvertToRAW(const std::string& strSourceFilename,
-                                    const std::string&,
+bool AnalyzeConverter::ConvertToRAW(const std::wstring& strSourceFilename,
+                                    const std::wstring&,
                                     bool,
                                     uint64_t& iHeaderSkip,
                                     unsigned& iComponentSize,
@@ -107,15 +107,15 @@ bool AnalyzeConverter::ConvertToRAW(const std::string& strSourceFilename,
                                     bool& bSigned, bool& bIsFloat,
                                     UINT64VECTOR3& vVolumeSize,
                                     FLOATVECTOR3& vVolumeAspect,
-                                    std::string& strTitle,
-                                    std::string& strIntermediateFile,
+                                    std::wstring& strTitle,
+                                    std::wstring& strIntermediateFile,
                                     bool& bDeleteIntermediateFile)
 {
-  strTitle = "from analyze converter";
+  strTitle = L"from analyze converter";
 
-  std::ifstream analyze(strSourceFilename.c_str(), std::ios::binary);
+  std::ifstream analyze(SysTools::toNarrow(strSourceFilename).c_str(), std::ios::binary);
   if(!analyze) {
-    T_ERROR("Could not open %s!", strSourceFilename.c_str());
+    T_ERROR("Could not open %s!", SysTools::toNarrow(strSourceFilename).c_str());
     return false;
   }
   struct analyze_hdr hdr;
@@ -243,16 +243,16 @@ bool AnalyzeConverter::ConvertToRAW(const std::string& strSourceFilename,
   
   const std::string magic(hdr.magic, 3);
   
-  if (SysTools::ToUpperCase(SysTools::GetExt(strSourceFilename)) == "HDR" || magic == "ni1")
+  if (SysTools::ToUpperCase(SysTools::GetExt(strSourceFilename)) == L"HDR" || magic == "ni1")
   {
-    strIntermediateFile = SysTools::RemoveExt(strSourceFilename) + ".img";
-    MESSAGE("Using intermediate file %s", strIntermediateFile.c_str());
+    strIntermediateFile = SysTools::RemoveExt(strSourceFilename) + L".img";
+    MESSAGE("Using intermediate file %s", SysTools::toNarrow(strIntermediateFile).c_str());
     bDeleteIntermediateFile = false;
   }
-  else if (SysTools::ToUpperCase(SysTools::GetExt(strSourceFilename)) == "NII" || magic == "n+1")
+  else if (SysTools::ToUpperCase(SysTools::GetExt(strSourceFilename)) == L"NII" || magic == "n+1")
   {
     strIntermediateFile = strSourceFilename;
-    MESSAGE("Using intermediate file %s", strIntermediateFile.c_str());
+    MESSAGE("Using intermediate file %s", SysTools::toNarrow(strIntermediateFile).c_str());
     bDeleteIntermediateFile = false;
   }
   else
@@ -264,8 +264,8 @@ bool AnalyzeConverter::ConvertToRAW(const std::string& strSourceFilename,
   return true;
 }
 
-bool AnalyzeConverter::ConvertToNative(const std::string&,
-                                       const std::string&,
+bool AnalyzeConverter::ConvertToNative(const std::wstring&,
+                                       const std::wstring&,
                                        uint64_t,
                                        unsigned,
                                        uint64_t, bool,

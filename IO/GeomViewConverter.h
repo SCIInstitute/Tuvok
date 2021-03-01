@@ -40,7 +40,7 @@ public:
   GeomViewConverter();
   virtual ~GeomViewConverter() {}
 
-  virtual std::shared_ptr<Mesh> ConvertToMesh(const std::string&);
+  virtual std::shared_ptr<Mesh> ConvertToMesh(const std::wstring&);
 
   virtual bool CanExportData() const { return false; }
   virtual bool CanImportData() const { return true; }

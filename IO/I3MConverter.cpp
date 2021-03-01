@@ -50,25 +50,25 @@ using namespace std;
 
 I3MConverter::I3MConverter()
 {
-  m_vConverterDesc = "ImageVis3D Mobile Data";
-  m_vSupportedExt.push_back("I3M");
+  m_vConverterDesc = L"ImageVis3D Mobile Data";
+  m_vSupportedExt.push_back(L"I3M");
 }
 
-bool I3MConverter::ConvertToRAW(const std::string& strSourceFilename,
-                                const std::string& strTempDir, bool,
+bool I3MConverter::ConvertToRAW(const std::wstring& strSourceFilename,
+                                const std::wstring& strTempDir, bool,
                                 uint64_t& iHeaderSkip, unsigned& iComponentSize,
                                 uint64_t& iComponentCount,
                                 bool& bConvertEndianess, bool& bSigned,
                                 bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
                                 FLOATVECTOR3& vVolumeAspect,
-                                std::string& strTitle,
-                                std::string& strIntermediateFile,
+                                std::wstring& strTitle,
+                                std::wstring& strIntermediateFile,
                                 bool& bDeleteIntermediateFile)
 {
-  MESSAGE("Attempting to convert an ImageVis3D mobile dataset %s", strSourceFilename.c_str());
+  MESSAGE("Attempting to convert an ImageVis3D mobile dataset %s", SysTools::toNarrow(strSourceFilename).c_str());
 
   bDeleteIntermediateFile = true;
-  strTitle    = "ImageVis3D Mobile data";
+  strTitle    = L"ImageVis3D Mobile data";
   iHeaderSkip = 0;
 
   // I3M files are always four component 8bit little endian
@@ -89,7 +89,7 @@ bool I3MConverter::ConvertToRAW(const std::string& strSourceFilename,
   I3MFile.Open(false);
 
   if (!I3MFile.IsOpen()) {
-    T_ERROR("Unable to open source file %s", strSourceFilename.c_str());
+    T_ERROR("Unable to open source file %s", SysTools::toNarrow(strSourceFilename).c_str());
     return false;
   }
 
@@ -101,7 +101,7 @@ bool I3MConverter::ConvertToRAW(const std::string& strSourceFilename,
   I3MFile.ReadData(iMagic, false);
   if (iMagic != I3M_MAGIC) {
     I3MFile.Close();
-    T_ERROR("This is not a valid I3M file %s", strSourceFilename.c_str());
+    T_ERROR("This is not a valid I3M file %s", SysTools::toNarrow(strSourceFilename).c_str());
     return false;
   }
   MESSAGE("I3M Magic OK");
@@ -111,7 +111,7 @@ bool I3MConverter::ConvertToRAW(const std::string& strSourceFilename,
   I3MFile.ReadData(iVersion, false);
   if (iVersion != I3M_VERSION) {
     I3MFile.Close();
-    T_ERROR("Unsuported I3M version in file %s", strSourceFilename.c_str());
+    T_ERROR("Unsuported I3M version in file %s", SysTools::toNarrow(strSourceFilename).c_str());
     return false;
   }
   MESSAGE("I3M Version OK");
@@ -125,7 +125,7 @@ bool I3MConverter::ConvertToRAW(const std::string& strSourceFilename,
       vVolumeSize.y > MAX_I3M_VOLSIZE ||
       vVolumeSize.z > MAX_I3M_VOLSIZE) {
     I3MFile.Close();
-    T_ERROR("Invalid volume size detected in I3M file %s", strSourceFilename.c_str());
+    T_ERROR("Invalid volume size detected in I3M file %s", SysTools::toNarrow(strSourceFilename).c_str());
     return false;
   }
   MESSAGE("Volume Size (%llu x %llu x %llu) in I3M file OK",
@@ -138,7 +138,7 @@ bool I3MConverter::ConvertToRAW(const std::string& strSourceFilename,
     I3MFile.Close();
     T_ERROR("The size of the I3M file %s "
             "does not match the information in its header.",
-            strSourceFilename.c_str());
+      SysTools::toNarrow(strSourceFilename).c_str());
     return false;
   }
   MESSAGE("File Size (%llu) of I3M file OK", ulFileLength);
@@ -170,14 +170,14 @@ bool I3MConverter::ConvertToRAW(const std::string& strSourceFilename,
   MESSAGE("I3M File header scan completed, converting volume...");
 
   strIntermediateFile = strTempDir + SysTools::GetFilename(strSourceFilename) +
-                        ".temp";
+                        L".temp";
 
   LargeRAWFile RAWFile(strIntermediateFile, 0);
   RAWFile.Create();
 
   if (!RAWFile.IsOpen()) {
     T_ERROR("Unable to open intermediate file %s",
-            strIntermediateFile.c_str());
+      SysTools::toNarrow(strIntermediateFile).c_str());
     I3MFile.Close();
     return false;
   }
@@ -195,7 +195,7 @@ bool I3MConverter::ConvertToRAW(const std::string& strSourceFilename,
   RAWFile.Close();
 
   MESSAGE("Intermediate RAW file %s from I3M file %s created.",
-          strIntermediateFile.c_str(), strSourceFilename.c_str());
+    SysTools::toNarrow(strIntermediateFile).c_str(), SysTools::toNarrow(strSourceFilename).c_str());
 
   return true;
 }
@@ -281,8 +281,8 @@ void I3MConverter::DownSample(LargeRAWFile& SourceRAWFile, unsigned char* pDense
   }
 }
 
-bool I3MConverter::ConvertToNative(const std::string& strRawFilename,
-                                   const std::string& strTargetFilename, uint64_t iHeaderSkip,
+bool I3MConverter::ConvertToNative(const std::wstring& strRawFilename,
+                                   const std::wstring& strTargetFilename, uint64_t iHeaderSkip,
                                    unsigned iComponentSize, uint64_t iComponentCount, bool bSigned,
                                    bool bFloatingPoint, UINT64VECTOR3 vVolumeSize,
                                    FLOATVECTOR3 vVolumeAspect, bool ,
@@ -298,7 +298,7 @@ bool I3MConverter::ConvertToNative(const std::string& strRawFilename,
   // if it is not 8bit unsigned char -> convert it
 
   bool bDelete8BitFile = false;
-  string str8BitFilename = strRawFilename;
+  wstring str8BitFilename = strRawFilename;
 
   if (iComponentSize!=8 || bSigned) {
     LargeRAWFile rf(strRawFilename, iHeaderSkip);
@@ -306,11 +306,11 @@ bool I3MConverter::ConvertToNative(const std::string& strRawFilename,
 
     if(!rf.IsOpen()) {
       using namespace tuvok::io;
-      throw DSOpenFailed(strRawFilename.c_str(), "Could not quantize input.",
+      throw DSOpenFailed(SysTools::toNarrow(strRawFilename).c_str(), "Could not quantize input.",
                          __FILE__, __LINE__);
     }
 
-    const std::string quantizedFilname = strTargetFilename+".tmp";
+    const std::wstring quantizedFilname = strTargetFilename+L".tmp";
     if (QuantizeTo8Bit(rf,quantizedFilname, iComponentSize,
                        vVolumeSize.volume(), bSigned,bFloatingPoint)) {
       iHeaderSkip = 0;
@@ -333,9 +333,9 @@ bool I3MConverter::ConvertToNative(const std::string& strRawFilename,
 
   if (!UCharDataFile.IsOpen()) {
     if (bDelete8BitFile)
-      T_ERROR("Unable to open temp file for reading %s", str8BitFilename.c_str());
+      T_ERROR("Unable to open temp file for reading %s", SysTools::toNarrow(str8BitFilename).c_str());
     else
-      T_ERROR("Unable to open input file for reading %s", str8BitFilename.c_str());
+      T_ERROR("Unable to open input file for reading %s", SysTools::toNarrow(str8BitFilename).c_str());
     return false;
   }
 
@@ -374,7 +374,7 @@ bool I3MConverter::ConvertToNative(const std::string& strRawFilename,
   TargetI3MFile.Create();
 
   if (!TargetI3MFile.IsOpen()) {
-    T_ERROR("Unable to open I3M file %s", strTargetFilename.c_str());
+    T_ERROR("Unable to open I3M file %s", SysTools::toNarrow(strTargetFilename).c_str());
     delete [] pData;
     return false;
   }

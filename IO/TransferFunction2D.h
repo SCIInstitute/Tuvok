@@ -86,7 +86,7 @@ class TransferFunction2D
 public:
   TransferFunction2D();
   TransferFunction2D(const VECTOR2<size_t>& iSize);
-  TransferFunction2D(const std::string& filename);
+  TransferFunction2D(const std::wstring& filename);
   ~TransferFunction2D(void);
 
   void Resize(const Histogram2D& hist) {Resize(hist.GetSize());}
@@ -95,9 +95,9 @@ public:
 
   void Resample(const VECTOR2<size_t>& iSize);
 
-  bool Load(const std::string& filename);
-  bool Load(const std::string& filename, const VECTOR2<size_t>& vTargetSize);
-  bool Save(const std::string& filename) const;
+  bool Load(const std::wstring& filename);
+  bool Load(const std::wstring& filename, const VECTOR2<size_t>& vTargetSize);
+  bool Save(const std::wstring& filename) const;
 
   void InvalidateCache() {m_bUseCachedData = false;}
   void GetByteArray(unsigned char** pcData);

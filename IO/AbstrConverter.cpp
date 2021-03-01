@@ -52,18 +52,17 @@
 
 using namespace tuvok;
 
-bool AbstrConverter::CanRead(const std::string& fn,
+bool AbstrConverter::CanRead(const std::wstring& fn,
                              const std::vector<int8_t>&) const
 {
-  std::string ext = SysTools::GetExt(fn);
-  std::transform(ext.begin(), ext.end(), ext.begin(),
-                 (int(*)(int))std::toupper);
+  std::wstring ext = SysTools::GetExt(fn);
+  ext = SysTools::ToUpperCase(ext);
   return SupportedExtension(ext);
 }
 
 /// @param ext the extension for the filename
 /// @return true if the filename is a supported extension for this converter
-bool AbstrConverter::SupportedExtension(const std::string& ext) const
+bool AbstrConverter::SupportedExtension(const std::wstring& ext) const
 {
   return std::find(m_vSupportedExt.begin(), m_vSupportedExt.end(), ext) !=
           m_vSupportedExt.end();
@@ -73,7 +72,7 @@ bool AbstrConverter::SupportedExtension(const std::string& ext) const
 /// @returns true if we generated 'strTargetFilename'.
 bool
 AbstrConverter::Process8Bits(LargeRAWFile& InputData,
-                             const std::string& strTargetFilename,
+                             const std::wstring& strTargetFilename,
                              uint64_t iSize, bool bSigned,
                              Histogram1DDataBlock* Histogram1D) {
   size_t iCurrentInCoreSize = GetIncoreSize();
@@ -92,7 +91,7 @@ AbstrConverter::Process8Bits(LargeRAWFile& InputData,
     OutputData.Create(iSize);
 
     if (!OutputData.IsOpen()) {
-      T_ERROR("Failed opening/creating '%s'", strTargetFilename.c_str());
+      T_ERROR("Failed opening/creating '%s'", SysTools::toNarrow(strTargetFilename).c_str());
       InputData.Close();
       return false;
     }
@@ -165,7 +164,7 @@ size_t AbstrConverter::GetIncoreSize() {
 
 bool
 AbstrConverter::QuantizeTo8Bit(LargeRAWFile& rawfile,
-                               const std::string& strTargetFilename,
+                               const std::wstring& strTargetFilename,
                                unsigned iComponentSize,
                                uint64_t iSize,
                                bool bSigned,
@@ -174,7 +173,7 @@ AbstrConverter::QuantizeTo8Bit(LargeRAWFile& rawfile,
   bool generated_target = false;
   if(!rawfile.IsOpen()) {
     T_ERROR("Could not open '%s' for 8bit quantization.",
-            rawfile.GetFilename().c_str());
+      rawfile.GetFilename().c_str());
     return false;
   }
 

@@ -21,16 +21,16 @@ public:
     TT_RGBA
   };
     
-  static void Write(const std::string& filename,
+  static void Write(const std::wstring& filename,
                     uint32_t width, uint32_t height, TTDataType dataType,
                     const std::vector<uint8_t>& data);
-  static void Write(const std::string& filename,
+  static void Write(const std::wstring& filename,
                     uint32_t width, uint32_t height, TTDataType dataType,
                     const std::vector<uint16_t>& data);
-  static void Write(const std::string& filename,
+  static void Write(const std::wstring& filename,
                     uint32_t width, uint32_t height, TTDataType dataType,
                     const std::vector<uint32_t>& data);
-  static void Write(const std::string& filename,
+  static void Write(const std::wstring& filename,
                     uint32_t width, uint32_t height, TTDataType dataType,
                     const std::vector<float>& data);
   

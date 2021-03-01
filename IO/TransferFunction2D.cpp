@@ -38,6 +38,7 @@
 #include <memory.h>
 #include "TransferFunction2D.h"
 #include "Controller/Controller.h"
+#include "Basics/SysTools.h"
 
 using namespace std;
 
@@ -51,7 +52,7 @@ TransferFunction2D::TransferFunction2D() :
 {
 }
 
-TransferFunction2D::TransferFunction2D(const std::string& filename):
+TransferFunction2D::TransferFunction2D(const std::wstring& filename):
   m_pvSwatches(new vector<TFPolygon>),
   m_iSize(0,0),
   m_pColorData(NULL),
@@ -99,8 +100,8 @@ void TransferFunction2D::Resample(const VECTOR2<size_t>& iSize) {
   m_Trans1D.Resample(iSize.x);
 }
 
-bool TransferFunction2D::Load(const std::string& filename, const VECTOR2<size_t>& vTargetSize) {
-  ifstream file(filename.c_str());
+bool TransferFunction2D::Load(const std::wstring& filename, const VECTOR2<size_t>& vTargetSize) {
+  ifstream file(SysTools::toNarrow(filename).c_str());
 
   if (!file.is_open()) return false;
 
@@ -111,13 +112,13 @@ bool TransferFunction2D::Load(const std::string& filename, const VECTOR2<size_t>
   file >> vSizeInFile.x >> vSizeInFile.y;
 
   if(!file) {
-    T_ERROR("2DTF '%s' ends after file size!", filename.c_str());
+    T_ERROR("2DTF '%s' ends after file size!", SysTools::toNarrow(filename).c_str());
     return false;
   }
 
   // load 1D Trans
   if(!m_Trans1D.Load(file, vTargetSize.x)) {
-    T_ERROR("Failed loading 1DTF within 2DTF! (in %s)", filename.c_str());
+    T_ERROR("Failed loading 1DTF within 2DTF! (in %s)", SysTools::toNarrow(filename).c_str());
     return false;
   }
 
@@ -126,7 +127,7 @@ bool TransferFunction2D::Load(const std::string& filename, const VECTOR2<size_t>
   file >> iSwatchCount;
 
   if(!file) {
-    T_ERROR("Swatch count is missing in %s.", filename.c_str());
+    T_ERROR("Swatch count is missing in %s.", SysTools::toNarrow(filename).c_str());
     return false;
   }
 
@@ -138,7 +139,7 @@ bool TransferFunction2D::Load(const std::string& filename, const VECTOR2<size_t>
       T_ERROR("Failed loading swatch %u/%u in %s",
               static_cast<unsigned>(i),
               static_cast<unsigned>(m_pvSwatches->size()-1),
-              filename.c_str());
+        SysTools::toNarrow(filename).c_str());
       return false;
     }
   }
@@ -149,8 +150,8 @@ bool TransferFunction2D::Load(const std::string& filename, const VECTOR2<size_t>
 }
 
 
-bool TransferFunction2D::Load(const std::string& filename) {
-  ifstream file(filename.c_str());
+bool TransferFunction2D::Load(const std::wstring& filename) {
+  ifstream file(SysTools::toNarrow(filename).c_str());
 
   if (!file.is_open()) return false;
 
@@ -158,13 +159,13 @@ bool TransferFunction2D::Load(const std::string& filename) {
   file >> m_iSize.x >> m_iSize.y;
 
   if(!file) {
-    T_ERROR("Could not get 1D TF size from stream (in %s).", filename.c_str());
+    T_ERROR("Could not get 1D TF size from stream (in %s).", SysTools::toNarrow(filename).c_str());
     return false;
   }
 
   // load 1D Trans
   if(!m_Trans1D.Load(file, m_iSize.x)) {
-    T_ERROR("2DTF '%s': Could not load 1D TF.", filename.c_str());
+    T_ERROR("2DTF '%s': Could not load 1D TF.", SysTools::toNarrow(filename).c_str());
     return false;
   }
 
@@ -172,7 +173,7 @@ bool TransferFunction2D::Load(const std::string& filename) {
   uint32_t iSwatchCount;
   file >> iSwatchCount;
   if(!file) {
-    T_ERROR("Invalid swatch count in %s", filename.c_str());
+    T_ERROR("Invalid swatch count in %s", SysTools::toNarrow(filename).c_str());
     return false;
   }
   m_pvSwatches->resize(iSwatchCount);
@@ -187,7 +188,7 @@ bool TransferFunction2D::Load(const std::string& filename) {
       T_ERROR("Failed loading swatch %u/%u in %s",
               static_cast<unsigned>(i),
               static_cast<unsigned>(m_pvSwatches->size()-1),
-              filename.c_str());
+        SysTools::toNarrow(filename).c_str());
       return false;
     }
   }
@@ -197,8 +198,8 @@ bool TransferFunction2D::Load(const std::string& filename) {
   return true;
 }
 
-bool TransferFunction2D::Save(const std::string& filename) const {
-  ofstream file(filename.c_str());
+bool TransferFunction2D::Save(const std::wstring& filename) const {
+  ofstream file(SysTools::toNarrow(filename).c_str());
 
   if (!file.is_open()) return false;
 

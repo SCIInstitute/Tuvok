@@ -104,13 +104,13 @@ using namespace std;
 using namespace boost;
 using namespace tuvok;
 
-static void read_first_block(const string& filename,
+static void read_first_block(const wstring& filename,
                              vector<int8_t>& block)
 {
-  ifstream ifs(filename.c_str(), ifstream::in |
+  ifstream ifs(SysTools::toNarrow(filename).c_str(), ifstream::in |
                                       ifstream::binary);
   block.resize(512);
-  ifs.read(reinterpret_cast<char*>(&block[0]), 512);
+  ifs.read(reinterpret_cast<char*>(&block[0]), 512/2);
   ifs.close();
 }
 
@@ -120,7 +120,7 @@ static void read_first_block(const string& filename,
 namespace {
   template<typename ForwIter>
   std::set<std::shared_ptr<AbstrConverter>>
-  identify_converters(const std::string& filename,
+  identify_converters(const std::wstring& filename,
                       ForwIter cbegin, ForwIter cend)
   {
     std::set<std::shared_ptr<AbstrConverter>> converters;
@@ -129,10 +129,10 @@ namespace {
     read_first_block(filename, bytes);
 
     while(cbegin != cend) {
-      MESSAGE("Attempting converter '%s'", (*cbegin)->GetDesc().c_str());
+      MESSAGE("Attempting converter '%s'", SysTools::toNarrow((*cbegin)->GetDesc()).c_str());
       if((*cbegin)->CanRead(filename, bytes)) {
         MESSAGE("Converter '%s' can read '%s'!",
-                (*cbegin)->GetDesc().c_str(), filename.c_str());
+          SysTools::toNarrow((*cbegin)->GetDesc()).c_str(), SysTools::toNarrow(filename).c_str());
         converters.insert(*cbegin);
       }
       ++cbegin;
@@ -208,8 +208,8 @@ IOManager::~IOManager()
 }
 
 vector<std::shared_ptr<FileStackInfo>>
-IOManager::ScanDirectory(string strDirectory) const {
-  MESSAGE("Scanning directory %s", strDirectory.c_str());
+IOManager::ScanDirectory(std::wstring strDirectory) const {
+  MESSAGE("Scanning directory %s", SysTools::toNarrow(strDirectory).c_str());
 
   vector<std::shared_ptr<FileStackInfo>> fileStacks;
 
@@ -296,13 +296,13 @@ IOManager::ScanDirectory(string strDirectory) const {
 #endif
 
 bool IOManager::ConvertDataset(FileStackInfo* pStack,
-                               const string& strTargetFilename,
-                               const string& strTempDir,
+                               const wstring& strTargetFilename,
+                               const wstring& strTempDir,
                                const uint64_t iMaxBrickSize,
                                uint64_t iBrickOverlap,
                                const bool bQuantizeTo8Bit) const {
   MESSAGE("Request to convert stack of %s files to %s received",
-          pStack->m_strDesc.c_str(), strTargetFilename.c_str());
+          pStack->m_strDesc.c_str(), SysTools::toNarrow(strTargetFilename).c_str());
 
   if (pStack->m_strFileType == "DICOM") {
     MESSAGE("  Detected DICOM stack, starting DICOM conversion");
@@ -322,16 +322,16 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
     MESSAGE("    Aspect Ratio: %g %g %g", pDICOMStack->m_fvfAspect.x,
             pDICOMStack->m_fvfAspect.y, pDICOMStack->m_fvfAspect.z);
 
-    string strTempMergeFilename = strTempDir +
+    std::wstring strTempMergeFilename = strTempDir +
                                   SysTools::GetFilename(strTargetFilename) +
-                                  "~";
-    MESSAGE("Creating intermediate file %s", strTempMergeFilename.c_str());
+                                  L"~";
+    MESSAGE("Creating intermediate file %s", SysTools::toNarrow(strTempMergeFilename).c_str());
 
     ofstream fs;
-    fs.open(strTempMergeFilename.c_str(), fstream::binary);
+    fs.open(SysTools::toNarrow(strTempMergeFilename).c_str(), fstream::binary);
     if (fs.fail()) {
       T_ERROR("Could not create temp file %s aborted conversion.",
-              strTempMergeFilename.c_str());
+        SysTools::toNarrow(strTempMergeFilename).c_str());
       return false;
     }
 
@@ -365,7 +365,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
       } else {
         pDICOMStack->m_Elements[j]->GetData(vData);
         MESSAGE("Creating intermediate file %s\n%u%%",
-                strTempMergeFilename.c_str(),
+          SysTools::toNarrow(strTempMergeFilename).c_str(),
                 static_cast<unsigned>((100*j)/pDICOMStack->m_Elements.size()));
       }
 
@@ -472,7 +472,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
     }
 
     fs.close();
-    MESSAGE("    done creating intermediate file %s", strTempMergeFilename.c_str());
+    MESSAGE("    done creating intermediate file %s", SysTools::toNarrow(strTempMergeFilename).c_str());
 
     UINT64VECTOR3 iSize = UINT64VECTOR3(pDICOMStack->m_ivSize);
     iSize.z *= uint32_t(pDICOMStack->m_Elements.size());
@@ -490,13 +490,13 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
                                       EndianConvert::IsBigEndian(),
                                       pDICOMStack->m_bSigned,
                                       false, iSize, pDICOMStack->m_fvfAspect,
-                                      "DICOM stack",
+                                      L"DICOM stack",
                                       SysTools::GetFilename(
-                                      pDICOMStack->m_Elements[0]->m_strFileName)
-                                      + " to " + SysTools::GetFilename(
+                                      pDICOMStack->m_Elements[0]->m_wstrFileName)
+                                      + L" to " + SysTools::GetFilename(
                                         pDICOMStack->m_Elements[
                                           pDICOMStack->m_Elements.size()-1
-                                        ]->m_strFileName
+                                        ]->m_wstrFileName
                                       ),
                                       iMaxBrickSize, iBrickOverlap,
                                       m_bUseMedianFilter,
@@ -507,8 +507,8 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
                                       0, bQuantizeTo8Bit
                                      );
 
-    if(remove(strTempMergeFilename.c_str()) != 0) {
-      WARNING("Unable to remove temp file %s", strTempMergeFilename.c_str());
+    if(!SysTools::RemoveFile(strTempMergeFilename)) {
+      WARNING("Unable to remove temp file %s", SysTools::toNarrow(strTempMergeFilename).c_str());
     }
 
     return result;
@@ -517,16 +517,16 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
     MESSAGE("  Stack contains %u files",
             static_cast<unsigned>(pStack->m_Elements.size()));
 
-    string strTempMergeFilename = strTempDir +
+    wstring strTempMergeFilename = strTempDir +
                                   SysTools::GetFilename(strTargetFilename) +
-                                  "~";
-    MESSAGE("Creating intermediate file %s", strTempMergeFilename.c_str());
+                                  L"~";
+    MESSAGE("Creating intermediate file %s", SysTools::toNarrow(strTempMergeFilename).c_str());
 
     ofstream fs;
-    fs.open(strTempMergeFilename.c_str(),fstream::binary);
+    fs.open(SysTools::toNarrow(strTempMergeFilename).c_str(),fstream::binary);
     if (fs.fail())  {
       T_ERROR("Could not create temp file %s aborted conversion.",
-              strTempMergeFilename.c_str());
+        SysTools::toNarrow(strTempMergeFilename).c_str());
       return false;
     }
 
@@ -536,22 +536,22 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
 
       fs.write(&vData[0], vData.size());
       MESSAGE("Creating intermediate file %s\n%u%%",
-              strTempMergeFilename.c_str(),
+        SysTools::toNarrow(strTempMergeFilename).c_str(),
               static_cast<unsigned>((100*j)/pStack->m_Elements.size()));
     }
 
     fs.close();
     MESSAGE("    done creating intermediate file %s",
-            strTempMergeFilename.c_str());
+      SysTools::toNarrow(strTempMergeFilename).c_str());
 
     UINT64VECTOR3 iSize = UINT64VECTOR3(pStack->m_ivSize);
     iSize.z *= uint32_t(pStack->m_Elements.size());
 
-    const string first_fn =
-      SysTools::GetFilename(pStack->m_Elements[0]->m_strFileName);
+    const wstring first_fn =
+      SysTools::GetFilename(pStack->m_Elements[0]->m_wstrFileName);
     const size_t last_elem = pStack->m_Elements.size()-1;
-    const string last_fn =
-      SysTools::GetFilename(pStack->m_Elements[last_elem]->m_strFileName);
+    const wstring last_fn =
+      SysTools::GetFilename(pStack->m_Elements[last_elem]->m_wstrFileName);
 
     const uint64_t timesteps = 1;
 
@@ -567,8 +567,8 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
                                         EndianConvert::IsBigEndian(),
                                       pStack->m_iComponentCount >= 32, false,
                                       iSize, pStack->m_fvfAspect,
-                                      "Image stack",
-                                      first_fn + " to " + last_fn,
+                                      L"Image stack",
+                                      first_fn + L" to " + last_fn,
                                       iMaxBrickSize, iBrickOverlap, 
                                       m_bUseMedianFilter,
                                       m_bClampToEdge,
@@ -576,8 +576,8 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
                                       m_iCompressionLevel,
                                       m_iLayout);
 
-    if(remove(strTempMergeFilename.c_str()) != 0) {
-      WARNING("Unable to remove temp file %s", strTempMergeFilename.c_str());
+    if(!SysTools::RemoveFile(strTempMergeFilename)) {
+      WARNING("Unable to remove temp file %s", SysTools::toNarrow(strTempMergeFilename).c_str());
     }
 
     return result;
@@ -593,7 +593,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
 
 class MergeDataset {
 public:
-  MergeDataset(std::string _strFilename="", uint64_t _iHeaderSkip=0, bool _bDelete=false,
+  MergeDataset(std::wstring _strFilename=L"", uint64_t _iHeaderSkip=0, bool _bDelete=false,
                double _fScale=1.0, double _fBias=0.0) :
     strFilename(_strFilename),
     iHeaderSkip(_iHeaderSkip),
@@ -602,7 +602,7 @@ public:
     fBias(_fBias)
   {}
 
-  std::string strFilename;
+  std::wstring strFilename;
   uint64_t iHeaderSkip;
   bool bDelete;
   double fScale;
@@ -612,18 +612,18 @@ public:
 template <class T> class DataMerger {
 public:
   DataMerger(const std::vector<MergeDataset>& strFiles,
-             const std::string& strTarget, uint64_t iElemCount,
+             const std::wstring& strTarget, uint64_t iElemCount,
              tuvok::MasterController* pMasterController,
              bool bUseMaxMode) :
     bIsOK(false)
   {
     AbstrDebugOut& dbg = *(pMasterController->DebugOut());
     dbg.Message(_func_,"Copying first file %s ...",
-                SysTools::GetFilename(strFiles[0].strFilename).c_str());
+        SysTools::toNarrow(SysTools::GetFilename(strFiles[0].strFilename)).c_str());
     if (!LargeRAWFile::Copy(strFiles[0].strFilename, strTarget,
                             strFiles[0].iHeaderSkip)) {
-      dbg.Error("Could not copy '%s' to '%s'", strFiles[0].strFilename.c_str(),
-                strTarget.c_str());
+      dbg.Error("Could not copy '%s' to '%s'", SysTools::toNarrow(strFiles[0].strFilename).c_str(),
+          SysTools::toNarrow(strTarget).c_str());
       bIsOK = false;
       return;
     }
@@ -633,8 +633,8 @@ public:
     target.Open(true);
 
     if (!target.IsOpen()) {
-      dbg.Error("Could not open '%s'", strTarget.c_str());
-      remove(strTarget.c_str());
+      dbg.Error("Could not open '%s'", SysTools::toNarrow(strTarget).c_str());
+      SysTools::RemoveFile(strTarget);
       bIsOK = false;
       return;
     }
@@ -644,16 +644,16 @@ public:
     T* pSourceBuffer = new T[size_t(iCopySize)];
     for (size_t i = 1;i<strFiles.size();i++) {
       dbg.Message(_func_,"Merging with file %s ...",
-                  SysTools::GetFilename(strFiles[i].strFilename).c_str());
+        SysTools::toNarrow(SysTools::GetFilename(strFiles[i].strFilename)).c_str());
       LargeRAWFile source(strFiles[i].strFilename, strFiles[i].iHeaderSkip);
       source.Open(false);
       if (!source.IsOpen()) {
         dbg.Error(_func_, "Could not open '%s'!",
-                  strFiles[i].strFilename.c_str());
+          SysTools::toNarrow(strFiles[i].strFilename).c_str());
         delete [] pTargetBuffer;
         delete [] pSourceBuffer;
         target.Close();
-        remove(strTarget.c_str());
+        SysTools::RemoveFile(strTarget);
         bIsOK = false;
         return;
       }
@@ -741,14 +741,14 @@ private:
   bool bIsOK;
 };
 
-bool IOManager::MergeDatasets(const vector <string>& strFilenames,
+bool IOManager::MergeDatasets(const vector <wstring>& strFilenames,
                               const vector <double>& vScales,
                               const vector<double>& vBiases,
-                              const string& strTargetFilename,
-                              const string& strTempDir,
+                              const wstring& strTargetFilename,
+                              const wstring& strTempDir,
                               bool bUseMaxMode, bool bNoUserInteraction) const {
   MESSAGE("Request to merge multiple data sets into %s received.",
-          strTargetFilename.c_str());
+    SysTools::toNarrow(strTargetFilename).c_str());
 
   // convert the input files to RAW
   unsigned        iComponentSizeG=0;
@@ -758,25 +758,25 @@ bool IOManager::MergeDatasets(const vector <string>& strFilenames,
   bool          bIsFloatG=false;
   UINT64VECTOR3   vVolumeSizeG(0,0,0);
   FLOATVECTOR3  vVolumeAspectG(0,0,0);
-  string strTitleG      = "Merged data from multiple files";
-  stringstream  ss;
+  wstring strTitleG      = L"Merged data from multiple files";
+  wstringstream  ss;
   for (size_t i = 0;i<strFilenames.size();i++) {
     ss << SysTools::GetFilename(strFilenames[i]);
     if (i<strFilenames.size()-1) ss << " ";
   }
-  string        strSourceG = ss.str();
+  wstring        strSourceG = ss.str();
 
   bool bRAWCreated = false;
   vector<MergeDataset> vIntermediateFiles;
   for (size_t iInputData = 0;iInputData<strFilenames.size();iInputData++) {
-    MESSAGE("Reading data sets %s...", strFilenames[iInputData].c_str());
-    string strExt       = SysTools::ToUpperCase(SysTools::GetExt(strFilenames[iInputData]));
+    MESSAGE("Reading data sets %s...", SysTools::toNarrow(strFilenames[iInputData]).c_str());
+    wstring strExt       = SysTools::ToUpperCase(SysTools::GetExt(strFilenames[iInputData]));
 
     MergeDataset IntermediateFile;
     IntermediateFile.fScale = vScales[iInputData];
     IntermediateFile.fBias = vBiases[iInputData];
 
-    if (strExt == "UVF") {
+    if (strExt == L"UVF") {
       UVFDataset v(strFilenames[iInputData],m_iMaxBrickSize,false);
 
       uint64_t iLODLevel = 0; // always extract the highest quality here
@@ -822,24 +822,24 @@ bool IOManager::MergeDatasets(const vector <string>& strFilenames,
           WARNING("Different aspect ratios found.");
       }
 
-      IntermediateFile.strFilename = strTempDir + SysTools::GetFilename(strFilenames[iInputData]) + SysTools::ToString(rand()) +".raw";
+      IntermediateFile.strFilename = strTempDir + SysTools::GetFilename(strFilenames[iInputData]) + SysTools::ToWString(rand()) +L".raw";
       IntermediateFile.bDelete = true;
 
       if (!v.Export(iLODLevel, IntermediateFile.strFilename, false)) {
-        if (SysTools::FileExists(IntermediateFile.strFilename)) remove(IntermediateFile.strFilename.c_str());
+        if (SysTools::FileExists(IntermediateFile.strFilename)) SysTools::RemoveFile(IntermediateFile.strFilename);
         break;
       } else bRAWCreated = true;
       vIntermediateFiles.push_back(IntermediateFile);
     } else {
       unsigned      iComponentSize=0;
-      uint64_t        iComponentCount=0;
+      uint64_t      iComponentCount=0;
       bool          bConvertEndianess=false;
       bool          bSigned=false;
       bool          bIsFloat=false;
       UINT64VECTOR3 vVolumeSize(0,0,0);
       FLOATVECTOR3  vVolumeAspect(0,0,0);
-      string        strTitle = "";
-      string        strSource = "";
+      wstring       strTitle = L"";
+      wstring       strSource = L"";
 
       std::set<std::shared_ptr<AbstrConverter>> converters =
         identify_converters(strFilenames[iInputData], m_vpConverters.begin(),
@@ -856,7 +856,7 @@ bool IOManager::MergeDatasets(const vector <string>& strFilenames,
         strSource = SysTools::GetFilename(strFilenames[iInputData]);
         if(bRAWCreated) {
           MESSAGE("Conversion using '%s' succeeded!",
-                  (*conv)->GetDesc().c_str());
+            SysTools::toNarrow((*conv)->GetDesc()).c_str());
           break;
         }
       }
@@ -908,14 +908,14 @@ bool IOManager::MergeDatasets(const vector <string>& strFilenames,
     T_ERROR("No raw files.  Deleting temp files...");
     for (size_t i = 0;i<vIntermediateFiles.size();i++) {
       if (vIntermediateFiles[i].bDelete && SysTools::FileExists(vIntermediateFiles[i].strFilename))
-        remove(vIntermediateFiles[i].strFilename.c_str());
+        SysTools::RemoveFile(vIntermediateFiles[i].strFilename);
     }
     T_ERROR("...  and bailing.");
     return false;
   }
 
   // merge the raw files into a single RAW file
-  string strMergedFile = strTempDir + "merged.raw";
+  wstring strMergedFile = strTempDir + L"merged.raw";
 
   bool bIsMerged = false;
   MasterController *MCtlr = &(Controller::Instance());
@@ -1011,7 +1011,7 @@ bool IOManager::MergeDatasets(const vector <string>& strFilenames,
   MESSAGE("Removing temporary files...");
   for (size_t i = 0;i<vIntermediateFiles.size();i++) {
     if (vIntermediateFiles[i].bDelete && SysTools::FileExists(vIntermediateFiles[i].strFilename))
-      remove(vIntermediateFiles[i].strFilename.c_str());
+      SysTools::RemoveFile(vIntermediateFiles[i].strFilename);
   }
   if (!bIsMerged) {
     WARNING("Merged failed, see other debug messages.");
@@ -1019,9 +1019,9 @@ bool IOManager::MergeDatasets(const vector <string>& strFilenames,
   }
 
   // convert that single RAW file to the target data
-  string strExtTarget = SysTools::ToUpperCase(SysTools::GetExt(strTargetFilename));
+  wstring strExtTarget = SysTools::ToUpperCase(SysTools::GetExt(strTargetFilename));
   bool bTargetCreated = false;
-  if (strExtTarget == "UVF") {
+  if (strExtTarget == L"UVF") {
     const uint64_t timesteps = 1;
     bTargetCreated = RAWConverter::ConvertRAWDataset(
         strMergedFile, strTargetFilename, strTempDir, 0,
@@ -1032,7 +1032,7 @@ bool IOManager::MergeDatasets(const vector <string>& strFilenames,
         m_iCompressionLevel, m_iLayout);
   } else {
     for (size_t k = 0;k<m_vpConverters.size();k++) {
-      const vector<string>& vStrSupportedExtTarget =
+      const vector<wstring>& vStrSupportedExtTarget =
         m_vpConverters[k]->SupportedExt();
       for (size_t l = 0;l<vStrSupportedExtTarget.size();l++) {
         if (vStrSupportedExtTarget[l] == strExtTarget) {
@@ -1044,7 +1044,7 @@ bool IOManager::MergeDatasets(const vector <string>& strFilenames,
 
           if(!bTargetCreated) {
             WARNING("%s said it could convert to native, but failed!",
-                    m_vpConverters[k]->GetDesc().c_str());
+              SysTools::toNarrow(m_vpConverters[k]->GetDesc()).c_str());
           } else {
             break;
           }
@@ -1053,28 +1053,28 @@ bool IOManager::MergeDatasets(const vector <string>& strFilenames,
       if (bTargetCreated) break;
     }
   }
-  remove(strMergedFile.c_str());
+  SysTools::RemoveFile(strMergedFile);
   return bTargetCreated;
 }
 
 
-bool IOManager::ConvertDataset(const string& strFilename,
-                               const string& strTargetFilename,
-                               const string& strTempDir,
+bool IOManager::ConvertDataset(const wstring& strFilename,
+                               const wstring& strTargetFilename,
+                               const wstring& strTempDir,
                                const bool bNoUserInteraction,
                                const uint64_t iMaxBrickSize,
                                const uint64_t iBrickOverlap,
                                const bool bQuantizeTo8Bit) const {
-  list<string> files;
+  list<wstring> files;
   files.push_back(strFilename);
   return ConvertDataset(files, strTargetFilename, strTempDir,
                         bNoUserInteraction, iMaxBrickSize, iBrickOverlap,
                         bQuantizeTo8Bit);
 }
 
-bool IOManager::ConvertDataset(const list<string>& files,
-                               const string& strTargetFilename,
-                               const string& strTempDir,
+bool IOManager::ConvertDataset(const list<wstring>& files,
+                               const wstring& strTargetFilename,
+                               const wstring& strTempDir,
                                const bool bNoUserInteraction,
                                const uint64_t iMaxBrickSize,
                                uint64_t iBrickOverlap,
@@ -1087,8 +1087,10 @@ bool IOManager::ConvertDataset(const list<string>& files,
   {
     ostringstream request;
     request << "Request to convert datasets ";
-    copy(files.begin(), files.end(), ostream_iterator<string>(request, ", "));
-    request << "to " << strTargetFilename << " received.";
+    for (auto& f : files) {
+        request << SysTools::toNarrow(f) << " ";
+    }
+    request << "to " << SysTools::toNarrow(strTargetFilename) << " received.";
     MESSAGE("%s", request.str().c_str());
   }
 
@@ -1104,10 +1106,10 @@ bool IOManager::ConvertDataset(const list<string>& files,
   ///   all from the same file format
   ///   all have equivalent bit depth, or at least something that'll convert to
   ///    the same depth
-  string strExt = SysTools::ToUpperCase(SysTools::GetExt(*files.begin()));
-  string strExtTarget = SysTools::ToUpperCase(SysTools::GetExt(strTargetFilename));
+  wstring strExt = SysTools::ToUpperCase(SysTools::GetExt(*files.begin()));
+  wstring strExtTarget = SysTools::ToUpperCase(SysTools::GetExt(strTargetFilename));
 
-  if (strExtTarget == "UVF") {
+  if (strExtTarget == L"UVF") {
     // Iterate through all our converters, stopping when one successfully
     // converts our data.
     std::set<std::shared_ptr<AbstrConverter>> converters =
@@ -1125,7 +1127,7 @@ bool IOManager::ConvertDataset(const list<string>& files,
         return true;
       } else {
         WARNING("Converter %s can read files, but conversion failed!",
-                (*conv)->GetDesc().c_str());
+          SysTools::toNarrow((*conv)->GetDesc()).c_str());
       }
     }
 
@@ -1152,24 +1154,24 @@ bool IOManager::ConvertDataset(const list<string>& files,
   }
   // Everything below is for exporting to non-UVF formats.
 
-  string   strFilename = *files.begin();
-  uint64_t        iHeaderSkip=0;
-  unsigned        iComponentSize=0;
-  uint64_t        iComponentCount=0;
+  wstring       strFilename = *files.begin();
+  uint64_t      iHeaderSkip=0;
+  unsigned      iComponentSize=0;
+  uint64_t      iComponentCount=0;
   bool          bConvertEndianess=false;
   bool          bSigned=false;
   bool          bIsFloat=false;
   UINT64VECTOR3 vVolumeSize(0,0,0);
   FLOATVECTOR3  vVolumeAspect(0,0,0);
-  string        strTitle = "";
-  string        strSource = "";
-  string        strIntermediateFile = "";
+  wstring       strTitle = L"";
+  wstring       strSource = L"";
+  wstring       strIntermediateFile = L"";
   bool          bDeleteIntermediateFile = false;
 
-  bool bRAWCreated = false;
+  bool          bRAWCreated = false;
 
   // source is UVF
-  if (strExt == "UVF") {
+  if (strExt == L"UVF") {
     // max(): disable bricksize check
     UVFDataset v(strFilename,numeric_limits<uint64_t>::max(),false,false);
 
@@ -1183,10 +1185,10 @@ bool IOManager::ConvertDataset(const list<string>& files,
     bIsFloat = v.GetIsFloat();
     vVolumeSize = v.GetDomainSize(static_cast<size_t>(iLODLevel));
     vVolumeAspect = FLOATVECTOR3(v.GetScale());
-    strTitle          = "UVF data";               /// \todo grab this data from the UVF file
+    strTitle          = L"UVF data";               /// \todo grab this data from the UVF file
     strSource         = SysTools::GetFilename(strFilename);
 
-    strIntermediateFile = strTempDir + strSource +".raw";
+    strIntermediateFile = strTempDir + strSource +L".raw";
     bDeleteIntermediateFile = true;
 
     if (!v.Export(iLODLevel, strIntermediateFile, false)) {
@@ -1237,7 +1239,7 @@ bool IOManager::ConvertDataset(const list<string>& files,
 
   bool bTargetCreated = false;
   for (size_t k = 0;k<m_vpConverters.size();k++) {
-    const vector<string>& vStrSupportedExtTarget =
+    const vector<wstring>& vStrSupportedExtTarget =
       m_vpConverters[k]->SupportedExt();
     for (size_t l = 0;l<vStrSupportedExtTarget.size();l++) {
       if (vStrSupportedExtTarget[l] == strExtTarget) {
@@ -1254,20 +1256,20 @@ bool IOManager::ConvertDataset(const list<string>& files,
     }
     if (bTargetCreated) break;
   }
-  if (bDeleteIntermediateFile) remove(strIntermediateFile.c_str());
+  if (bDeleteIntermediateFile) SysTools::RemoveFile(strIntermediateFile);
   if (bTargetCreated) return true;
 
   return false;
 }
 
 void IOManager::SetMemManLoadFunction(
-  std::function<tuvok::Dataset*(const std::string&,
+  std::function<tuvok::Dataset*(const std::wstring&,
                                      AbstrRenderer*)>& f
 ) {
   m_LoadDS = f;
 }
 
-Dataset* IOManager::LoadDataset(const string& strFilename,
+Dataset* IOManager::LoadDataset(const wstring& strFilename,
                                 AbstrRenderer* requester) const {
   if(!m_LoadDS) {
     // logic error; you should have set this after creating the MemMgr!
@@ -1278,7 +1280,7 @@ Dataset* IOManager::LoadDataset(const string& strFilename,
   return m_LoadDS(strFilename, requester);
 }
 
-Dataset* IOManager::LoadRebrickedDataset(const std::string& filename,
+Dataset* IOManager::LoadRebrickedDataset(const std::wstring& filename,
                                          const UINTVECTOR3 bricksize,
                                          size_t minmaxType) const {
   std::shared_ptr<Dataset> ds(this->CreateDataset(filename, 1024, false));
@@ -1320,9 +1322,9 @@ Dataset* IOManager::LoadRebrickedDataset(const std::string& filename,
   return new DynamicBrickingDS(lid, tgt_bsize, cache_size, mm);
 }
 
-Dataset* IOManager::CreateDataset(const string& filename,
+Dataset* IOManager::CreateDataset(const std::wstring& filename,
                                   uint64_t max_brick_size, bool verify) const {
-  MESSAGE("Searching for appropriate DS for '%s'", filename.c_str());
+  MESSAGE("Searching for appropriate DS for '%s'", SysTools::toNarrow(filename).c_str());
   return m_dsFactory->Create(filename, max_brick_size, verify);
 }
 
@@ -1332,7 +1334,7 @@ void IOManager::AddReader(shared_ptr<FileBackedDataset> ds) {
 
 class MCData {
 public:
-  MCData(const std::string& strTargetFile) :
+  MCData(const std::wstring& strTargetFile) :
     m_strTargetFile(strTargetFile)
   {}
 
@@ -1340,7 +1342,7 @@ public:
   virtual bool PerformMC(void* pData, const UINTVECTOR3& vBrickSize, const UINT64VECTOR3& vBrickOffset) = 0;
 
 protected:
-  std::string m_strTargetFile;
+  std::wstring m_strTargetFile;
 };
 
 bool MCBrick(void* pData, const UINT64VECTOR3& vBrickSize, 
@@ -1353,12 +1355,12 @@ bool MCBrick(void* pData, const UINT64VECTOR3& vBrickSize,
 bool IOManager::ExtractImageStack(const tuvok::UVFDataset* pSourceData,
                                   const TransferFunction1D* pTrans,
                                   uint64_t iLODlevel, 
-                                  const std::string& strTargetFilename,
-                                  const std::string& strTempDir,
+                                  const std::wstring& strTargetFilename,
+                                  const std::wstring& strTempDir,
                                   bool bAllDirs) const {
 
 
-  string strTempFilename = SysTools::FindNextSequenceName(strTempDir + SysTools::GetFilename(strTargetFilename)+".tmp_raw");
+  std::wstring strTempFilename = SysTools::FindNextSequenceName(strTempDir + SysTools::GetFilename(strTargetFilename)+L".tmp_raw");
   
   if (pSourceData->GetIsFloat() || pSourceData->GetIsSigned()) {
     T_ERROR("Stack export currently only supported for unsigned integer values.");
@@ -1376,7 +1378,7 @@ bool IOManager::ExtractImageStack(const tuvok::UVFDataset* pSourceData,
   bool bRAWCreated = pSourceData->Export(iLODlevel, strTempFilename, false);
 
   if (!bRAWCreated) {
-    T_ERROR("Unable to write temp file %s", strTempFilename.c_str());
+    T_ERROR("Unable to write temp file %s", SysTools::toNarrow(strTempFilename).c_str());
     return false;
   }
 
@@ -1392,10 +1394,10 @@ bool IOManager::ExtractImageStack(const tuvok::UVFDataset* pSourceData,
                                                    float(pTrans->GetSize() / fMaxActValue),
                                                    pSourceData->GetDomainSize(static_cast<size_t>(iLODlevel)),
                                                    bAllDirs);
-  remove(strTempFilename.c_str());
+  SysTools::RemoveFile(strTempFilename);
 
   if (!bTargetCreated) {
-    T_ERROR("Unable to write target file %s", strTargetFilename.c_str());
+    T_ERROR("Unable to write target file %s", SysTools::toNarrow(strTargetFilename).c_str());
     return false;
   }
 
@@ -1406,7 +1408,7 @@ bool IOManager::ExtractImageStack(const tuvok::UVFDataset* pSourceData,
 
 template <class T> class MCDataTemplate  : public MCData {
 public:
-  MCDataTemplate(const std::string& strTargetFile, T TIsoValue, 
+  MCDataTemplate(const std::wstring& strTargetFile, T TIsoValue, 
                  const FLOATVECTOR3& vScale, 
                  UINT64VECTOR3 vDataSize, tuvok::AbstrGeoConverter* conv,
                  const FLOATVECTOR4& vColor) :
@@ -1425,7 +1427,7 @@ public:
     tuvok::Mesh m = tuvok::Mesh(m_vertices, m_normals, tuvok::TexCoordVec(),
                                 tuvok::ColorVec(), m_indices, m_indices, 
                                 tuvok::IndexVec(),tuvok::IndexVec(), 
-                                false,false,"Marching Cubes mesh by ImageVis3D",
+                                false,false,L"Marching Cubes mesh by ImageVis3D",
                                 tuvok::Mesh::MT_TRIANGLES);
     m.SetDefaultColor(m_vColor);
     m_conv->ConvertToNative(m, m_strTargetFile);
@@ -1481,14 +1483,14 @@ protected:
 bool IOManager::ExtractIsosurface(const tuvok::UVFDataset* pSourceData,
                                   uint64_t iLODlevel, double fIsovalue,
                                   const FLOATVECTOR4& vfColor,
-                                  const string& strTargetFilename,
-                                  const string& strTempDir) const {
+                                  const std::wstring& strTargetFilename,
+                                  const std::wstring& strTempDir) const {
   if (pSourceData->GetComponentCount() != 1) {
     T_ERROR("Isosurface extraction only supported for scalar volumes.");
     return false;
   }
 
-  string strTempFilename = strTempDir + SysTools::GetFilename(strTargetFilename)+".tmp_raw";
+  wstring strTempFilename = strTempDir + SysTools::GetFilename(strTargetFilename)+L".tmp_raw";
   std::shared_ptr<MCData> pMCData;
 
   bool   bFloatingPoint  = pSourceData->GetIsFloat();
@@ -1568,19 +1570,19 @@ bool IOManager::ExtractIsosurface(const tuvok::UVFDataset* pSourceData,
   bool bResult = pSourceData->ApplyFunction(iLODlevel,&MCBrick,
                                             (void*)pMCData.get(), 1);
 
-  if (SysTools::FileExists(strTempFilename)) remove (strTempFilename.c_str());
+  if (SysTools::FileExists(strTempFilename)) SysTools::RemoveFile(strTempFilename);
 
   if (bResult)
     return true;
   else {
-    remove (strTargetFilename.c_str());
+    SysTools::RemoveFile(strTargetFilename);
     T_ERROR("Export call failed.");
     return false;
   }
 }
 
 bool IOManager::ExportMesh(const std::shared_ptr<Mesh> mesh, 
-                           const std::string& strTargetFilename) {
+                           const std::wstring& strTargetFilename) {
   AbstrGeoConverter* conv = GetGeoConverterForExt(SysTools::ToLowerCase(SysTools::GetExt(strTargetFilename)),true, false);
 
   if (conv == NULL) {
@@ -1592,13 +1594,13 @@ bool IOManager::ExportMesh(const std::shared_ptr<Mesh> mesh,
 }
 
 bool IOManager::ExportDataset(const UVFDataset* pSourceData, uint64_t iLODlevel,
-                              const string& strTargetFilename,
-                              const string& strTempDir) const {
+                              const std::wstring& strTargetFilename,
+                              const std::wstring& strTempDir) const {
   // find the right converter to handle the output
-  string strExt = SysTools::ToUpperCase(SysTools::GetExt(strTargetFilename));
+  std::wstring strExt = SysTools::ToUpperCase(SysTools::GetExt(strTargetFilename));
   std::shared_ptr<AbstrConverter> pExporter;
   for (size_t i = 0;i<m_vpConverters.size();i++) {
-    const vector<string>& vStrSupportedExt = m_vpConverters[i]->SupportedExt();
+    const std::vector<std::wstring>& vStrSupportedExt = m_vpConverters[i]->SupportedExt();
     for (size_t j = 0;j<vStrSupportedExt.size();j++) {
       if (vStrSupportedExt[j] == strExt) {
         pExporter = m_vpConverters[i];
@@ -1609,15 +1611,15 @@ bool IOManager::ExportDataset(const UVFDataset* pSourceData, uint64_t iLODlevel,
   }
 
   if (!pExporter) {
-    T_ERROR("Unknown file extension %s.", strExt.c_str());
+    T_ERROR("Unknown file extension %s.", SysTools::toNarrow(strExt).c_str());
     return false;
   }
 
-  string strTempFilename = strTempDir + SysTools::GetFilename(strTargetFilename)+".tmp_raw";
+  std::wstring strTempFilename = strTempDir + SysTools::GetFilename(strTargetFilename)+L".tmp_raw";
   bool bRAWCreated = pSourceData->Export(iLODlevel, strTempFilename, false);
 
   if (!bRAWCreated) {
-    T_ERROR("Unable to write temp file %s", strTempFilename.c_str());
+    T_ERROR("Unable to write temp file %s", SysTools::toNarrow(strTempFilename).c_str());
     return false;
   }
 
@@ -1636,14 +1638,14 @@ bool IOManager::ExportDataset(const UVFDataset* pSourceData, uint64_t iLODlevel,
                       FLOATVECTOR3(pSourceData->GetScale()),
                       false, false
                     );
-    remove(strTempFilename.c_str());
+    SysTools::RemoveFile(strTempFilename);
   } catch (const tuvok::io::DSOpenFailed& err) {
     T_ERROR("Unable to write target file %s", err.what());
     return false;
   }
 
   if (!bTargetCreated) {
-    T_ERROR("Unable to write target file %s", strTargetFilename.c_str());
+    T_ERROR("Unable to write target file %s", SysTools::toNarrow(strTargetFilename).c_str());
     return false;
   }
 
@@ -1656,14 +1658,14 @@ bool IOManager::ExportDataset(const UVFDataset* pSourceData, uint64_t iLODlevel,
 // Try to find the reader for the filename.  If we get back garbage, that must
 // mean we can't read this.  If we can't read it, it needs to be converted.
 // All your data are belong to us.
-bool IOManager::NeedsConversion(const string& strFilename) const {
+bool IOManager::NeedsConversion(const std::wstring& strFilename) const {
   const weak_ptr<FileBackedDataset> reader = m_dsFactory->Reader(strFilename);
   return reader.expired();
 }
 
 // Some readers checksum the data.  If they do, this is how the UI will access
 // that verification method.
-bool IOManager::Verify(const string& strFilename) const
+bool IOManager::Verify(const std::wstring& strFilename) const
 {
   const weak_ptr<FileBackedDataset> reader = m_dsFactory->Reader(strFilename);
 
@@ -1684,37 +1686,37 @@ bool IOManager::Verify(const string& strFilename) const
 using namespace tuvok;
 using namespace tuvok::io;
 
-std::string IOManager::GetImageExportDialogString() const {
-  std::vector<std::pair<std::string,std::string>> formats = StackExporter::GetSuportedImageFormats();
+std::wstring IOManager::GetImageExportDialogString() const {
+  std::vector<std::pair<std::wstring,std::wstring>> formats = StackExporter::GetSuportedImageFormats();
 
-  string strDialog = "All known Files ( ";
+  std::wstring strDialog = L"All known Files ( ";
   for(size_t i = 0; i< formats.size(); ++i) {
-    strDialog += "*." + SysTools::ToLowerCase(formats[i].first) + " ";
+    strDialog += L"*." + SysTools::ToLowerCase(formats[i].first) + L" ";
   }
-  strDialog += ");;";
+  strDialog += L");;";
 
   for(size_t i = 0; i< formats.size(); ++i) {
-    strDialog += formats[i].second + " (*." + SysTools::ToLowerCase(formats[i].first) + ");;";
+    strDialog += formats[i].second + L" (*." + SysTools::ToLowerCase(formats[i].first) + L");;";
   }
 
   return strDialog;
 }
 
-std::string IOManager::ImageExportDialogFilterToExt(const string& filter) const {
-  std::vector<std::pair<std::string,std::string>> formats = StackExporter::GetSuportedImageFormats();
+std::wstring IOManager::ImageExportDialogFilterToExt(const std::wstring& filter) const {
+  std::vector<std::pair<std::wstring,std::wstring>> formats = StackExporter::GetSuportedImageFormats();
 
   for(size_t i = 0; i< formats.size(); ++i) {
-    std::string strDialog = formats[i].second + " (*." + SysTools::ToLowerCase(formats[i].first) + ")";
+    std::wstring strDialog = formats[i].second + L" (*." + SysTools::ToLowerCase(formats[i].first) + L")";
     if ( filter == strDialog )
       return SysTools::ToLowerCase(formats[i].first);
   }
-  return "";
+  return L"";
 }
 
 
-string IOManager::GetLoadDialogString() const {
-  string strDialog = "All known Files (";
-  map<string,string> descPairs;
+std::wstring IOManager::GetLoadDialogString() const {
+  std::wstring strDialog = L"All known Files (";
+  map<std::wstring, std::wstring> descPairs;
 
   // first create the show all text entry
   // native formats
@@ -1723,10 +1725,10 @@ string IOManager::GetLoadDialogString() const {
       rdr != readers.end(); ++rdr) {
     const shared_ptr<FileBackedDataset> fileds =
       dynamic_pointer_cast<FileBackedDataset>(*rdr);
-    const list<string> extensions = fileds->Extensions();
-    for(list<string>::const_iterator ext = extensions.begin();
+    const list<std::wstring> extensions = fileds->Extensions();
+    for(list<std::wstring>::const_iterator ext = extensions.begin();
         ext != extensions.end(); ++ext) {
-      strDialog += "*." + SysTools::ToLowerCase(*ext) + " ";
+      strDialog += L"*." + SysTools::ToLowerCase(*ext) + L" ";
       descPairs[*ext] = (*rdr)->Name();
     }
   }
@@ -1735,15 +1737,15 @@ string IOManager::GetLoadDialogString() const {
   for (size_t i = 0;i<m_vpConverters.size();i++) {
     if (m_vpConverters[i]->CanImportData()) {
       for (size_t j = 0;j<m_vpConverters[i]->SupportedExt().size();j++) {
-        string strExt = SysTools::ToLowerCase(m_vpConverters[i]->SupportedExt()[j]);
+          std::wstring strExt = SysTools::ToLowerCase(m_vpConverters[i]->SupportedExt()[j]);
         if (descPairs.count(strExt) == 0) {
-          strDialog = strDialog + "*." + strExt + " ";
+          strDialog = strDialog + L"*." + strExt + L" ";
           descPairs[strExt] = m_vpConverters[i]->GetDesc();
         }
       }
     }
   }
-  strDialog += ");;";
+  strDialog += L");;";
 
   // now create the separate entries, i.e. just UVFs, just TIFFs, etc.
   // native formats
@@ -1751,43 +1753,43 @@ string IOManager::GetLoadDialogString() const {
       rdr != readers.end(); ++rdr) {
     const shared_ptr<FileBackedDataset> fileds =
       dynamic_pointer_cast<FileBackedDataset>(*rdr);
-    const list<string> extensions = fileds->Extensions();
-    strDialog += string(fileds->Name()) + " (";
-    for(list<string>::const_iterator ext = extensions.begin();
+    const list<std::wstring> extensions = fileds->Extensions();
+    strDialog += std::wstring(fileds->Name()) + L" (";
+    for(list<std::wstring>::const_iterator ext = extensions.begin();
         ext != extensions.end(); ++ext) {
-      strDialog += "*." + SysTools::ToLowerCase(*ext) + " ";
+      strDialog += L"*." + SysTools::ToLowerCase(*ext) + L" ";
       descPairs[*ext] = (*rdr)->Name();
     }
-    strDialog += ");;";
+    strDialog += L");;";
   }
 
   // converters
   for (size_t i=0; i < m_vpConverters.size(); i++) {
     if (m_vpConverters[i]->CanImportData()) {
-      strDialog += m_vpConverters[i]->GetDesc() + " (";
+      strDialog += m_vpConverters[i]->GetDesc() + L" (";
       for (size_t j=0; j < m_vpConverters[i]->SupportedExt().size(); j++) {
-        string strExt = SysTools::ToLowerCase(m_vpConverters[i]->SupportedExt()[j]);
-        strDialog += "*." + strExt;
+        std::wstring strExt = SysTools::ToLowerCase(m_vpConverters[i]->SupportedExt()[j]);
+        strDialog += L"*." + strExt;
         if (j<m_vpConverters[i]->SupportedExt().size()-1)
-          strDialog += " ";
+          strDialog += L" ";
       }
-      strDialog += ");;";
+      strDialog += L");;";
     }
   }
 
-  strDialog += "All Files (*)";
+  strDialog += L"All Files (*)";
 
   return strDialog;
 }
 
-string IOManager::GetExportDialogString() const {
-  string strDialog;
+std::wstring IOManager::GetExportDialogString() const {
+  std::wstring strDialog;
   // separate entries
   for (size_t i=0; i < m_vpConverters.size(); i++) {
     if (m_vpConverters[i]->CanExportData()) {
       for (size_t j=0; j < m_vpConverters[i]->SupportedExt().size(); j++) {
-        string strExt = SysTools::ToLowerCase(m_vpConverters[i]->SupportedExt()[j]);
-        strDialog += m_vpConverters[i]->GetDesc() + " (*." + strExt + ");;";
+        std::wstring strExt = SysTools::ToLowerCase(m_vpConverters[i]->SupportedExt()[j]);
+        strDialog += m_vpConverters[i]->GetDesc() + L" (*." + strExt + L");;";
       }
     }
   }
@@ -1796,26 +1798,26 @@ string IOManager::GetExportDialogString() const {
 }
 
 
-std::string IOManager::ExportDialogFilterToExt(const string& filter) const {
-  std::vector<std::pair<std::string,std::string>> formats = StackExporter::GetSuportedImageFormats();
+std::wstring IOManager::ExportDialogFilterToExt(const std::wstring& filter) const {
+  std::vector<std::pair<std::wstring,std::wstring>> formats = StackExporter::GetSuportedImageFormats();
 
   for(size_t i = 0; i< formats.size(); ++i) {
     if (m_vpConverters[i]->CanExportData()) {
       for (size_t j=0; j < m_vpConverters[i]->SupportedExt().size(); j++) {
-        string strExt = SysTools::ToLowerCase(m_vpConverters[i]->SupportedExt()[j]);
-        std::string  strDialog = m_vpConverters[i]->GetDesc() + " (*." + strExt + ")";
+        std::wstring strExt = SysTools::ToLowerCase(m_vpConverters[i]->SupportedExt()[j]);
+        std::wstring  strDialog = m_vpConverters[i]->GetDesc() + L" (*." + strExt + L")";
         if ( filter == strDialog )
           return SysTools::ToLowerCase(strExt);
       }
     }
   }
-  return "";
+  return L"";
 }
 
 
-vector<pair<string, string>> IOManager::GetExportFormatList() const {
-  vector<pair<string, string>> v;
-  v.push_back(make_pair("UVF", "Universal Volume Format"));
+vector<pair<std::wstring, std::wstring>> IOManager::GetExportFormatList() const {
+  vector<pair<std::wstring, std::wstring>> v;
+  v.push_back(make_pair(L"UVF", L"Universal Volume Format"));
   for (size_t i = 0;i<m_vpConverters.size();i++) {
     if (m_vpConverters[i]->CanExportData()) {
       for (size_t j = 0;j<m_vpConverters[i]->SupportedExt().size();j++) {
@@ -1828,9 +1830,9 @@ vector<pair<string, string>> IOManager::GetExportFormatList() const {
   return v;
 }
 
-vector<pair<string, string>> IOManager::GetImportFormatList() const {
-  vector<pair<string, string>> v;
-  v.push_back(make_pair("UVF", "Universal Volume Format"));
+vector<pair<std::wstring, std::wstring>> IOManager::GetImportFormatList() const {
+  vector<pair<std::wstring, std::wstring>> v;
+  v.push_back(make_pair(L"UVF", L"Universal Volume Format"));
   for (size_t i = 0;i<m_vpConverters.size();i++) {
     if (m_vpConverters[i]->CanImportData()) {
       for (size_t j = 0;j<m_vpConverters[i]->SupportedExt().size();j++) {
@@ -1847,7 +1849,7 @@ vector<pair<string, string>> IOManager::GetImportFormatList() const {
 vector< tConverterFormat > IOManager::GetFormatList() const {
 
   vector< tConverterFormat > v;
-  v.push_back(make_tuple("UVF", "Universal Volume Format", true, true));
+  v.push_back(make_tuple(L"UVF", L"Universal Volume Format", true, true));
   for (size_t i = 0;i<m_vpConverters.size();i++) {
       for (size_t j = 0;j<m_vpConverters[i]->SupportedExt().size();j++) {
         v.push_back(make_tuple(
@@ -1862,14 +1864,14 @@ vector< tConverterFormat > IOManager::GetFormatList() const {
   return v;
 }
 
-std::shared_ptr<AbstrConverter> IOManager::GetConverterForExt(std::string ext,
+std::shared_ptr<AbstrConverter> IOManager::GetConverterForExt(std::wstring ext,
                                               bool bMustSupportExport,
                                               bool bMustSupportImport) const {
   for (size_t i = 0;i<m_vpConverters.size();i++) {
     if ((!bMustSupportExport || m_vpConverters[i]->CanExportData()) &&
         (!bMustSupportImport || m_vpConverters[i]->CanImportData())) {
       for (size_t j = 0;j<m_vpConverters[i]->SupportedExt().size();j++) {
-        string convExt = SysTools::ToLowerCase(m_vpConverters[i]->SupportedExt()[j]);
+        std::wstring convExt = SysTools::ToLowerCase(m_vpConverters[i]->SupportedExt()[j]);
         if (ext == convExt) return m_vpConverters[i];
       }
     }
@@ -1878,14 +1880,14 @@ std::shared_ptr<AbstrConverter> IOManager::GetConverterForExt(std::string ext,
 }
 
 
-AbstrGeoConverter* IOManager::GetGeoConverterForExt(std::string ext, 
+AbstrGeoConverter* IOManager::GetGeoConverterForExt(std::wstring ext, 
                                                     bool bMustSupportExport,
                                                     bool bMustSupportImport) const {
   for (size_t i = 0;i<m_vpGeoConverters.size();i++) {
     if ((!bMustSupportExport || m_vpGeoConverters[i]->CanExportData()) &&
         (!bMustSupportImport || m_vpGeoConverters[i]->CanImportData())) {
       for (size_t j = 0;j<m_vpGeoConverters[i]->SupportedExt().size();j++) {
-        string convExt = SysTools::ToLowerCase(m_vpGeoConverters[i]->SupportedExt()[j]);
+        std::wstring convExt = SysTools::ToLowerCase(m_vpGeoConverters[i]->SupportedExt()[j]);
         if (ext == convExt) return m_vpGeoConverters[i];
       }
     }
@@ -1893,62 +1895,62 @@ AbstrGeoConverter* IOManager::GetGeoConverterForExt(std::string ext,
   return NULL;
 }
 
-string IOManager::GetLoadGeoDialogString() const {
-  string strDialog = "All known Geometry Files (";
-  map<string,string> descPairs;
+std::wstring IOManager::GetLoadGeoDialogString() const {
+  std::wstring strDialog = L"All known Geometry Files (";
+  map<std::wstring, std::wstring> descPairs;
 
   // converters
   for (size_t i = 0;i<m_vpGeoConverters.size();i++) {
     if (m_vpGeoConverters[i]->CanImportData()) {
       for (size_t j = 0;j<m_vpGeoConverters[i]->SupportedExt().size();j++) {
-        string strExt = SysTools::ToLowerCase(m_vpGeoConverters[i]->SupportedExt()[j]);
+        std::wstring strExt = SysTools::ToLowerCase(m_vpGeoConverters[i]->SupportedExt()[j]);
         if (descPairs.count(strExt) == 0) {
-          strDialog = strDialog + "*." + strExt + " ";
+          strDialog = strDialog + L"*." + strExt + L" ";
           descPairs[strExt] = m_vpGeoConverters[i]->GetDesc();
         }
       }
     }
   }
-  strDialog += ");;";
+  strDialog += L");;";
 
   // now create the separate entries, i.e. just OBJs, TRIs, etc.
   for (size_t i=0; i < m_vpGeoConverters.size(); i++) {
     if (m_vpGeoConverters[i]->CanImportData()) {
-      strDialog += m_vpGeoConverters[i]->GetDesc() + " (";
+      strDialog += m_vpGeoConverters[i]->GetDesc() + L" (";
       for (size_t j=0; j < m_vpGeoConverters[i]->SupportedExt().size(); j++) {
-        string strExt = SysTools::ToLowerCase(m_vpGeoConverters[i]->SupportedExt()[j]);
-        strDialog += "*." + strExt;
+        std::wstring strExt = SysTools::ToLowerCase(m_vpGeoConverters[i]->SupportedExt()[j]);
+        strDialog += L"*." + strExt;
         if (j<m_vpGeoConverters[i]->SupportedExt().size()-1)
-          strDialog += " ";
+          strDialog += L" ";
       }
-      strDialog += ");;";
+      strDialog += L");;";
     }
   }
 
-  strDialog += "All Files (*)";
+  strDialog += L"All Files (*)";
 
   return strDialog;
 }
 
-string IOManager::GetGeoExportDialogString() const {
-  string strDialog;
-  // separate entries
-  for (size_t i=0; i < m_vpGeoConverters.size(); i++) {
-    if (m_vpGeoConverters[i]->CanExportData()) {
-      for (size_t j=0; j < m_vpGeoConverters[i]->SupportedExt().size(); j++) {
-        string strExt = SysTools::ToLowerCase(m_vpGeoConverters[i]->SupportedExt()[j]);
-        strDialog += m_vpGeoConverters[i]->GetDesc() + " (*." + strExt + ");;";
-      }
+std::wstring IOManager::GetGeoExportDialogString() const {
+    std::wstring strDialog;
+    // separate entries
+    for (size_t i=0; i < m_vpGeoConverters.size(); i++) {
+        if (m_vpGeoConverters[i]->CanExportData()) {
+            for (size_t j=0; j < m_vpGeoConverters[i]->SupportedExt().size(); j++) {
+                std::wstring strExt = SysTools::ToLowerCase(m_vpGeoConverters[i]->SupportedExt()[j]);
+                strDialog += m_vpGeoConverters[i]->GetDesc() + L" (*." + strExt + L");;";
+            }
     }
-  }
+    }
 
   return strDialog;
 }
 
 
 
-vector<pair<string, string>> IOManager::GetGeoExportFormatList() const {
-  vector<pair<string, string>> v;
+vector<pair<std::wstring, std::wstring>> IOManager::GetGeoExportFormatList() const {
+  vector<pair<std::wstring, std::wstring>> v;
   for (size_t i = 0;i<m_vpGeoConverters.size();i++) {
     for (size_t j = 0;j<m_vpGeoConverters[i]->SupportedExt().size();j++) {
       if (m_vpGeoConverters[i]->CanExportData()) {
@@ -1961,8 +1963,8 @@ vector<pair<string, string>> IOManager::GetGeoExportFormatList() const {
   return v;
 }
 
-vector<pair<string, string>> IOManager::GetGeoImportFormatList() const {
-  vector<pair<string, string>> v;
+vector<pair<std::wstring, std::wstring>> IOManager::GetGeoImportFormatList() const {
+  vector<pair<std::wstring, std::wstring>> v;
   for (size_t i = 0;i<m_vpGeoConverters.size();i++) {
     if (m_vpGeoConverters[i]->CanImportData()) {
       for (size_t j = 0;j<m_vpGeoConverters[i]->SupportedExt().size();j++) {
@@ -1992,12 +1994,12 @@ vector< tConverterFormat > IOManager::GetGeoFormatList() const {
   return v;
 }
 
-bool IOManager::AnalyzeDataset(const string& strFilename, RangeInfo& info,
-                               const string& strTempDir) const {
+bool IOManager::AnalyzeDataset(const std::wstring& strFilename, RangeInfo& info,
+                               const std::wstring& strTempDir) const {
   // find the right converter to handle the dataset
-  string strExt = SysTools::ToUpperCase(SysTools::GetExt(strFilename));
+  std::wstring strExt = SysTools::ToUpperCase(SysTools::GetExt(strFilename));
 
-  if (strExt == "UVF") {
+  if (strExt == L"UVF") {
     UVFDataset v(strFilename,m_iMaxBrickSize,false);
 
     uint64_t iComponentCount = v.GetComponentCount();
@@ -2029,7 +2031,7 @@ bool IOManager::AnalyzeDataset(const string& strFilename, RangeInfo& info,
   } else {
     bool bAnalyzed = false;
     for (size_t i = 0;i<m_vpConverters.size();i++) {
-      const vector<string>& vStrSupportedExt = m_vpConverters[i]->SupportedExt();
+      const vector<std::wstring>& vStrSupportedExt = m_vpConverters[i]->SupportedExt();
       for (size_t j = 0;j<vStrSupportedExt.size();j++) {
         if (vStrSupportedExt[j] == strExt) {
           bAnalyzed = m_vpConverters[i]->Analyze(strFilename, strTempDir, false, info);
@@ -2254,7 +2256,7 @@ MaxMin(const RasterDataBlock* rdb)
 }
 
 void
-CreateUVFFromRDB(const std::string& filename,
+CreateUVFFromRDB(const std::wstring& filename,
                  const std::shared_ptr<const RasterDataBlock>& rdb)
 {
   std::wstring wide_fn(filename.begin(), filename.end());
@@ -2460,9 +2462,8 @@ struct cleanup_parser {
 
 void
 IOManager::EvaluateExpression(const std::string& expr,
-                              const std::vector<std::string>& volumes,
-                              const std::string& out_fn) const
-                              throw(tuvok::Exception)
+                              const std::vector<std::wstring>& volumes,
+                              const std::wstring& out_fn) const
 {
   parser_set_string(expr.c_str());
   int parse_err = yyparse();
@@ -2476,7 +2477,7 @@ IOManager::EvaluateExpression(const std::string& expr,
   // open all of those files and get UVF datasets for each of them.
   const bool verify=false;
   std::vector<std::shared_ptr<UVFDataset>> uvf;
-  typedef std::vector<std::string>::const_iterator citer;
+  typedef std::vector<std::wstring>::const_iterator citer;
   for(citer f = volumes.begin(); f != volumes.end(); ++f) {
     uvf.push_back(std::shared_ptr<UVFDataset>(
       dynamic_cast<UVFDataset*>(
@@ -2531,7 +2532,7 @@ IOManager::EvaluateExpression(const std::string& expr,
     *rdb = *rdb1;
   }
 
-  std::string tmp_fn = SysTools::RemoveExt(out_fn) + ".rdb";
+  std::wstring tmp_fn = SysTools::RemoveExt(out_fn) + L".rdb";
   LargeRAWFile_ptr lout(new TempFile(tmp_fn));
   lout->Create();
   rdb->ResetFile(lout);
@@ -2604,20 +2605,20 @@ IOManager::EvaluateExpression(const std::string& expr,
   CreateUVFFromRDB(out_fn, rdb);
 }
 
-bool IOManager::ReBrickDataset(const string& strSourceFilename,
-                               const string& strTargetFilename,
-                               const string& strTempDir,
+bool IOManager::ReBrickDataset(const std::wstring& strSourceFilename,
+                               const std::wstring& strTargetFilename,
+                               const std::wstring& strTempDir,
                                const uint64_t iMaxBrickSize,
                                const uint64_t iBrickOverlap,
                                bool bQuantizeTo8Bit) const {
   MESSAGE("Rebricking (Phase 1/2)...");
 
-  string filenameOnly = SysTools::GetFilename(strSourceFilename);
-  string tmpFile = strTempDir+SysTools::ChangeExt(filenameOnly,"nrrd"); /// use some simple format as intermediate file
+  std::wstring filenameOnly = SysTools::GetFilename(strSourceFilename);
+  std::wstring tmpFile = strTempDir+SysTools::ChangeExt(filenameOnly,L"nrrd"); /// use some simple format as intermediate file
 
   if (!ConvertDataset(strSourceFilename, tmpFile, strTempDir, false,
                       m_iBuilderBrickSize, m_iBrickOverlap, false)) {
-    T_ERROR("Unable to extract raw data from file %s to %s", strSourceFilename.c_str(),tmpFile.c_str());
+    T_ERROR("Unable to extract raw data from file %s to %s", SysTools::toNarrow(strSourceFilename).c_str(), SysTools::toNarrow(tmpFile).c_str());
     return false;
   }
 
@@ -2625,11 +2626,11 @@ bool IOManager::ReBrickDataset(const string& strSourceFilename,
 
   if (!ConvertDataset(tmpFile, strTargetFilename, strTempDir, true, 
                       iMaxBrickSize, iBrickOverlap,bQuantizeTo8Bit)) {
-    T_ERROR("Unable to convert raw data from file %s into new UVF file %s", tmpFile.c_str(),strTargetFilename.c_str());
-    if(remove(tmpFile.c_str()) == -1) WARNING("Unable to delete temp file %s", tmpFile.c_str());
+    T_ERROR("Unable to convert raw data from file %s into new UVF file %s", SysTools::toNarrow(tmpFile).c_str(), SysTools::toNarrow(strTargetFilename).c_str());
+    if(!SysTools::RemoveFile(tmpFile)) WARNING("Unable to delete temp file %s", SysTools::toNarrow(tmpFile).c_str());
     return false;
   }
-  if(remove(tmpFile.c_str()) == -1) WARNING("Unable to delete temp file %s", tmpFile.c_str());
+  if(!SysTools::RemoveFile(tmpFile)) WARNING("Unable to delete temp file %s", SysTools::toNarrow(tmpFile).c_str());
 
   return true;
 }
@@ -2657,11 +2658,11 @@ void IOManager::CopyToTSB(const Mesh& m, GeometryDataBlock* tsb) const {
   tsb->SetTexCoordIndices(m.GetTexCoordIndices());
   tsb->SetColorIndices(m.GetColorIndices());
 
-  tsb->m_Desc = m.Name();
+  tsb->m_Desc = SysTools::toNarrow(m.Name());
 }
 
 
-std::shared_ptr<Mesh> IOManager::LoadMesh(const string& meshfile) const
+std::shared_ptr<Mesh> IOManager::LoadMesh(const std::wstring& meshfile) const
 {
   MESSAGE("Opening Mesh File ...");
 
@@ -2670,15 +2671,15 @@ std::shared_ptr<Mesh> IOManager::LoadMesh(const string& meshfile) const
   std::shared_ptr<Mesh> m;
   for(vector<AbstrGeoConverter*>::const_iterator conv =
       m_vpGeoConverters.begin(); conv != m_vpGeoConverters.end(); ++conv) {
-    MESSAGE("Attempting converter '%s'", (*conv)->GetDesc().c_str());
+    MESSAGE("Attempting converter '%s'", SysTools::toNarrow((*conv)->GetDesc()).c_str());
     if((*conv)->CanRead(meshfile)) {
       MESSAGE("Converter '%s' can read '%s'!",
-              (*conv)->GetDesc().c_str(), meshfile.c_str());
+        SysTools::toNarrow((*conv)->GetDesc()).c_str(), SysTools::toNarrow(meshfile).c_str());
       try {
         m = (*conv)->ConvertToMesh(meshfile);
       } catch (const std::exception& err) {
         WARNING("Converter %s can read files, but conversion failed: %s",
-                (*conv)->GetDesc().c_str(), err.what());
+          SysTools::toNarrow((*conv)->GetDesc()).c_str(), err.what());
         throw;
       }
       break;
@@ -2688,15 +2689,15 @@ std::shared_ptr<Mesh> IOManager::LoadMesh(const string& meshfile) const
 }
 
 void IOManager::AddMesh(const UVF* sourceDataset,
-                        const string& meshfile,
-                        const string& uvf_fn) const
+                        const std::wstring& meshfile,
+                        const std::wstring& uvf_fn) const
 {
   std::shared_ptr<Mesh> m = LoadMesh(meshfile);
 
   if (!m) {
     WARNING("No converter for geometry file %s can be found",
-            meshfile.c_str());
-    throw tuvok::io::DSOpenFailed(meshfile.c_str(), __FILE__, __LINE__);
+      SysTools::toNarrow(meshfile).c_str());
+    throw tuvok::io::DSOpenFailed(SysTools::toNarrow(meshfile).c_str(), __FILE__, __LINE__);
   }
 
   // make sure we have at least normals

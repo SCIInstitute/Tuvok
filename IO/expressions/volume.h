@@ -41,7 +41,7 @@ class Volume : public Expression {
     /// would fail semantic analysis otherwise.
     size_t Index() const;
 
-    void Analyze() const throw(semantic::Error);
+    void Analyze() const;
     void Print(std::ostream&) const;
     void SetVolumes(const std::vector<VariantArray>&);
 

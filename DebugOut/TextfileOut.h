@@ -46,19 +46,19 @@
 
 class TextfileOut : public AbstrDebugOut {
   public:
-    TextfileOut(std::string strFilename="logfile.txt");
+    TextfileOut(const std::wstring& strFilename=L"logfile.txt");
     ~TextfileOut();
     virtual void printf(enum DebugChannel, const char* source,
                         const char* msg);
     virtual void printf(const char *s) const;
 
-    const std::string& GetFileName() const {return m_strFilename;}
+    const std::wstring& GetFileName() const {return m_strFilename;}
 
   private:
     TextfileOut(const TextfileOut &); ///< unimplemented.
 
   private:
-    std::string m_strFilename;
+    std::wstring m_strFilename;
 
     /// same as printf above but does regard m_bShowOther
     void _printf(const char* format, ...) const;

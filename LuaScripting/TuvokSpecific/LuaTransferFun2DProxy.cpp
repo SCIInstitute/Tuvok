@@ -133,7 +133,7 @@ void LuaTransferFun2DProxy::defineLuaInterface(
 }
 
 //------------------------------------------------------------------------------
-bool LuaTransferFun2DProxy::proxyLoadWithSize(const string& file, 
+bool LuaTransferFun2DProxy::proxyLoadWithSize(const wstring& file, 
                                               const VECTOR2<size_t>& size)
 {
   if (m2DTrans == NULL) return false;
@@ -155,7 +155,7 @@ VECTOR2<size_t> LuaTransferFun2DProxy::proxyGetRenderSize()
 }
 
 //------------------------------------------------------------------------------
-bool LuaTransferFun2DProxy::proxySave(const std::string& file)
+bool LuaTransferFun2DProxy::proxySave(const std::wstring& file)
 {
   if (m2DTrans == NULL) return false;
   return m2DTrans->Save(file);

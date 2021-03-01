@@ -61,7 +61,7 @@ public:
   LuaDatasetProxy();
   virtual ~LuaDatasetProxy();
 
-  Dataset* CreateDS(const std::string& uvf, unsigned bricksize);
+  Dataset* CreateDS(const std::wstring& uvf, unsigned bricksize);
   void bind(Dataset* ds, std::shared_ptr<LuaScripting> ss);
 
   static LuaDatasetProxy* luaConstruct() {return new LuaDatasetProxy;}
@@ -75,7 +75,7 @@ public:
 
 private:
 
-  std::vector<std::pair<std::string, std::string>> proxyGetMetadata();
+  std::vector<std::pair<std::wstring, std::wstring>> proxyGetMetadata();
 
   /// Class registration we received from defineLuaInterface.
   /// @todo Change to unique pointer.

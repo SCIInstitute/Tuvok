@@ -5,13 +5,14 @@
 #include "Basics/BStream.h"
 #include "Basics/EndianConvert.h"
 #include "Controller/Controller.h"
+#include "../Basics/SysTools.h"
 
 VTKConverter::VTKConverter() {
-  m_vConverterDesc = "VTK";
-  m_vSupportedExt.push_back("VTK");
+  m_vConverterDesc = L"VTK";
+  m_vSupportedExt.push_back(L"VTK");
 }
 
-bool VTKConverter::CanRead(const std::string& fn,
+bool VTKConverter::CanRead(const std::wstring& fn,
                            const std::vector<int8_t>& start) const {
   if(!AbstrConverter::CanRead(fn, start)) {
     MESSAGE("Base class reports we can't read it, bailing.");
@@ -82,18 +83,18 @@ static struct BStreamDescriptor vtk_to_tuvok_type(const std::string& vtktype) {
 }
 
 bool VTKConverter::ConvertToRAW(
-    const std::string& strSourceFilename,
-    const std::string& /* tempdir */, bool /* user interaction */,
+    const std::wstring& strSourceFilename,
+    const std::wstring& /* tempdir */, bool /* user interaction */,
     uint64_t& iHeaderSkip, unsigned& iComponentSize, uint64_t& iComponentCount,
     bool& bConvertEndianness, bool& bSigned, bool& bIsFloat,
     UINT64VECTOR3& vVolumeSize, FLOATVECTOR3& vVolumeAspect,
-    std::string& strTitle, std::string& strIntermediateFile,
+    std::wstring& strTitle, std::wstring& strIntermediateFile,
     bool& bDeleteIntermediateFile
 ) {
-  MESSAGE("Converting %s from VTK...", strSourceFilename.c_str());
+  MESSAGE("Converting %s from VTK...", SysTools::toNarrow(strSourceFilename).c_str());
 
-  strTitle = "from VTK converter";
-  std::ifstream vtk(strSourceFilename.c_str(), std::ios::binary);
+  strTitle = L"from VTK converter";
+  std::ifstream vtk(SysTools::toNarrow(strSourceFilename).c_str(), std::ios::binary);
 
   std::string current, junk;
   std::getline(vtk, current); // ignore comment line
@@ -136,11 +137,11 @@ bool VTKConverter::ConvertToRAW(
   std::string type, one;
   vtk >> junk >> current >> type >> one;
   assert(junk == "SCALARS"); // if not, then scan_for_line failed.
-  strTitle = current + " from VTK converter";
+  strTitle = SysTools::toWide(current) + L" from VTK converter";
   MESSAGE("Reading field '%s' from the VTK file...", current.c_str());
   assert(one == "1"); // this is always "1" in the files I have...
   BStreamDescriptor bs = vtk_to_tuvok_type(type);
-  iComponentSize = bs.width * 8; // bytes to bits
+  iComponentSize = (unsigned int)(bs.width * 8); // bytes to bits
   iComponentCount = bs.components;
   bSigned = bs.is_signed;
   bIsFloat = bs.fp;

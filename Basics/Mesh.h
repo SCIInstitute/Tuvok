@@ -123,11 +123,11 @@ public:
     const IndexVec& vIndices, const IndexVec& nIndices, 
     const IndexVec& tIndices, const IndexVec& cIndices,
     bool bBuildKDTree, bool bScaleToUnitCube, 
-    const std::string& desc, EMeshType meshType,
+    const std::wstring& desc, EMeshType meshType,
     const FLOATVECTOR4& defColor = FLOATVECTOR4(1, 1, 1, 1));
   Mesh(const BasicMeshData& bmd,
        bool bBuildKDTree, bool bScaleToUnitCube, 
-       const std::string& desc, EMeshType meshType,
+       const std::wstring& desc, EMeshType meshType,
        const FLOATVECTOR4& defColor = FLOATVECTOR4(1, 1, 1, 1));
   virtual ~Mesh();
 
@@ -181,7 +181,7 @@ public:
   virtual void SetDefaultColor(const FLOATVECTOR4& color) {m_DefColor = color;}
   bool UseDefaultColor() const {return m_Data.m_COLIndices.empty();}
 
-  const std::string& Name() const {return m_MeshDesc;}
+  const std::wstring& Name() const {return m_MeshDesc;}
 
   const FLOATMATRIX4& GetTransformFromOriginal() const {
     return m_TransformFromOriginal;
@@ -205,7 +205,7 @@ protected:
 
   FLOATVECTOR4  m_DefColor;
 
-  std::string   m_MeshDesc;
+  std::wstring  m_MeshDesc;
   EMeshType     m_meshType;
   size_t        m_VerticesPerPoly;
 

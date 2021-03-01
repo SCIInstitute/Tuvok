@@ -335,9 +335,9 @@ public:
 
   VECTOR3<T> makepow2() const  {
     VECTOR3<T> vOut;
-    vOut.x = T(1<<int(ceil(log(double(x))/log(2.0))));
-    vOut.y = T(1<<int(ceil(log(double(y))/log(2.0))));
-    vOut.z = T(1<<int(ceil(log(double(z))/log(2.0))));
+    vOut.x = T(T(1) << int(ceil(log(double(x))/log(2.0))));
+    vOut.y = T(T(1) << int(ceil(log(double(y))/log(2.0))));
+    vOut.z = T(T(1) << int(ceil(log(double(z))/log(2.0))));
     return vOut;
   }
 
@@ -907,6 +907,14 @@ public:
                                        << m.m31 << '\t' << m.m32 << '\t' << m.m33 << '\t' << m.m34 << '\n'
                                        << m.m41 << '\t' << m.m42 << '\t' << m.m43 << '\t' << m.m44 ; return os;}
 
+  MATRIX4<T>& operator=(const MATRIX4<T>& other) {
+      m11 = other.m11; m12 = other.m12; m13 = other.m13; m14 = other.m14;
+      m21 = other.m21; m22 = other.m22; m23 = other.m23; m24 = other.m24;
+      m31 = other.m31; m32 = other.m32; m33 = other.m33; m34 = other.m34;
+      m41 = other.m41; m42 = other.m42; m43 = other.m43; m44 = other.m44;
+      return *this;
+  }
+
   operator T*(void) {return &m11;}
   operator const T*(void) const  {return &m11;}
 
@@ -1470,10 +1478,10 @@ public:
   }
 
   void normalize() {
-    const T x = this->x;
-    const T y = this->y;
-    const T z = this->z;
-    T length = sqrt(x*x + y*y + z*z);
+    const T _x = this->x;
+    const T _y = this->y;
+    const T _z = this->z;
+    T length = sqrt(_x* _x + _y* _y + _z* _z);
     (*this) /= length;
   }
   T d() const { return this->w; }

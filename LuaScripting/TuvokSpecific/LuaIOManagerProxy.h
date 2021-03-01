@@ -67,41 +67,41 @@ private:
   /// @{
   bool ExportDataset(LuaClassInstance ds,
                             uint64_t iLODlevel,
-                            const std::string& strTargetFilename,
-                            const std::string& strTempDir) const;
+                            const std::wstring& strTargetFilename,
+                            const std::wstring& strTempDir) const;
 
   bool ExtractIsosurface(
       LuaClassInstance ds,
       uint64_t iLODlevel, double fIsovalue,
       const FLOATVECTOR4& vfColor,
-      const std::string& strTargetFilename,
-      const std::string& strTempDir) const;
+      const std::wstring& strTargetFilename,
+      const std::wstring& strTempDir) const;
 
   bool ExtractImageStack(
       LuaClassInstance ds,
       LuaClassInstance tf1d,
       uint64_t iLODlevel, 
-      const std::string& strTargetFilename,
-      const std::string& strTempDir,
+      const std::wstring& strTargetFilename,
+      const std::wstring& strTempDir,
       bool bAllDirs) const;
 
   bool ExportMesh(std::shared_ptr<Mesh> mesh,
-                  const std::string& strTargetFilename) const;
-  bool ReBrickDataset(const std::string& strSourceFilename,
-                      const std::string& strTargetFilename,
-                      const std::string& strTempDir) const;
-  bool ConvertDataset(const std::list<std::string>& files,
-                      const std::string& strTargetFilename,
-                      const std::string& strTempDir,
+                  const std::wstring& strTargetFilename) const;
+  bool ReBrickDataset(const std::wstring& strSourceFilename,
+                      const std::wstring& strTargetFilename,
+                      const std::wstring& strTempDir) const;
+  bool ConvertDataset(const std::list<std::wstring>& files,
+                      const std::wstring& strTargetFilename,
+                      const std::wstring& strTempDir,
                       bool bNoUserInteraction,
                       bool bQuantizeTo8Bit);
   bool ConvertDatasetWithStack(
       std::shared_ptr<FileStackInfo> stack,
-      const std::string& strTargetFilename,
-      const std::string& strTempDir,
+      const std::wstring& strTargetFilename,
+      const std::wstring& strTempDir,
       bool bQuantizeTo8Bit);
   std::tuple<bool, RangeInfo> AnalyzeDataset(
-      const std::string& strFilename, const std::string& strTempDir);
+      const std::wstring& strFilename, const std::wstring& strTempDir);
   /// @}  
   
   /// The following evaluateExpression proxy was made because of the 
@@ -112,8 +112,8 @@ private:
   /// return type (even though this function is of void return type!).
   /// Does not happen on clang.
   void evaluateExpression(const std::string& expr,
-                          const std::vector<std::string>& volumes,
-                          const std::string& out_fn) const;
+                          const std::vector<std::wstring>& volumes,
+                          const std::wstring& out_fn) const;
 };
 
 // This proxy allows us to "easily" serialize to/from Lua.

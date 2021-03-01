@@ -50,37 +50,37 @@ using namespace tuvok;
 
 IASSConverter::IASSConverter()
 {
-  m_vConverterDesc = "Fraunhofer MAVI Volume";
-  m_vSupportedExt.push_back("IASS");
-  m_vSupportedExt.push_back("IASS.GZ");
+  m_vConverterDesc = L"Fraunhofer MAVI Volume";
+  m_vSupportedExt.push_back(L"IASS");
+  m_vSupportedExt.push_back(L"IASS.GZ");
 }
 
 bool
-IASSConverter::ConvertToRAW(const std::string& strSourceFilename,
-                            const std::string& strTempDir,
+IASSConverter::ConvertToRAW(const std::wstring& strSourceFilename,
+                            const std::wstring& strTempDir,
                             bool, uint64_t& iHeaderSkip,
                             unsigned& iComponentSize,
                             uint64_t& iComponentCount,
                             bool& bConvertEndianess, bool& bSigned,
                             bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
                             FLOATVECTOR3& vVolumeAspect,
-                            std::string& strTitle,
-                            std::string& strIntermediateFile,
+                            std::wstring& strTitle,
+                            std::wstring& strIntermediateFile,
                             bool& bDeleteIntermediateFile)
  {
-  MESSAGE("Attempting to convert IASS dataset %s", strSourceFilename.c_str());
+  MESSAGE("Attempting to convert IASS dataset %s", SysTools::toNarrow(strSourceFilename).c_str());
 
   // Find out machine endianess
   bConvertEndianess = EndianConvert::IsBigEndian();
 
   // Check whether file is compressed and uncompress if necessary
-  string strInputFile;
+  wstring strInputFile;
   if (IsZipped(strSourceFilename)) {
     MESSAGE("IASS data is GZIP compressed.");
     strInputFile = strTempDir + SysTools::GetFilename(strSourceFilename) +
-                   ".uncompressed";
+                   L".uncompressed";
     if (!ExtractGZIPDataset(strSourceFilename, strInputFile, 0)) {
-      WARNING("Error while decompressing %s", strSourceFilename.c_str());
+      WARNING("Error while decompressing %s", SysTools::toNarrow(strSourceFilename).c_str());
       return false;
     }
   } else {
@@ -89,28 +89,28 @@ IASSConverter::ConvertToRAW(const std::string& strSourceFilename,
 
   // Read header and check for "magic" values of the IASS file
   stHeader header;
-  ifstream fileData(strInputFile.c_str());
+  ifstream fileData(SysTools::toNarrow(strInputFile).c_str());
 
   if (fileData.is_open()) {
     if(!ReadHeader(header,fileData)) {
       WARNING("The file %s is not a IASS file (missing magic)",
-              strInputFile.c_str());
+        SysTools::toNarrow(strInputFile).c_str());
       return false;
     }
   } else {
-    WARNING("Could not open IASS file %s", strInputFile.c_str());
+    WARNING("Could not open IASS file %s", SysTools::toNarrow(strInputFile).c_str());
     return false;
   }
   fileData.close();
 
   // Init data
-  strTitle = "Fraunhofer MAVI Volume";
+  strTitle = L"Fraunhofer MAVI Volume";
   vVolumeAspect = FLOATVECTOR3(1,1,1);
   iComponentCount = 1;
   vVolumeSize[0] = header.size.x;
   vVolumeSize[1] = header.size.y;
   vVolumeSize[2] = header.size.z;
-  iComponentSize = header.bpp*8;
+  iComponentSize = unsigned(header.bpp*8);
   iHeaderSkip = 0;
   bDeleteIntermediateFile = true;
 
@@ -125,7 +125,7 @@ IASSConverter::ConvertToRAW(const std::string& strSourceFilename,
     bIsFloat = false;
     iComponentCount = 3;
   } else {
-    T_ERROR("Unsupported image type in file %s", strInputFile.c_str());
+    T_ERROR("Unsupported image type in file %s", SysTools::toNarrow(strInputFile).c_str());
     return false;
   }
 
@@ -134,18 +134,18 @@ IASSConverter::ConvertToRAW(const std::string& strSourceFilename,
   zLocalData.Open(false);
 
   if (!zLocalData.IsOpen()) {
-    T_ERROR("Unable to open source file %s", strInputFile.c_str());
+    T_ERROR("Unable to open source file %s", SysTools::toNarrow(strInputFile).c_str());
     return false;
   }
 
   strIntermediateFile = strTempDir + SysTools::GetFilename(strSourceFilename)
-                        + ".x-local";
+                        + L".x-local";
   LargeRAWFile xLocalData(strIntermediateFile);
   xLocalData.Create();
 
   if (!xLocalData.IsOpen()) {
     T_ERROR("Unable to open temp file %s for locality conversion",
-            strIntermediateFile.c_str());
+      SysTools::toNarrow(strIntermediateFile).c_str());
     xLocalData.Close();
     return false;
   }
@@ -223,8 +223,8 @@ IASSConverter::ConvertToRAW(const std::string& strSourceFilename,
 
 // unimplemented!
 bool
-IASSConverter::ConvertToNative(const std::string&,
-                               const std::string&,
+IASSConverter::ConvertToNative(const std::wstring&,
+                               const std::wstring&,
                                uint64_t, unsigned,
                                uint64_t, bool,
                                bool,
@@ -237,31 +237,28 @@ IASSConverter::ConvertToNative(const std::string&,
 }
 
 bool
-IASSConverter::CanRead(const std::string& fn,
-                             const std::vector<int8_t>&) const
+IASSConverter::CanRead(const std::wstring& fn,
+                       const std::vector<int8_t>&) const
 {
-  std::string ext = SysTools::GetExt(fn);
-  std::transform(ext.begin(), ext.end(), ext.begin(),
-                 (int(*)(int))std::toupper);
+  std::wstring ext = SysTools::ToUpperCase(SysTools::GetExt(fn));
 
-  if (ext != "IASS") {
-    std::string extPt1 = SysTools::GetExt(SysTools::RemoveExt(fn));
-    std::transform(extPt1.begin(), extPt1.end(), extPt1.begin(),
-                   (int(*)(int))std::toupper);
-    ext = extPt1 + "." + ext;
+  if (ext != L"IASS") {
+    std::wstring extPt1 = SysTools::ToUpperCase(SysTools::GetExt(SysTools::RemoveExt(fn)));
+    ext = extPt1 + L"." + ext;
   }
 
   return SupportedExtension(ext);
 }
 
 bool
-IASSConverter::IsZipped(const std::string& strFile)
+IASSConverter::IsZipped(const std::wstring& strFile)
 {
 #ifdef TUVOK_NO_ZLIB
   T_ERROR("No zlib support!  Faking this...");
   return false;
 #else
-  gzFile file = gzopen(strFile.c_str(), "rb");
+  // TODO: get rid of the toNarrow here
+  gzFile file = gzopen(SysTools::toNarrow(strFile).c_str(), "rb");
   if (file==0)
     return false;
 

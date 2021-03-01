@@ -53,7 +53,7 @@ class Node {
     ///@}
 
     /// Performs semantic analysis on the expression AST.
-    virtual void Analyze() const throw(semantic::Error)=0;
+    virtual void Analyze() const=0;
 
     /// Print out the name of the node type.
     virtual void Print(std::ostream&) const;

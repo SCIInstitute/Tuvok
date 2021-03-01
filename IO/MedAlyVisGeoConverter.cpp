@@ -45,17 +45,17 @@ using namespace std;
 MedAlyVisGeoConverter::MedAlyVisGeoConverter() :
   AbstrGeoConverter()
 {
-  m_vConverterDesc = "MedAlyVis Hull File";
-  m_vSupportedExt.push_back("TRI");
+  m_vConverterDesc = L"MedAlyVis Hull File";
+  m_vSupportedExt.push_back(L"TRI");
 }
 
 
 std::shared_ptr<Mesh>
-MedAlyVisGeoConverter::ConvertToMesh(const std::string& strFilename) {
-  ifstream trisoup(strFilename.c_str(), ios::binary);
+MedAlyVisGeoConverter::ConvertToMesh(const std::wstring& strFilename) {
+  ifstream trisoup(SysTools::toNarrow(strFilename).c_str(), ios::binary);
   if(!trisoup) {
     // hack, we really want some kind of 'file not found' exception.
-    throw tuvok::io::DSOpenFailed(strFilename.c_str(), __FILE__, __LINE__);
+    throw tuvok::io::DSOpenFailed(SysTools::toNarrow(strFilename).c_str(), __FILE__, __LINE__);
   }
 
   unsigned n_vertices;
@@ -94,7 +94,7 @@ MedAlyVisGeoConverter::ConvertToMesh(const std::string& strFilename) {
   }
   trisoup.close();
 
-  std::string desc = m_vConverterDesc + " data converted from " + SysTools::GetFilename(strFilename);
+  std::wstring desc = m_vConverterDesc + L" data converted from " + SysTools::GetFilename(strFilename);
 
   std::shared_ptr<Mesh> m(
     new Mesh(vertices,NormVec(),TexCoordVec(),ColorVec(),

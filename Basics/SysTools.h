@@ -116,6 +116,11 @@ namespace SysTools {
       return t;
   }
 
+  std::string toNarrow(const wchar_t* str);
+  std::wstring toWide(const char* str);
+  std::string toNarrow(const std::wstring& str);
+  std::wstring toWide(const std::string& str);
+
   std::wstring ToLowerCase(const std::wstring& str);
   std::string ToLowerCase(const std::string& str);
   std::wstring ToUpperCase(const std::wstring& str);
@@ -141,6 +146,12 @@ namespace SysTools {
 
   bool FileExists(const std::string& fileName);
   bool FileExists(const std::wstring& fileName);
+
+  bool RemoveFile(const std::string& fileName);
+  bool RemoveFile(const std::wstring& fileName);
+
+  bool RenameFile(const std::string& source, const std::string& target);
+  bool RenameFile(const std::wstring& wsource, const std::wstring& wtarget);
 
   std::string GetExt(const std::string& fileName);
   std::wstring GetExt(const std::wstring& fileName);

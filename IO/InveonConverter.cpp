@@ -46,8 +46,8 @@
 
 InveonConverter::InveonConverter()
 {
-  m_vConverterDesc = "Inveon";
-  m_vSupportedExt.push_back("HDR");
+  m_vConverterDesc = L"Inveon";
+  m_vSupportedExt.push_back(L"HDR");
 }
 
 typedef std::unordered_map<std::string, std::string> LineMap;
@@ -96,8 +96,8 @@ namespace {
   }
 }
 
-bool InveonConverter::ConvertToRAW(const std::string& strSourceFilename,
-                                   const std::string&,
+bool InveonConverter::ConvertToRAW(const std::wstring& strSourceFilename,
+                                   const std::wstring&,
                                    bool /* bNoUserInteraction */,
                                    uint64_t& iHeaderSkip,
                                    unsigned& iComponentSize,
@@ -105,13 +105,13 @@ bool InveonConverter::ConvertToRAW(const std::string& strSourceFilename,
                                    bool& bConvertEndianess, bool& bSigned,
                                    bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
                                    FLOATVECTOR3& vVolumeAspect,
-                                   std::string& strTitle,
-                                   std::string& strIntermediateFile,
+                                   std::wstring& strTitle,
+                                   std::wstring& strIntermediateFile,
                                    bool& bDeleteIntermediateFile)
 {
-  std::ifstream infn(strSourceFilename.c_str(), std::ios::in);
+  std::ifstream infn(SysTools::toNarrow(strSourceFilename).c_str(), std::ios::in);
   if(!infn.is_open()) {
-    T_ERROR("Could not open %s", strSourceFilename.c_str());
+    T_ERROR("Could not open %s", SysTools::toNarrow(strSourceFilename).c_str());
     return false;
   }
 
@@ -119,7 +119,7 @@ bool InveonConverter::ConvertToRAW(const std::string& strSourceFilename,
   iComponentCount = 1;
   bDeleteIntermediateFile = false;
   bSigned = true; // format does not distinguish
-  strTitle = "Inveon";
+  strTitle = L"Inveon";
 
   // The filename is actually stored in the header, but it includes
   // a full pathname and is thus garbage in many instances; e.g. the
@@ -213,8 +213,8 @@ bool InveonConverter::ConvertToRAW(const std::string& strSourceFilename,
 }
 
 bool InveonConverter::ConvertToNative(
-  const std::string& strRawFilename,
-  const std::string& strTargetFilename,
+  const std::wstring& strRawFilename,
+  const std::wstring& strTargetFilename,
   uint64_t iHeaderSkip,
   unsigned iComponentSize, uint64_t iComponentCount,
   bool bSigned, bool bIsFloat,
@@ -222,9 +222,9 @@ bool InveonConverter::ConvertToNative(
   bool bNoUserInteraction,
   const bool bQuantizeTo8Bit)
 {
-  std::ofstream hdr(strTargetFilename.c_str(), std::ios::out);
+  std::ofstream hdr(SysTools::toNarrow(strTargetFilename).c_str(), std::ios::out);
   if(!hdr.is_open()) {
-    T_ERROR("Unable to open target file %s", strTargetFilename.c_str());
+    T_ERROR("Unable to open target file %s", SysTools::toNarrow(strTargetFilename).c_str());
     return false;
   }
 
@@ -257,13 +257,13 @@ bool InveonConverter::ConvertToNative(
     hdr << "0\n";
   }
 
-  std::string data_file = SysTools::RemoveExt(strTargetFilename.c_str());
+  std::wstring data_file = SysTools::RemoveExt(strTargetFilename.c_str());
   if(!RAWConverter::ConvertToNative(
       strRawFilename, data_file, iHeaderSkip,  iComponentSize, iComponentCount,
       bSigned, bIsFloat, vVolumeSize, vVolumeAspect, bNoUserInteraction,
       bQuantizeTo8Bit)) {
-    T_ERROR("Error creating raw file '%s'", data_file.c_str());
-    remove(data_file.c_str());
+    T_ERROR("Error creating raw file '%s'", SysTools::toNarrow(data_file).c_str());
+    SysTools::RemoveFile(data_file);
     return false;
   }
 
@@ -271,7 +271,7 @@ bool InveonConverter::ConvertToNative(
 }
 
 // checks for comment lines, ascii.
-bool InveonConverter::CanRead(const std::string&,
+bool InveonConverter::CanRead(const std::wstring&,
                               const std::vector<int8_t>& start) const
 {
   using namespace std::placeholders;

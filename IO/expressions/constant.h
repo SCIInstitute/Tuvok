@@ -35,7 +35,7 @@ namespace tuvok { namespace expression {
 
 class Constant: public Expression {
   public:
-    void Analyze() const throw(semantic::Error);
+    void Analyze() const;
 
     void SetValue(double v);
     double GetValue() const;

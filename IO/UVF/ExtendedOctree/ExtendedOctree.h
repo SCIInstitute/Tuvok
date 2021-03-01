@@ -166,7 +166,7 @@ public:
     @param  iUVFFileVersion UVF file version
     @return returns false if something went wrong trying to read from the file
   */
-  bool Open(std::string filename, uint64_t iOffset, uint64_t iUVFFileVersion);
+  bool Open(std::wstring filename, uint64_t iOffset, uint64_t iUVFFileVersion);
 
 
   /**

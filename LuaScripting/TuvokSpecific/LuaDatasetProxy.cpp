@@ -55,13 +55,13 @@ void addIOInterface(LuaClassRegistration<Dataset>& reg, Dataset*,
 }
 // exposes "IOManager::ExportDataset".
 bool exportDS(LuaClassInstance lua_ds, uint64_t LOD,
-              const std::string& filename) {
+              const std::wstring& filename) {
   const LuaDatasetProxy* datasetProxy =
     lua_ds.getRawPointer<LuaDatasetProxy>(Controller::Instance().LuaScript());
   const tuvok::Dataset* ds = datasetProxy->getDataset();
   const IOManager& ioman = Controller::Const().IOMan();
   return ioman.ExportDataset(dynamic_cast<const tuvok::UVFDataset*>(ds),
-                             LOD, filename, ".");
+                             LOD, filename, L".");
 }
 
 void dataset(std::shared_ptr<LuaScripting>& ss) {
@@ -87,7 +87,7 @@ LuaDatasetProxy::~LuaDatasetProxy()
   mDS = NULL;
 }
 
-Dataset* LuaDatasetProxy::CreateDS(const std::string& uvf, unsigned bricksize) {
+Dataset* LuaDatasetProxy::CreateDS(const std::wstring& uvf, unsigned bricksize) {
   return Controller::Const().IOMan().CreateDataset(uvf,
     uint64_t(bricksize), false
   );
@@ -224,7 +224,7 @@ void LuaDatasetProxy::defineLuaInterface(
 }
 
 
-std::vector<std::pair<std::string, std::string>>
+std::vector<std::pair<std::wstring, std::wstring>>
 LuaDatasetProxy::proxyGetMetadata()
 {
   return mDS->GetMetadata();

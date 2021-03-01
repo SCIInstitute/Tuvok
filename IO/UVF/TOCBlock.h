@@ -24,8 +24,8 @@ public:
     return m_ExtendedOctree.GetMaxBrickSize();
   }
 
-  bool FlatDataToBrickedLOD(const std::string& strSourceFile,
-                            const std::string& strTempFile,
+  bool FlatDataToBrickedLOD(const std::wstring& strSourceFile,
+                            const std::wstring& strTempFile,
                             ExtendedOctree::COMPONENT_TYPE eType,
                             uint64_t iComponentCount,
                             const UINT64VECTOR3& vVolumeSize,
@@ -43,7 +43,7 @@ public:
                             uint32_t iCompressionLevel=4,
                             LAYOUT_TYPE lt=LT_SCANLINE);
   bool FlatDataToBrickedLOD(LargeRAWFile_ptr pSourceData,
-                            const std::string& strTempFile,
+                            const std::wstring& strTempFile,
                             ExtendedOctree::COMPONENT_TYPE eType,
                             uint64_t iComponentCount,
                             const UINT64VECTOR3& vVolumeSize,
@@ -62,7 +62,7 @@ public:
                             LAYOUT_TYPE lt=LT_SCANLINE);
 
   bool BrickedLODToFlatData(uint64_t iLoD,
-                            const std::string& strTargetFile,
+                            const std::wstring& strTargetFile,
                             bool bAppend = false, AbstrDebugOut* pDebugOut=NULL) const;
 
   bool BrickedLODToFlatData(uint64_t iLoD,
@@ -115,7 +115,7 @@ protected:
   bool m_bIsBigEndian;
   uint32_t m_iOverlap;
   UINT64VECTOR3 m_vMaxBrickSize;
-  std::string m_strDeleteTempFile;
+  std::wstring m_strDeleteTempFile;
   uint64_t m_iUVFFileVersion;
 
   uint64_t ComputeHeaderSize() const;

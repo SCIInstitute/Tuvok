@@ -50,15 +50,15 @@ public:
   virtual ~KitwareConverter() {}
 
   virtual bool ConvertToRAW(
-    const std::string& strSourceFilename, const std::string& strTempDir,
+    const std::wstring& strSourceFilename, const std::wstring& strTempDir,
     bool bNoUserInteraction, uint64_t& iHeaderSkip, unsigned& iComponentSize,
     uint64_t& iComponentCount, bool& bConvertEndianess, bool& bSigned,
     bool& bIsFloat, UINT64VECTOR3& vVolumeSize, FLOATVECTOR3& vVolumeAspect,
-    std::string& strTitle, std::string& strIntermediateFile,
+    std::wstring& strTitle, std::wstring& strIntermediateFile,
     bool& bDeleteIntermediateFile
   );
 
-  virtual bool ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, uint64_t iHeaderSkip,
+  virtual bool ConvertToNative(const std::wstring& strRawFilename, const std::wstring& strTargetFilename, uint64_t iHeaderSkip,
                                unsigned iComponentSize, uint64_t iComponentCount, bool bSigned, bool bFloatingPoint,
                                UINT64VECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, bool bNoUserInteraction,
                                const bool bQuantizeTo8Bit);

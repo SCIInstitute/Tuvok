@@ -43,8 +43,8 @@ namespace tuvok { namespace io {
 
 class IOException : virtual public tuvok::Exception {
   public:
-    IOException() : tuvok::Exception(std::string("unknown error"), NULL, 0) {}
-    IOException(std::string e, const char* where=NULL,
+    IOException() : tuvok::Exception(std::string("unknown error"), nullptr, 0) {}
+    IOException(std::string e, const char* where= nullptr,
                 size_t ln=0)
       : tuvok::Exception(e, where, ln) {}
     virtual ~IOException() throw() {}

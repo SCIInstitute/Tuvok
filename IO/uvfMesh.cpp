@@ -37,6 +37,7 @@
 #include <stdexcept>
 #include "uvfMesh.h"
 #include "UVF/GeometryDataBlock.h"
+#include "Basics/SysTools.h"
 
 using namespace std;
 using namespace tuvok;
@@ -44,7 +45,7 @@ using namespace tuvok;
 uvfMesh::uvfMesh(const GeometryDataBlock& tsb)
 {
   m_DefColor = FLOATVECTOR4(tsb.GetDefaultColor());
-  m_MeshDesc = tsb.m_Desc;
+  m_MeshDesc = SysTools::toWide(tsb.m_Desc);
 
   switch (tsb.GetPolySize()) {
     case 2 :  m_meshType = MT_LINES; break;

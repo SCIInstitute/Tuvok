@@ -40,14 +40,15 @@
 #include "Controller/Controller.h"
 #include "Dataset.h"
 #include "FileBackedDataset.h"
+#include "Basics/SysTools.h"
 
 namespace tuvok {
 namespace io {
 
-static void first_block(const std::string& filename,
+static void first_block(const std::wstring& filename,
                         std::vector<int8_t>& block)
 {
-  std::ifstream ifs(filename.c_str(), std::ifstream::in |
+  std::ifstream ifs(SysTools::toNarrow(filename).c_str(), std::ifstream::in |
                                       std::ifstream::binary);
   block.resize(512, 0);
   if(!ifs.is_open()) {
@@ -57,7 +58,7 @@ static void first_block(const std::string& filename,
   ifs.close();
 }
 
-Dataset* DSFactory::Create(const std::string& filename,
+Dataset* DSFactory::Create(const std::wstring& filename,
                            uint64_t max_brick_size,
                            bool verify) const
 {
@@ -68,12 +69,12 @@ Dataset* DSFactory::Create(const std::string& filename,
   if(!ds.expired()) {
     return ds.lock()->Create(filename, max_brick_size, verify);
   }
-  throw DSOpenFailed(filename.c_str(), "No reader can read this data!",
+  throw DSOpenFailed(SysTools::toNarrow(filename).c_str(), "No reader can read this data!",
                      __FILE__, __LINE__);
 }
 
 const std::weak_ptr<FileBackedDataset>
-DSFactory::Reader(const std::string& filename) const
+DSFactory::Reader(const std::wstring& filename) const
 {
   std::vector<int8_t> bytes(512);
   first_block(filename, bytes);

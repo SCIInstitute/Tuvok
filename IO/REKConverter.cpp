@@ -38,53 +38,54 @@
 #include "REKConverter.h"
 #include "Controller/Controller.h"
 #include "Basics/EndianConvert.h"
+#include "Basics/SysTools.h"
 
 using namespace std;
 
 REKConverter::REKConverter()
 {
-  m_vConverterDesc = "Fraunhofer Raw Volume";
-  m_vSupportedExt.push_back("REK");
+  m_vConverterDesc = L"Fraunhofer Raw Volume";
+  m_vSupportedExt.push_back(L"REK");
 }
 
 bool
-REKConverter::ConvertToRAW(const std::string& strSourceFilename,
-                           const std::string&,
+REKConverter::ConvertToRAW(const std::wstring& strSourceFilename,
+                           const std::wstring&,
                            bool, uint64_t& iHeaderSkip,
                            unsigned& iComponentSize,
                            uint64_t& iComponentCount,
                            bool& bConvertEndianess, bool& bSigned,
                            bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
                            FLOATVECTOR3& vVolumeAspect,
-                           std::string& strTitle,
-                           std::string& strIntermediateFile,
+                           std::wstring& strTitle,
+                           std::wstring& strIntermediateFile,
                            bool& bDeleteIntermediateFile)
 {
-  MESSAGE("Attempting to convert REK dataset %s", strSourceFilename.c_str());
+  MESSAGE("Attempting to convert REK dataset %s", SysTools::toNarrow(strSourceFilename).c_str());
 
   // Find out machine endianess
   bConvertEndianess = EndianConvert::IsBigEndian();
 
   // Read header an check for "magic" values of the REK file
-  ifstream fileData(strSourceFilename.c_str(), ifstream::in | ifstream::binary);
+  ifstream fileData(SysTools::toNarrow(strSourceFilename).c_str(), ifstream::in | ifstream::binary);
   char buffer[2048];
 
   if(fileData.is_open()) {
     fileData.read( buffer, sizeof(buffer) );
     if(Parse<uint16_t, 2>( &buffer[10], bConvertEndianess ) != 2 &&
        Parse<uint16_t, 2>( &buffer[12], bConvertEndianess ) != 4) {
-      WARNING("The file %s is not a REK file", strSourceFilename.c_str());
+      WARNING("The file %s is not a REK file", SysTools::toNarrow(strSourceFilename).c_str());
       fileData.close();
       return false;
     }
   } else {
-    WARNING("Could not open REK file %s", strSourceFilename.c_str());
+    WARNING("Could not open REK file %s", SysTools::toNarrow(strSourceFilename).c_str());
     return false;
   }
   fileData.close();
 
   // Standard values which are always true (I guess)
-  strTitle = "Fraunhofer EZRT";
+  strTitle = L"Fraunhofer EZRT";
   vVolumeAspect = FLOATVECTOR3(1,1,1);
   bSigned = false;
   bIsFloat = false;
@@ -104,8 +105,8 @@ REKConverter::ConvertToRAW(const std::string& strSourceFilename,
 
 // unimplemented!
 bool
-REKConverter::ConvertToNative(const std::string&,
-                              const std::string&,
+REKConverter::ConvertToNative(const std::wstring&,
+                              const std::wstring&,
                               uint64_t, unsigned,
                               uint64_t, bool,
                               bool,

@@ -45,11 +45,13 @@
 class SystemInfo
 {
 public:
-  SystemInfo(std::string strProgramPath="", uint64_t iDefaultCPUMemSize=uint64_t(32)*uint64_t(1024)*uint64_t(1024)*uint64_t(1024), uint64_t iDefaultGPUMemSize=uint64_t(8)*uint64_t(1024)*uint64_t(1024)*uint64_t(1024));
+  SystemInfo(const std::wstring& strProgramPath=L"", 
+             uint64_t iDefaultCPUMemSize=uint64_t(2048)*uint64_t(1024)*uint64_t(1024)*uint64_t(1024),
+             uint64_t iDefaultGPUMemSize=uint64_t(2048)*uint64_t(1024)*uint64_t(1024)*uint64_t(1024));
 
-  void SetProgramPath(std::string strProgramPath) {m_strProgramPath = strProgramPath;}
+  void SetProgramPath(const std::wstring& strProgramPath) {m_strProgramPath = strProgramPath;}
 
-  std::string GetProgramPath() const {return m_strProgramPath;}
+  std::wstring GetProgramPath() const { return m_strProgramPath; }
   uint32_t GetProgramBitWidth() const {return m_iProgramBitWidth;}
   uint64_t GetCPUMemSize() const {return m_iCPUMemSize;}
   uint64_t GetGPUMemSize() const {return m_iGPUMemSize;}
@@ -68,7 +70,7 @@ private:
   uint64_t ComputeCPUMemSize();
   uint64_t ComputeGPUMemory();
 
-  std::string m_strProgramPath;
+  std::wstring m_strProgramPath;
   uint32_t  m_iProgramBitWidth;
   uint64_t  m_iUseMaxCPUMem;
   uint64_t  m_iUseMaxGPUMem;

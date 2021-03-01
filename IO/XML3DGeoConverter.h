@@ -47,7 +47,7 @@ namespace tuvok {
     XML3DGeoConverter();
     virtual ~XML3DGeoConverter() {}
     virtual bool ConvertToNative(const Mesh& m,
-                                 const std::string& strTargetFilename);
+                                 const std::wstring& strTargetFilename);
 
     virtual bool CanExportData() const { return true; }
 

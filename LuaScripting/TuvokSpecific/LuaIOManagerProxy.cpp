@@ -163,8 +163,8 @@ bool LuaIOManagerProxy::ExtractIsosurface(
     LuaClassInstance ds,
     uint64_t iLODlevel, double fIsovalue,
     const FLOATVECTOR4& vfColor,
-    const std::string& strTargetFilename,
-    const std::string& strTempDir) const {
+    const std::wstring& strTargetFilename,
+    const std::wstring& strTempDir) const {
   if (mSS->cexecRet<LuaDatasetProxy::DatasetType>(
           ds.fqName() + ".getDSType") != LuaDatasetProxy::UVF) {
     T_ERROR("tuvok.io.exportDataset only accepts UVF.");
@@ -185,8 +185,8 @@ bool LuaIOManagerProxy::ExtractImageStack(
     LuaClassInstance ds,
     LuaClassInstance tf1d,
     uint64_t iLODlevel, 
-    const std::string& strTargetFilename,
-    const std::string& strTempDir,
+    const std::wstring& strTargetFilename,
+    const std::wstring& strTempDir,
     bool bAllDirs) const {
   if (mSS->cexecRet<LuaDatasetProxy::DatasetType>(
           ds.fqName() + ".getDSType") != LuaDatasetProxy::UVF) {
@@ -214,8 +214,8 @@ bool LuaIOManagerProxy::ExtractImageStack(
 
 bool LuaIOManagerProxy::ExportDataset(LuaClassInstance ds,
                                       uint64_t iLODlevel,
-                                      const string& strTargetFilename,
-                                      const string& strTempDir) const
+                                      const wstring& strTargetFilename,
+                                      const wstring& strTempDir) const
 {
   if (mSS->cexecRet<LuaDatasetProxy::DatasetType>(
           ds.fqName() + ".getDSType") != LuaDatasetProxy::UVF) {
@@ -233,22 +233,22 @@ bool LuaIOManagerProxy::ExportDataset(LuaClassInstance ds,
 }
 
 bool LuaIOManagerProxy::ExportMesh(shared_ptr<Mesh> mesh,
-                                   const string& strTargetFilename) const
+                                   const wstring& strTargetFilename) const
 {
   return mIO->ExportMesh(mesh, strTargetFilename);
 }
 
-bool LuaIOManagerProxy::ReBrickDataset(const string& strSourceFilename,
-                                       const string& strTargetFilename,
-                                       const string& strTempDir) const {
+bool LuaIOManagerProxy::ReBrickDataset(const wstring& strSourceFilename,
+                                       const wstring& strTargetFilename,
+                                       const wstring& strTempDir) const {
   return mIO->ReBrickDataset(strSourceFilename, strTargetFilename, strTempDir,
                              mIO->GetBuilderBrickSize(),
                              mIO->GetBrickOverlap(), false);
 }
 
-bool LuaIOManagerProxy::ConvertDataset(const list<std::string>& files,
-                                       const string& strTargetFilename,
-                                       const string& strTempDir,
+bool LuaIOManagerProxy::ConvertDataset(const list<std::wstring>& files,
+                                       const wstring& strTargetFilename,
+                                       const wstring& strTempDir,
                                        bool bNoUserInteraction,
                                        bool bQuantizeTo8Bit)
 {
@@ -258,8 +258,8 @@ bool LuaIOManagerProxy::ConvertDataset(const list<std::string>& files,
 
 bool LuaIOManagerProxy::ConvertDatasetWithStack(
     shared_ptr<FileStackInfo> stack,
-    const string& strTargetFilename,
-    const string& strTempDir,
+    const wstring& strTargetFilename,
+    const wstring& strTempDir,
     bool bQuantizeTo8Bit)
 {
   /// @todo Convert 'ConvertDataset' to use shared_ptr instead of raw ptr.
@@ -268,7 +268,7 @@ bool LuaIOManagerProxy::ConvertDatasetWithStack(
 }
 
 std::tuple<bool, RangeInfo> LuaIOManagerProxy::AnalyzeDataset(
-    const string& strFilename, const string& strTempDir)
+    const wstring& strFilename, const wstring& strTempDir)
 {
   RangeInfo info;
   bool res = mIO->AnalyzeDataset(strFilename, info, strTempDir);
@@ -277,8 +277,8 @@ std::tuple<bool, RangeInfo> LuaIOManagerProxy::AnalyzeDataset(
 
 void LuaIOManagerProxy::evaluateExpression(
     const std::string& expr,
-    const std::vector<std::string>& volumes,
-    const std::string& out_fn) const
+    const std::vector<std::wstring>& volumes,
+    const std::wstring& out_fn) const
 {
   mIO->EvaluateExpression(expr, volumes, out_fn);
 }

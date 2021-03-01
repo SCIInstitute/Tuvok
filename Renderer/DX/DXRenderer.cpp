@@ -303,11 +303,11 @@ void DXRenderer::SetBlendPrecision(EBlendPrecision eBlendPrecision) {
   }
 }
 
-bool DXRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile, const std::vector<std::string>& strDirs, GLSLProgram** pShaderProgram) {
+bool DXRenderer::LoadAndVerifyShader(wstring strVSFile, wstring strFSFile, const std::vector<std::wstring>& strDirs, GLSLProgram** pShaderProgram) {
   return true;
 }
 
-bool DXRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile, GLSLProgram** pShaderProgram, bool bSearchSubdirs) {
+bool DXRenderer::LoadAndVerifyShader(wstring strVSFile, wstring strFSFile, GLSLProgram** pShaderProgram, bool bSearchSubdirs) {
   return true;
 }
 
@@ -323,7 +323,7 @@ void DXRenderer::PlaneIn3DPreRender() {
 void DXRenderer::PlaneIn3DPostRender() {
 }
 
-bool DXRenderer::LoadFile(const string& strFilename) {
+bool DXRenderer::LoadFile(const wstring& strFilename) {
   if (AbstrRenderer::LoadFile(strFilename)) {
     // TODO
     return true;
@@ -344,7 +344,7 @@ bool DXRenderer::Render3DView() {
   return true;
 }
 
-void DXRenderer::SetLogoParams(std::string strLogoFilename, int iLogoPos) {
+void DXRenderer::SetLogoParams(std::wstring strLogoFilename, int iLogoPos) {
   AbstrRenderer::SetLogoParams(strLogoFilename, iLogoPos);
   // TODO
 }

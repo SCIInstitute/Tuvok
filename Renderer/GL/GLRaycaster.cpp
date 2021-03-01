@@ -104,90 +104,90 @@ bool GLRaycaster::LoadShaders() {
     return false;
   }
 
-  const char* shaderNames[7];
-  shaderNames[0] = "GLRaycaster-1D-FS.glsl";
-  shaderNames[1] = "GLRaycaster-1D-light-FS.glsl";
-  shaderNames[2] = "GLRaycaster-2D-FS.glsl";
-  shaderNames[3] = "GLRaycaster-2D-light-FS.glsl";
-  shaderNames[4] = "GLRaycaster-Color-FS.glsl";
-  shaderNames[5] = "GLRaycaster-ISO-CV-FS.glsl";
-  shaderNames[6] = "GLRaycaster-ISO-FS.glsl";
+  const wchar_t* shaderNames[7];
+  shaderNames[0] = L"GLRaycaster-1D-FS.glsl";
+  shaderNames[1] = L"GLRaycaster-1D-light-FS.glsl";
+  shaderNames[2] = L"GLRaycaster-2D-FS.glsl";
+  shaderNames[3] = L"GLRaycaster-2D-light-FS.glsl";
+  shaderNames[4] = L"GLRaycaster-Color-FS.glsl";
+  shaderNames[5] = L"GLRaycaster-ISO-CV-FS.glsl";
+  shaderNames[6] = L"GLRaycaster-ISO-FS.glsl";
 
-  std::string tfqn = m_pDataset
+  std::wstring tfqn = m_pDataset
                      ? this->ColorData()
-                        ? "VRender1D-Color"
-                        : "VRender1D"
-                     : "VRender1D";
+                        ? L"VRender1D-Color"
+                        : L"VRender1D"
+                     : L"VRender1D";
 
-  const std::string tfqnLit = m_pDataset
+  const std::wstring tfqnLit = m_pDataset
                            ? this->ColorData()
-                              ? "VRender1DLit-Color.glsl"
-                              : "VRender1DLit.glsl"
-                           : "VRender1DLit.glsl";
-  const std::string bias = tfqn + "-BScale.glsl";
-  tfqn += ".glsl";
+                              ? L"VRender1DLit-Color.glsl"
+                              : L"VRender1DLit.glsl"
+                           : L"VRender1DLit.glsl";
+  const std::wstring bias = tfqn + L"-BScale.glsl";
+  tfqn += L".glsl";
   
   if(!LoadAndVerifyShader(&m_pProgramRenderFrontFaces, m_vShaderSearchDirs,
-                          "GLRaycaster-VS.glsl",
+                          L"GLRaycaster-VS.glsl",
                           NULL,
-                          "GLRaycaster-frontfaces-FS.glsl", NULL) ||
+                          L"GLRaycaster-frontfaces-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramRenderFrontFacesNT, m_vShaderSearchDirs,
-                          "GLRaycasterNoTransform-VS.glsl",
+                          L"GLRaycasterNoTransform-VS.glsl",
                           NULL,
-                          "GLRaycaster-frontfaces-FS.glsl", NULL) ||
+                          L"GLRaycaster-frontfaces-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTrans[0], m_vShaderSearchDirs,
-                          "GLRaycaster-VS.glsl",
+                          L"GLRaycaster-VS.glsl",
                           NULL,
-                          "Compositing.glsl",   // UnderCompositing
-                          "Volume3D.glsl",      // SampleVolume
+                          L"Compositing.glsl",   // UnderCompositing
+                          L"Volume3D.glsl",      // SampleVolume
                           tfqn.c_str(),         // VRender1D
                           bias.c_str(),
-                          "VRender1DProxy.glsl",
+                          L"VRender1DProxy.glsl",
                           shaderNames[0],  NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTrans[1], m_vShaderSearchDirs,
-                          "GLRaycaster-VS.glsl",
+                          L"GLRaycaster-VS.glsl",
                           NULL,
-                          "Compositing.glsl",   // UnderCompositing
-                          "Volume3D.glsl",      // SampleVolume
-                          "lighting.glsl",      // Lighting
+                          L"Compositing.glsl",   // UnderCompositing
+                          L"Volume3D.glsl",      // SampleVolume
+                          L"lighting.glsl",      // Lighting
                           tfqnLit.c_str(),      // VRender1DLit
                           shaderNames[1], NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[0], m_vShaderSearchDirs,
-                          "GLRaycaster-VS.glsl",
+                          L"GLRaycaster-VS.glsl",
                           NULL,
-                          "Compositing.glsl",   // UnderCompositing
-                          "Volume3D.glsl",      // SampleVolume, ComputeGradient
+                          L"Compositing.glsl",   // UnderCompositing
+                          L"Volume3D.glsl",      // SampleVolume, ComputeGradient
                           shaderNames[2], NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[1], m_vShaderSearchDirs,
-                          "GLRaycaster-VS.glsl",
+                          L"GLRaycaster-VS.glsl",
                           NULL,
-                          "Compositing.glsl",   // UnderCompositing
-                          "Volume3D.glsl",      // SampleVolume, ComputeGradient
-                          "lighting.glsl",      // Lighting
+                          L"Compositing.glsl",   // UnderCompositing
+                          L"Volume3D.glsl",      // SampleVolume, ComputeGradient
+                          L"lighting.glsl",      // Lighting
                           shaderNames[3], NULL) ||
      !LoadAndVerifyShader(&m_pProgramIso, m_vShaderSearchDirs,
-                          "GLRaycaster-VS.glsl",
+                          L"GLRaycaster-VS.glsl",
                           NULL,
-                          "RefineIsosurface.glsl", // RefineIsosurface
-                          "Volume3D.glsl",        // SampleVolume, ComputeNormal
+                          L"RefineIsosurface.glsl", // RefineIsosurface
+                          L"Volume3D.glsl",        // SampleVolume, ComputeNormal
                           shaderNames[6], NULL) ||
      !LoadAndVerifyShader(&m_pProgramColor, m_vShaderSearchDirs,
-                          "GLRaycaster-VS.glsl",
+                          L"GLRaycaster-VS.glsl",
                           NULL,
-                          "RefineIsosurface.glsl", // RefineIsosurface
-                          "Volume3D.glsl",        // SampleVolume, ComputeNormal
+                          L"RefineIsosurface.glsl", // RefineIsosurface
+                          L"Volume3D.glsl",        // SampleVolume, ComputeNormal
                           shaderNames[4], NULL) ||
      !LoadAndVerifyShader(&m_pProgramIso2, m_vShaderSearchDirs,
-                          "GLRaycaster-VS.glsl",
+                          L"GLRaycaster-VS.glsl",
                           NULL,
-                          "RefineIsosurface.glsl", // RefineIsosurface
-                          "Volume3D.glsl",        // SampleVolume, ComputeNormal
+                          L"RefineIsosurface.glsl", // RefineIsosurface
+                          L"Volume3D.glsl",        // SampleVolume, ComputeNormal
                           shaderNames[5], NULL) ||
      !LoadAndVerifyShader(&m_pProgramHQMIPRot, m_vShaderSearchDirs,
-                          "GLRaycaster-VS.glsl",
+                          L"GLRaycaster-VS.glsl",
                           NULL,
-                          "Volume3D.glsl",      // SampleVolume
-                          "GLRaycaster-MIP-Rot-FS.glsl",
+                          L"Volume3D.glsl",      // SampleVolume
+                          L"GLRaycaster-MIP-Rot-FS.glsl",
                           NULL))
   {
       Cleanup();

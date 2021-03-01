@@ -79,8 +79,8 @@ namespace {
   }
 }
 
-static std::string convert_endianness(const std::string& strFilename,
-                                      const std::string& strTempDir,
+static std::wstring convert_endianness(const std::wstring& strFilename,
+                                      const std::wstring& strTempDir,
                                       uint64_t iHeaderSkip,
                                       unsigned iComponentSize,
                                       size_t in_core_size)
@@ -89,26 +89,26 @@ static std::string convert_endianness(const std::string& strFilename,
   if(iComponentSize != 16 && iComponentSize != 32 && iComponentSize != 64) {
     T_ERROR("Unable to endian convert anything but 16-, 32-, and 64-bit data"
             "  (input data is %d-bit).", iComponentSize);
-    return "";
+    return L"";
   }
 
   LargeRAWFile WrongEndianData(strFilename, iHeaderSkip);
   WrongEndianData.Open(false);
 
   if(!WrongEndianData.IsOpen()) {
-    T_ERROR("Unable to open source file '%s'", strFilename.c_str());
-    throw DSOpenFailed(strFilename.c_str(), "Unable to open source file",
+    T_ERROR("Unable to open source file '%s'", SysTools::toNarrow(strFilename).c_str());
+    throw DSOpenFailed(SysTools::toNarrow(strFilename).c_str(), "Unable to open source file",
                        __FILE__, __LINE__);
   }
 
-  const std::string tmp_file = strTempDir + SysTools::GetFilename(strFilename) +
-                               ".endianness";
+  const std::wstring tmp_file = strTempDir + SysTools::GetFilename(strFilename) +
+                               L".endianness";
   LargeRAWFile ConvertedEndianData(tmp_file);
   ConvertedEndianData.Create();
 
   if(!ConvertedEndianData.IsOpen()) {
     WrongEndianData.Close();
-    throw DSOpenFailed(tmp_file.c_str(), "Unable to create file",
+    throw DSOpenFailed(SysTools::toNarrow(tmp_file).c_str(), "Unable to create file",
                        __FILE__, __LINE__);
   }
   MESSAGE("Performing endianness conversion ...");
@@ -136,7 +136,7 @@ static std::string convert_endianness(const std::string& strFilename,
     if(bytes_read != bytes_written) {
       WrongEndianData.Close();
       ConvertedEndianData.Close();
-      remove(tmp_file.c_str());
+      SysTools::RemoveFile(tmp_file);
       throw IOException("Write failed during endianness conversion.", __FILE__,
                         __LINE__);
     }
@@ -153,7 +153,7 @@ static std::string convert_endianness(const std::string& strFilename,
 }
 
 static std::shared_ptr<KeyValuePairDataBlock> metadata(
-  const string& strDesc, const string& strSource,
+  const wstring& strDesc, const wstring& strSource,
   bool bLittleEndian, bool bSigned, bool bIsFloat,
   unsigned iComponentSize,
   KVPairs* pKVPairs
@@ -162,25 +162,25 @@ static std::shared_ptr<KeyValuePairDataBlock> metadata(
   std::shared_ptr<KeyValuePairDataBlock> meta =
     std::shared_ptr<KeyValuePairDataBlock>(new KeyValuePairDataBlock());
 
-  if(!strSource.empty()) { meta->AddPair("Data Source", strSource); }
-  if(!strDesc.empty()) { meta->AddPair("Description", strDesc); }
+  if(!strSource.empty()) { meta->AddPair(L"Data Source", strSource); }
+  if(!strDesc.empty()) { meta->AddPair(L"Description", strDesc); }
 
   if(bLittleEndian) {
-    meta->AddPair("Source Endianness", "little");
+    meta->AddPair(L"Source Endianness", L"little");
   } else {
-    meta->AddPair("Source Endianness", "big");
+    meta->AddPair(L"Source Endianness", L"big");
   }
 
   if(bIsFloat) {
-    meta->AddPair("Source Type", "float");
+    meta->AddPair(L"Source Type", L"float");
   } else {
     if(bSigned) {
-      meta->AddPair("Source Type", "signed integer");
+      meta->AddPair(L"Source Type", L"signed integer");
     } else {
-      meta->AddPair("Source Type", "integer");
+      meta->AddPair(L"Source Type", L"integer");
     }
   }
-  meta->AddPair("Source Bitwidth", SysTools::ToString(iComponentSize));
+  meta->AddPair(L"Source Bitwidth", SysTools::ToWString(iComponentSize));
 
   if(pKVPairs) {
     for (size_t i=0; i < pKVPairs->size(); i++) {
@@ -195,7 +195,7 @@ static std::shared_ptr<KeyValuePairDataBlock> metadata(
 /// @param iComponentSize bit width of data, in-out param.
 std::shared_ptr<LargeRAWFile>
 quantize(std::shared_ptr<LargeRAWFile> sourceData,
-         const std::string tmpQuantizedFile, const bool bSigned,
+         const std::wstring tmpQuantizedFile, const bool bSigned,
          const bool bIsFloat,
          unsigned& iComponentSize, const uint64_t iComponentCount,
          const uint64_t timesteps, const uint64_t volumeSize,
@@ -354,7 +354,7 @@ quantize(std::shared_ptr<LargeRAWFile> sourceData,
 // This isn't great -- there's a race between when we close and reopen it --
 // but there's no (standard) way to turn a file descriptor into an fstream or
 // RAWFile...
-static std::string mk_tmpfile(std::ofstream& ofs, std::ios::openmode mode)
+static std::wstring mk_tmpfile(std::ofstream& ofs, std::ios::openmode mode)
 {
 #ifdef _WIN32
   char *templ = tmpnam((char*)0);
@@ -366,7 +366,7 @@ static std::string mk_tmpfile(std::ofstream& ofs, std::ios::openmode mode)
   close(fd);
   ofs.open(templ, mode);
 #endif
-  return std::string(templ);
+  return SysTools::toWide(templ);
 }
 
 /// given a data source, grab out every 'N'th element and put it in its own
@@ -381,7 +381,7 @@ make_raw(std::shared_ptr<LargeRAWFile> source, uint64_t n_components,
 
   for(files::iterator f=components.begin(); f != components.end(); ++f) {
     std::ofstream ofs;
-    std::string filename = mk_tmpfile(ofs, std::ios::out | std::ios::binary);
+    std::wstring filename = mk_tmpfile(ofs, std::ios::out | std::ios::binary);
     *f = std::shared_ptr<LargeRAWFile>(new TempFile(filename));
     (*f)->Open(true);
   }
@@ -409,9 +409,9 @@ make_raw(std::shared_ptr<LargeRAWFile> source, uint64_t n_components,
   return components;
 }
 
-bool RAWConverter::ConvertRAWDataset(const string& strFilename,
-                                     const string& strTargetFilename,
-                                     const string& strTempDir,
+bool RAWConverter::ConvertRAWDataset(const wstring& strFilename,
+                                     const wstring& strTargetFilename,
+                                     const wstring& strTempDir,
                                      uint64_t iHeaderSkip,
                                      unsigned iComponentSize,
                                      uint64_t iComponentCount,
@@ -420,8 +420,8 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
                                      bool bIsFloat,
                                      UINT64VECTOR3 vVolumeSize,
                                      FLOATVECTOR3 vVolumeAspect,
-                                     const string& strDesc,
-                                     const string& strSource,
+                                     const wstring& strDesc,
+                                     const wstring& strSource,
                                      const uint64_t iTargetBrickSize,
                                      const uint64_t iTargetBrickOverlap,
                                      const bool bUseMedian,
@@ -434,7 +434,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
 {
   if (!SysTools::FileExists(strFilename)) {
     T_ERROR("Data file %s not found; maybe there is an invalid reference in "
-            "the header file?", strFilename.c_str());
+            "the header file?", SysTools::toNarrow(strFilename).c_str());
     return false;
   }
 
@@ -481,9 +481,9 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
   }
 
   MESSAGE("Converting RAW dataset %s to %s", strFilename.c_str(),
-          strTargetFilename.c_str());
+    SysTools::toNarrow(strTargetFilename).c_str());
 
-  string tmpQuantizedFile = strTempDir+SysTools::GetFilename(strFilename)+".quantized";
+  wstring tmpQuantizedFile = strTempDir+SysTools::GetFilename(strFilename)+L".quantized";
 
   std::shared_ptr<LargeRAWFile> sourceData;
 
@@ -491,7 +491,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
     // the new data source is the endian-converted file.
     size_t core_size = static_cast<size_t>(iTargetBrickSize*iTargetBrickSize*
                                            iTargetBrickSize * iComponentSize/8);
-    string tmpEndianConvertedFile =
+    wstring tmpEndianConvertedFile =
       convert_endianness(strFilename, strTempDir, iHeaderSkip, iComponentSize,
                          core_size);
     iHeaderSkip = 0;  // the new file is straight raw without any header
@@ -560,16 +560,16 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
     );
     std::shared_ptr<TOCBlock> dataVolume = blocks[ts].tocblock;
 
-    if (strSource == "") {
-      dataVolume->strBlockID = (strDesc!="")
-        ? strDesc + " volume converted by ImageVis3D"
-        : "Volume converted by ImageVis3D";
+    if (strSource == L"") {
+      dataVolume->strBlockID = SysTools::toNarrow((strDesc!=L"")
+        ? strDesc + L" volume converted by ImageVis3D"
+        : L"Volume converted by ImageVis3D");
     } else {
-      dataVolume->strBlockID = (strDesc!="")
-        ? strDesc + " volume converted from " + strSource
-        + " by ImageVis3D"
-        : "Volume converted from " + strSource +
-        " by ImageVis3D";
+      dataVolume->strBlockID = SysTools::toNarrow((strDesc!=L"")
+        ? strDesc + L" volume converted from " + strSource
+        + L" by ImageVis3D"
+        : L"Volume converted from " + strSource +
+        L" by ImageVis3D");
     }
 
     ExtendedOctree::COMPONENT_TYPE ct = ExtendedOctree::CT_UINT8;
@@ -595,10 +595,10 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
       break;
     }
 
-    std::string tmpfile;
+    std::wstring tmpfile;
     {
-      ostringstream tmpfn;
-      tmpfn << strTempDir << ts << "tempFile.tmp";
+      wostringstream tmpfn;
+      tmpfn << strTempDir << ts << L"tempFile.tmp";
       tmpfile = tmpfn.str();
     }
 
@@ -689,8 +689,8 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
  * @param strFilename the input (compressed) file
  * @param strTargetFilename the target uvf file
  * @param iHeaderSkip number of bytes to skip off of strFilename */
-bool RAWConverter::ExtractGZIPDataset(const string& strFilename,
-                                      const string& strUncompressedFile,
+bool RAWConverter::ExtractGZIPDataset(const wstring& strFilename,
+                                      const wstring& strUncompressedFile,
                                       uint64_t iHeaderSkip)
 {
   FILE *f_compressed;
@@ -699,16 +699,16 @@ bool RAWConverter::ExtractGZIPDataset(const string& strFilename,
 
   MESSAGE("Deflating GZIP data ...");
 
-  f_compressed = fopen(strFilename.c_str(), "rb");
-  f_inflated = fopen(strUncompressedFile.c_str(), "wb");
+  f_compressed = fopen(SysTools::toNarrow(strFilename).c_str(), "rb");
+  f_inflated = fopen(SysTools::toNarrow(strUncompressedFile).c_str(), "wb");
 
   if(f_compressed == NULL) {
-    T_ERROR("Could not open %s", strFilename.c_str());
+    T_ERROR("Could not open %s", SysTools::toNarrow(strFilename).c_str());
     fclose(f_inflated);
     return false;
   }
   if(f_inflated == NULL) {
-    T_ERROR("Could not open %s", strUncompressedFile.c_str());
+    T_ERROR("Could not open %s", SysTools::toNarrow(strUncompressedFile).c_str());
     fclose(f_compressed);
     return false;
   }
@@ -718,7 +718,7 @@ bool RAWConverter::ExtractGZIPDataset(const string& strFilename,
     T_ERROR("Seek failed");
     fclose(f_compressed);
     fclose(f_inflated);
-    remove(strUncompressedFile.c_str());
+    SysTools::RemoveFile(strUncompressedFile);
     return false;
   }
 
@@ -735,7 +735,7 @@ bool RAWConverter::ExtractGZIPDataset(const string& strFilename,
       break;
     case Z_MEM_ERROR:
       T_ERROR("Not enough memory decompress %s",
-                 strFilename.c_str());
+        SysTools::toNarrow(strFilename).c_str());
       return false;
       break;
     case Z_DATA_ERROR:
@@ -817,8 +817,8 @@ bz_err_test(int bz_err)
  * @param strFilename the input (compressed) file
  * @param strTargetFilename the target uvf file
  * @param iHeaderSkip number of bytes to skip of strFilename's header*/
-bool RAWConverter::ExtractBZIP2Dataset(const string& strFilename,
-                                       const string& strUncompressedFile,
+bool RAWConverter::ExtractBZIP2Dataset(const wstring& strFilename,
+                                       const wstring& strUncompressedFile,
                                        uint64_t iHeaderSkip)
 {
 #ifdef TUVOK_NO_IO
@@ -830,16 +830,16 @@ bool RAWConverter::ExtractBZIP2Dataset(const string& strFilename,
   size_t iCurrentIncoreSize = GetIncoreSize();
   std::vector<char> buffer(iCurrentIncoreSize);
 
-  FILE *f_compressed = fopen(strFilename.c_str(), "rb");
-  FILE *f_inflated = fopen(strUncompressedFile.c_str(), "wb");
+  FILE *f_compressed = fopen(SysTools::toNarrow(strFilename).c_str(), "rb");
+  FILE *f_inflated = fopen(SysTools::toNarrow(strUncompressedFile).c_str(), "wb");
 
   if(f_compressed == NULL) {
-    T_ERROR("Could not open %s", strFilename.c_str());
+    T_ERROR("Could not open %s", SysTools::toNarrow(strFilename).c_str());
     fclose(f_inflated);
     return false;
   }
   if(f_inflated == NULL) {
-    T_ERROR("Could not open %s", strUncompressedFile.c_str());
+    T_ERROR("Could not open %s", SysTools::toNarrow(strUncompressedFile).c_str());
     fclose(f_compressed);
     return false;
   }
@@ -884,8 +884,8 @@ bool RAWConverter::ExtractBZIP2Dataset(const string& strFilename,
 #endif
 }
 
-bool RAWConverter::ParseTXTDataset(const string& strFilename,
-                                     const string& strBinaryFile,
+bool RAWConverter::ParseTXTDataset(const wstring& strFilename,
+                                     const wstring& strBinaryFile,
                                      uint64_t iHeaderSkip,
                                      unsigned iComponentSize,
                                      uint64_t iComponentCount,
@@ -893,16 +893,16 @@ bool RAWConverter::ParseTXTDataset(const string& strFilename,
                                      bool bIsFloat,
                                      UINT64VECTOR3 vVolumeSize)
 {
-  ifstream sourceFile(strFilename.c_str(),ios::binary);
+  ifstream sourceFile(SysTools::toNarrow(strFilename).c_str(),ios::binary);
   if (!sourceFile.is_open()) {
-    T_ERROR("Unable to open source file %s.", strFilename.c_str());
+    T_ERROR("Unable to open source file %s.", SysTools::toNarrow(strFilename).c_str());
     return false;
   }
 
   LargeRAWFile binaryFile(strBinaryFile);
   binaryFile.Create(iComponentSize/8 * iComponentCount * vVolumeSize.volume());
   if (!binaryFile.IsOpen()) {
-    T_ERROR("Unable to open temp file %s.", strBinaryFile.c_str());
+    T_ERROR("Unable to open temp file %s.", SysTools::toNarrow(strBinaryFile).c_str());
     sourceFile.close();
     return false;
   }
@@ -1020,8 +1020,8 @@ bool RAWConverter::ParseTXTDataset(const string& strFilename,
   return true;
 }
 
-bool RAWConverter::ConvertToNative(const std::string& strRawFilename,
-                                   const std::string& strTargetFilename,
+bool RAWConverter::ConvertToNative(const std::wstring& strRawFilename,
+                                   const std::wstring& strTargetFilename,
                                    uint64_t iHeaderSkip,
                                    unsigned iComponentSize, uint64_t, bool, bool,
                                    UINT64VECTOR3, FLOATVECTOR3, bool,
@@ -1032,16 +1032,16 @@ bool RAWConverter::ConvertToNative(const std::string& strRawFilename,
   if (SysTools::FileExists(strTargetFilename))
     Remove(strTargetFilename, Controller::Debug::Out());
   if (SysTools::FileExists(strTargetFilename)) {
-    T_ERROR("Unable to remove existing target file %s.", strTargetFilename.c_str());
+    T_ERROR("Unable to remove existing target file %s.", SysTools::toNarrow(strTargetFilename).c_str());
     return false;
   }
 
   return AppendRAW(strRawFilename, iHeaderSkip, strTargetFilename, iComponentSize, EndianConvert::IsBigEndian(),bQuantizeTo8Bit);
 }
 
-bool RAWConverter::AppendRAW(const std::string& strRawFilename,
+bool RAWConverter::AppendRAW(const std::wstring& strRawFilename,
                              uint64_t iHeaderSkip,
-                             const std::string& strTargetFilename,
+                             const std::wstring& strTargetFilename,
                              unsigned iComponentSize, bool bChangeEndianess,
                              bool bToSigned, bool bQuantizeTo8Bit) {
   // TODO:
@@ -1056,7 +1056,7 @@ bool RAWConverter::AppendRAW(const std::string& strRawFilename,
   LargeRAWFile fSource(strRawFilename, iHeaderSkip);
   fSource.Open(false);
   if (!fSource.IsOpen()) {
-    T_ERROR("Unable to open source file %s.", strRawFilename.c_str());
+    T_ERROR("Unable to open source file %s.", SysTools::toNarrow(strRawFilename).c_str());
     return false;
   }
   // append to target file
@@ -1064,7 +1064,7 @@ bool RAWConverter::AppendRAW(const std::string& strRawFilename,
   fTarget.Append();
   if (!fTarget.IsOpen()) {
     fSource.Close();
-    T_ERROR("Unable to open target file %s.", strTargetFilename.c_str());
+    T_ERROR("Unable to open target file %s.", SysTools::toNarrow(strTargetFilename).c_str());
     return false;
   }
 
@@ -1122,9 +1122,9 @@ bool RAWConverter::AppendRAW(const std::string& strRawFilename,
 }
 
 
-bool RAWConverter::ConvertToUVF(const std::string& strSourceFilename,
-                                const std::string& strTargetFilename,
-                                const std::string& strTempDir,
+bool RAWConverter::ConvertToUVF(const std::wstring& strSourceFilename,
+                                const std::wstring& strTargetFilename,
+                                const std::wstring& strTempDir,
                                 const bool bNoUserInteraction,
                                 const uint64_t iTargetBrickSize,
                                 const uint64_t iTargetBrickOverlap,
@@ -1135,7 +1135,7 @@ bool RAWConverter::ConvertToUVF(const std::string& strSourceFilename,
                                 uint32_t iBrickLayout,
                                 const bool bQuantizeTo8Bit)
 {
-  std::list<std::string> files;
+  std::list<std::wstring> files;
   files.push_front(strSourceFilename);
   return ConvertToUVF(files, strTargetFilename, strTempDir, bNoUserInteraction,
                       iTargetBrickSize, iTargetBrickOverlap, bUseMedian,
@@ -1143,11 +1143,11 @@ bool RAWConverter::ConvertToUVF(const std::string& strSourceFilename,
                       iBrickLayout, bQuantizeTo8Bit);
 }
 
-static void RemoveStdString(std::string s) { remove(s.c_str()); }
+static void RemoveStdString(std::wstring s) { SysTools::RemoveFile(s); }
 
-bool RAWConverter::ConvertToUVF(const std::list<std::string>& files,
-                                const std::string& strTargetFilename,
-                                const std::string& strTempDir,
+bool RAWConverter::ConvertToUVF(const std::list<std::wstring>& files,
+                                const std::wstring& strTargetFilename,
+                                const std::wstring& strTempDir,
                                 const bool bNoUserInteraction,
                                 const uint64_t iTargetBrickSize,
                                 const uint64_t iTargetBrickOverlap,
@@ -1167,15 +1167,15 @@ bool RAWConverter::ConvertToUVF(const std::list<std::string>& files,
   bool          bIsFloat=false;
   UINT64VECTOR3 vVolumeSize;
   FLOATVECTOR3  vVolumeAspect;
-  string        strTitle;
-  std::list<string> strIntermediateFile;
+  std::wstring   strTitle;
+  std::list<wstring> strIntermediateFile;
   std::list<bool>   bDeleteIntermediateFile;
   std::list<uint64_t> header_skip;
 
   bool success = true;
-  for(std::list<std::string>::const_iterator fn = files.begin();
+  for(std::list<std::wstring>::const_iterator fn = files.begin();
       fn != files.end(); ++fn) {
-    std::string intermediate;
+    std::wstring intermediate;
     bool bDelete;
     uint64_t iHeaderSkip;
     /// @todo assuming iComponentSize, etc. are the same for all files; should
@@ -1206,11 +1206,11 @@ bool RAWConverter::ConvertToUVF(const std::list<std::string>& files,
     return false;
   }
 
-  std::string merged_fn;
-  std::string dataSource;
+  std::wstring merged_fn;
+  std::wstring dataSource;
   if(files.size() > 1) {
-    merged_fn = strTempDir + ".merged_time_filename";
-    remove(merged_fn.c_str());
+    merged_fn = strTempDir + L".merged_time_filename";
+    SysTools::RemoveFile(merged_fn);
     // copy all of the data to a single file
     LargeRAWFile merged(merged_fn);
     merged.Create();
@@ -1219,7 +1219,7 @@ bool RAWConverter::ConvertToUVF(const std::list<std::string>& files,
     std::list<uint64_t>::const_iterator hdr = header_skip.begin();
     const uint64_t payload_sz = vVolumeSize.volume() * iComponentSize/8 *
                               iComponentCount;
-    for(std::list<std::string>::const_iterator fn = strIntermediateFile.begin();
+    for(std::list<std::wstring>::const_iterator fn = strIntermediateFile.begin();
         fn != strIntermediateFile.end(); ++fn, ++del, ++hdr) {
       LargeRAWFile input(*fn, *hdr);
       input.Open(false);
@@ -1229,7 +1229,7 @@ bool RAWConverter::ConvertToUVF(const std::list<std::string>& files,
       do {
         size_t elems = input.ReadRAW(data, GetIncoreSize());
         if(elems == 0) {
-          WARNING("Input file '%s' ended before we expected.", fn->c_str());
+          WARNING("Input file '%s' ended before we expected.", SysTools::toNarrow(*fn).c_str());
           break;
         }
         merged.WriteRAW(data, std::min(payload_sz - bytes_written,
@@ -1246,10 +1246,11 @@ bool RAWConverter::ConvertToUVF(const std::list<std::string>& files,
     *bDeleteIntermediateFile.begin() = true;
     *header_skip.begin() = 0;
     {
-      ostringstream strlist;
-      strlist << "Merged from ";
-      std::copy(files.begin(), files.end(),
-                std::ostream_iterator<std::string>(strlist, ", "));
+      wostringstream strlist;
+      strlist << L"Merged from ";
+      for (const std::wstring& f : files) {
+          strlist << f << L" ";
+      }
       dataSource = strlist.str();
     }
   } else {
@@ -1282,8 +1283,8 @@ bool RAWConverter::ConvertToUVF(const std::list<std::string>& files,
   return bUVFCreated;
 }
 
-bool RAWConverter::Analyze(const std::string& strSourceFilename,
-                           const std::string& strTempDir,
+bool RAWConverter::Analyze(const std::wstring& strSourceFilename,
+                           const std::wstring& strTempDir,
                            bool bNoUserInteraction, RangeInfo& info) {
   uint64_t        iHeaderSkip=0;
   unsigned        iComponentSize=0;
@@ -1293,10 +1294,10 @@ bool RAWConverter::Analyze(const std::string& strSourceFilename,
   bool          bIsFloat=false;
   UINT64VECTOR3 vVolumeSize(0,0,0);
   FLOATVECTOR3  vVolumeAspect(0,0,0);
-  string        strTitle = "";
-  string        strSource = "";
+  wstring       strTitle = L"";
+  wstring       strSource = L"";
 
-  string        strRAWFilename = "";
+  wstring       strRAWFilename = L"";
   bool          bRAWDelete = false;
 
 
@@ -1327,7 +1328,7 @@ bool RAWConverter::Analyze(const std::string& strSourceFilename,
   return bAnalyzed;
 }
 
-bool RAWConverter::Analyze(const std::string& strSourceFilename,
+bool RAWConverter::Analyze(const std::wstring& strSourceFilename,
                            uint64_t iHeaderSkip, unsigned iComponentSize,
                            uint64_t iComponentCount, bool bSigned,
                            bool bFloatingPoint, UINT64VECTOR3 vVolumeSize,
@@ -1336,7 +1337,7 @@ bool RAWConverter::Analyze(const std::string& strSourceFilename,
   LargeRAWFile fSource(strSourceFilename, iHeaderSkip);
   fSource.Open(false);
   if (!fSource.IsOpen()) {
-    T_ERROR("Unable to open source file %s.", strSourceFilename.c_str());
+    T_ERROR("Unable to open source file %s.", SysTools::toNarrow(strSourceFilename).c_str());
     return false;
   }
 
@@ -1462,15 +1463,15 @@ bool RAWConverter::Analyze(const std::string& strSourceFilename,
 
 /// Uses remove(3) to remove the file.
 /// @return true if the remove succeeded.
-bool RAWConverter::Remove(const std::string &path, AbstrDebugOut &dbg)
+bool RAWConverter::Remove(const std::wstring &path, AbstrDebugOut &dbg)
 {
-  if(std::remove(path.c_str()) == -1) {
+  if(!SysTools::RemoveFile(path)) {
 #ifdef _WIN32
       char buffer[200];
       strerror_s(buffer, 200, errno);
-      dbg.Warning(_func_, "Could not remove `%s': %s", path.c_str(), buffer);
+      dbg.Warning(_func_, "Could not remove `%s': %s", SysTools::toNarrow(path).c_str(), buffer);
 #else
-      dbg.Warning(_func_, "Could not remove `%s': %s", path.c_str(),
+      dbg.Warning(_func_, "Could not remove `%s': %s", SysTools::toNarrow(path).c_str(),
                   strerror(errno));
 #endif
       return false;

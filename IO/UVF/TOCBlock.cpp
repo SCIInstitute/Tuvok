@@ -1,5 +1,6 @@
 #include <ios>
 #include "TOCBlock.h"
+#include "Basics/SysTools.h"
 
 #include "MaxMinDataBlock.h"
 #include "DebugOut/AbstrDebugOut.h"
@@ -12,7 +13,7 @@ TOCBlock::TOCBlock(uint64_t iUVFFileVersion) :
   m_bIsBigEndian(false),
   m_iOverlap(2),
   m_vMaxBrickSize(128,128,128),
-  m_strDeleteTempFile(""),
+  m_strDeleteTempFile(L""),
   m_iUVFFileVersion(iUVFFileVersion)
 {
   ulBlockSemantics = UVFTables::BS_TOC_BLOCK;
@@ -34,7 +35,7 @@ TOCBlock::~TOCBlock(){
 
   if (!m_strDeleteTempFile.empty()) {
     m_ExtendedOctree.Close();
-    remove(m_strDeleteTempFile.c_str());
+    SysTools::RemoveFile(m_strDeleteTempFile);
   }
 }
 
@@ -104,7 +105,7 @@ uint64_t TOCBlock::ComputeDataSize() const {
 }
 
 bool TOCBlock::FlatDataToBrickedLOD(
-  const std::string& strSourceFile, const std::string& strTempFile,
+  const std::wstring& strSourceFile, const std::wstring& strTempFile,
   ExtendedOctree::COMPONENT_TYPE eType, uint64_t iComponentCount,
   const UINT64VECTOR3& vVolumeSize,
   const DOUBLEVECTOR3& vScale,
@@ -121,7 +122,7 @@ bool TOCBlock::FlatDataToBrickedLOD(
 ) {
   LargeRAWFile_ptr inFile(new LargeRAWFile(strSourceFile));
   if (!inFile->Open()) {
-    debugOut->Error(_func_, "Could not read '%s'!", strSourceFile.c_str());
+    debugOut->Error(_func_, "Could not read '%s'!", SysTools::toNarrow(strSourceFile).c_str());
     return false;
   }
 
@@ -133,7 +134,7 @@ bool TOCBlock::FlatDataToBrickedLOD(
 }
 
 bool TOCBlock::FlatDataToBrickedLOD(
-  LargeRAWFile_ptr pSourceData, const std::string& strTempFile,
+  LargeRAWFile_ptr pSourceData, const std::wstring& strTempFile,
   ExtendedOctree::COMPONENT_TYPE eType, uint64_t iComponentCount,
   const UINT64VECTOR3& vVolumeSize,
   const DOUBLEVECTOR3& vScale,
@@ -161,7 +162,7 @@ bool TOCBlock::FlatDataToBrickedLOD(
   LargeRAWFile_ptr outFile(new LargeRAWFile(strTempFile));
   if (!outFile->Create()) {
     debugOut->Error(_func_, "Could not create tempfile '%s'",
-                    strTempFile.c_str());
+      SysTools::toNarrow(strTempFile).c_str());
     return false;
   }
   m_pStreamFile = outFile;
@@ -181,13 +182,13 @@ bool TOCBlock::FlatDataToBrickedLOD(
   outFile->Close(); // note, needed before the 'Open' below!
 
   pMaxMinDatBlock->SetDataFromFlatVector(statsVec, iComponentCount);
-  debugOut->Message(_func_, "opening UVF '%s'", m_strDeleteTempFile.c_str());
+  debugOut->Message(_func_, "opening UVF '%s'", SysTools::toNarrow(m_strDeleteTempFile).c_str());
   return m_ExtendedOctree.Open(m_strDeleteTempFile, 0, m_iUVFFileVersion);
 }
 
 bool TOCBlock::BrickedLODToFlatData(
   uint64_t iLoD,
-  const std::string& strTargetFile,
+  const std::wstring& strTargetFile,
   bool bAppend,
   AbstrDebugOut* pDebugOut
 ) const {

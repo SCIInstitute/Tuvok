@@ -47,6 +47,7 @@
 #include "Renderer/ShaderDescriptor.h"
 #include "Renderer/GL/GLError.h"
 #include "Renderer/GL/GLTexture.h"
+#include "Basics/SysTools.h"
 
 using namespace tuvok;
 using namespace std;
@@ -180,12 +181,18 @@ static void detach_shaders(GLuint program)
   GLenum err;
 
   // clear all other errors in the stack
+  size_t i = 0;
   do {
     err = glGetError();
     if(err != GL_NO_ERROR) {
       WARNING("Previous GL error: %#x", static_cast<unsigned>(err));
     }
-  } while(err != GL_NO_ERROR);
+    i++;
+  } while(i<10 && err != GL_NO_ERROR);
+
+  if (err != GL_NO_ERROR) {
+    WARNING("There were more GL errors or glGetError() itself failed.");
+  }
 
   // how many shaders are attached?
   GLint num_shaders=0;
@@ -302,12 +309,12 @@ bool GLSLProgram::Initialize(void) {
 }
 
 static bool attachshader(GLuint program, const std::string& source,
-                         const std::string& filename,
+                         const std::wstring& filename,
                          GLenum shtype)
 {
   if(source.empty()) {
     T_ERROR("Empty shader (type %d) '%s'!", static_cast<int>(shtype),
-            filename.c_str());
+            SysTools::toNarrow(filename).c_str());
     return false;
   }
 
@@ -315,7 +322,7 @@ static bool attachshader(GLuint program, const std::string& source,
   if(sh == 0) {
     T_ERROR("Error (%d) creating shader (type %d) from '%s'",
             static_cast<int>(glGetError()), static_cast<int>(shtype),
-            filename.c_str());
+            SysTools::toNarrow(filename).c_str());
     return false;
   }
 
@@ -325,7 +332,7 @@ static bool attachshader(GLuint program, const std::string& source,
 
   if(glGetError() != GL_NO_ERROR) {
     T_ERROR("Error uploading shader (type %d) source from '%s'",
-            static_cast<int>(shtype), filename.c_str());
+            static_cast<int>(shtype), SysTools::toNarrow(filename).c_str());
     gl::DeleteShader(sh);
     return false;
   }
@@ -350,7 +357,7 @@ static bool attachshader(GLuint program, const std::string& source,
     }
     if(success[0] == GL_FALSE) {
       std::ostringstream errmsg;
-      errmsg << "Compilation error in '" << filename << "': ";
+      errmsg << "Compilation error in '" << SysTools::toNarrow(filename) << "': ";
 
       // retrieve the error message
       if(!gl::arb) { // ARB calls are different, not used much, we don't care.

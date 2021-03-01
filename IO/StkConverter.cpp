@@ -55,34 +55,34 @@ static void stk_read_write_strips(TIFF*, LargeRAWFile&);
 
 StkConverter::StkConverter()
 {
-  m_vConverterDesc = "Stk Volume (Metamorph)";
+  m_vConverterDesc = L"Stk Volume (Metamorph)";
 #ifndef TUVOK_NO_IO
-  m_vSupportedExt.push_back("STK");
+  m_vSupportedExt.push_back(L"STK");
 #endif
 }
 
 bool
-StkConverter::ConvertToRAW(const std::string& strSourceFilename,
-                           const std::string& strTempDir,
+StkConverter::ConvertToRAW(const std::wstring& strSourceFilename,
+                           const std::wstring& strTempDir,
                            bool, uint64_t& iHeaderSkip,
                            unsigned& iComponentSize,
                            uint64_t& iComponentCount,
                            bool& bConvertEndianess, bool& bSigned,
                            bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
                            FLOATVECTOR3& vVolumeAspect,
-                           std::string& strTitle,
-                           std::string& strIntermediateFile,
+                           std::wstring& strTitle,
+                           std::wstring& strIntermediateFile,
                            bool& bDeleteIntermediateFile)
 {
 #ifdef TUVOK_NO_IO
   T_ERROR("Tuvok was not built with IO support!");
   return false;
 #else
-  MESSAGE("Attempting to convert stk file: %s", strSourceFilename.c_str());
+  MESSAGE("Attempting to convert stk file: %s", SysTools::toNarrow(strSourceFilename).c_str());
 
-  TIFF *tif = TIFFOpen(strSourceFilename.c_str(), "r");
+  TIFF *tif = TIFFOpen(SysTools::toNarrow(strSourceFilename).c_str(), "r");
   if(tif == NULL) {
-    T_ERROR("Could not open %s", strSourceFilename.c_str());
+    T_ERROR("Could not open %s", SysTools::toNarrow(strSourceFilename).c_str());
     return false;
   }
   struct stk metadata;
@@ -90,7 +90,7 @@ StkConverter::ConvertToRAW(const std::string& strSourceFilename,
     return false;
   }
   MESSAGE("%ux%ux%u %s", metadata.x, metadata.y, metadata.z,
-                         m_vConverterDesc.c_str());
+    SysTools::toNarrow(m_vConverterDesc).c_str());
   MESSAGE("%hu bits per component.", metadata.bpp);
   MESSAGE("%hu component%s.", metadata.samples,
                               (metadata.samples == 1) ? "" : "s");
@@ -114,16 +114,16 @@ StkConverter::ConvertToRAW(const std::string& strSourceFilename,
   vVolumeAspect[1] = 1;
   vVolumeAspect[2] = 1;
 
-  strTitle = "STK Volume";
+  strTitle = L"STK Volume";
 
   // Create an intermediate file to hold the data.
   iHeaderSkip = 0;
   strIntermediateFile = strTempDir +
-                        SysTools::GetFilename(strSourceFilename) + ".binary";
+                        SysTools::GetFilename(strSourceFilename) + L".binary";
   LargeRAWFile binary(strIntermediateFile);
   binary.Create(iComponentSize/8 * iComponentCount * vVolumeSize.volume());
   if(!binary.IsOpen()) {
-    T_ERROR("Could not create binary file %s", strIntermediateFile.c_str());
+    T_ERROR("Could not create binary file %s", SysTools::toNarrow(strIntermediateFile).c_str());
     TIFFClose(tif);
     return false;
   }
@@ -143,7 +143,7 @@ StkConverter::ConvertToRAW(const std::string& strSourceFilename,
 
 // unimplemented!
 bool
-StkConverter::ConvertToNative(const std::string&, const std::string&,
+StkConverter::ConvertToNative(const std::wstring&, const std::wstring&,
                               uint64_t, unsigned, uint64_t, bool, bool, UINT64VECTOR3,
                               FLOATVECTOR3, bool, bool)
 {

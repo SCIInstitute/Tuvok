@@ -54,36 +54,36 @@ _malloc static uint8_t* tv_read_slice(TIFF *);
 
 TiffVolumeConverter::TiffVolumeConverter()
 {
-  m_vConverterDesc = "TIFF Volume (Image stack)";
+  m_vConverterDesc = L"TIFF Volume (Image stack)";
 #ifndef TUVOK_NO_IO
-  m_vSupportedExt.push_back("OME.TIF");
-  m_vSupportedExt.push_back("OME.TIFF");
-  m_vSupportedExt.push_back("TIF");
-  m_vSupportedExt.push_back("TIFF");
+  m_vSupportedExt.push_back(L"OME.TIF");
+  m_vSupportedExt.push_back(L"OME.TIFF");
+  m_vSupportedExt.push_back(L"TIF");
+  m_vSupportedExt.push_back(L"TIFF");
 #endif
 }
 
 // converts a TiffVolume to a `raw' file.  We'll read through the TIFF
 // slice-by-slice, copying each slice to the raw file.
 bool
-TiffVolumeConverter::ConvertToRAW(const std::string& strSourceFilename,
-                                  const std::string& strTempDir,
+TiffVolumeConverter::ConvertToRAW(const std::wstring& strSourceFilename,
+                                  const std::wstring& strTempDir,
                                   bool, uint64_t& iHeaderSkip,
                                   unsigned& iComponentSize,
                                   uint64_t& iComponentCount,
                                   bool& bConvertEndianess, bool& bSigned,
                                   bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
                                   FLOATVECTOR3& vVolumeAspect,
-                                  std::string& strTitle,
-                                  std::string& strIntermediateFile,
+                                  std::wstring& strTitle,
+                                  std::wstring& strIntermediateFile,
                                   bool& bDeleteIntermediateFile)
 {
 #ifndef TUVOK_NO_IO
-  MESSAGE("Attempting to convert TiffVolume: %s", strSourceFilename.c_str());
+  MESSAGE("Attempting to convert TiffVolume: %s", SysTools::toNarrow(strSourceFilename).c_str());
 
-  TIFF *tif = TIFFOpen(strSourceFilename.c_str(), "r");
+  TIFF *tif = TIFFOpen(SysTools::toNarrow(strSourceFilename).c_str(), "r");
   if(tif == NULL) {
-    T_ERROR("Could not open %s", strSourceFilename.c_str());
+    T_ERROR("Could not open %s", SysTools::toNarrow(strSourceFilename).c_str());
     return false;
   }
 
@@ -145,15 +145,15 @@ TiffVolumeConverter::ConvertToRAW(const std::string& strSourceFilename,
   vVolumeAspect[1] = 1;
   vVolumeAspect[2] = 1;
 
-  strTitle = "TIFF Volume";
+  strTitle = L"TIFF Volume";
 
   // Create an intermediate file to hold the data.
   strIntermediateFile = strTempDir +
-                        SysTools::GetFilename(strSourceFilename) + ".binary";
+                        SysTools::GetFilename(strSourceFilename) + L".binary";
   LargeRAWFile binary(strIntermediateFile);
   binary.Create(iComponentSize/8 * iComponentCount * vVolumeSize.volume());
   if(!binary.IsOpen()) {
-    T_ERROR("Could not create binary file %s", strIntermediateFile.c_str());
+    T_ERROR("Could not create binary file %s", SysTools::toNarrow(strIntermediateFile).c_str());
 
     TIFFClose(tif);
     return false;
@@ -192,8 +192,8 @@ TiffVolumeConverter::ConvertToRAW(const std::string& strSourceFilename,
 
 // unimplemented!
 bool
-TiffVolumeConverter::ConvertToNative(const std::string&,
-                                     const std::string&,
+TiffVolumeConverter::ConvertToNative(const std::wstring&,
+                                     const std::wstring&,
                                      uint64_t, unsigned,
                                      uint64_t, bool,
                                      bool,

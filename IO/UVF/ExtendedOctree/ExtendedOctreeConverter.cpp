@@ -824,9 +824,9 @@ void ExtendedOctreeConverter::ComputeStatsCompressAndPermuteAll(ExtendedOctree& 
               tempOffset += pageOutRecord.m_iLength;
             }
             // add new occupier even if we page out to the temp region at the end of file
-            bool bSuccess = occupiedSpace.insert(Uint64Map::value_type(pageOutRecord.m_iOffset, pageOutIndex)).second;
-            if (bSuccess) {} // suppress local variable is initialized but not referenced warning
-            assert(bSuccess);
+            bool bOSuccess = occupiedSpace.insert(Uint64Map::value_type(pageOutRecord.m_iOffset, pageOutIndex)).second;
+            if (bOSuccess) {} // suppress local variable is initialized but not referenced warning
+            assert(bOSuccess);
 
             // write brick to temporary position
             tree.m_pLargeRAWFile->SeekPos(tree.m_iOffset + pageOutRecord.m_iOffset);

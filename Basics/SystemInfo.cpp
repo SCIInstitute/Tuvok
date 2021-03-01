@@ -54,7 +54,7 @@
 #endif
 
 
-SystemInfo::SystemInfo(std::string strProgramPath, 
+SystemInfo::SystemInfo(const std::wstring& strProgramPath, 
                        uint64_t iDefaultCPUMemSize, 
                        uint64_t iDefaultGPUMemSize) :
   m_strProgramPath(strProgramPath),

@@ -46,23 +46,23 @@ using namespace std;
 
 KitwareConverter::KitwareConverter()
 {
-  m_vConverterDesc = "Kitware MHD Data";
-  m_vSupportedExt.push_back("MHD");
+  m_vConverterDesc = L"Kitware MHD Data";
+  m_vSupportedExt.push_back(L"MHD");
 }
 
 bool KitwareConverter::ConvertToRAW(
-  const std::string& strSourceFilename, const std::string&, bool,
+  const std::wstring& strSourceFilename, const std::wstring&, bool,
   uint64_t& iHeaderSkip, unsigned& iComponentSize, uint64_t& iComponentCount,
   bool& bConvertEndianess, bool& bSigned, bool& bIsFloat,
   UINT64VECTOR3& vVolumeSize, FLOATVECTOR3& vVolumeAspect,
-  std::string& strTitle, std::string& strIntermediateFile,
+  std::wstring& strTitle, std::wstring& strIntermediateFile,
   bool& bDeleteIntermediateFile
 ) {
-  MESSAGE("Attempting to convert Kitware MHD dataset %s", strSourceFilename.c_str());
+  MESSAGE("Attempting to convert Kitware MHD dataset %s", SysTools::toNarrow(strSourceFilename).c_str());
 
-  strTitle          = "Kitware MHD data";
+  strTitle          = L"Kitware MHD data";
 
-  KeyValueFileParser parser(strSourceFilename,false,"=");
+  KeyValueFileParser parser(strSourceFilename,false,L"=");
 
   if (parser.FileReadable())  {
     KeyValPair* dims           = parser.GetData("NDIMS");
@@ -85,22 +85,22 @@ bool KitwareConverter::ConvertToRAW(
     }
 
     if (ElementDataFile == NULL) {
-      T_ERROR("Unable to find 'ElementDataFile' tag in file %s.", strSourceFilename.c_str());
+      T_ERROR("Unable to find 'ElementDataFile' tag in file %s.", SysTools::toNarrow(strSourceFilename).c_str());
       return false;
     }
 
     if (dimsize == NULL) {
-      T_ERROR("Unable to find 'DimSize' tag in file %s.", strSourceFilename.c_str());
+      T_ERROR("Unable to find 'DimSize' tag in file %s.", SysTools::toNarrow(strSourceFilename).c_str());
       return false;
     }
 
     if (ElementType == NULL) {
-      T_ERROR("Unable to find 'ElementType' tag in file %s.", strSourceFilename.c_str());
+      T_ERROR("Unable to find 'ElementType' tag in file %s.", SysTools::toNarrow(strSourceFilename).c_str());
       return false;
     }
 
     if (BigEndianFlag == NULL) {
-      MESSAGE("Unable to find 'ElementByteOrderMSB' or 'BinaryDataByteOrderMSB' tags in file %s assuming little endian data.", strSourceFilename.c_str());
+      MESSAGE("Unable to find 'ElementByteOrderMSB' or 'BinaryDataByteOrderMSB' tags in file %s assuming little endian data.", SysTools::toNarrow(strSourceFilename).c_str());
       bConvertEndianess = EndianConvert::IsBigEndian();
     } else {
       if(BigEndianFlag->strValueUpper == "FALSE") {
@@ -147,15 +147,15 @@ bool KitwareConverter::ConvertToRAW(
 
     if (ElementNumberOfChannels == NULL) {
       MESSAGE("Unable to find 'ElementNumberOfChannels' tag in file '%s'; "
-              "assuming scalar data.", strSourceFilename.c_str());
+              "assuming scalar data.", SysTools::toNarrow(strSourceFilename).c_str());
       iComponentCount = 1;
     } else {
       iComponentCount = ElementNumberOfChannels->iValue;
     }
 
-    strIntermediateFile = ElementDataFile->strValue;
+    strIntermediateFile = ElementDataFile->wstrValue;
 
-    if (strIntermediateFile == "LIST") {
+    if (strIntermediateFile == L"LIST") {
       T_ERROR("LISTS are currently not supported in MHD files.");
       return false;
     }
@@ -163,10 +163,10 @@ bool KitwareConverter::ConvertToRAW(
     uint32_t iDims = static_cast<uint32_t>(dimsize->vuiValue.size());
 
     if (dims == NULL) {
-      WARNING("Unable to find 'NDims' tag in file %s relying on 'DimSize' tag.", strSourceFilename.c_str());
+      WARNING("Unable to find 'NDims' tag in file %s relying on 'DimSize' tag.", SysTools::toNarrow(strSourceFilename).c_str());
     } else {
       if (iDims != dims->uiValue) {
-        T_ERROR("Tags 'NDims' and 'DimSize' are incosistent in file %s.", strSourceFilename.c_str());
+        T_ERROR("Tags 'NDims' and 'DimSize' are incosistent in file %s.", SysTools::toNarrow(strSourceFilename).c_str());
         return false;
       }
     }
@@ -217,7 +217,7 @@ bool KitwareConverter::ConvertToRAW(
           f.Close();
           iHeaderSkip = iFileSize - (iComponentSize/8)*vVolumeSize.volume()*iComponentCount;
         } else {
-          T_ERROR("Unable to open paload file %s.", strIntermediateFile.c_str());
+          T_ERROR("Unable to open paload file %s.", SysTools::toNarrow(strIntermediateFile).c_str());
           return false;
         }
       }
@@ -230,7 +230,7 @@ bool KitwareConverter::ConvertToRAW(
   return true;
 }
 
-bool KitwareConverter::ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, uint64_t iHeaderSkip,
+bool KitwareConverter::ConvertToNative(const std::wstring& strRawFilename, const std::wstring& strTargetFilename, uint64_t iHeaderSkip,
                              unsigned iComponentSize, uint64_t iComponentCount, bool bSigned, bool bFloatingPoint,
                              UINT64VECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, bool bNoUserInteraction,
                              const bool bQuantizeTo8Bit) {
@@ -274,11 +274,11 @@ bool KitwareConverter::ConvertToNative(const std::string& strRawFilename, const 
 
 
   // create textfile from metadata
-  string strTargetRAWFilename = strTargetFilename+".raw";
+  wstring strTargetRAWFilename = strTargetFilename+L".raw";
 
-  ofstream fTarget(strTargetFilename.c_str());
+  ofstream fTarget(SysTools::toNarrow(strTargetFilename).c_str());
   if (!fTarget.is_open()) {
-    T_ERROR("Unable to open target file %s.", strTargetFilename.c_str());
+    T_ERROR("Unable to open target file %s.", SysTools::toNarrow(strTargetFilename).c_str());
     return false;
   }
 
@@ -298,7 +298,7 @@ bool KitwareConverter::ConvertToNative(const std::string& strRawFilename, const 
 
   fTarget << "ElementNumberOfChannels = " << iComponentCount << endl;
   fTarget << "ElementType             = " << strFormat << endl;
-  fTarget << "ElementDataFile         = " << SysTools::GetFilename(strTargetRAWFilename) << endl;
+  fTarget << "ElementDataFile         = " << SysTools::toNarrow(SysTools::GetFilename(strTargetRAWFilename)) << endl;
   fTarget.close();
 
   MESSAGE("Writing RAW File");
@@ -311,8 +311,8 @@ bool KitwareConverter::ConvertToNative(const std::string& strRawFilename, const 
   if (bRAWSuccess) {
     return true;
   } else {
-    T_ERROR("Error creating raw target file %s.", strTargetRAWFilename.c_str());
-    remove(strTargetFilename.c_str());
+    T_ERROR("Error creating raw target file %s.", SysTools::toNarrow(strTargetRAWFilename).c_str());
+    SysTools::RemoveFile(strTargetFilename);
     return false;
   }
 }

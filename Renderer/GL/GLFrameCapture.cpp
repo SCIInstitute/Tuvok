@@ -44,13 +44,13 @@
 using namespace tuvok;
 
 
-bool GLFrameCapture::CaptureSingleFrame(const std::string& strFilename, bool bPreserveTransparency) const {
+bool GLFrameCapture::CaptureSingleFrame(const std::wstring& strFilename, bool bPreserveTransparency) const {
   GLint viewport[4];
   glGetIntegerv(GL_VIEWPORT, viewport);
 
   // for TIFF capture in 16 bit 
-  std::string extension = SysTools::ToLowerCase(SysTools::GetExt(strFilename));  
-  if (extension == "tif" || extension == "tiff") {
+  std::wstring extension = SysTools::ToLowerCase(SysTools::GetExt(strFilename));  
+  if (extension == L"tif" || extension == L"tiff") {
     // testing new here to avoid a crash when 
     // trying to capture 4k images on a 32 bit build
     std::vector<uint16_t> image;
@@ -88,7 +88,7 @@ bool GLFrameCapture::CaptureSingleFrame(const std::string& strFilename, bool bPr
   }
 }
 
-bool GLFrameCapture::CaptureSingleFrame(const std::string& filename,
+bool GLFrameCapture::CaptureSingleFrame(const std::wstring& filename,
                                         GLFBOTex* from,
                                         bool transparency) const
 {

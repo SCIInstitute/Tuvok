@@ -41,23 +41,23 @@
 using namespace tuvok;
 
 std::shared_ptr<Mesh>
-AbstrGeoConverter::ConvertToMesh(const std::string&) {
+AbstrGeoConverter::ConvertToMesh(const std::wstring&) {
   return std::shared_ptr<Mesh>();
 }
 
 bool AbstrGeoConverter::ConvertToNative(const Mesh&,
-                                        const std::string&) {
+                                        const std::wstring&) {
   return false;
 }
 
-bool AbstrGeoConverter::CanRead(const std::string& fn) const
+bool AbstrGeoConverter::CanRead(const std::wstring& fn) const
 {
   return SupportedExtension(SysTools::ToUpperCase(SysTools::GetExt(fn)));
 }
 
 /// @param ext the extension for the filename
 /// @return true if the filename is a supported extension for this converter
-bool AbstrGeoConverter::SupportedExtension(const std::string& ext) const
+bool AbstrGeoConverter::SupportedExtension(const std::wstring& ext) const
 {
   return std::find(m_vSupportedExt.begin(), m_vSupportedExt.end(), ext) !=
           m_vSupportedExt.end();

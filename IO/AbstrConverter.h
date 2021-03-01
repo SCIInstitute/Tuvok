@@ -65,9 +65,9 @@ class AbstrConverter {
 public:
   virtual ~AbstrConverter() {}
 
-  virtual bool ConvertToUVF(const std::string& strSourceFilename,
-                            const std::string& strTargetFilename,
-                            const std::string& strTempDir,
+  virtual bool ConvertToUVF(const std::wstring& strSourceFilename,
+                            const std::wstring& strTargetFilename,
+                            const std::wstring& strTempDir,
                             const bool bNoUserInteraction,
                             const uint64_t iTargetBrickSize,
                             const uint64_t iTargetBrickOverlap,
@@ -78,9 +78,9 @@ public:
                             uint32_t iBrickLayout,
                             const bool bQuantizeTo8Bit) = 0;
 
-  virtual bool ConvertToUVF(const std::list<std::string>& files,
-                            const std::string& strTargetFilename,
-                            const std::string& strTempDir,
+  virtual bool ConvertToUVF(const std::list<std::wstring>& files,
+                            const std::wstring& strTargetFilename,
+                            const std::wstring& strTempDir,
                             const bool bNoUserInteraction,
                             const uint64_t iTargetBrickSize,
                             const uint64_t iTargetBrickOverlap,
@@ -91,19 +91,19 @@ public:
                             uint32_t iBrickLayout,
                             const bool bQuantizeTo8Bit) = 0;
 
-  virtual bool ConvertToRAW(const std::string& strSourceFilename,
-                            const std::string& strTempDir,
+  virtual bool ConvertToRAW(const std::wstring& strSourceFilename,
+                            const std::wstring& strTempDir,
                             bool bNoUserInteraction,
                             uint64_t& iHeaderSkip, unsigned& iComponentSize,
                             uint64_t& iComponentCount,
                             bool& bConvertEndianess, bool& bSigned,
                             bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
-                            FLOATVECTOR3& vVolumeAspect, std::string& strTitle,
-                            std::string& strIntermediateFile,
+                            FLOATVECTOR3& vVolumeAspect, std::wstring& strTitle,
+                            std::wstring& strIntermediateFile,
                             bool& bDeleteIntermediateFile) = 0;
 
-  virtual bool ConvertToNative(const std::string& strRawFilename,
-                               const std::string& strTargetFilename,
+  virtual bool ConvertToNative(const std::wstring& strRawFilename,
+                               const std::wstring& strTargetFilename,
                                uint64_t iHeaderSkip, unsigned iComponentSize,
                                uint64_t iComponentCount, bool bSigned,
                                bool bFloatingPoint,
@@ -112,29 +112,29 @@ public:
                                bool bNoUserInteraction,
                                const bool bQuantizeTo8Bit) = 0;
 
-  virtual bool Analyze(const std::string& strSourceFilename,
-                       const std::string& strTempDir,
+  virtual bool Analyze(const std::wstring& strSourceFilename,
+                       const std::wstring& strTempDir,
                        bool bNoUserInteraction, RangeInfo& info) = 0;
 
   /// @param filename the file in question
   /// @param start the first few bytes of the file
   /// @return SupportedExtension() for the file's extension; ignores "start".
-  virtual bool CanRead(const std::string& fn,
+  virtual bool CanRead(const std::wstring& fn,
                        const std::vector<int8_t>& start) const;
 
-  const std::vector<std::string>& SupportedExt() { return m_vSupportedExt; }
-  virtual const std::string& GetDesc() { return m_vConverterDesc; }
+  const std::vector<std::wstring>& SupportedExt() { return m_vSupportedExt; }
+  virtual const std::wstring& GetDesc() { return m_vConverterDesc; }
 
   virtual bool CanExportData() const { return false; }
   virtual bool CanImportData() const { return true; }
 
   static bool Process8Bits(LargeRAWFile& InputData,
-                           const std::string& strTargetFilename,
+                           const std::wstring& strTargetFilename,
                            uint64_t iSize, bool bSigned,
                            Histogram1DDataBlock* Histogram1D=0);
 
   static bool QuantizeTo8Bit(LargeRAWFile& rawfile,
-                             const std::string& strTargetFilename,
+                             const std::wstring& strTargetFilename,
                              unsigned iComponentSize, uint64_t iSize,
                              bool bSigned, bool bIsFloat,
                              Histogram1DDataBlock* Histogram1D=0);
@@ -144,11 +144,11 @@ public:
 protected:
   /// @param ext the extension for the filename
   /// @return true if the filename is a supported extension for this converter
-  bool SupportedExtension(const std::string& ext) const;
+  bool SupportedExtension(const std::wstring& ext) const;
 
 protected:
-  std::string               m_vConverterDesc;
-  std::vector<std::string>  m_vSupportedExt;
+  std::wstring               m_vConverterDesc;
+  std::vector<std::wstring>  m_vSupportedExt;
 };
 
 #endif // ABSTRCONVERTER_H

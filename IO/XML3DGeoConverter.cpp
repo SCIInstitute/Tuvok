@@ -45,19 +45,19 @@ using namespace tuvok;
 XML3DGeoConverter::XML3DGeoConverter() :
   AbstrGeoConverter()
 {
-  m_vConverterDesc = "XML3D File";
-  m_vSupportedExt.push_back("xml");
-  m_vSupportedExt.push_back("xhtml");
+  m_vConverterDesc = L"XML3D File";
+  m_vSupportedExt.push_back(L"xml");
+  m_vSupportedExt.push_back(L"xhtml");
 }
 
 bool XML3DGeoConverter::ConvertToNative(const Mesh& m,
-                                        const std::string& strTargetFilename) {
+                                        const std::wstring& strTargetFilename) {
 
-  MESSAGE("Writing Mesh to file %s",SysTools::GetFilename(strTargetFilename).c_str());
+  MESSAGE("Writing Mesh to file %s", SysTools::toNarrow(SysTools::GetFilename(strTargetFilename)).c_str());
 
   size_t iMaxIBSize = 65536;  
   if (m.HasUniformIndices() && m.GetVertices().size() <= iMaxIBSize) {
-    std::ofstream outStream(strTargetFilename.c_str());
+    std::ofstream outStream(SysTools::toNarrow(strTargetFilename).c_str());
     if (outStream.fail()) return false;
     
     WriteHeader(outStream);
@@ -67,13 +67,13 @@ bool XML3DGeoConverter::ConvertToNative(const Mesh& m,
     return true;
   }
 
-  MESSAGE("Writing Mesh to file %s (Mesh is to large for single object, partitioning)",SysTools::GetFilename(strTargetFilename).c_str());
+  MESSAGE("Writing Mesh to file %s (Mesh is to large for single object, partitioning)",SysTools::toNarrow(SysTools::GetFilename(strTargetFilename)).c_str());
 
   std::vector<Mesh*> subMeshes = m.PartitionMesh(iMaxIBSize, false);
 
-  MESSAGE("Writing Meshes to file %s",SysTools::GetFilename(strTargetFilename).c_str());
+  MESSAGE("Writing Meshes to file %s", SysTools::toNarrow(SysTools::GetFilename(strTargetFilename)).c_str());
 
-  std::ofstream outStream(strTargetFilename.c_str());
+  std::ofstream outStream(SysTools::toNarrow(strTargetFilename).c_str());
   if (outStream.fail()) return false;   
   WriteHeader(outStream);
   for (size_t i = 0;i<subMeshes.size();++i) ConvertToNative(*(subMeshes[i]), i, outStream);

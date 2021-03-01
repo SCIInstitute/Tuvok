@@ -30,6 +30,7 @@
 #include <fstream>
 #include <iterator>
 #include "MRCConverter.h"
+#include "Basics/SysTools.h"
 
 enum DataType
 {
@@ -90,12 +91,12 @@ struct MRCHeader
 MRCConverter::MRCConverter()
 {
   static_assert(sizeof(MRCHeader) == 1024, "structure must be 1024 bytes.");
-  m_vConverterDesc = "Medical Research Council's electron density format.";
-  m_vSupportedExt.push_back("MRC");
+  m_vConverterDesc = L"Medical Research Council's electron density format.";
+  m_vSupportedExt.push_back(L"MRC");
 }
 
 bool MRCConverter::ConvertToNative(
-     const std::string&, const std::string&, 
+     const std::wstring&, const std::wstring&, 
      uint64_t, unsigned, uint64_t, 
      bool, bool, UINT64VECTOR3,
      FLOATVECTOR3, bool, 
@@ -105,18 +106,18 @@ bool MRCConverter::ConvertToNative(
 }
 
 bool MRCConverter::ConvertToRAW(
-     const std::string& strSourceFilename, const std::string& strTempDir,
+     const std::wstring& strSourceFilename, const std::wstring& strTempDir,
      bool, uint64_t& iHeaderSkip, unsigned& iComponentSize,
      uint64_t& iComponentCount, bool& bConvertEndianess, bool& bSigned, 
      bool& bIsFloat, UINT64VECTOR3& vVolumeSize, FLOATVECTOR3& vVolumeAspect,
-     std::string&,
-     std::string& strIntermediateFile, bool& bDeleteIntermediateFile)
+     std::wstring&,
+     std::wstring& strIntermediateFile, bool& bDeleteIntermediateFile)
 {
   // Input file
-  std::ifstream iFile(strSourceFilename.c_str(), std::ios::binary);
+  std::ifstream iFile(SysTools::toNarrow(strSourceFilename).c_str(), std::ios::binary);
   if(!iFile)
   {
-    T_ERROR("Could not open %s!", strSourceFilename.c_str());
+    T_ERROR("Could not open %s!", SysTools::toNarrow(strSourceFilename).c_str());
     return false;
   }
 
@@ -131,15 +132,15 @@ bool MRCConverter::ConvertToRAW(
   iComponentCount = 1;
   bConvertEndianess = true;
   vVolumeAspect = FLOATVECTOR3(1.0, 1.0, 1.0);
-  strIntermediateFile = strTempDir + "/" + "mrc.iv3d.tmp";
+  strIntermediateFile = strTempDir + L"/mrc.iv3d.tmp";
   bDeleteIntermediateFile = true;
 
   // Output file
-  std::ofstream oFile(strIntermediateFile.c_str(), std::ios::binary);
+  std::ofstream oFile(SysTools::toNarrow(strIntermediateFile).c_str(), std::ios::binary);
   if(!oFile)
   {
     T_ERROR("Could not create intermediate file '%s'.",
-            strIntermediateFile.c_str());
+      SysTools::toNarrow(strIntermediateFile).c_str());
     bDeleteIntermediateFile = false;
     return false;
   }
@@ -177,7 +178,7 @@ bool MRCConverter::ConvertToRAW(
 }
 
 
-bool MRCConverter::CanRead(const std::string&,
+bool MRCConverter::CanRead(const std::wstring&,
                            const std::vector<int8_t>& bytes) const
 {
   /// @todo Read header and ensure 'map' corresponds to the character string

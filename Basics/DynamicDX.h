@@ -46,7 +46,7 @@
 
 #include <windows.h>
 #include <d3d10.h>
-#include <d3dx10.h>
+//#include <d3dx10.h>
 
 //-----------------------------------------------------------------------------
 // Defines, and constants
@@ -220,6 +220,7 @@ public:
   typedef HRESULT ( WINAPI* LPD3D10CREATEDEVICE )( IDXGIAdapter*, D3D10_DRIVER_TYPE, HMODULE, UINT, UINT, ID3D10Device** );
   static LPD3D10CREATEDEVICE D3D10CreateDevice;
 
+  /*
   // D3DX10 calls
   typedef HRESULT (WINAPI *LPD3DX10CREATEEFFECTFROMFILEW)(LPCWSTR pFileName, CONST D3D10_SHADER_MACRO *pDefines,
       ID3D10Include *pInclude, LPCSTR pProfile, UINT HLSLFlags, UINT FXFlags, ID3D10Device *pDevice,
@@ -230,6 +231,7 @@ public:
     ID3D10Include *pInclude, LPCSTR pProfile, UINT HLSLFlags, UINT FXFlags, ID3D10Device *pDevice,
     ID3D10EffectPool *pEffectPool, ID3DX10ThreadPump* pPump, ID3D10Effect **ppEffect, ID3D10Blob **ppErrors, HRESULT* pHResult);
   static LPD3DX10CREATEEFFECTFROMFILEA D3DX10CreateEffectFromFileA;
+  */
 
   static int GetD3DX10Version() {return m_iD3DX10Version;}
 

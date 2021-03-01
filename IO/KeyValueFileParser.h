@@ -78,10 +78,10 @@ public:
   std::string               strValueUpper;
   std::wstring              wstrValueUpper;
   int                       iValue;
-  uint32_t                    uiValue;
+  uint32_t                  uiValue;
   float                     fValue;
   std::vector<int>          viValue;
-  std::vector<uint32_t>       vuiValue;
+  std::vector<uint32_t>     vuiValue;
   std::vector<float>        vfValue;
   std::vector<std::string>  vstrValue;
   std::vector<std::wstring> vwstrValue;

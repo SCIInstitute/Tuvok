@@ -48,9 +48,9 @@ namespace tuvok {
     PLYGeoConverter();
     virtual ~PLYGeoConverter() {}
     virtual std::shared_ptr<Mesh>
-      ConvertToMesh(const std::string& strFilename);
+      ConvertToMesh(const std::wstring& strFilename);
     virtual bool ConvertToNative(const Mesh& m,
-                                 const std::string& strTargetFilename);
+                                 const std::wstring& strTargetFilename);
 
     virtual bool CanExportData() const { return true; }
     virtual bool CanImportData() const { return true; }

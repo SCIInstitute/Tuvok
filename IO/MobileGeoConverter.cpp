@@ -46,13 +46,13 @@ using namespace std;
 MobileGeoConverter::MobileGeoConverter() :
   AbstrGeoConverter()
 {
-  m_vConverterDesc = "Mobile Geometry File";
-  m_vSupportedExt.push_back("G3D");
-  m_vSupportedExt.push_back("G3DX");
+  m_vConverterDesc = L"Mobile Geometry File";
+  m_vSupportedExt.push_back(L"G3D");
+  m_vSupportedExt.push_back(L"G3DX");
 }
 
 bool MobileGeoConverter::ConvertToNative(const Mesh& m,
-                                         const std::string& strTargetFilename)
+                                         const std::wstring& strTargetFilename)
 {
   float * colors = nullptr;
   // Shallow conversion that directly references the mesh's data.
@@ -60,7 +60,7 @@ bool MobileGeoConverter::ConvertToNative(const Mesh& m,
   if (g3d == nullptr)
     return false;
 
-  G3D::write(strTargetFilename, g3d.get());
+  G3D::write(SysTools::toNarrow(strTargetFilename), g3d.get());
 
   // Clean up if we created a color array and did not reference the source mesh's color data.
   if (colors != nullptr) {
@@ -151,16 +151,16 @@ MobileGeoConverter::ConvertToNative(const Mesh& m, float*& colors, bool bCopy)
   if (m.GetColors().size() == m.GetVertices().size())
   {
     geometry->info.attributeSemantics.push_back(G3D::Color);
-    float * colors = nullptr; // Shadow color pointer and do not touch the methods argument.
+    float * scolors = nullptr; // Shadow color pointer and do not touch the methods argument.
     if (bCopy) {
       size_t floats = geometry->info.numberVertices * G3D::floats(G3D::Color);
-      colors = new float[floats];
+      scolors = new float[floats];
       const float * const src = (const float * const)&m.GetColors().at(0);
-      std::copy(src, src + floats, colors);
+      std::copy(src, src + floats, scolors);
     } else {
-      colors = (float*)&m.GetColors().at(0);
+      scolors = (float*)&m.GetColors().at(0);
     }
-    geometry->vertexAttributes.push_back(colors);
+    geometry->vertexAttributes.push_back(scolors);
     vertexFloats += G3D::floats(G3D::Color);
   }
   else if (m.GetColors().empty())
@@ -191,7 +191,7 @@ MobileGeoConverter::ConvertToNative(const Mesh& m, float*& colors, bool bCopy)
 }
 
 std::shared_ptr<Mesh>
-MobileGeoConverter::ConvertToMesh(const std::string& strFilename) {
+MobileGeoConverter::ConvertToMesh(const std::wstring& strFilename) {
   VertVec       vertices;
   NormVec       normals;
   TexCoordVec   texcoords;
@@ -203,7 +203,7 @@ MobileGeoConverter::ConvertToMesh(const std::string& strFilename) {
   IndexVec      COLIndices; 
 
   G3D::GeometrySoA geometry;
-  G3D::read(strFilename, &geometry);
+  G3D::read(SysTools::toNarrow(strFilename), &geometry);
   if (geometry.info.indexSize == sizeof(uint16_t))
   {
 	  for (uint32_t i=0; i<geometry.info.numberIndices; ++i) VertIndices.push_back((uint32_t)((uint16_t*)geometry.indices)[i]);
@@ -248,7 +248,7 @@ MobileGeoConverter::ConvertToMesh(const std::string& strFilename) {
   if (!success)
     return nullptr;
 
-  std::string desc = m_vConverterDesc + " data converted from " + SysTools::GetFilename(strFilename);
+  std::wstring desc = m_vConverterDesc + L" data converted from " + SysTools::GetFilename(strFilename);
   return std::shared_ptr<Mesh>(
     new Mesh(vertices,normals,texcoords,colors,
              VertIndices,NormalIndices,TCIndices,COLIndices,

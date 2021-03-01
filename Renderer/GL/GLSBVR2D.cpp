@@ -100,81 +100,81 @@ bool GLSBVR2D::LoadShaders() {
   // do not call GLRenderer::LoadShaders as we want to control
   // what volume access function is linked (Volume3D or Volume2D)
 
-  string volumeAccessFunction = m_bUse3DTexture ? "Volume3D"
-                                                : "Volume2D";
+  std::wstring volumeAccessFunction = m_bUse3DTexture ? L"Volume3D"
+                                                : L"Volume2D";
   // add the appropriate suffix in 2D.  We need separate shaders because we do
   // manual sampling in the 2D shaders.
   if (!m_bUse3DTexture) {
     switch (m_eInterpolant) {
-      case Linear :          volumeAccessFunction += "-linear"; break;
-      case NearestNeighbor : volumeAccessFunction += "-nearest"; break;
+      case Linear :          volumeAccessFunction += L"-linear"; break;
+      case NearestNeighbor : volumeAccessFunction += L"-nearest"; break;
     }
   }
-  volumeAccessFunction += ".glsl";
+  volumeAccessFunction += L".glsl";
 
   if (!GLRenderer::LoadShaders(volumeAccessFunction, m_bUse3DTexture)) {
     T_ERROR("Error in parent call -> aborting");
     return false;
   }
 
-  std::string tfqn = m_pDataset
+  std::wstring tfqn = m_pDataset
                      ? this->ColorData()
-                        ? "VRender1D-Color"
-                        : "VRender1D"
-                     : "VRender1D";
-  const std::string tfqnLit = m_pDataset
+                        ? L"VRender1D-Color"
+                        : L"VRender1D"
+                     : L"VRender1D";
+  const std::wstring tfqnLit = m_pDataset
                            ? this->ColorData()
-                              ? "VRender1DLit-Color.glsl"
-                              : "VRender1DLit.glsl"
-                           : "VRender1DLit.glsl";
-  const std::string bias = tfqn + "-BScale.glsl";
-  tfqn += ".glsl";
+                              ? L"VRender1DLit-Color.glsl"
+                              : L"VRender1DLit.glsl"
+                           : L"VRender1DLit.glsl";
+  const std::wstring bias = tfqn + L"-BScale.glsl";
+  tfqn += L".glsl";
   
   if(!LoadAndVerifyShader(&m_pProgram1DTrans[0], m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl",
+                          L"GLSBVR-VS.glsl",
                           NULL,
                           volumeAccessFunction.c_str(), // sampleVolume
                           tfqn.c_str(),         // VRender1D
                           bias.c_str(),
-                          "VRender1DProxy.glsl",
-                          "FTB.glsl",           // TraversalOrderDepColor
-                          "GLSBVR-1D-FS.glsl", NULL) ||
+                          L"VRender1DProxy.glsl",
+                          L"FTB.glsl",           // TraversalOrderDepColor
+                          L"GLSBVR-1D-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTrans[1], m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl",
+                          L"GLSBVR-VS.glsl",
                           NULL,                          
                           volumeAccessFunction.c_str(),
                           tfqnLit.c_str(),         // VRender1DLit
-                          "lighting.glsl",      // Lighting
-                          "FTB.glsl",           // TraversalOrderDepColor
-                          "GLSBVR-1D-light-FS.glsl", NULL) ||
+                          L"lighting.glsl",      // Lighting
+                          L"FTB.glsl",           // TraversalOrderDepColor
+                          L"GLSBVR-1D-light-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[0], m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl",
+                          L"GLSBVR-VS.glsl",
                           NULL,
                           volumeAccessFunction.c_str(),
-                          "FTB.glsl",           // TraversalOrderDepColor
-                          "GLSBVR-2D-FS.glsl", NULL) ||
+                          L"FTB.glsl",           // TraversalOrderDepColor
+                          L"GLSBVR-2D-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[1], m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl",
+                          L"GLSBVR-VS.glsl",
                           NULL,
                           volumeAccessFunction.c_str(),
-                          "lighting.glsl",
-                          "FTB.glsl",           // TraversalOrderDepColor
-                          "GLSBVR-2D-light-FS.glsl", NULL) ||
+                          L"lighting.glsl",
+                          L"FTB.glsl",           // TraversalOrderDepColor
+                          L"GLSBVR-2D-light-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramHQMIPRot, m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl",
+                          L"GLSBVR-VS.glsl",
                           NULL,
                           volumeAccessFunction.c_str(),
-                          "GLSBVR-MIP-Rot-FS.glsl", NULL) ||
+                          L"GLSBVR-MIP-Rot-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramIso, m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl",
+                          L"GLSBVR-VS.glsl",
                           NULL,
                           volumeAccessFunction.c_str(),
-                          "GLSBVR-ISO-FS.glsl", NULL) ||
+                          L"GLSBVR-ISO-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramColor, m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl",
+                          L"GLSBVR-VS.glsl",
                           NULL,
                           volumeAccessFunction.c_str(),
-                          "GLSBVR-Color-FS.glsl", NULL))
+                          L"GLSBVR-Color-FS.glsl", NULL))
   {
       Cleanup();
       T_ERROR("Error loading a shader.");
@@ -553,6 +553,7 @@ void GLSBVR2D::Render3DInLoop(const RenderRegion3D& renderRegion,
 
   if (m_iBricksRenderedInThisSubFrame == 0 && m_eRenderMode == RM_ISOSURFACE){
     m_TargetBinder.Bind(m_pFBOIsoHit[size_t(eStereoID)], 0, m_pFBOIsoHit[size_t(eStereoID)], 1);
+    GL(glClearColor(0,0,0,0));
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     if (m_bDoClearView) {
       m_TargetBinder.Bind(m_pFBOCVHit[size_t(eStereoID)], 0, m_pFBOCVHit[size_t(eStereoID)], 1);

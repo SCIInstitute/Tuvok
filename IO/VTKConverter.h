@@ -10,15 +10,15 @@ public:
   VTKConverter();
   virtual ~VTKConverter() {}
 
-  bool CanRead(const std::string&, const std::vector<int8_t>&) const;
+  bool CanRead(const std::wstring&, const std::vector<int8_t>&) const;
 
   virtual bool ConvertToRAW(
-    const std::string& strSourceFilename,
-    const std::string& strTempDir, bool bNoUserInteraction,
+    const std::wstring& strSourceFilename,
+    const std::wstring& strTempDir, bool bNoUserInteraction,
     uint64_t& iHeaderSkip, unsigned& iComponentSize, uint64_t& iComponentCount,
     bool& bConvertEndianess, bool& bSigned, bool& bIsFloat,
     UINT64VECTOR3& vVolumeSize, FLOATVECTOR3& vVolumeAspect,
-    std::string& strTitle, std::string& strIntermediateFile,
+    std::wstring& strTitle, std::wstring& strIntermediateFile,
     bool& bDeleteIntermediateFile
   );
 

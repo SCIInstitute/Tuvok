@@ -41,10 +41,11 @@
 #endif
 #include "TextfileOut.h"
 #include <ctime>
+#include "Basics/SysTools.h"
 
 using namespace std;
 
-TextfileOut::TextfileOut(std::string strFilename) :
+TextfileOut::TextfileOut(const std::wstring& strFilename) :
   m_strFilename(strFilename)
 {
   this->Message(_func_, "Starting up");
@@ -73,7 +74,7 @@ void TextfileOut::printf(enum DebugChannel channel, const char* source,
   char datetime[64];
 
   ofstream fs;
-  fs.open(m_strFilename.c_str(), ios_base::app);
+  fs.open(SysTools::toNarrow(m_strFilename).c_str(), ios_base::app);
   if (fs.fail()) return;
 
   if(strftime(datetime, 64, "(%d.%m.%Y %H:%M:%S)", ADDR_NOW) > 0) {
@@ -103,7 +104,7 @@ void TextfileOut::printf(const char *s) const
   char datetime[64];
 
   ofstream fs;
-  fs.open(m_strFilename.c_str(), ios_base::app);
+  fs.open(SysTools::toNarrow(m_strFilename).c_str(), ios_base::app);
   if (fs.fail()) return;
 
   if(strftime(datetime, 64, "(%d.%m.%Y %H:%M:%S)", ADDR_NOW) > 0) {

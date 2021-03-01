@@ -48,6 +48,8 @@
 #include <sstream>
 #include <sys/stat.h>
 #include <cassert>
+#include <locale>
+#include <codecvt>
 
 #ifndef _WIN32
   #include <regex.h>
@@ -319,6 +321,29 @@ namespace SysTools {
     return GetFileStats(strFileName, stat_buf);
   }
 
+  bool RemoveFile(const std::string& fileName) {
+    return remove(fileName.c_str()) == 0;
+  }
+
+  bool RemoveFile(const std::wstring& wstrFileName) {
+    string strFileName(wstrFileName.begin(), wstrFileName.end());
+    return remove(strFileName.c_str()) == 0;
+  }
+
+  bool RenameFile(const std::string& source, const std::string& target) {
+    return rename(source.c_str(), target.c_str()) == 0;
+  }
+
+  bool RenameFile(const std::wstring& wsource, const std::wstring& wtarget) {
+#ifdef DETECTED_OS_WINDOWS
+    return _wrename(wsource.c_str(), wtarget.c_str()) == 0;
+#else
+    string source(wsource.begin(), wsource.end());
+    string target(wtarget.begin(), wtarget.end());
+    return rename(source.c_str(), target.c_str()) == 0;
+#endif
+  }
+
   string GetExt(const string& fileName) {
     size_t indexDot = fileName.find_last_of(".");
     size_t indexSlash = MAX(int(fileName.find_last_of("\\")),int(fileName.find_last_of("/")));
@@ -336,6 +361,38 @@ namespace SysTools {
     wstring ext = fileName.substr(indexDot+1);
     return ext;
   }
+
+  std::string toNarrow(const wchar_t* str) {
+      return toNarrow(std::wstring(str));
+  }
+
+  std::wstring toWide(const char* str) {
+      return toWide(std::string(str));
+  }
+
+  std::string toNarrow(const std::wstring& wstr) {
+    string str(wstr.begin(), wstr.end());
+    return str;
+    /*
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+      return converter.to_bytes(str);
+    */
+  }
+
+  std::wstring toWide(const std::string& str) {
+    wstring wstr(str.begin(), str.end());
+    return wstr;
+    /*
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+      try {
+        return converter.from_bytes(str);
+      } catch (const std::range_error&) {
+        wstring wstr(str.begin(), str.end());
+        return wstr;
+      }
+      */
+  }
+
 
   wstring ToLowerCase(const wstring& str) {
     wstring result(str);

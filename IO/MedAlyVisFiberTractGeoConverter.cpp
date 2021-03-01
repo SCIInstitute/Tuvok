@@ -45,13 +45,13 @@ using namespace std;
 MedAlyVisFiberTractGeoConverter::MedAlyVisFiberTractGeoConverter() :
   AbstrGeoConverter()
 {
-  m_vConverterDesc = "MedAlyVis Fiber Tract File";
-  m_vSupportedExt.push_back("TRK");
+  m_vConverterDesc = L"MedAlyVis Fiber Tract File";
+  m_vSupportedExt.push_back(L"TRK");
 }
 
 
 std::shared_ptr<Mesh>
-MedAlyVisFiberTractGeoConverter::ConvertToMesh(const std::string& strFilename)
+MedAlyVisFiberTractGeoConverter::ConvertToMesh(const std::wstring& strFilename)
 {
   VertVec       vertices;
   ColorVec      colors;
@@ -62,9 +62,9 @@ MedAlyVisFiberTractGeoConverter::ConvertToMesh(const std::string& strFilename)
   std::ifstream fs;
 	std::string line;
 
-	fs.open(strFilename.c_str());
+    fs.open(SysTools::toNarrow(strFilename).c_str());
   if (fs.fail()) {
-    throw tuvok::io::DSOpenFailed(strFilename.c_str(), __FILE__, __LINE__);
+    throw tuvok::io::DSOpenFailed(SysTools::toNarrow(strFilename).c_str(), __FILE__, __LINE__);
   }
 
   int iReaderState = SEARCHING_DIM;
@@ -192,7 +192,7 @@ MedAlyVisFiberTractGeoConverter::ConvertToMesh(const std::string& strFilename)
     }
   }
 
-  std::string desc = m_vConverterDesc + " data converted from " +
+  std::wstring desc = m_vConverterDesc + L" data converted from " +
                      SysTools::GetFilename(strFilename);
 
   std::shared_ptr<Mesh> m(

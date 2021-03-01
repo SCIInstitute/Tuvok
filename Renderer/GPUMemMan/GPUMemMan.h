@@ -59,7 +59,7 @@ class GPUMemMan {
     GPUMemMan(MasterController* masterController);
     virtual ~GPUMemMan();
 
-    Dataset* LoadDataset(const std::string& strFilename,
+    Dataset* LoadDataset(const std::wstring& strFilename,
                          AbstrRenderer* requester);
     void AddDataset(Dataset* ds, AbstrRenderer *requester);
     void FreeAssociatedTextures(Dataset* pDataset, int iShareGroupID);
@@ -70,7 +70,7 @@ class GPUMemMan {
     void GetEmpty1DTrans(size_t iSize, AbstrRenderer* requester,
                          TransferFunction1D** ppTransferFunction1D,
                          GLTexture1D** tex);
-    void Get1DTransFromFile(const std::string& strFilename,
+    void Get1DTransFromFile(const std::wstring& strFilename,
                             AbstrRenderer* requester,
                             TransferFunction1D** ppTransferFunction1D,
                             GLTexture1D** tex,
@@ -89,7 +89,7 @@ class GPUMemMan {
                          AbstrRenderer* requester,
                          TransferFunction2D** ppTransferFunction2D,
                          GLTexture2D** tex);
-    void Get2DTransFromFile(const std::string& strFilename,
+    void Get2DTransFromFile(const std::wstring& strFilename,
                             AbstrRenderer* requester,
                             TransferFunction2D** ppTransferFunction2D,
                             GLTexture2D** tex,
@@ -99,7 +99,7 @@ class GPUMemMan {
     void Free2DTrans(TransferFunction2D* pTransferFunction2D,
                      const AbstrRenderer* requester);
 
-    GLTexture2D* Load2DTextureFromFile(const std::string& strFilename, int iShareGroupID);
+    GLTexture2D* Load2DTextureFromFile(const std::wstring& strFilename, int iShareGroupID);
     void FreeTexture(GLTexture2D* pTexture);
 
     GLVolume* GetVolume(Dataset* pDataset, const BrickKey& key,

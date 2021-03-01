@@ -45,25 +45,25 @@ using namespace std;
 
 VGStudioConverter::VGStudioConverter()
 {
-  m_vConverterDesc = "VGStudio Data";
-  m_vSupportedExt.push_back("VGI");
+  m_vConverterDesc = L"VGStudio Data";
+  m_vSupportedExt.push_back(L"VGI");
 }
 
-bool VGStudioConverter::ConvertToRAW(const std::string& strSourceFilename,
-                            const std::string&, bool,
+bool VGStudioConverter::ConvertToRAW(const std::wstring& strSourceFilename,
+                            const std::wstring&, bool,
                             uint64_t& iHeaderSkip, unsigned& iComponentSize,
                             uint64_t& iComponentCount, bool& bConvertEndianess,
                             bool& bSigned, bool& bIsFloat,
                             UINT64VECTOR3& vVolumeSize,
-                            FLOATVECTOR3& vVolumeAspect, std::string& strTitle,
-                            std::string& strIntermediateFile,
+                            FLOATVECTOR3& vVolumeAspect, std::wstring& strTitle,
+                            std::wstring& strIntermediateFile,
                             bool& bDeleteIntermediateFile) {
 
   MESSAGE("Attempting to convert VGStudio dataset %s",
-          strSourceFilename.c_str());
+    SysTools::toNarrow(strSourceFilename).c_str());
 
   bDeleteIntermediateFile = false;
-  strTitle          = "VGStudio data";
+  strTitle          = L"VGStudio data";
   iHeaderSkip       = 0;
   bConvertEndianess = EndianConvert::IsBigEndian();
   vVolumeAspect     = FLOATVECTOR3(1,1,1);
@@ -87,7 +87,7 @@ bool VGStudioConverter::ConvertToRAW(const std::string& strSourceFilename,
       return false;
     }
     strIntermediateFile = SysTools::GetPath(strSourceFilename) +
-                          SysTools::GetFilename(filename->strValue);
+                          SysTools::GetFilename(filename->wstrValue);
 
     KeyValPair* resolution = parser.GetData("SIZE");
     if (resolution == NULL || resolution->vuiValue.size() != 3) {

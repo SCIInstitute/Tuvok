@@ -60,6 +60,7 @@ string UVFTables::BlockSemanticTableToCharString(BlockSemanticTable uiTable) {
     case (BS_2D_HISTOGRAM)       : return "Histogram (2D)";
     case (BS_MAXMIN_VALUES)      : return "Brick Max/Min Values";
     case (BS_GEOMETRY)           : return "Geometry";
+    case (BS_TOC_BLOCK)          : return "Table Of Contents (TOC)";
     default                      : return "Unknown";
   }
 }

@@ -11,8 +11,8 @@ using namespace tuvok;
 StLGeoConverter::StLGeoConverter() :
   AbstrGeoConverter()
 {
-  m_vConverterDesc = "Stereo Lithography Format";
-  m_vSupportedExt.push_back("STL");
+  m_vConverterDesc = L"Stereo Lithography Format";
+  m_vSupportedExt.push_back(L"STL");
 }
 
 FLOATVECTOR3 StLGeoConverter::ComputeFaceNormal(const Mesh& m, 
@@ -41,14 +41,14 @@ FLOATVECTOR3 StLGeoConverter::ComputeFaceNormal(const Mesh& m,
 }
 
 bool StLGeoConverter::ConvertToNative(const Mesh& m,
-                                      const std::string& strTargetFilename) {
+                                      const std::wstring& strTargetFilename) {
   // print in binary by default
   return ConvertToNative(m, strTargetFilename, false);
 }
 
 
 bool StLGeoConverter::ConvertToNative(const Mesh& m,
-                                      const std::string& strTargetFilename,
+                                      const std::wstring& strTargetFilename,
                                       bool bASCII) {
 
   size_t iVPP = m.GetVerticesPerPoly();
@@ -60,7 +60,7 @@ bool StLGeoConverter::ConvertToNative(const Mesh& m,
   }
 
   if (bASCII) {
-    std::ofstream outStream(strTargetFilename.c_str());
+    std::ofstream outStream(SysTools::toNarrow(strTargetFilename).c_str());
     if (outStream.fail()) return false;
 
     outStream << "solid isosurface" << "\n";
@@ -135,7 +135,7 @@ bool StLGeoConverter::ConvertToNative(const Mesh& m,
 }
 
 std::shared_ptr<Mesh>
-StLGeoConverter::ConvertToMesh(const std::string& strFilename) {
+StLGeoConverter::ConvertToMesh(const std::wstring& strFilename) {
   VertVec       vertices;
   NormVec       normals;
   TexCoordVec   texcoords;
@@ -152,7 +152,7 @@ StLGeoConverter::ConvertToMesh(const std::string& strFilename) {
 
   if (!inFile.IsOpen()) {
     // hack, we really want some kind of 'file not found' exception.
-    throw tuvok::io::DSOpenFailed(strFilename.c_str(), __FILE__, __LINE__);
+    throw tuvok::io::DSOpenFailed(SysTools::toNarrow(strFilename).c_str(), __FILE__, __LINE__);
   }
 
   uint8_t header[80];
@@ -210,10 +210,10 @@ StLGeoConverter::ConvertToMesh(const std::string& strFilename) {
 
     std::ifstream fs;
     std::string line;
-    fs.open(strFilename.c_str());
+    fs.open(SysTools::toNarrow(strFilename).c_str());
     if (fs.fail()) {
       // hack, we really want some kind of 'file not found' exception.
-      throw tuvok::io::DSOpenFailed(strFilename.c_str(), __FILE__, __LINE__);
+      throw tuvok::io::DSOpenFailed(SysTools::toNarrow(strFilename).c_str(), __FILE__, __LINE__);
     }
 
     getline(fs, line); // read header again
@@ -263,7 +263,7 @@ StLGeoConverter::ConvertToMesh(const std::string& strFilename) {
     fs.close();
   }
 
-  std::string desc = m_vConverterDesc + std::string(" data converted from ") 
+  std::wstring desc = m_vConverterDesc + std::wstring(L" data converted from ") 
                      + SysTools::GetFilename(strFilename);
 
   std::shared_ptr<Mesh> m(
@@ -300,7 +300,7 @@ StLGeoConverter::ConvertToMesh(const std::string& strFilename) {
 
 /*
 std::shared_ptr<Mesh>
-StLGeoConverter::ConvertToMesh(const std::string& strFilename) {
+StLGeoConverter::ConvertToMesh(const std::wstring& strFilename) {
   bool bFlipVertices = false;
 
   VertVec       vertices;
@@ -316,7 +316,7 @@ StLGeoConverter::ConvertToMesh(const std::string& strFilename) {
   std::ifstream fs;
   std::string line;
 
-  fs.open(strFilename.c_str());
+  fs.open(SysTools::toNarrow(strFilename).c_str());
   if (fs.fail()) {
     // hack, we really want some kind of 'file not found' exception.
     throw tuvok::io::DSOpenFailed(strFilename.c_str(), __FILE__, __LINE__);

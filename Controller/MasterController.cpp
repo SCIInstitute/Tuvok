@@ -73,7 +73,7 @@ MasterController::MasterController() :
   m_pGPUMemMan    = new GPUMemMan(this);
 
   using namespace std::placeholders;
-  std::function<Dataset*(const std::string&, AbstrRenderer*)> f =
+  std::function<Dataset*(const std::wstring&, AbstrRenderer*)> f =
     std::bind(&GPUMemMan::LoadDataset, m_pGPUMemMan, _1, _2);
   m_pIOManager->SetMemManLoadFunction(f);
 

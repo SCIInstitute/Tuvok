@@ -21,24 +21,31 @@ class ShaderDescriptor {
   public:
     ShaderDescriptor();
     /// Constructs the descriptor from a list of FILES for each shader type.
-    ShaderDescriptor(const std::vector<std::string>& vertex,
-                     const std::vector<std::string>& fragment);
+    ShaderDescriptor(const std::vector<std::wstring>& vertex,
+                     const std::vector<std::wstring>& fragment);
     ShaderDescriptor(const ShaderDescriptor&);
+
+
+    ShaderDescriptor& operator=(const ShaderDescriptor& other) {
+        this->si = other.si;
+        this->fragmentDataBindings = other.fragmentDataBindings;
+        return *this;
+    }
 
     /// @param dir list of paths
     /// @return the list of paths which exist.
-    static std::vector<std::string> ValidPaths(std::vector<std::string> dir);
+    static std::vector<std::wstring> ValidPaths(const std::vector<std::wstring>& dir);
 
     /// Takes a list of directories and *two* lists of shaders.  Both lists
     /// must be terminated with a null.  The first is a list of filenames for
     /// the vertex shaders, the second is a list of filenames for fragment
     /// shaders.
     static ShaderDescriptor Create(
-      std::vector<std::string> directories, ...
+      std::vector<std::wstring> directories, ...
     );
 
     static ShaderDescriptor Create(
-      std::vector<std::string> directories,
+      std::vector<std::wstring> directories,
       std::vector<std::pair<uint32_t, std::string>> fragmentDataBindings,
       ...
     );
@@ -48,9 +55,9 @@ class ShaderDescriptor {
     void AddDefines(const std::vector<std::string>& defines);
 
     /// Adds a vertex shader in a string (i.e. not from a filename)
-    void AddVertexShaderString(const std::string shader);
+    void AddVertexShaderString(const std::string& shader);
     /// Adds a fragment shader in a string (i.e. not from a filename)
-    void AddFragmentShaderString(const std::string shader);
+    void AddFragmentShaderString(const std::string& shader);
 
     /// Two shaders are equal if they utilize the same set of filenames/strings
     /// to compose the shader.
@@ -60,13 +67,19 @@ class ShaderDescriptor {
     /// (first) and the source of that program text (second).  The latter is
     /// only intended for diagnostics, and may be empty.
     struct SIterator : public std::iterator<std::input_iterator_tag,
-                                           std::string> {
+                                            std::wstring> {
       SIterator(const SIterator&);
       SIterator& operator++();
       SIterator& operator++(int);
       bool operator==(const SIterator&) const;
       bool operator!=(const SIterator&) const;
-      std::pair<std::string, std::string> operator*() const;
+
+       SIterator& operator=(const SIterator& other) {
+          this->si = other.si;
+          return *this;
+      }
+
+      std::pair<std::string, std::wstring> operator*() const;
       private:
         struct siterinfo;
         std::shared_ptr<siterinfo> si;

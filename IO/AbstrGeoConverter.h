@@ -54,20 +54,20 @@ public:
   virtual ~AbstrGeoConverter() {}
 
   virtual std::shared_ptr<Mesh> ConvertToMesh(
-    const std::string& strRawFilename
+    const std::wstring& strRawFilename
   );
 
   virtual bool ConvertToNative(const Mesh& m,
-                               const std::string& strTargetFilename);
+                               const std::wstring& strTargetFilename);
 
   /// @param filename the file in question
   /// @return SupportedExtension() for the file's extension
-  virtual bool CanRead(const std::string& fn) const;
+  virtual bool CanRead(const std::wstring& fn) const;
 
-  const std::vector<std::string>& SupportedExt() const {
+  const std::vector<std::wstring>& SupportedExt() const {
     return m_vSupportedExt;
   }
-  const std::string& GetDesc() const { return m_vConverterDesc; }
+  const std::wstring& GetDesc() const { return m_vConverterDesc; }
 
   virtual bool CanExportData() const { return false; }
   virtual bool CanImportData() const { return false; }
@@ -75,14 +75,14 @@ public:
 protected:
   /// @param ext the extension for the filename
   /// @return true if the filename is a supported extension for this converter
-  bool SupportedExtension(const std::string& ext) const;
+  bool SupportedExtension(const std::wstring& ext) const;
 
   void SortByGradient(const VertVec& vertices,
                       IndexVec& v, IndexVec& n,
                       IndexVec& t, IndexVec& c);
 
-  std::string               m_vConverterDesc;
-  std::vector<std::string>  m_vSupportedExt;
+  std::wstring               m_vConverterDesc;
+  std::vector<std::wstring>  m_vSupportedExt;
 
   void AddToMesh(const VertVec& vertices,
                  IndexVec& v, IndexVec& n, 

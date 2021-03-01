@@ -672,9 +672,6 @@
     <ClCompile Include="IO\3rdParty\bzip2\bzlib.c">
       <Filter>IO\bzip2</Filter>
     </ClCompile>
-    <ClCompile Include="IO\3rdParty\bzip2\compress.c">
-      <Filter>IO\bzip2</Filter>
-    </ClCompile>
     <ClCompile Include="IO\3rdParty\bzip2\crctable.c">
       <Filter>IO\bzip2</Filter>
     </ClCompile>
@@ -1043,6 +1040,54 @@
     </ClCompile>
     <ClCompile Include="IO\DynamicBrickingDS.cpp">
       <Filter>IO</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\zlib\trees.c">
+      <Filter>IO\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\zlib\uncompr.c">
+      <Filter>IO\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\zlib\zutil.c">
+      <Filter>IO\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\zlib\adler32.c">
+      <Filter>IO\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\zlib\compress.c">
+      <Filter>IO\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\zlib\crc32.c">
+      <Filter>IO\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\zlib\deflate.c">
+      <Filter>IO\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\zlib\gzclose.c">
+      <Filter>IO\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\zlib\gzlib.c">
+      <Filter>IO\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\zlib\gzread.c">
+      <Filter>IO\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\zlib\gzwrite.c">
+      <Filter>IO\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\zlib\infback.c">
+      <Filter>IO\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\zlib\inffast.c">
+      <Filter>IO\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\zlib\inflate.c">
+      <Filter>IO\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\zlib\inftrees.c">
+      <Filter>IO\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\bzip2\bzcompress.c">
+      <Filter>IO\bzip2</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -2102,6 +2147,33 @@
     </ClInclude>
     <ClInclude Include="IO\DynamicBrickingDS.h">
       <Filter>IO</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\zlib\trees.h">
+      <Filter>IO\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\zlib\zutil.h">
+      <Filter>IO\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\zlib\crc32.h">
+      <Filter>IO\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\zlib\deflate.h">
+      <Filter>IO\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\zlib\gzguts.h">
+      <Filter>IO\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\zlib\inffast.h">
+      <Filter>IO\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\zlib\inffixed.h">
+      <Filter>IO\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\zlib\inflate.h">
+      <Filter>IO\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\zlib\inftrees.h">
+      <Filter>IO\zlib</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

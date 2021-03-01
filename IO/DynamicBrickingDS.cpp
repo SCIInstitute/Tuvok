@@ -623,19 +623,19 @@ bool DynamicBrickingDS::dbinfo::Brick(const DynamicBrickingDS& ds,
 /// just read those. this can be a big win, since the calculation is
 /// veeeery slow.
 /// @return the file we would save for this case.
-static std::string precomputed_filename(const BrickedDataset& ds,
+static std::wstring precomputed_filename(const BrickedDataset& ds,
                                         const BrickSize bsize)
 {
   try {
-    std::ostringstream fname;
+    std::wostringstream fname;
     const FileBackedDataset& fbds = dynamic_cast<const FileBackedDataset&>(ds);
-    fname << "." << bsize[0] << "x" << bsize[1] << "x" << bsize[2] << "-"
-          << SysTools::GetFilename(fbds.Filename()) << ".cached";
+    fname << L"." << bsize[0] << L"x" << bsize[1] << L"x" << bsize[2] << L"-"
+          << SysTools::GetFilename(fbds.Filename()) << L".cached";
     return fname.str();
   } catch(const std::bad_cast&) {
     WARNING("Data doesn't come from a file.  We can't save minmaxes.");
   }
-  return "";
+  return L"";
 }
 
 void DynamicBrickingDS::dbinfo::LoadMinMax(std::istream& is) {
@@ -686,10 +686,10 @@ void DynamicBrickingDS::dbinfo::SaveMinMax(std::ostream& os) const {
 /// run through all of the bricks and compute min/max info.
 void DynamicBrickingDS::dbinfo::ComputeMinMaxes(BrickedDataset& ds) {
   // first, check if we have this cached.
-  const std::string fname = precomputed_filename(ds, this->brickSize);
+  const std::wstring fname = precomputed_filename(ds, this->brickSize);
   if(SysTools::FileExists(fname)) {
     MESSAGE("Brick min/maxes are precomputed.  Reloading from file...");
-    std::ifstream mmfile(fname, std::ios::binary);
+    std::ifstream mmfile(SysTools::toNarrow(fname), std::ios::binary);
     this->LoadMinMax(mmfile);
     mmfile.close();
     return;
@@ -718,10 +718,10 @@ void DynamicBrickingDS::dbinfo::ComputeMinMaxes(BrickedDataset& ds) {
   while(this->cache.size() > 0) { this->cache.remove(); }
 
   // try to cache that data to a file, now.
-  std::ofstream mmcache(fname, std::ios::binary);
+  std::ofstream mmcache(SysTools::toNarrow(fname), std::ios::binary);
   if(!mmcache) {
     WARNING("could not open min/max cache file (%s); ignoring cache.",
-            fname.c_str());
+      SysTools::toNarrow(fname).c_str());
     return;
   }
   this->SaveMinMax(mmcache);
@@ -875,7 +875,7 @@ MinMaxBlock DynamicBrickingDS::MaxMinForKey(const BrickKey& bk) const {
 }
 ///@}
 
-bool DynamicBrickingDS::Export(uint64_t lod, const std::string& to,
+bool DynamicBrickingDS::Export(uint64_t lod, const std::wstring& to,
                                bool append) const {
   return di->ds->Export(lod, to, append);
 }
@@ -887,37 +887,37 @@ DynamicBrickingDS::ApplyFunction(uint64_t lod, Dataset::bfqn* bfunc, void* ctx,
   return di->ds->ApplyFunction(lod, bfunc, ctx, nghost);
 }
 
-const char* DynamicBrickingDS::Name() const {
-  return "Rebricked Data";
+std::wstring DynamicBrickingDS::Name() const {
+  return L"Rebricked Data";
 }
 
 // Virtual constructor.  Hard to make sense of this in the IOManager's
 // context; this isn't a register-able Dataset type which tuvok can
 // automatically instantiate to read a dataset.  Rather, the user must *have*
 // such a dataset already and use this as a proxy for it.
-DynamicBrickingDS* DynamicBrickingDS::Create(const std::string&, uint64_t,
+DynamicBrickingDS* DynamicBrickingDS::Create(const std::wstring&, uint64_t,
                                              bool) const {
   abort(); return NULL;
 }
 
-std::string DynamicBrickingDS::Filename() const {
+std::wstring DynamicBrickingDS::Filename() const {
   const FileBackedDataset& f = dynamic_cast<const FileBackedDataset&>(
     *(this->di->ds.get())
   );
   return f.Filename();
 }
 
-bool DynamicBrickingDS::CanRead(const std::string&,
+bool DynamicBrickingDS::CanRead(const std::wstring&,
                                 const std::vector<int8_t>&) const
 {
   return false;
 }
-bool DynamicBrickingDS::Verify(const std::string&) const {
+bool DynamicBrickingDS::Verify(const std::wstring&) const {
   T_ERROR("you shouldn't use a dynamic bricking DS to verify a file!");
   assert(false);
   return false;
 }
-std::list<std::string> DynamicBrickingDS::Extensions() const {
+std::list<std::wstring> DynamicBrickingDS::Extensions() const {
   WARNING("You should be calling this on the underlying DS.  I'll do that "
           "for you, I guess...");
   std::shared_ptr<FileBackedDataset> fbds =

@@ -38,38 +38,39 @@
 #include "VFFConverter.h"
 #include <Controller/Controller.h>
 #include <IO/KeyValueFileParser.h>
+#include "Basics/SysTools.h"
 
 using namespace std;
 
 VFFConverter::VFFConverter()
 {
-  m_vConverterDesc = "Visualization File Format";
-  m_vSupportedExt.push_back("VFF");
+  m_vConverterDesc = L"Visualization File Format";
+  m_vSupportedExt.push_back(L"VFF");
 }
 
 bool VFFConverter::ConvertToRAW(
-  const std::string& strSourceFilename, const std::string&, bool,
+  const std::wstring& strSourceFilename, const std::wstring&, bool,
   uint64_t& iHeaderSkip, unsigned& iComponentSize, uint64_t& iComponentCount,
   bool& bConvertEndianess, bool& bSigned, bool& bIsFloat,
   UINT64VECTOR3& vVolumeSize, FLOATVECTOR3& vVolumeAspect,
-  std::string& strTitle, std::string& strIntermediateFile,
+  std::wstring& strTitle, std::wstring& strIntermediateFile,
   bool& bDeleteIntermediateFile
 ) {
-  MESSAGE("Attempting to convert VFF dataset %s", strSourceFilename.c_str());
+  MESSAGE("Attempting to convert VFF dataset %s", SysTools::toNarrow(strSourceFilename).c_str());
 
   // Check Magic value in VFF File first
-  ifstream fileData(strSourceFilename.c_str());
+  ifstream fileData(SysTools::toNarrow(strSourceFilename).c_str());
   string strFirstLine;
 
   if (fileData.is_open())
   {
     getline (fileData,strFirstLine);
     if (strFirstLine.substr(0,4) != "ncaa") {
-      WARNING("The file %s is not a VFF file (missing magic)", strSourceFilename.c_str());
+      WARNING("The file %s is not a VFF file (missing magic)", SysTools::toNarrow(strSourceFilename).c_str());
       return false;
     }
   } else {
-    WARNING("Could not open VFF file %s", strSourceFilename.c_str());
+    WARNING("Could not open VFF file %s", SysTools::toNarrow(strSourceFilename).c_str());
     return false;
   }
   fileData.close();
@@ -89,16 +90,16 @@ bool VFFConverter::ConvertToRAW(
   string strHeaderEnd;
   strHeaderEnd.push_back(12);  // header end char of vffs is ^L = 0C = 12
 
-  KeyValueFileParser parser(strSourceFilename, false, "=", strHeaderEnd);
+  KeyValueFileParser parser(strSourceFilename, false, L"=", SysTools::toWide(strHeaderEnd));
 
   if (!parser.FileReadable()) {
-    WARNING("Could not open VFF file %s", strSourceFilename.c_str());
+    WARNING("Could not open VFF file %s", SysTools::toNarrow(strSourceFilename).c_str());
     return false;
   }
 
   KeyValPair* kvp = parser.GetData("TYPE");
   if (kvp == NULL || kvp->strValue == ";") {
-    T_ERROR("Could not find valid token \"type\" in file %s", strSourceFilename.c_str());
+    T_ERROR("Could not find valid token \"type\" in file %s", SysTools::toNarrow(strSourceFilename).c_str());
     return false;
   } else {
     if (kvp->strValueUpper != "RASTER;")  {
@@ -110,7 +111,7 @@ bool VFFConverter::ConvertToRAW(
   int iDim;
   kvp = parser.GetData("RANK");
   if (kvp == NULL || kvp->strValue == ";") {
-    T_ERROR("Could not find valid token \"rank\" in file %s", strSourceFilename.c_str());
+    T_ERROR("Could not find valid token \"rank\" in file %s", SysTools::toNarrow(strSourceFilename).c_str());
     return false;
   } else {
     iDim = kvp->iValue;
@@ -118,7 +119,7 @@ bool VFFConverter::ConvertToRAW(
 
   kvp = parser.GetData("BANDS");
   if (kvp == NULL || kvp->strValue == ";") {
-    T_ERROR("Could not find valid token \"bands\" in file %s", strSourceFilename.c_str());
+    T_ERROR("Could not find valid token \"bands\" in file %s", SysTools::toNarrow(strSourceFilename).c_str());
     return false;
   } else {
     if (kvp->iValue != 1)  {
@@ -129,7 +130,7 @@ bool VFFConverter::ConvertToRAW(
 
   kvp = parser.GetData("FORMAT");
   if (kvp == NULL || kvp->strValue == ";") {
-    T_ERROR("Could not find valid token \"format\" in file %s", strSourceFilename.c_str());
+    T_ERROR("Could not find valid token \"format\" in file %s", SysTools::toNarrow(strSourceFilename).c_str());
     return false;
   } else {
     if (kvp->strValueUpper != "SLICE;")  {
@@ -140,7 +141,7 @@ bool VFFConverter::ConvertToRAW(
 
   kvp = parser.GetData("BITS");
   if (kvp == NULL || kvp->strValue == ";") {
-    T_ERROR("Could not find valid token \"bands\" in file %s", strSourceFilename.c_str());
+    T_ERROR("Could not find valid token \"bands\" in file %s", SysTools::toNarrow(strSourceFilename).c_str());
     return false;
   } else {
     iComponentSize = kvp->iValue;
@@ -148,7 +149,7 @@ bool VFFConverter::ConvertToRAW(
 
   kvp = parser.GetData("SIZE");
   if (kvp == NULL || kvp->strValue == ";") {
-    T_ERROR("Could not find valid token \"size\" in file %s", strSourceFilename.c_str());
+    T_ERROR("Could not find valid token \"size\" in file %s", SysTools::toNarrow(strSourceFilename).c_str());
     return false;
   } else {
     vVolumeSize[0] = kvp->viValue[0];
@@ -161,7 +162,7 @@ bool VFFConverter::ConvertToRAW(
 
   kvp = parser.GetData("SPACING");
   if (kvp == NULL || kvp->strValue == ";") {
-    T_ERROR("Could not find valid token \"size\" in file %s", strSourceFilename.c_str());
+    T_ERROR("Could not find valid token \"size\" in file %s", SysTools::toNarrow(strSourceFilename).c_str());
     return false;
   } else {
     vVolumeAspect[0] = kvp->vfValue[0];
@@ -171,9 +172,9 @@ bool VFFConverter::ConvertToRAW(
 
   kvp = parser.GetData("TITLE");
   if (kvp == NULL || kvp->strValue == ";") {
-    strTitle = "VFF data";
+    strTitle = L"VFF data";
   } else {
-    strTitle = kvp->strValue;
+    strTitle = kvp->wstrValue;
   }
 
   iHeaderSkip = parser.GetStopPos();
@@ -181,14 +182,14 @@ bool VFFConverter::ConvertToRAW(
   return true;
 }
 
-bool VFFConverter::ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, uint64_t iHeaderSkip,
+bool VFFConverter::ConvertToNative(const std::wstring& strRawFilename, const std::wstring& strTargetFilename, uint64_t iHeaderSkip,
                              unsigned iComponentSize, uint64_t iComponentCount, bool bSigned, bool bFloatingPoint,
                              UINT64VECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, bool, bool bQuantizeTo8Bit) {
 
   // create header textfile from metadata
-  ofstream fAsciiTarget(strTargetFilename.c_str());
+  ofstream fAsciiTarget(SysTools::toNarrow(strTargetFilename).c_str());
   if (!fAsciiTarget.is_open()) {
-    T_ERROR("Unable to open target file %s.", strTargetFilename.c_str());
+    T_ERROR("Unable to open target file %s.", SysTools::toNarrow(strTargetFilename).c_str());
     return false;
   }
 
@@ -218,8 +219,8 @@ bool VFFConverter::ConvertToNative(const std::string& strRawFilename, const std:
   if (bRAWSuccess) {
     return true;
   } else {
-    T_ERROR("Error appaneding raw data to header file %s.", strTargetFilename.c_str());
-    remove(strTargetFilename.c_str());
+    T_ERROR("Error appaneding raw data to header file %s.", SysTools::toNarrow(strTargetFilename).c_str());
+    SysTools::RemoveFile(strTargetFilename);
     return false;
   }
 }

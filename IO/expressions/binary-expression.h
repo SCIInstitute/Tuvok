@@ -37,7 +37,7 @@ class BinaryExpression : public Expression {
   public:
     void SetOperator(enum OpType);
 
-    void Analyze() const throw(semantic::Error);
+    void Analyze() const;
     virtual void Print(std::ostream&) const;
 
     virtual double Evaluate(size_t) const;

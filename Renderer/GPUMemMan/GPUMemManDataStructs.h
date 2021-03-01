@@ -88,7 +88,7 @@ namespace tuvok {
   // simple textures
   class SimpleTextureListElem {
   public:
-    SimpleTextureListElem(uint32_t _iAccessCounter, GLTexture2D* _pTexture, std::string _strFilename, int iShareGroupID) :
+    SimpleTextureListElem(uint32_t _iAccessCounter, GLTexture2D* _pTexture, std::wstring _strFilename, int iShareGroupID) :
       iAccessCounter(_iAccessCounter),
       pTexture(_pTexture),
       strFilename(_strFilename),
@@ -97,7 +97,7 @@ namespace tuvok {
 
     uint32_t      iAccessCounter;
     GLTexture2D*  pTexture;
-    std::string   strFilename;
+    std::wstring   strFilename;
     int           m_iShareGroupID;
   };
   typedef std::deque<SimpleTextureListElem> SimpleTextureList;

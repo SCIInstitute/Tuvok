@@ -95,23 +95,23 @@ public:
 
   /// unimplemented!  Override these if you want tools built on this IO layer
   /// to be able to create data in your format.
-  virtual bool Export(uint64_t iLODLevel, const std::string& targetFilename,
+  virtual bool Export(uint64_t iLODLevel, const std::wstring& targetFilename,
                       bool bAppend) const;
 
   virtual bool ApplyFunction(uint64_t iLODLevel, Dataset::bfqn* bfunc,
                              void* context, uint64_t nghost) const;
 
   /// Virtual constructor.
-  virtual DynamicBrickingDS* Create(const std::string&, uint64_t, bool) const;
+  virtual DynamicBrickingDS* Create(const std::wstring&, uint64_t, bool) const;
 
   /// functions for FileBackedDataset interface
   ///@{
-  virtual std::string Filename() const;
-  virtual const char* Name() const;
+  virtual std::wstring Filename() const;
+  virtual std::wstring Name() const;
 
-  virtual bool CanRead(const std::string&, const std::vector<int8_t>&) const;
-  virtual bool Verify(const std::string&) const;
-  virtual std::list<std::string> Extensions() const;
+  virtual bool CanRead(const std::wstring&, const std::vector<int8_t>&) const;
+  virtual bool Verify(const std::wstring&) const;
+  virtual std::list<std::wstring> Extensions() const;
   ///@}
 
 private:

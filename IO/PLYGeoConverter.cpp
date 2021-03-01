@@ -45,13 +45,13 @@ using namespace std;
 PLYGeoConverter::PLYGeoConverter() :
   AbstrGeoConverter()
 {
-  m_vConverterDesc = "Stanford Polygon File Format";
-  m_vSupportedExt.push_back("PLY");
+  m_vConverterDesc = L"Stanford Polygon File Format";
+  m_vSupportedExt.push_back(L"PLY");
 }
 
 
 std::shared_ptr<Mesh>
-PLYGeoConverter::ConvertToMesh(const std::string& strFilename) {
+PLYGeoConverter::ConvertToMesh(const std::wstring& strFilename) {
   VertVec       vertices;
   NormVec       normals;
   TexCoordVec   texcoords;
@@ -65,9 +65,9 @@ PLYGeoConverter::ConvertToMesh(const std::string& strFilename) {
   std::ifstream fs;
 	std::string line;
 
-	fs.open(strFilename.c_str());
+	fs.open(SysTools::toNarrow(strFilename).c_str());
   if (fs.fail()) {
-    throw tuvok::io::DSOpenFailed(strFilename.c_str(), __FILE__, __LINE__);
+    throw tuvok::io::DSOpenFailed(SysTools::toNarrow(strFilename).c_str(), __FILE__, __LINE__);
   }
 
   int iFormat = FORMAT_ASCII;
@@ -129,13 +129,13 @@ PLYGeoConverter::ConvertToMesh(const std::string& strFilename) {
                                 else {
                                   stringstream s;
                                   s << "unknown format " << format.c_str();
-                                  throw tuvok::io::DSParseFailed(strFilename.c_str(), s.str().c_str(),__FILE__, __LINE__);
+                                  throw tuvok::io::DSParseFailed(SysTools::toNarrow(strFilename).c_str(), s.str().c_str(),__FILE__, __LINE__);
                                 }
                                 string version = GetToken(line);
                                 if (version != "1.0") {
                                   stringstream s;
                                   s << "unknown version " << version.c_str();
-                                  throw tuvok::io::DSParseFailed(strFilename.c_str(), s.str().c_str(),__FILE__, __LINE__);
+                                  throw tuvok::io::DSParseFailed(SysTools::toNarrow(strFilename).c_str(), s.str().c_str(),__FILE__, __LINE__);
                                 }
                               } else if (linetype == "element") {
                                 string elemType = GetToken(line);
@@ -174,12 +174,12 @@ PLYGeoConverter::ConvertToMesh(const std::string& strFilename) {
                               } 
                            }
                            break;
-      default : throw tuvok::io::DSParseFailed(strFilename.c_str(), "unknown parser state header",__FILE__, __LINE__);
+      default : throw tuvok::io::DSParseFailed(SysTools::toNarrow(strFilename).c_str(), "unknown parser state header",__FILE__, __LINE__);
     }
   }
 
   if (iFormat != FORMAT_ASCII) {
-    throw tuvok::io::DSParseFailed(strFilename.c_str(), "Binary PLY files not supported yet.",__FILE__, __LINE__);
+    throw tuvok::io::DSParseFailed(SysTools::toNarrow(strFilename).c_str(), "Binary PLY files not supported yet.",__FILE__, __LINE__);
   }
 
   if (iFaceCount > 0 && iLineCount > 0) {
@@ -327,12 +327,12 @@ PLYGeoConverter::ConvertToMesh(const std::string& strFilename) {
       }
 
       if (VertIndices.size() == iLineCount*2) iReaderState = PARSING_DONE;
-    } else throw tuvok::io::DSParseFailed(strFilename.c_str(), "unknown parser state data",__FILE__, __LINE__);
+    } else throw tuvok::io::DSParseFailed(SysTools::toNarrow(strFilename).c_str(), "unknown parser state data",__FILE__, __LINE__);
   }
 
   MESSAGE("Creating Mesh Object");
 
-  std::string desc = m_vConverterDesc + " data converted from " + SysTools::GetFilename(strFilename);
+  std::wstring desc = m_vConverterDesc + L" data converted from " + SysTools::GetFilename(strFilename);
 
   return std::shared_ptr<Mesh>(
     new Mesh(vertices,normals,texcoords,colors,
@@ -389,9 +389,9 @@ PLYGeoConverter::edgeProp PLYGeoConverter::StringToEProp(const std::string& toke
 
 
 bool PLYGeoConverter::ConvertToNative(const Mesh& m,
-                                      const std::string& strTargetFilename) {
+                                      const std::wstring& strTargetFilename) {
 
-  std::ofstream outStream(strTargetFilename.c_str());
+  std::ofstream outStream(SysTools::toNarrow(strTargetFilename).c_str());
   if (outStream.fail()) return false;
 
   // write magic
@@ -401,7 +401,7 @@ bool PLYGeoConverter::ConvertToNative(const Mesh& m,
   outStream << "format ascii 1.0" << std::endl;
 
   // some comments
-  outStream << "comment " << m.Name() << std::endl;
+  outStream << "comment " << SysTools::toNarrow(m.Name()) << std::endl;
   outStream << "comment Vertices: " << m.GetVertices().size() << std::endl;
   outStream << "comment Primitives: " << m.GetVertexIndices().size()/
                                          m.GetVerticesPerPoly() << std::endl;

@@ -31,7 +31,7 @@ namespace tuvok { namespace expression {
 
 void Constant::SetValue(double v) { this->value = v; }
 double Constant::GetValue() const { return value; }
-void Constant::Analyze() const throw(semantic::Error) {
+void Constant::Analyze() const {
   // Nothing.  A constant can never be "wrong".
 }
 void Constant::Print(std::ostream& os) const { os << this->value; }

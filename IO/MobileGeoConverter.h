@@ -49,9 +49,9 @@ namespace tuvok {
     MobileGeoConverter();
     virtual ~MobileGeoConverter() {}
     virtual std::shared_ptr<Mesh>
-      ConvertToMesh(const std::string& strFilename);
+      ConvertToMesh(const std::wstring& strFilename);
     virtual bool ConvertToNative(const Mesh& m, 
-                                 const std::string& strTargetFilename);
+                                 const std::wstring& strTargetFilename);
 
     virtual std::shared_ptr<const G3D::GeometrySoA>
       ConvertToNative(const Mesh& m, float*& colors);

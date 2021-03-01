@@ -64,7 +64,7 @@ void ExtendedOctree::InitLzmaCompression()
  Convenience function that calls the open below with a large raw file 
  constructed from the given string
  */
-bool ExtendedOctree::Open(std::string filename, uint64_t iOffset,
+bool ExtendedOctree::Open(std::wstring filename, uint64_t iOffset,
                           uint64_t iUVFFileVersion) {
   LargeRAWFile_ptr inFile(new LargeRAWFile(filename));
   if (!inFile->Open()) {
@@ -94,9 +94,9 @@ bool ExtendedOctree::Open(LargeRAWFile_ptr pLargeRAWFile, uint64_t iOffset,
 
   // load global header
   m_pLargeRAWFile->SeekPos(m_iOffset);
-  uint32_t comp;
-  m_pLargeRAWFile->ReadData(comp, isBE);
-  m_eComponentType = static_cast<COMPONENT_TYPE>(comp);
+  uint32_t gcomp;
+  m_pLargeRAWFile->ReadData(gcomp, isBE);
+  m_eComponentType = static_cast<COMPONENT_TYPE>(gcomp);
   m_pLargeRAWFile->ReadData(m_iComponentCount, isBE);
   m_pLargeRAWFile->ReadData(m_bPrecomputedNormals, isBE);
   m_pLargeRAWFile->ReadData(m_vVolumeSize.x, isBE);
@@ -324,10 +324,10 @@ void ExtendedOctree::GetBrickData(uint8_t* pData, uint64_t index) const {
 
   // the data are compressed; read them into a temporary buffer and then expand
   // that buffer into 'pData'.
-  const size_t uncompressedSize =
+  const size_t uncompressedSize = size_t(
     this->ComputeBrickSize(this->IndexToBrickCoords(index)).volume() *
     this->GetComponentCount() *
-    this->GetComponentTypeSize();
+    this->GetComponentTypeSize());
 
   std::shared_ptr<uint8_t> buf(new uint8_t[uncompressedSize],
                                nonstd::DeleteArray<uint8_t>());

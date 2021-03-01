@@ -58,7 +58,7 @@ class FrameCapture {
     FrameCapture() {}
     virtual ~FrameCapture() {}
 
-    virtual bool CaptureSingleFrame(const std::string& strFilename,
+    virtual bool CaptureSingleFrame(const std::wstring& strFilename,
                                     bool bPreserveTransparency) const = 0;
   private:
 
@@ -81,7 +81,7 @@ class FrameCapture {
   protected:
 
     template <typename T>
-    bool SaveImage(const std::string& strFilename, 
+    bool SaveImage(const std::wstring& strFilename, 
                    const UINTVECTOR2& vSize,
                    const std::vector<T>& vInputData, 
                    bool bPreserveTransparency) const {
@@ -97,8 +97,8 @@ class FrameCapture {
       }
 
       // capture TIFF files and run our own exporter on them
-      std::string extension = SysTools::ToLowerCase(SysTools::GetExt(strFilename));  
-      if (extension == "tif" || extension == "tiff") {
+      std::wstring extension = SysTools::ToLowerCase(SysTools::GetExt(strFilename));  
+      if (extension == L"tif" || extension == L"tiff") {
         try {
           if (bPreserveTransparency) {
             // our TIFF writer sets the TIFF file-format to "premultiplied-alpha"
@@ -110,49 +110,49 @@ class FrameCapture {
             TTIFFWriter::Write(strFilename.c_str(), vSize.x, vSize.y, TTIFFWriter::TT_RGB, vDataRGB);
           }
         } catch (const ttiff_error& e) {
-          T_ERROR("Unable to save image %s: %s.",strFilename.c_str(), e.what());
+          T_ERROR("Unable to save image %s: %s.", SysTools::toNarrow(strFilename).c_str(), e.what());
           return false;
         }
         return true;
       } else {
         #ifdef TUVOK_NO_QT
             T_ERROR("Refusing to save image %s: Tuvok was compiled without Qt support so export is restricted to TIFF files.",
-                    strFilename.c_str());
+              SysTools::toNarrow(strFilename).c_str());
             return false;
         #else
           if (sizeof(T) > 1) {
-            T_ERROR("Unable to save high precision data to image %s please select TIFF fromat.",strFilename.c_str());
+            T_ERROR("Unable to save high precision data to image %s please select TIFF fromat.", SysTools::toNarrow(strFilename).c_str());
             return false;
           }
 
           QImage qTargetFile(QSize(vSize.x, vSize.y), QImage::Format_ARGB32);
 
-          size_t i = 0;
+          size_t k = 0;
           if (bPreserveTransparency) {
             for (size_t y = 0;y<vSize.y;y++) {
               for (size_t x = 0;x<vSize.x;x++) {
                 qTargetFile.setPixel(int(x),int(y),
-                                      qRgba(DemultiplyAlpha(vData[i+0],vData[i+3]),
-                                            DemultiplyAlpha(vData[i+1],vData[i+3]),
-                                            DemultiplyAlpha(vData[i+2],vData[i+3]),
-                                            int(vData[i+3])));
-                i+=4;
+                                      qRgba(DemultiplyAlpha(vData[k+0],vData[k+3]),
+                                            DemultiplyAlpha(vData[k+1],vData[k+3]),
+                                            DemultiplyAlpha(vData[k+2],vData[k+3]),
+                                            int(vData[k+3])));
+                k+=4;
               }
             }
           } else {
             for (size_t y = 0;y<vSize.y;y++) {
               for (size_t x = 0;x<vSize.x;x++) {
                 qTargetFile.setPixel(int(x),int(y),
-                                    qRgba(int(vData[i+0]),
-                                          int(vData[i+1]),
-                                          int(vData[i+2]),
+                                    qRgba(int(vData[k+0]),
+                                          int(vData[k+1]),
+                                          int(vData[k+2]),
                                           255));
-                i+=4;
+                k+=4;
               }
             }
           }
 
-          return qTargetFile.save(strFilename.c_str());
+          return qTargetFile.save(QString::fromStdWString(strFilename));
         #endif 
      }
     }

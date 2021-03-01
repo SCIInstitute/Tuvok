@@ -1,11 +1,12 @@
+QMAKE_CFLAGS_ISYSTEM=-I
 TEMPLATE          = lib
 win32:TEMPLATE    = vclib
 CONFIG           += warn_on qt rtti static staticlib stl largefile
 CONFIG           += exceptions
-macx:DEFINES     += QT_MAC_USE_COCOA=1 LUA_USE_MACOSX=1
+macx-clang:DEFINES     += QT_MAC_USE_COCOA=1 LUA_USE_MACOSX=1
 DEFINES          += _FILE_OFFSET_BITS=64
 TARGET            = Build/Tuvok
-macx {
+macx-clang {
   DESTDIR         = Build
   TARGET          = Tuvok
 }
@@ -26,19 +27,21 @@ win32:LIBS       += shlwapi.lib
 unix:QMAKE_CXXFLAGS += -std=c++0x
 unix:QMAKE_CXXFLAGS += -fno-strict-aliasing
 unix:QMAKE_CFLAGS += -fno-strict-aliasing
-!macx:unix:QMAKE_CXXFLAGS += -fopenmp
-!macx:unix:QMAKE_LFLAGS += -fopenmp -bullshit-link-flag
-!macx:unix:LIBS  += -lGLU
+!macx-clang:unix:QMAKE_CXXFLAGS += -fopenmp
+!macx-clang:unix:QMAKE_LFLAGS += -fopenmp -bullshit-link-flag
+!macx-clang:unix:LIBS  += -lGLU
 
-macx:QMAKE_CXXFLAGS += -stdlib=libc++ -mmacosx-version-min=10.7
-macx:QMAKE_CFLAGS += -mmacosx-version-min=10.7
-macx:LIBS        += -stdlib=libc++ -framework CoreFoundation -mmacosx-version-min=10.7
+macx-clang:QMAKE_CXXFLAGS += -stdlib=libc++ #
+# macx:QMAKE_CFLAGS +=
+macx-clang:LIBS        += -stdlib=libc++ -framework CoreFoundation #
 # Try to link to GLU statically.
 gludirs = /usr/lib /usr/lib/x86_64-linux-gnu
 for(d, gludirs) {
-  if(exists($${d}/libGLU.a) && static) {
-    LIBS -= -lGLU;
-    LIBS += $${d}/libGLU.a
+  if (static) {
+    if(exists($${d}/libGLU.a)) {
+      LIBS -= -lGLU;
+      LIBS += $${d}/libGLU.a
+    }
   }
 }
 
@@ -292,9 +295,9 @@ HEADERS += \
            Renderer/GPUObject.h \
            Renderer/RenderMesh.h \
            Renderer/RenderRegion.h \
-           Renderer/SBVRGeoGen2D.h \
-           Renderer/SBVRGeoGen3D.h \
-           Renderer/SBVRGeoGen.h \
+           Renderer/SBVRGeogen2D.h \
+           Renderer/SBVRGeogen3D.h \
+           Renderer/SBVRGeogen.h \
            Renderer/ShaderDescriptor.h \
            Renderer/StateManager.h \
            Renderer/TFScaling.h \
@@ -365,9 +368,24 @@ SOURCES += \
            DebugOut/ConsoleOut.cpp \
            DebugOut/MultiplexOut.cpp \
            DebugOut/TextfileOut.cpp \
+           IO/3rdParty/zlib/adler32.c \
+           IO/3rdParty/zlib/compress.c \
+           IO/3rdParty/zlib/crc32.c \
+           IO/3rdParty/zlib/deflate.c \
+           IO/3rdParty/zlib/gzclose.c \
+           IO/3rdParty/zlib/gzlib.c \
+           IO/3rdParty/zlib/gzread.c \
+           IO/3rdParty/zlib/gzwrite.c \
+           IO/3rdParty/zlib/infback.c \
+           IO/3rdParty/zlib/inffast.c \
+           IO/3rdParty/zlib/inflate.c \
+           IO/3rdParty/zlib/inftrees.c \
+           IO/3rdParty/zlib/trees.c \
+           IO/3rdParty/zlib/uncompr.c \
+           IO/3rdParty/zlib/zutil.c \
            IO/3rdParty/bzip2/blocksort.c \
            IO/3rdParty/bzip2/bzlib.c \
-           IO/3rdParty/bzip2/compress.c \
+           IO/3rdParty/bzip2/bzcompress.c \
            IO/3rdParty/bzip2/crctable.c \
            IO/3rdParty/bzip2/decompress.c \
            IO/3rdParty/bzip2/huffman.c \

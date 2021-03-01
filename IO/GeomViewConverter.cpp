@@ -44,24 +44,24 @@
 namespace tuvok {
 
 GeomViewConverter::GeomViewConverter() {
-  m_vSupportedExt.push_back("OFF");
-  m_vConverterDesc = "GeomView OFF";
+  m_vSupportedExt.push_back(L"OFF");
+  m_vConverterDesc = L"GeomView OFF";
 }
 
 using namespace io;
 std::shared_ptr<Mesh>
-GeomViewConverter::ConvertToMesh(const std::string& rawFilename) {
-  MESSAGE("Converting %s...", rawFilename.c_str());
-  std::ifstream off(rawFilename.c_str(), std::ios::in);
+GeomViewConverter::ConvertToMesh(const std::wstring& rawFilename) {
+  MESSAGE("Converting %s...", SysTools::toNarrow(rawFilename).c_str());
+  std::ifstream off(SysTools::toNarrow(rawFilename).c_str(), std::ios::in);
 
   if(!off) {
-    throw DSOpenFailed(rawFilename.c_str(), "open failed", __FILE__, __LINE__);
+    throw DSOpenFailed(SysTools::toNarrow(rawFilename).c_str(), "open failed", __FILE__, __LINE__);
   }
 
   std::string magic;
   off >> magic;
   if(!off || magic != "OFF") {
-    throw DSOpenFailed(rawFilename.c_str(), "not an OFF file.", __FILE__,
+    throw DSOpenFailed(SysTools::toNarrow(rawFilename).c_str(), "not an OFF file.", __FILE__,
                        __LINE__);
   }
 
@@ -71,7 +71,7 @@ GeomViewConverter::ConvertToMesh(const std::string& rawFilename) {
   { uint64_t zero; off >> zero; }
 
   if(!off || n_vertices == 0) {
-    throw DSParseFailed(rawFilename.c_str(), "number of vertices", __FILE__,
+    throw DSParseFailed(SysTools::toNarrow(rawFilename).c_str(), "number of vertices", __FILE__,
                         __LINE__);
   }
   MESSAGE("%llu vertices.", n_vertices);
@@ -93,7 +93,7 @@ GeomViewConverter::ConvertToMesh(const std::string& rawFilename) {
     }
   }
   if(!off) {
-    throw DSParseFailed(rawFilename.c_str(), "vertices list short", __FILE__,
+    throw DSParseFailed(SysTools::toNarrow(rawFilename).c_str(), "vertices list short", __FILE__,
                         __LINE__);
   }
 
@@ -107,11 +107,11 @@ GeomViewConverter::ConvertToMesh(const std::string& rawFilename) {
       UINTVECTOR3 face;
       off >> three >> face[0] >> face[1] >> face[2] >> seven;
       if(!off) {
-        throw DSParseFailed(rawFilename.c_str(), "short face list?", __FILE__,
+        throw DSParseFailed(SysTools::toNarrow(rawFilename).c_str(), "short face list?", __FILE__,
                             __LINE__);
       }
       if(three != 3) {
-        throw DSParseFailed(rawFilename.c_str(), "unknown face type", __FILE__,
+        throw DSParseFailed(SysTools::toNarrow(rawFilename).c_str(), "unknown face type", __FILE__,
                             __LINE__);
       }
       IndexVec v,n,t,c;

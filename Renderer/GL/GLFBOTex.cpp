@@ -99,9 +99,9 @@ GLFBOTex::GLFBOTex(MasterController* pMasterController, GLenum minfilter,
     initFBO();
 
   {
-    GLenum glerr = glGetError();
-    if(GL_NO_ERROR != glerr) {
-      T_ERROR("Error '%d' during FBO creation!", static_cast<int>(glerr));
+    GLenum _glerr = glGetError();
+    if(GL_NO_ERROR != _glerr) {
+      T_ERROR("Error '%d' during FBO creation!", static_cast<int>(_glerr));
       GL(glDeleteFramebuffersEXT(1,&m_hFBO));
       m_hFBO=0;
       return;

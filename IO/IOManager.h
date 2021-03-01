@@ -48,7 +48,7 @@
 #include "Basics/TuvokException.h"
 #include "Basics/Vectors.h"
 
-typedef std::tuple<std::string,std::string,bool,bool> tConverterFormat;
+typedef std::tuple<std::wstring,std::wstring,bool,bool> tConverterFormat;
 
 class AbstrConverter;
 class FileStackInfo;
@@ -75,60 +75,60 @@ public:
   ~IOManager();
 
   std::vector<std::shared_ptr<FileStackInfo>>
-    ScanDirectory(std::string strDirectory) const;
+    ScanDirectory(std::wstring strDirectory) const;
   bool ConvertDataset(FileStackInfo* pStack,
-                      const std::string& strTargetFilename,
-                      const std::string& strTempDir,
+                      const std::wstring& strTargetFilename,
+                      const std::wstring& strTempDir,
                       const uint64_t iMaxBrickSize,
                       uint64_t iBrickOverlap,
                       bool bQuantizeTo8Bit=false) const;
-  bool ConvertDataset(const std::string& strFilename,
-                      const std::string& strTargetFilename,
-                      const std::string& strTempDir,
+  bool ConvertDataset(const std::wstring& strFilename,
+                      const std::wstring& strTargetFilename,
+                      const std::wstring& strTempDir,
                       const bool bNoUserInteraction,
                       const uint64_t iMaxBrickSize,
                       uint64_t iBrickOverlap,
                       bool bQuantizeTo8Bit=false) const;
-  bool ConvertDataset(const std::list<std::string>& files,
-                      const std::string& strTargetFilename,
-                      const std::string& strTempDir,
+  bool ConvertDataset(const std::list<std::wstring>& files,
+                      const std::wstring& strTargetFilename,
+                      const std::wstring& strTempDir,
                       const bool bNoUserInteraction,
                       const uint64_t iMaxBrickSize,
                       uint64_t iBrickOverlap,
                       bool bQuantizeTo8Bit=false) const;
-  bool MergeDatasets(const std::vector<std::string>& strFilenames,
+  bool MergeDatasets(const std::vector<std::wstring>& strFilenames,
                      const std::vector<double>& vScales,
                      const std::vector<double>& vBiases,
-                     const std::string& strTargetFilename,
-                     const std::string& strTempDir,
+                     const std::wstring& strTargetFilename,
+                     const std::wstring& strTempDir,
                      bool bUseMaxMode=true,
                      bool bNoUserInteraction=false) const;
 
   /// evaluates the given expression. v[n] in the expression refers to
   /// the volume given by volumes[n].
   void EvaluateExpression(const std::string& expr,
-                          const std::vector<std::string>& volumes,
-                          const std::string& out_fn) const
-                          throw(tuvok::Exception);
+                          const std::vector<std::wstring>& volumes,
+                          const std::wstring& out_fn) const
+                          /* throw(tuvok::Exception) */;
 
-  bool ReBrickDataset(const std::string& strSourceFilename,
-                      const std::string& strTargetFilename,
-                      const std::string& strTempDir,
+  bool ReBrickDataset(const std::wstring& strSourceFilename,
+                      const std::wstring& strTargetFilename,
+                      const std::wstring& strTempDir,
                       const uint64_t iMaxBrickSize,
                       const uint64_t iBrickOverlap,
                       bool bQuantizeTo8Bit=false) const;
 
   bool ConvertDataset(FileStackInfo* pStack,
-                      const std::string& strTargetFilename,
-                      const std::string& strTempDir,
+                      const std::wstring& strTargetFilename,
+                      const std::wstring& strTempDir,
                       const bool bQuantizeTo8Bit=false) const{
     return ConvertDataset(pStack, strTargetFilename, strTempDir,
                           m_iBuilderBrickSize, m_iBrickOverlap,
                           bQuantizeTo8Bit);
   }
-  bool ConvertDataset(const std::list<std::string>& files,
-                      const std::string& strTargetFilename,
-                      const std::string& strTempDir,
+  bool ConvertDataset(const std::list<std::wstring>& files,
+                      const std::wstring& strTargetFilename,
+                      const std::wstring& strTempDir,
                       const bool bNoUserInteraction=false,
                       const bool bQuantizeTo8Bit=false) const {
     return ConvertDataset(files, strTargetFilename, strTempDir,
@@ -136,11 +136,11 @@ public:
                           m_iBrickOverlap, bQuantizeTo8Bit);
   }
 
-  std::shared_ptr<tuvok::Mesh> LoadMesh(const std::string& meshfile) const;
+  std::shared_ptr<tuvok::Mesh> LoadMesh(const std::wstring& meshfile) const;
 
   void AddMesh(const UVF* sourceDataset,
-               const std::string& trisoup_file,
-               const std::string& uvf) const;
+               const std::wstring& trisoup_file,
+               const std::wstring& uvf) const;
 
   ///@{
   /// We jump into the memory manager to load a data set, but the memory
@@ -148,84 +148,84 @@ public:
   /// memory manager to call us.  The MMgr will in turn use the DSFactory from
   /// here to actually create the data set.
   void SetMemManLoadFunction(
-    std::function<tuvok::Dataset*(const std::string&,
+    std::function<tuvok::Dataset*(const std::wstring&,
                                   tuvok::AbstrRenderer*)>& f
   );
-  tuvok::Dataset* LoadDataset(const std::string& strFilename,
+  tuvok::Dataset* LoadDataset(const std::wstring& strFilename,
                               tuvok::AbstrRenderer* requester) const;
 
   /// @param filename the data to load
   /// @param the bricksize we should rebrick into
   /// @param minmaxType how we should handle brick min/maxes. 0=use the source
   /// dataset, 1=precompute on load (big delay), 2=compute on demand
-  tuvok::Dataset* LoadRebrickedDataset(const std::string& filename,
+  tuvok::Dataset* LoadRebrickedDataset(const std::wstring& filename,
                                        const UINTVECTOR3 bricksize,
                                        size_t minmaxType) const;
   ///@}
-  tuvok::Dataset* CreateDataset(const std::string& filename,
+  tuvok::Dataset* CreateDataset(const std::wstring& filename,
                                 uint64_t max_brick_size, bool verify) const;
   void AddReader(std::shared_ptr<tuvok::FileBackedDataset>);
-  bool AnalyzeDataset(const std::string& strFilename, RangeInfo& info,
-                      const std::string& strTempDir) const;
-  bool NeedsConversion(const std::string& strFilename) const;
-  bool Verify(const std::string& strFilename) const;
+  bool AnalyzeDataset(const std::wstring& strFilename, RangeInfo& info,
+                      const std::wstring& strTempDir) const;
+  bool NeedsConversion(const std::wstring& strFilename) const;
+  bool Verify(const std::wstring& strFilename) const;
 
   bool ExportMesh(const std::shared_ptr<tuvok::Mesh> mesh, 
-                  const std::string& strTargetFilename);
+                  const std::wstring& strTargetFilename);
   bool ExportDataset(const tuvok::UVFDataset* pSourceData, uint64_t iLODlevel,
-                     const std::string& strTargetFilename,
-                     const std::string& strTempDir) const;
+                     const std::wstring& strTargetFilename,
+                     const std::wstring& strTempDir) const;
   bool ExtractIsosurface(const tuvok::UVFDataset* pSourceData,
                          uint64_t iLODlevel, double fIsovalue,
                          const FLOATVECTOR4& vfColor,
-                         const std::string& strTargetFilename,
-                         const std::string& strTempDir) const;
+                         const std::wstring& strTargetFilename,
+                         const std::wstring& strTempDir) const;
   bool ExtractImageStack(const tuvok::UVFDataset* pSourceData,
                          const TransferFunction1D* pTrans,
                          uint64_t iLODlevel, 
-                         const std::string& strTargetFilename,
-                         const std::string& strTempDir,
+                         const std::wstring& strTargetFilename,
+                         const std::wstring& strTempDir,
                          bool bAllDirs) const;
 
 
   void RegisterExternalConverter(std::shared_ptr<AbstrConverter> pConverter);
   void RegisterFinalConverter(std::shared_ptr<AbstrConverter> pConverter);
 
-  std::string GetLoadDialogString() const;
-  std::string GetExportDialogString() const;
-  std::string ExportDialogFilterToExt(const std::string& filter) const;
-  std::string GetImageExportDialogString() const;
-  std::string ImageExportDialogFilterToExt(const std::string& filter) const;
+  std::wstring GetLoadDialogString() const;
+  std::wstring GetExportDialogString() const;
+  std::wstring ExportDialogFilterToExt(const std::wstring& filter) const;
+  std::wstring GetImageExportDialogString() const;
+  std::wstring ImageExportDialogFilterToExt(const std::wstring& filter) const;
 
 
-  std::vector<std::pair<std::string, std::string>>
+  std::vector<std::pair<std::wstring, std::wstring>>
     GetImportFormatList() const;
-  std::vector<std::pair<std::string, std::string>>
+  std::vector<std::pair<std::wstring, std::wstring>>
     GetExportFormatList() const;
   std::vector<tConverterFormat> GetFormatList() const;
-  bool HasConverterForExt(std::string ext,
+  bool HasConverterForExt(std::wstring ext,
                           bool bMustSupportExport,
                           bool bMustSupportImport) const {
     return (GetConverterForExt(ext,bMustSupportExport,bMustSupportImport)!=NULL);
   }
-  std::shared_ptr<AbstrConverter> GetConverterForExt(std::string ext,
+  std::shared_ptr<AbstrConverter> GetConverterForExt(std::wstring ext,
                                      bool bMustSupportExport,
                                      bool bMustSupportImport) const;
 
-  std::string GetLoadGeoDialogString() const;
-  std::string GetGeoExportDialogString() const;
-  std::vector<std::pair<std::string, std::string>>
+  std::wstring GetLoadGeoDialogString() const;
+  std::wstring GetGeoExportDialogString() const;
+  std::vector<std::pair<std::wstring, std::wstring>>
     GetGeoImportFormatList() const;
-  std::vector<std::pair<std::string, std::string>>
+  std::vector<std::pair<std::wstring, std::wstring>>
     GetGeoExportFormatList() const;
   std::vector<tConverterFormat> GetGeoFormatList() const;
-  bool HasGeoConverterForExt(std::string ext,
+  bool HasGeoConverterForExt(std::wstring ext,
                              bool bMustSupportExport,
                              bool bMustSupportImport) const {
     return GetGeoConverterForExt(ext, bMustSupportExport, bMustSupportImport)
         != NULL;
   }
-  tuvok::AbstrGeoConverter* GetGeoConverterForExt(std::string ext,
+  tuvok::AbstrGeoConverter* GetGeoConverterForExt(std::wstring ext,
                                                   bool bMustSupportExport,
                                                   bool bMustSupportImport) const;
 
@@ -280,7 +280,7 @@ private:
   uint32_t m_iCompression;
   uint32_t m_iCompressionLevel;
   uint32_t m_iLayout;
-  std::function<tuvok::Dataset* (const std::string&,
+  std::function<tuvok::Dataset* (const std::wstring&,
                                  tuvok::AbstrRenderer*)> m_LoadDS;
 
   void CopyToTSB(const tuvok::Mesh& m, GeometryDataBlock* tsb) const;

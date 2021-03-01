@@ -295,9 +295,9 @@ class AbstrRenderer {
     virtual UINTVECTOR4 PH_RecalculateVisibility();
     virtual bool PH_Converged() const;
 
-    virtual bool PH_OpenBrickAccessLogfile(const std::string&);
+    virtual bool PH_OpenBrickAccessLogfile(const std::wstring&);
     virtual bool PH_CloseBrickAccessLogfile();
-    virtual bool PH_OpenLogfile(const std::string&);
+    virtual bool PH_OpenLogfile(const std::wstring&);
     virtual bool PH_CloseLogfile();
     virtual void PH_SetOptimalFrameAverageCount(size_t);
     virtual size_t PH_GetOptimalFrameAverageCount() const;
@@ -344,7 +344,7 @@ class AbstrRenderer {
       } return false;
     }
 
-    virtual void SetLogoParams(std::string strLogoFilename, int iLogoPos);
+    virtual void SetLogoParams(const std::wstring& strLogoFilename, int iLogoPos);
     virtual void ClipPlaneRelativeLock(bool);
 
     // Clear view
@@ -396,7 +396,7 @@ class AbstrRenderer {
     virtual bool  GetStereoEyeSwap() const {return m_bStereoEyeSwap;}
     virtual void InitStereoFrame();
     virtual void ToggleStereoFrame();
-    virtual bool CaptureSingleFrame(const std::string& strFilename,
+    virtual bool CaptureSingleFrame(const std::wstring& strFilename,
                                     bool bPreserveTransparency) const;
 
     virtual void ScheduleCompleteRedraw();
@@ -454,12 +454,12 @@ class AbstrRenderer {
     }
 
     /// creates a dataset and registers it with this renderer.
-    virtual bool LoadFile(const std::string& filename);
+    virtual bool LoadFile(const std::wstring& filename);
     /// registers the dataset with this renderer.  this renderer then 'owns' it
     /// and will handle deletion.
     virtual bool RegisterDataset(Dataset* ds);
     /// ditto as LoadDataset, but gives a rebricked DS
-    virtual bool LoadRebricked(const std::string& strFilename,
+    virtual bool LoadRebricked(const std::wstring& strFilename,
                                const UINTVECTOR3 bsize,
                                size_t minmaxMode);
 
@@ -477,7 +477,7 @@ class AbstrRenderer {
 
     virtual void Schedule3DWindowRedraws(); // Redraw all 3D windows.
 
-    virtual bool CropDataset(const std::string& strTempDir, bool bKeepOldData) = 0;
+    virtual bool CropDataset(const std::wstring& strTempDir, bool bKeepOldData) = 0;
 
     ExtendedPlane LuaGetClipPlane() const;
 
@@ -611,7 +611,7 @@ class AbstrRenderer {
 
     /// Prepends the given directory to the list of paths Tuvok will
     /// try to find shaders in.
-    void AddShaderPath(const std::string &path) {
+    void AddShaderPath(const std::wstring &path) {
       m_vShaderSearchDirs.insert(m_vShaderSearchDirs.begin(), path);
     }
 
@@ -703,7 +703,7 @@ class AbstrRenderer {
     bool                m_bRenderLocalBBox;
     UINTVECTOR2         m_vWinSize;
     int                 m_iLogoPos;
-    std::string         m_strLogoFilename;
+    std::wstring        m_strLogoFilename;
     uint32_t            m_iDebugView;
 
     Interpolant         m_eInterpolant;
@@ -791,7 +791,7 @@ class AbstrRenderer {
 
     FLOATMATRIX4        m_mProjection[2];
     FLOATMATRIX4        m_mView[2];
-    std::vector<std::string> m_vShaderSearchDirs;
+    std::vector<std::wstring> m_vShaderSearchDirs;
 
     ExtendedPlane       m_ClipPlane;
     bool                m_bClipPlaneOn;

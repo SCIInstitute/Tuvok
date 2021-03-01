@@ -33,7 +33,7 @@
 namespace tuvok { namespace expression {
 
 void BinaryExpression::SetOperator(enum OpType o) { this->oper = o; }
-void BinaryExpression::Analyze() const throw(semantic::Error) {
+void BinaryExpression::Analyze() const {
   // If they gave us a divide, check for division by zero.
   if(this->oper == OP_DIVIDE) {
     const std::shared_ptr<Node> rhs = this->GetChild(1);

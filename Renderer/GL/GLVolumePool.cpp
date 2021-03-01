@@ -1034,6 +1034,11 @@ namespace {
     uint32_t const iLoDCount = pool.GetLoDCount();
     UINTVECTOR3 iChildLayout = GetBrickLayout(pool.GetVolumeSize(), pool.GetMaxInnerBrickSize(), 0);
 
+    if (iChildLayout.volume() != vBrickMetadata.size()) {
+      throw Exception("UVF file has invalid layout for the Gridleaper renderer. Please convert the file to the new UVF version. "
+        "To convert a file either use the command line tools or load the file with a basic renderer (e.g. slicing) and then export to UVF.", _func_, __LINE__);
+    }
+
     // evaluate child visibility for finest level
     for (uint32_t z = 0; z < iChildLayout.z; z++) {
       for (uint32_t y = 0; y < iChildLayout.y; y++) {
@@ -1737,7 +1742,7 @@ uint32_t GLVolumePool::UploadBricks(const std::vector<UINTVECTOR4>& vBrickIDs,
           PotentiallyUploadBricksToBrickPool<AbstrRenderer::RM_1DTRANS>(
             visibility, m_pDataset, m_iMinMaxScalarTimestep, *this,
             m_vBrickMetadata, vBrickIDs, m_vMinMaxScalar, m_vMinMaxGradient,
-            m_iMaxUsedBrickVoxelCount, brickDebug
+            size_t(m_iMaxUsedBrickVoxelCount), brickDebug
           );
         break;
       case AbstrRenderer::RM_2DTRANS:
@@ -1745,7 +1750,7 @@ uint32_t GLVolumePool::UploadBricks(const std::vector<UINTVECTOR4>& vBrickIDs,
           PotentiallyUploadBricksToBrickPool<AbstrRenderer::RM_2DTRANS>(
             visibility, m_pDataset, m_iMinMaxScalarTimestep, *this,
             m_vBrickMetadata, vBrickIDs, m_vMinMaxScalar, m_vMinMaxGradient,
-            m_iMaxUsedBrickVoxelCount, brickDebug
+            size_t(m_iMaxUsedBrickVoxelCount), brickDebug
           );
         break;
       case AbstrRenderer::RM_ISOSURFACE:
@@ -1753,7 +1758,7 @@ uint32_t GLVolumePool::UploadBricks(const std::vector<UINTVECTOR4>& vBrickIDs,
           PotentiallyUploadBricksToBrickPool<AbstrRenderer::RM_ISOSURFACE>(
             visibility, m_pDataset, m_iMinMaxScalarTimestep, *this,
             m_vBrickMetadata, vBrickIDs, m_vMinMaxScalar, m_vMinMaxGradient,
-            m_iMaxUsedBrickVoxelCount, brickDebug
+            size_t(m_iMaxUsedBrickVoxelCount), brickDebug
           );
         break;
       default:
@@ -1764,7 +1769,7 @@ uint32_t GLVolumePool::UploadBricks(const std::vector<UINTVECTOR4>& vBrickIDs,
       // visibility is updated guaranteeing that requested bricks do contain data
       iPagedBricks = UploadBricksToBrickPool(
         *this, vBrickIDs, m_pDataset, m_iMinMaxScalarTimestep,
-        m_iMaxUsedBrickVoxelCount, brickDebug);
+        size_t(m_iMaxUsedBrickVoxelCount), brickDebug);
     }
   }
   

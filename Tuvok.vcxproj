@@ -60,67 +60,67 @@
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release (No Qt)|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug (No Qt)|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release (No Qt)|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug (No Qt)|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -544,6 +544,21 @@
     <ClCompile Include="IO\3rdParty\lzma\LzFind.c" />
     <ClCompile Include="IO\3rdParty\lzma\LzmaDec.c" />
     <ClCompile Include="IO\3rdParty\lzma\LzmaEnc.c" />
+    <ClCompile Include="IO\3rdParty\zlib\adler32.c" />
+    <ClCompile Include="IO\3rdParty\zlib\compress.c" />
+    <ClCompile Include="IO\3rdParty\zlib\crc32.c" />
+    <ClCompile Include="IO\3rdParty\zlib\deflate.c" />
+    <ClCompile Include="IO\3rdParty\zlib\gzclose.c" />
+    <ClCompile Include="IO\3rdParty\zlib\gzlib.c" />
+    <ClCompile Include="IO\3rdParty\zlib\gzread.c" />
+    <ClCompile Include="IO\3rdParty\zlib\gzwrite.c" />
+    <ClCompile Include="IO\3rdParty\zlib\infback.c" />
+    <ClCompile Include="IO\3rdParty\zlib\inffast.c" />
+    <ClCompile Include="IO\3rdParty\zlib\inflate.c" />
+    <ClCompile Include="IO\3rdParty\zlib\inftrees.c" />
+    <ClCompile Include="IO\3rdParty\zlib\trees.c" />
+    <ClCompile Include="IO\3rdParty\zlib\uncompr.c" />
+    <ClCompile Include="IO\3rdParty\zlib\zutil.c" />
     <ClCompile Include="IO\AmiraConverter.cpp" />
     <ClCompile Include="IO\BMinMax.cpp" />
     <ClCompile Include="IO\BrickCache.cpp" />
@@ -1196,7 +1211,7 @@
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4100;4244;4267;4663;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (No Qt)|x64'">4100;4244;4267;4663;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
-    <ClCompile Include="IO\3rdParty\bzip2\compress.c">
+    <ClCompile Include="IO\3rdParty\bzip2\bzcompress.c">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
@@ -1363,6 +1378,15 @@
     <ClInclude Include="IO\3rdParty\lzma\LzmaDec.h" />
     <ClInclude Include="IO\3rdParty\lzma\LzmaEnc.h" />
     <ClInclude Include="IO\3rdParty\lzma\Types.h" />
+    <ClInclude Include="IO\3rdParty\zlib\crc32.h" />
+    <ClInclude Include="IO\3rdParty\zlib\deflate.h" />
+    <ClInclude Include="IO\3rdParty\zlib\gzguts.h" />
+    <ClInclude Include="IO\3rdParty\zlib\inffast.h" />
+    <ClInclude Include="IO\3rdParty\zlib\inffixed.h" />
+    <ClInclude Include="IO\3rdParty\zlib\inflate.h" />
+    <ClInclude Include="IO\3rdParty\zlib\inftrees.h" />
+    <ClInclude Include="IO\3rdParty\zlib\trees.h" />
+    <ClInclude Include="IO\3rdParty\zlib\zutil.h" />
     <ClInclude Include="IO\AmiraConverter.h" />
     <ClInclude Include="IO\BMinMax.h" />
     <ClInclude Include="IO\BrickCache.h" />

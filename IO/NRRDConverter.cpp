@@ -47,64 +47,64 @@ using namespace std;
 
 NRRDConverter::NRRDConverter()
 {
-  m_vConverterDesc = "Nearly Raw Raster Data";
-  m_vSupportedExt.push_back("NRRD");
-  m_vSupportedExt.push_back("NHDR");
+  m_vConverterDesc = L"Nearly Raw Raster Data";
+  m_vSupportedExt.push_back(L"NRRD");
+  m_vSupportedExt.push_back(L"NHDR");
 }
 
-bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
-                                 const std::string& strTempDir, bool,
+bool NRRDConverter::ConvertToRAW(const std::wstring& strSourceFilename,
+                                 const std::wstring& strTempDir, bool,
                                  uint64_t& iHeaderSkip,
                                  unsigned& iComponentSize,
                                  uint64_t& iComponentCount,
                                  bool& bConvertEndianess, bool& bSigned,
                                  bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
                                  FLOATVECTOR3& vVolumeAspect,
-                                 std::string& strTitle,
-                                 std::string& strIntermediateFile,
+                                 std::wstring& strTitle,
+                                 std::wstring& strIntermediateFile,
                                  bool& bDeleteIntermediateFile)
 {
-  MESSAGE("Attempting to convert NRRD dataset %s", strSourceFilename.c_str());
+  MESSAGE("Attempting to convert NRRD dataset %s", SysTools::toNarrow(strSourceFilename).c_str());
 
   // Check Magic value in NRRD File first
-  ifstream fileData(strSourceFilename.c_str());
+  ifstream ffileData(SysTools::toNarrow(strSourceFilename).c_str());
   string strFirstLine;
 
-  if (fileData.is_open())
+  if (ffileData.is_open())
   {
-    getline (fileData,strFirstLine);
+    getline (ffileData,strFirstLine);
     if (strFirstLine.substr(0,7) != "NRRD000") {
-      WARNING("The file %s is not a NRRD file (missing magic)", strSourceFilename.c_str());
+      WARNING("The file %s is not a NRRD file (missing magic)", SysTools::toNarrow(strSourceFilename).c_str());
       return false;
     }
   } else {
-    WARNING("Could not open NRRD file %s", strSourceFilename.c_str());
+    WARNING("Could not open NRRD file %s", SysTools::toNarrow(strSourceFilename).c_str());
     return false;
   }
-  fileData.close();
+  ffileData.close();
 
   // init data
-  strTitle = "NRRD data";
+  strTitle = L"NRRD data";
   iComponentSize=8;
   iComponentCount=1;
   bSigned=false;
   bool bBigEndian=false;
   vVolumeSize = UINT64VECTOR3(1,1,1);
   vVolumeAspect = FLOATVECTOR3(1,1,1);
-  string        strRAWFile;
+  std::wstring strRAWFile;
   bDeleteIntermediateFile = false;
 
   // read data
   KeyValueFileParser parser(strSourceFilename, true);
 
   if (!parser.FileReadable()) {
-    WARNING("Could not open NRRD file %s", strSourceFilename.c_str());
+    WARNING("Could not open NRRD file %s", SysTools::toNarrow(strSourceFilename).c_str());
     return false;
   }
 
   KeyValPair* kvpType = parser.GetData("TYPE");
   if (kvpType == NULL) {
-    T_ERROR("Could not open find token \"type\" in file %s", strSourceFilename.c_str());
+    T_ERROR("Could not open find token \"type\" in file %s", SysTools::toNarrow(strSourceFilename).c_str());
     return false;
   } else {
     if (kvpType->strValueUpper == "SIGNED CHAR" ||
@@ -181,14 +181,14 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
       iComponentSize = 64;
       MESSAGE("Double-precision nrrd.");
     } else {
-      T_ERROR("Unsupported \"type\" in file %s", strSourceFilename.c_str());
+      T_ERROR("Unsupported \"type\" in file %s", SysTools::toNarrow(strSourceFilename).c_str());
       return false;
     }
   }
 
   KeyValPair* kvpSizes = parser.GetData("SIZES");
   if (kvpSizes == NULL) {
-    T_ERROR("Could not open find token \"sizes\" in file %s", strSourceFilename.c_str());
+    T_ERROR("Could not open find token \"sizes\" in file %s", SysTools::toNarrow(strSourceFilename).c_str());
     return false;
   } else {
 
@@ -208,7 +208,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
   KeyValPair* kvpDim = parser.GetData("DIMENSION");
   if (kvpDim == NULL) {
     T_ERROR("Could not open find token \"dimension\" in file %s",
-            strSourceFilename.c_str());
+      SysTools::toNarrow(strSourceFilename).c_str());
     return false;
   } else {
     if (kvpDim->iValue < 3)  {
@@ -240,8 +240,8 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
     if (kvpDataFile1 && kvpDataFile2 && kvpDataFile1->strValue != kvpDataFile2->strValue)
       WARNING( "Found different 'data file' and 'datafile' fields, using 'datafile'.");
 
-    if (kvpDataFile1) strRAWFile = SysTools::GetPath(strSourceFilename) + kvpDataFile1->strValue;
-    if (kvpDataFile2) strRAWFile = SysTools::GetPath(strSourceFilename) + kvpDataFile2->strValue;
+    if (kvpDataFile1) strRAWFile = SysTools::GetPath(strSourceFilename) + kvpDataFile1->wstrValue;
+    if (kvpDataFile2) strRAWFile = SysTools::GetPath(strSourceFilename) + kvpDataFile2->wstrValue;
 
     iHeaderSkip = 0;
     bDetachedHeader = true;
@@ -262,7 +262,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
   try {
     KeyValPair* kvpSpaceDirs = parser.GetData("SPACE DIRECTIONS");
     if (kvpSpaceDirs != NULL) {
-      std::vector<std::string> dirs = kvpSpaceDirs->vstrValue;
+      std::vector<std::wstring> dirs = kvpSpaceDirs->vwstrValue;
       if (dirs.size() == 3) {
         for (size_t dim = 0;dim<3;dim++) {
           FLOATVECTOR3 axis;
@@ -343,7 +343,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
 
   std::streamoff iLineSkipBytes = 0;
   if (iLineSkip != 0) {
-    ifstream fileData(strRAWFile.c_str(),ios::binary);
+    ifstream fileData(SysTools::toNarrow(strRAWFile).c_str(),ios::binary);
     string line;
     if (fileData.is_open()) {
       int i = 0;
@@ -371,7 +371,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
   KeyValPair* kvpEncoding = parser.GetData("ENCODING");
   if (kvpEncoding == NULL) {
     T_ERROR("Could not find token \"encoding\" in file %s",
-          strSourceFilename.c_str());
+      SysTools::toNarrow(strSourceFilename).c_str());
     return false;
   } else {
     if (kvpEncoding->strValueUpper == "RAW")  {
@@ -407,7 +407,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
       if (kvpEncoding->strValueUpper == "TXT" || kvpEncoding->strValueUpper == "TEXT" || kvpEncoding->strValueUpper == "ASCII")  {
         MESSAGE("NRRD data is plain textformat.");
 
-        string strBinaryFile = strTempDir+SysTools::GetFilename(strSourceFilename)+".binary";
+        wstring strBinaryFile = strTempDir+SysTools::GetFilename(strSourceFilename)+L".binary";
         bool bResult = ParseTXTDataset(strRAWFile, strBinaryFile, iHeaderSkip, iComponentSize, iComponentCount, bSigned, bIsFloat, vVolumeSize);
         strIntermediateFile = strBinaryFile;
         bDeleteIntermediateFile = true;
@@ -421,7 +421,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
       if (kvpEncoding->strValueUpper == "GZ" || kvpEncoding->strValueUpper == "GZIP")  {
         MESSAGE("NRRD data is GZIP compressed RAW format.");
 
-        string strUncompressedFile = strTempDir+SysTools::GetFilename(strSourceFilename)+".uncompressed";
+        wstring strUncompressedFile = strTempDir+SysTools::GetFilename(strSourceFilename)+L".uncompressed";
         bool bResult = ExtractGZIPDataset(strRAWFile, strUncompressedFile, iHeaderSkip);
         strIntermediateFile = strUncompressedFile;
         bDeleteIntermediateFile = true;
@@ -431,7 +431,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
       if (kvpEncoding->strValueUpper == "BZ" || kvpEncoding->strValueUpper == "BZIP2")  {
         MESSAGE("NRRD data is BZIP2 compressed RAW format.");
 
-        string strUncompressedFile = strTempDir+SysTools::GetFilename(strSourceFilename)+".uncompressed";
+        wstring strUncompressedFile = strTempDir+SysTools::GetFilename(strSourceFilename)+L".uncompressed";
         bool bResult = ExtractBZIP2Dataset(strRAWFile, strUncompressedFile, iHeaderSkip);
         strIntermediateFile = strUncompressedFile;
         bDeleteIntermediateFile = true;
@@ -445,12 +445,12 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
   }
 }
 
-bool NRRDConverter::ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, uint64_t iHeaderSkip,
+bool NRRDConverter::ConvertToNative(const std::wstring& strRawFilename, const std::wstring& strTargetFilename, uint64_t iHeaderSkip,
                              unsigned iComponentSize, uint64_t iComponentCount, bool bSigned, bool bFloatingPoint,
                              UINT64VECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, bool bNoUserInteraction,
                              const bool bQuantizeTo8Bit) {
 
-  bool bDetached = SysTools::ToLowerCase(SysTools::GetExt(strTargetFilename)) == "nhdr";
+  bool bDetached = SysTools::ToLowerCase(SysTools::GetExt(strTargetFilename)) == L"nhdr";
 
   // compute fromat string
   string strFormat;
@@ -493,9 +493,9 @@ bool NRRDConverter::ConvertToNative(const std::string& strRawFilename, const std
 
   // create header textfile from metadata
 
-  ofstream fAsciiTarget(strTargetFilename.c_str());
+  ofstream fAsciiTarget(SysTools::toNarrow(strTargetFilename).c_str());
   if (!fAsciiTarget.is_open()) {
-    T_ERROR("Unable to open target file %s.", strTargetFilename.c_str());
+    T_ERROR("Unable to open target file %s.", SysTools::toNarrow(strTargetFilename).c_str());
     return false;
   }
 
@@ -508,8 +508,8 @@ bool NRRDConverter::ConvertToNative(const std::string& strRawFilename, const std
   fAsciiTarget << "encoding: raw" << endl;
 
   if (bDetached) {
-    string strTargetRAWFilename = strTargetFilename+".raw";
-    fAsciiTarget << "data file: ./" << SysTools::GetFilename(strTargetRAWFilename) << endl;
+    wstring strTargetRAWFilename = strTargetFilename+L".raw";
+    fAsciiTarget << "data file: ./" << SysTools::toNarrow(SysTools::GetFilename(strTargetRAWFilename)) << endl;
     fAsciiTarget.close();
 
     // copy RAW file using the parent's call
@@ -520,8 +520,8 @@ bool NRRDConverter::ConvertToNative(const std::string& strRawFilename, const std
     if (bRAWSuccess) {
       return true;
     } else {
-      T_ERROR("Error creating raw target file %s.", strTargetRAWFilename.c_str());
-      remove(strTargetFilename.c_str());
+      T_ERROR("Error creating raw target file %s.", SysTools::toNarrow(strTargetRAWFilename).c_str());
+      SysTools::RemoveFile(strTargetFilename);
       return false;
     }
 
@@ -537,8 +537,8 @@ bool NRRDConverter::ConvertToNative(const std::string& strRawFilename, const std
       return true;
     } else {
       T_ERROR("Error appending raw data to header file %s.",
-              strTargetFilename.c_str());
-      remove(strTargetFilename.c_str());
+        SysTools::toNarrow(strTargetFilename).c_str());
+      SysTools::RemoveFile(strTargetFilename);
       return false;
     }
   }

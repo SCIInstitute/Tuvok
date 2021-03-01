@@ -187,7 +187,7 @@ public:
                                          const;
 
   bool BrickedLODToFlatData(const std::vector<uint64_t>& vLOD,
-                            const std::string& strTargetFile,
+                            const std::wstring& strTargetFile,
                             bool bAppend = false, AbstrDebugOut* pDebugOut=NULL) const;
 
   bool ApplyFunction(const std::vector<uint64_t>& vLOD,
@@ -432,16 +432,16 @@ class LODBrickIterator : public std::iterator<std::input_iterator_tag, T> {
     /// keeps separate counts for each dimension.  Thus we need to be
     /// able to take our linear counter and convert it to RDB indices.
     std::vector<uint64_t> NDBrickIndex(size_t b) {
-      uint64_t brick = static_cast<uint64_t>(b);
+      uint64_t ndbrick = static_cast<uint64_t>(b);
       std::vector<uint64_t> lod(1);
       lod[0] = LODIndex();
       const std::vector<uint64_t>& counts = rdb->GetBrickCount(lod);
 
-      uint64_t z = static_cast<uint64_t>(brick / (counts[0] * counts[1]));
-      brick = brick % (counts[0] * counts[1]);
-      uint64_t y = static_cast<uint64_t>(brick / counts[0]);
-      brick = brick % counts[0];
-      uint64_t x = brick;
+      uint64_t z = static_cast<uint64_t>(ndbrick / (counts[0] * counts[1]));
+      ndbrick = ndbrick % (counts[0] * counts[1]);
+      uint64_t y = static_cast<uint64_t>(ndbrick / counts[0]);
+      ndbrick = ndbrick % counts[0];
+      uint64_t x = ndbrick;
 
       std::vector<uint64_t> vec(3);
       vec[0] = x;

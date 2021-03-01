@@ -47,17 +47,17 @@
 #include "Controller/Controller.h"
 
 
-std::vector<std::pair<std::string,std::string>> StackExporter::GetSuportedImageFormats() {
-  std::vector<std::pair<std::string,std::string>> formats;
+std::vector<std::pair<std::wstring,std::wstring>> StackExporter::GetSuportedImageFormats() {
+  std::vector<std::pair<std::wstring,std::wstring>> formats;
 
-  formats.push_back(std::make_pair("raw","RAW RGBA file without header information"));
+  formats.push_back(std::make_pair(L"raw",L"RAW RGBA file without header information"));
 
 #ifndef TUVOK_NO_QT
   QList<QByteArray> listImageFormats = QImageWriter::supportedImageFormats();
   for (int i = 0;i<listImageFormats.size();i++) {
     QByteArray imageFormat = listImageFormats[i];
     QString qStrImageFormat(imageFormat);
-    formats.push_back(std::make_pair(qStrImageFormat.toStdString(),"Qt Image Format"));
+    formats.push_back(std::make_pair(qStrImageFormat.toStdWString(),L"Qt Image Format"));
   }
 #endif
 
@@ -65,13 +65,13 @@ std::vector<std::pair<std::string,std::string>> StackExporter::GetSuportedImageF
 }
 
 bool StackExporter::WriteImage(unsigned char* pData,
-                               const std::string& strFilename,
+                               const std::wstring& strFilename,
                                const UINT64VECTOR2& vSize,
                                uint64_t iComponentCount) {
 
   if (iComponentCount != 4 && iComponentCount != 3) return false;
   
-  if (SysTools::ToLowerCase(SysTools::GetExt(strFilename)) == "raw") {
+  if (SysTools::ToLowerCase(SysTools::GetExt(strFilename)) == L"raw") {
     LargeRAWFile out(strFilename); 
     if (!out.Create()) return false;
     out.WriteRAW(pData, vSize.area()*iComponentCount);
@@ -104,8 +104,7 @@ bool StackExporter::WriteImage(unsigned char* pData,
       }
     }
   }
-
-  return qTargetFile.save(strFilename.c_str());
+  return qTargetFile.save(QString::fromStdWString(strFilename));
 #else
   return false;
 #endif
@@ -116,7 +115,7 @@ bool StackExporter::WriteImage(unsigned char* pData,
 bool StackExporter::WriteSlice(unsigned char* pData,
                                const TransferFunction1D* pTrans,
                                uint64_t iBitWidth,
-                               const std::string& strCurrentDiFilename,
+                               const std::wstring& strCurrentDiFilename,
                                const UINT64VECTOR2& vSize,
                                float fRescale,
                                uint64_t iComponentCount) {
@@ -138,7 +137,7 @@ bool StackExporter::WriteSlice(unsigned char* pData,
     }
 
     // write data to disk
-    std::string strCurrentTargetFilename = SysTools::FindNextSequenceName(strCurrentDiFilename);
+    std::wstring strCurrentTargetFilename = SysTools::FindNextSequenceName(strCurrentDiFilename);
 
     return WriteImage(pData,strCurrentTargetFilename, vSize, iImageCompCount);
 }
@@ -172,8 +171,8 @@ void StackExporter::PadInplace(unsigned char* pData,
 }
 
 
-bool StackExporter::WriteStacks(const std::string& strRAWFilename, 
-                                const std::string& strTargetFilename,
+bool StackExporter::WriteStacks(const std::wstring& strRAWFilename, 
+                                const std::wstring& strTargetFilename,
                                 const TransferFunction1D* pTrans,
                                 uint64_t iBitWidth,
                                 uint64_t iComponentCount,
@@ -216,7 +215,7 @@ bool StackExporter::WriteStacks(const std::string& strRAWFilename,
   );
 
   UINT64VECTOR2 vSize(vDomainSize.z, vDomainSize.y);
-  std::string strCurrentDirTargetFilename = SysTools::AppendFilename(strTargetFilename, "_x");
+  std::wstring strCurrentDirTargetFilename = SysTools::AppendFilename(strTargetFilename, L"_x");
   size_t elemSize = iComponentCount*iDataByteWith;
 
   if (bAllDirs)  {
@@ -240,7 +239,7 @@ bool StackExporter::WriteStacks(const std::string& strRAWFilename,
     }
 
     vSize = UINT64VECTOR2(vDomainSize.x, vDomainSize.z);
-    strCurrentDirTargetFilename = SysTools::AppendFilename(strTargetFilename, "_y");
+    strCurrentDirTargetFilename = SysTools::AppendFilename(strTargetFilename, L"_y");
     for (uint64_t y = 0;y<vDomainSize.y;y++) {
       MESSAGE("Exporting Y-Axis Stack. Processing Image %llu of %llu", y+1, vDomainSize.y);
 
@@ -259,7 +258,7 @@ bool StackExporter::WriteStacks(const std::string& strRAWFilename,
     }
 
     dataSource.SeekPos(0);
-    strCurrentDirTargetFilename = SysTools::AppendFilename(strTargetFilename, "_z");
+    strCurrentDirTargetFilename = SysTools::AppendFilename(strTargetFilename, L"_z");
   } else {
     strCurrentDirTargetFilename = strTargetFilename;
   }

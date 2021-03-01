@@ -66,9 +66,9 @@ namespace tuvok {
       // @return (totalProcessedBrickCount, emptyBrickCount, childEmptyBrickCount, emptyLeafBrickCount)
       virtual UINTVECTOR4 PH_RecalculateVisibility();
       virtual bool PH_Converged() const;
-      virtual bool PH_OpenBrickAccessLogfile(const std::string&);
+      virtual bool PH_OpenBrickAccessLogfile(const std::wstring&);
       virtual bool PH_CloseBrickAccessLogfile();
-      virtual bool PH_OpenLogfile(const std::string&);
+      virtual bool PH_OpenLogfile(const std::wstring&);
       virtual bool PH_CloseLogfile();
       virtual void PH_SetOptimalFrameAverageCount(size_t);
       virtual size_t PH_GetOptimalFrameAverageCount() const;

@@ -86,7 +86,7 @@ RenderMesh::RenderMesh(const VertVec& vertices, const NormVec& normals,
            const TexCoordVec& texcoords, const ColorVec& colors,
            const IndexVec& vIndices, const IndexVec& nIndices,
            const IndexVec& tIndices, const IndexVec& cIndices,
-           bool bBuildKDTree, bool bScaleToUnitCube, const std::string& desc,
+           bool bBuildKDTree, bool bScaleToUnitCube, const std::wstring& desc,
            EMeshType meshType,
            const FLOATVECTOR4& defColor,
            float fTransTreshhold) :

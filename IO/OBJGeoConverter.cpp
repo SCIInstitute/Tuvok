@@ -44,9 +44,9 @@ using namespace tuvok;
 OBJGeoConverter::OBJGeoConverter() :
   AbstrGeoConverter()
 {
-  m_vConverterDesc = "Wavefront Object File";
-  m_vSupportedExt.push_back("OBJ");
-  m_vSupportedExt.push_back("OBJX");
+  m_vConverterDesc = L"Wavefront Object File";
+  m_vSupportedExt.push_back(L"OBJ");
+  m_vSupportedExt.push_back(L"OBJX");
 }
 
 inline int OBJGeoConverter::CountOccurences(const std::string& str, const std::string& substr) {
@@ -61,7 +61,7 @@ inline int OBJGeoConverter::CountOccurences(const std::string& str, const std::s
 }
 
 std::shared_ptr<Mesh>
-OBJGeoConverter::ConvertToMesh(const std::string& strFilename) {
+OBJGeoConverter::ConvertToMesh(const std::wstring& strFilename) {
   bool bFlipVertices = false;
 
   VertVec       vertices;
@@ -77,10 +77,10 @@ OBJGeoConverter::ConvertToMesh(const std::string& strFilename) {
 	std::ifstream fs;
 	std::string line;
 
-	fs.open(strFilename.c_str());
+	fs.open(SysTools::toNarrow(strFilename).c_str());
   if (fs.fail()) {
     // hack, we really want some kind of 'file not found' exception.
-    throw tuvok::io::DSOpenFailed(strFilename.c_str(), __FILE__, __LINE__);
+    throw tuvok::io::DSOpenFailed(SysTools::toNarrow(strFilename).c_str(), __FILE__, __LINE__);
   }
 
   float x,y,z,w;
@@ -143,11 +143,11 @@ OBJGeoConverter::ConvertToMesh(const std::string& strFilename) {
           colors.push_back(FLOATVECTOR4(r,g,b,a));
         } else if (pos.size() > 3) {
           // file specifies homogeneous coordinate
-	        float w = SysTools::FromString<float>(pos[3]);
-          if (w != 0) {
-            x /= w;
-            y /= w;
-            z /= w;
+	        float hc = SysTools::FromString<float>(pos[3]);
+          if (hc != 0) {
+            x /= hc;
+            y /= hc;
+            z /= hc;
           }
         }
       }
@@ -175,9 +175,9 @@ OBJGeoConverter::ConvertToMesh(const std::string& strFilename) {
       normals.push_back(n);
 		} else
     if (linetype == "f" || linetype == "l") { // face or line found
-      size_t off = line.find_first_of(" \r\n\t");
-      if (off == std::string::npos) continue;
-      std::string analysis = SysTools::TrimStrRight(line.substr(0,off));
+      size_t offset = line.find_first_of(" \r\n\t");
+      if (offset == std::string::npos) continue;
+      std::string analysis = SysTools::TrimStrRight(line.substr(0, offset));
       int count = CountOccurences(analysis,"/");
 
       IndexVec v, n, t, c;
@@ -260,7 +260,7 @@ OBJGeoConverter::ConvertToMesh(const std::string& strFilename) {
   }
 	fs.close();
 
-  std::string desc = m_vConverterDesc + " data converted from " + SysTools::GetFilename(strFilename);
+  std::wstring desc = m_vConverterDesc + L" data converted from " + SysTools::GetFilename(strFilename);
 
   // generate color indies for "meshlab extended" format
   if (COLIndices.size() == 0 && vertices.size() == colors.size()) 
@@ -280,13 +280,13 @@ OBJGeoConverter::ConvertToMesh(const std::string& strFilename) {
 
 
 bool OBJGeoConverter::ConvertToNative(const Mesh& m,
-                                      const std::string& strTargetFilename) {
+                                      const std::wstring& strTargetFilename) {
 
   bool bUseExtension = SysTools::ToUpperCase(
                             SysTools::GetExt(strTargetFilename)
-                                            ) == "OBJX";
+                                            ) == L"OBJX";
 
-  std::ofstream outStream(strTargetFilename.c_str());
+  std::ofstream outStream(SysTools::toNarrow(strTargetFilename).c_str());
   if (outStream.fail()) return false;
 
   std::stringstream statLine1, statLine2;
@@ -300,7 +300,7 @@ bool OBJGeoConverter::ConvertToNative(const Mesh& m,
 
   for (size_t i = 0;i<iCount+4;i++) outStream << "#";
   outStream << std::endl;
-  outStream << "# " << m.Name();
+  outStream << "# " << SysTools::toNarrow(m.Name());
   for (size_t i = m.Name().size();i<iCount;i++) outStream << " ";
   outStream << " #" << std::endl;
 

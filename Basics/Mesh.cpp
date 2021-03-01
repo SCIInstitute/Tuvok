@@ -41,7 +41,7 @@ using namespace tuvok;
 Mesh::Mesh() :
   m_KDTree(0),
   m_DefColor(1,1,1,1),
-  m_MeshDesc("Generic Triangle Mesh"),
+  m_MeshDesc(L"Generic Triangle Mesh"),
   m_meshType(MT_TRIANGLES)
 {
   m_VerticesPerPoly = (m_meshType == Mesh::MT_TRIANGLES) ? 3 : 2;
@@ -49,7 +49,7 @@ Mesh::Mesh() :
 
 Mesh::Mesh(const BasicMeshData& bmd,
   bool bBuildKDTree, bool bScaleToUnitCube,
-  const std::string& desc, EMeshType meshType,
+  const std::wstring& desc, EMeshType meshType,
   const FLOATVECTOR4& defColor) :
   m_KDTree(0),
   m_Data(bmd),
@@ -69,7 +69,7 @@ Mesh::Mesh(const VertVec& vertices, const NormVec& normals,
            const IndexVec& vIndices, const IndexVec& nIndices,
            const IndexVec& tIndices, const IndexVec& cIndices,
            bool bBuildKDTree, bool bScaleToUnitCube,
-           const std::string& desc, EMeshType meshType,
+           const std::wstring& desc, EMeshType meshType,
            const FLOATVECTOR4& defColor) :
   m_KDTree(0),
   m_Data(vertices,normals,texcoords,colors,vIndices,nIndices,tIndices,cIndices),

@@ -56,26 +56,26 @@ static const KeyValPair *find_header(const KeyValueFileParser &,
 
 BOVConverter::BOVConverter()
 {
-  m_vConverterDesc = "Brick of Values";
-  m_vSupportedExt.push_back("BOV");
+  m_vConverterDesc = L"Brick of Values";
+  m_vSupportedExt.push_back(L"BOV");
 }
 
 bool BOVConverter::ConvertToRAW(
-                            const std::string& strSourceFilename,
-                            const std::string&, bool,
+                            const std::wstring& strSourceFilename,
+                            const std::wstring&, bool,
                             uint64_t& iHeaderSkip, unsigned& iComponentSize,
                             uint64_t& iComponentCount, bool& bConvertEndianness,
                             bool& bSigned, bool& bIsFloat,
                             UINT64VECTOR3& vVolumeSize,
-                            FLOATVECTOR3& vVolumeAspect, std::string& strTitle,
-                            std::string& strIntermediateFile,
+                            FLOATVECTOR3& vVolumeAspect, std::wstring& strTitle,
+                            std::wstring& strIntermediateFile,
                             bool& bDeleteIntermediateFile)
 {
-  MESSAGE("Attempting to convert BOV: %s", strSourceFilename.c_str());
+  MESSAGE("Attempting to convert BOV: %s", SysTools::toNarrow(strSourceFilename).c_str());
   KeyValueFileParser hdr(strSourceFilename.c_str());
 
   if(!hdr.FileReadable()) {
-    T_ERROR("Could not parse %s; could not open.", strSourceFilename.c_str());
+    T_ERROR("Could not parse %s; could not open.", SysTools::toNarrow(strSourceFilename).c_str());
     return false;
   }
   KeyValPair *file = hdr.GetData("DATA_FILE");
@@ -83,27 +83,27 @@ bool BOVConverter::ConvertToRAW(
   KeyValPair *aspect_x = hdr.GetData("BRICK X_AXIS");
   KeyValPair *aspect_y = hdr.GetData("BRICK Y_AXIS");
   KeyValPair *aspect_z = hdr.GetData("BRICK Z_AXIS");
-  strTitle = "BOV Volume";
+  strTitle = L"BOV Volume";
 
   {
     iHeaderSkip = 0;
-    strIntermediateFile = SysTools::CanonicalizePath(file->strValue);
+    strIntermediateFile = SysTools::toWide(SysTools::CanonicalizePath(file->strValue));
     // Try the path the file gave first..
     if(!SysTools::FileExists(strIntermediateFile)) {
       // .. but if that didn't work, prepend the directory of the .bov file.
-      strIntermediateFile = SysTools::CanonicalizePath(
-                              SysTools::GetPath(strSourceFilename) +
+      strIntermediateFile = SysTools::toWide(SysTools::CanonicalizePath(
+                                SysTools::toNarrow(SysTools::GetPath(strSourceFilename)) +
                               file->strValue
-                            );
+                            ));
       if(!SysTools::FileExists(strIntermediateFile)) {
         std::ostringstream err;
-        err << "Data file referenced in BOV (" << strIntermediateFile
+        err << "Data file referenced in BOV (" << SysTools::toNarrow(strIntermediateFile)
             << ") not found!";
         T_ERROR("%s", err.str().c_str());
         throw FILE_NOT_FOUND(err.str().c_str());
       }
     }
-    MESSAGE("Reading data from %s", strIntermediateFile.c_str());
+    MESSAGE("Reading data from %s", SysTools::toNarrow(strIntermediateFile).c_str());
     bDeleteIntermediateFile = false;
   }
   {
@@ -167,17 +167,19 @@ bool BOVConverter::ConvertToRAW(
   return true;
 }
 
-bool BOVConverter::ConvertToNative(const std::string& raw,
-                                   const std::string& target,
+bool BOVConverter::ConvertToNative(const std::wstring& raw,
+                                   const std::wstring& target,
                                    uint64_t skip, unsigned component_size,
                                    uint64_t n_components, bool is_signed,
                                    bool fp, UINT64VECTOR3 dimensions,
                                    FLOATVECTOR3 aspect, bool batch,
                                    const bool bQuantizeTo8Bit)
 {
-  std::string fn_data = SysTools::RemoveExt(target);
+  std::wstring fn_data = SysTools::RemoveExt(target);
 
-  std::ofstream header(target.c_str(), std::ios::out | std::ios::trunc);
+  std::ofstream header(SysTools::toNarrow(target).c_str(), std::ios::out | std::ios::trunc);
+
+  std::wstring targetRaw = target+L".data";
 
   std::string data_format;
   switch(component_size) {
@@ -194,7 +196,7 @@ bool BOVConverter::ConvertToNative(const std::string& raw,
       else   { data_format = "INT"; }
       break;
   }
-  header << "DATA_FILE: " << raw << ".data" << std::endl
+  header << "DATA_FILE: " << SysTools::toNarrow(SysTools::GetFilename(targetRaw)) << std::endl
          << "DATA SIZE: "
             << dimensions[0] << " " << dimensions[1] << " " << dimensions[2]
          << std::endl
@@ -208,7 +210,7 @@ bool BOVConverter::ConvertToNative(const std::string& raw,
   header.close();
 
   // copy the raw file.
-  return RAWConverter::ConvertToNative(raw, raw + ".data", skip,
+  return RAWConverter::ConvertToNative(raw, targetRaw, skip,
                                        component_size, n_components, is_signed,
                                        fp, dimensions, aspect, batch,
                                        bQuantizeTo8Bit);

@@ -202,7 +202,7 @@ ImageParser::~ImageParser(void)
 {
 }
 
-void ImageParser::GetDirInfo(string  strDirectory) {
+void ImageParser::GetDirInfo(string strDirectory) {
   vector<string> files = SysTools::GetDirContents(strDirectory);
   vector<ImageFileInfo> fileInfos;
 

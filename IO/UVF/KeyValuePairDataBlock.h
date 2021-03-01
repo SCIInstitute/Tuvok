@@ -4,16 +4,30 @@
 #define UVF_KEYVALUEPAIRDATABLOCK_H
 
 #include "DataBlock.h"
+#include "Basics/SysTools.h"
 
 class KeyValuePair {
 public:
   KeyValuePair() : strKey(""), strValue("")  {}
 
+  KeyValuePair(std::wstring _strKey, std::wstring _strValue) {
+      strKey = SysTools::toNarrow(_strKey);
+      strValue = SysTools::toNarrow(_strValue);
+  }
+
   KeyValuePair(std::string _strKey, std::string _strValue) :
     strKey(_strKey), strValue(_strValue)  {}
 
+  std::wstring wstrKey() const {
+      return SysTools::toWide(strKey);
+  }
+  std::wstring wstrValue() const {
+      return SysTools::toWide(strValue);
+  }
+
   std::string strKey;
   std::string strValue;
+
 };
 
 #ifdef max
@@ -30,13 +44,13 @@ public:
   virtual KeyValuePairDataBlock& operator=(const KeyValuePairDataBlock& other);
 
   size_t GetKeyCount() const {return m_KeyValuePairs.size();}
-  std::string GetKeyByIndex(size_t iIndex) const {
-    return m_KeyValuePairs[size_t(iIndex)].strKey;
+  std::wstring GetKeyByIndex(size_t iIndex) const {
+    return m_KeyValuePairs[size_t(iIndex)].wstrKey();
   }
-  std::string GetValueByIndex(size_t iIndex) const {
-    return m_KeyValuePairs[size_t(iIndex)].strValue;
+  std::wstring GetValueByIndex(size_t iIndex) const {
+    return m_KeyValuePairs[size_t(iIndex)].wstrValue();
   }
-  uint64_t GetIndexByKey(std::string strKey) const {
+  uint64_t GetIndexByKey(std::wstring strKey) const {
     for (size_t i = 0;i<GetKeyCount();i++) {
       if (GetKeyByIndex(i) == strKey) {
         return uint64_t(i);
@@ -45,7 +59,7 @@ public:
     return UVF_INVALID;
   }
 
-  bool AddPair(std::string key, std::string value);
+  bool AddPair(std::wstring key, std::wstring value);
   virtual uint64_t ComputeDataSize() const;
 
 protected:

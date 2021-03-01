@@ -26,9 +26,9 @@ for(d, gludirs) {
   }
 }
 
-macx:QMAKE_CXXFLAGS += -stdlib=libc++ -mmacosx-version-min=10.7
-macx:QMAKE_CFLAGS += -mmacosx-version-min=10.7
-macx:LIBS        += -stdlib=libc++ -lX11 -framework CoreFoundation -mmacosx-version-min=10.7
+macx:QMAKE_CXXFLAGS += -stdlib=libc++
+macx:QMAKE_CFLAGS +=
+macx:LIBS        += -stdlib=libc++ -lX11 -framework CoreFoundation
 
 ### Should we link Qt statically or as a shared lib?
 # Find the location of QtGui's prl file, and include it here so we can look at

@@ -1,6 +1,6 @@
 TEMPLATE       = app
 win32:TEMPLATE = vcapp
-CONFIG = exceptions largefile qt rtti static stl warn_on
+CONFIG += qt largefile rtti static stl warn_on exceptions
 QT += core opengl
 DESTDIR = Build
 TARGET = bluebook
@@ -13,18 +13,20 @@ QMAKE_LIBDIR += ../../IO/expressions
 LIBS             = -lTuvok -ltuvokexpr
 unix:LIBS       += -lz
 win32:LIBS      += shlwapi.lib
-macx:LIBS       += -stdlib=libc++
-macx:LIBS       += -mmacosx-version-min=10.7
-macx:LIBS       += -framework CoreFoundation
-unix:!macx:LIBS += -lGLU -lGL
+macx-clang:LIBS       += -stdlib=libc++
+macx-clang:LIBS       +=
+macx-clang:LIBS       += -framework CoreFoundation
+unix:!macx-clang:LIBS += -lGLU -lGL
 # don't complain about not understanding OpenMP pragmas.
 QMAKE_CXXFLAGS      += -Wno-unknown-pragmas
-macx:QMAKE_CXXFLAGS += -stdlib=libc++
-macx:QMAKE_CXXFLAGS += -mmacosx-version-min=10.7
+macx-clang:QMAKE_CXXFLAGS += -stdlib=libc++
+
 unix:QMAKE_CXXFLAGS += -std=c++0x
 unix:QMAKE_CXXFLAGS += -fno-strict-aliasing
 unix:QMAKE_CFLAGS   += -fno-strict-aliasing
-!macx:unix:QMAKE_LFLAGS += -fopenmp
+!macx-clang:unix:QMAKE_LFLAGS += -fopenmp
+
+QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.13
 
 SOURCES = \
   main.cpp

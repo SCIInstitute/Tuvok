@@ -13,14 +13,14 @@ namespace tuvok {
     StLGeoConverter();
     virtual ~StLGeoConverter() {}
     virtual std::shared_ptr<Mesh>
-      ConvertToMesh(const std::string& strFilename);
+      ConvertToMesh(const std::wstring& strFilename);
 
 
     virtual bool ConvertToNative(const Mesh& m,
-                                 const std::string& strTargetFilename);
+                                 const std::wstring& strTargetFilename);
 
     virtual bool ConvertToNative(const Mesh& m,
-                                 const std::string& strTargetFilename,
+                                 const std::wstring& strTargetFilename,
                                  bool bASCII);
 
     virtual bool CanExportData() const { return true; }

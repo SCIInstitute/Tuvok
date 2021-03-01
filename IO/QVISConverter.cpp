@@ -45,22 +45,22 @@ using namespace std;
 
 QVISConverter::QVISConverter()
 {
-  m_vConverterDesc = "QVis Data";
-  m_vSupportedExt.push_back("DAT");
+  m_vConverterDesc = L"QVis Data";
+  m_vSupportedExt.push_back(L"DAT");
 }
 
 bool QVISConverter::ConvertToRAW(
-  const std::string& strSourceFilename, const std::string&, bool,
+  const std::wstring& strSourceFilename, const std::wstring&, bool,
   uint64_t& iHeaderSkip, unsigned& iComponentSize, uint64_t& iComponentCount,
   bool& bConvertEndianess, bool& bSigned, bool& bIsFloat,
   UINT64VECTOR3& vVolumeSize, FLOATVECTOR3& vVolumeAspect,
-  std::string& strTitle, std::string& strIntermediateFile,
+  std::wstring& strTitle, std::wstring& strIntermediateFile,
   bool& bDeleteIntermediateFile
 ) {
-  MESSAGE("Attempting to convert QVIS dataset %s", strSourceFilename.c_str());
+  MESSAGE("Attempting to convert QVIS dataset %s", SysTools::toNarrow(strSourceFilename).c_str());
 
   bDeleteIntermediateFile = false;
-  strTitle          = "Qvis data";
+  strTitle          = L"Qvis data";
   iHeaderSkip       = 0;
   iComponentSize    = 8;
   iComponentCount   = 1;
@@ -120,7 +120,7 @@ bool QVISConverter::ConvertToRAW(
       WARNING("This is not a valid QVIS dat file.");
       return false;
     } else
-        strIntermediateFile = objectfilename->strValue;
+        strIntermediateFile = objectfilename->wstrValue;
 
     KeyValPair* resolution = parser.GetData("RESOLUTION");
     if (resolution == NULL || resolution->vuiValue.size() != 3) {
@@ -148,8 +148,8 @@ bool QVISConverter::ConvertToRAW(
   return true;
 }
 
-bool QVISConverter::ConvertToNative(const std::string& strRawFilename,
-                                    const std::string& strTargetFilename,
+bool QVISConverter::ConvertToNative(const std::wstring& strRawFilename,
+                                    const std::wstring& strTargetFilename,
                                     uint64_t iHeaderSkip,
                                     unsigned iComponentSize,
                                     uint64_t iComponentCount, bool bSigned,
@@ -191,17 +191,17 @@ bool QVISConverter::ConvertToNative(const std::string& strRawFilename,
   }
 
   // create DAT textfile from metadata
-  string strTargetRAWFilename = strTargetFilename+".raw";
+  wstring strTargetRAWFilename = strTargetFilename+L".raw";
 
-  ofstream fTarget(strTargetFilename.c_str());
+  ofstream fTarget(SysTools::toNarrow(strTargetFilename.c_str()));
   if (!fTarget.is_open()) {
-    T_ERROR("Unable to open target file %s.", strTargetFilename.c_str());
+    T_ERROR("Unable to open target file %s.", SysTools::toNarrow(strTargetFilename).c_str());
     return false;
   }
 
   MESSAGE("Writing DAT File");
 
-  fTarget << "ObjectFileName: " << SysTools::GetFilename(strTargetRAWFilename) << endl;
+  fTarget << "ObjectFileName: " << SysTools::toNarrow(SysTools::GetFilename(strTargetRAWFilename)) << endl;
   fTarget << "TaggedFileName: ---" << endl;
   fTarget << "Resolution:     " << vVolumeSize.x << " " << vVolumeSize.y << " "<< vVolumeSize.z << endl;
   fTarget << "SliceThickness: " << vVolumeAspect.x << " " << vVolumeAspect.y << " "<< vVolumeAspect.z << endl;
@@ -218,13 +218,13 @@ bool QVISConverter::ConvertToNative(const std::string& strRawFilename,
   // copy RAW file using the parent's call
   bool bRAWSuccess = RAWConverter::ConvertToNative(strRawFilename, strTargetRAWFilename, iHeaderSkip,
                                                    iComponentSize, iComponentCount, bSigned, bFloatingPoint,
-                                                   vVolumeSize, vVolumeAspect, bNoUserInteraction,bQuantizeTo8Bit);
+                                                   vVolumeSize, vVolumeAspect, bNoUserInteraction, bQuantizeTo8Bit);
 
   if (bRAWSuccess) {
     return true;
   } else {
-    T_ERROR("Error creating raw target file %s.", strTargetRAWFilename.c_str());
-    remove(strTargetFilename.c_str());
+    T_ERROR("Error creating raw target file %s.", SysTools::toNarrow(strTargetRAWFilename).c_str());
+    SysTools::RemoveFile(strTargetFilename);
     return false;
   }
 }

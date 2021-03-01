@@ -121,7 +121,7 @@ public:
 
   /// If the underlying file format supports it, crop the dataset at the
   /// given plane, i.e. set all values one side to zero
-  virtual bool Crop(const PLANE<float>&, const std::string&, bool, bool, bool) {
+  virtual bool Crop(const PLANE<float>&, const std::wstring&, bool, bool, bool) {
     return false;
   }
 
@@ -142,8 +142,8 @@ public:
   virtual bool GetIsFloat() const = 0;
   virtual bool IsSameEndianness() const = 0;
   virtual std::pair<double,double> GetRange() const = 0;
-  virtual const std::vector<std::pair<std::string, std::string>> GetMetadata() const {
-    std::vector<std::pair<std::string, std::string>> v;
+  virtual const std::vector<std::pair<std::wstring, std::wstring>> GetMetadata() const {
+    std::vector<std::pair<std::wstring, std::wstring>> v;
     return v;
   }
 
@@ -154,7 +154,7 @@ public:
 
   /// unimplemented!  Override these if you want tools built on this IO layer
   /// to be able to create data in your format.
-  virtual bool Export(uint64_t iLODLevel, const std::string& targetFilename, 
+  virtual bool Export(uint64_t iLODLevel, const std::wstring& targetFilename, 
     bool bAppend) const = 0;
 
   typedef bool (bfqn)(void*, const UINT64VECTOR3&, const UINT64VECTOR3&, void*);
@@ -162,7 +162,7 @@ public:
                              void* userContext, uint64_t noverlap) const = 0;
 
   /// Virtual constructor.
-  virtual Dataset* Create(const std::string&, uint64_t, bool) const=0;  
+  virtual Dataset* Create(const std::wstring&, uint64_t, bool) const=0;  
 
   /// this function computes the texture coordinates for a given brick
   /// this may be non trivial with power of two padding, overlap handling

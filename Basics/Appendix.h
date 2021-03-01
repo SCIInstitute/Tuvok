@@ -71,14 +71,14 @@ class Appendix
     Appendix(std::string strTarget, const std::vector<std::string>& vstrSource);
     Appendix(std::string strAPXFile);
 
-    bool IsOK() {return m_bOK;}
+    bool IsOK() const {return m_bOK;}
     bool ExtractFile(size_t i, std::string strTarget);
 
     std::vector<FileInfo> ListFiles();
 
   protected:
     std::string                   m_strAPXFile;
-    uint64_t                        m_iHeaderLength;
+    uint64_t                      m_iHeaderLength;
     bool                          m_bOK;
     std::vector<InternalFileInfo> m_vHeaderData;
 

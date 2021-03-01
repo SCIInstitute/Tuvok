@@ -73,7 +73,7 @@ class DXRenderer : public AbstrRenderer {
     virtual bool Paint();
 
     /// creates a dataset and registers it with this renderer.
-    virtual bool LoadFile(const std::string& filename);
+    virtual bool LoadFile(const std::wstring& filename);
     /// registers the dataset with this renderer.  this renderer then 'owns' it
     /// and will handle deletion.
     virtual bool RegisterDataset(Dataset* ds);
@@ -83,7 +83,7 @@ class DXRenderer : public AbstrRenderer {
      * \param vWinSize  new width and height of the view window */
     virtual void Resize(const UINTVECTOR2& vWinSize);
 
-    virtual void SetLogoParams(std::string strLogoFilename, int iLogoPos);
+    virtual void SetLogoParams(std::wstring strLogoFilename, int iLogoPos);
 
     virtual bool IsVolumeResident(const BrickKey& key) const;
 
@@ -93,7 +93,7 @@ class DXRenderer : public AbstrRenderer {
 
     virtual void SyncStateManager() { /** @todo implement */ }
 
-    virtual bool CropDataset(const std::string&, bool ) { /** @todo implement */ return false;}
+    virtual bool CropDataset(const std::wstring&, bool ) { /** @todo implement */ return false;}
   protected:
     HWND                    m_hWnd;
     HINSTANCE               m_hInst;
@@ -136,8 +136,8 @@ class DXRenderer : public AbstrRenderer {
     virtual void RenderHQMIPPostLoop() {}
 
     virtual void CreateOffscreenBuffers();
-    virtual bool LoadAndVerifyShader(std::string strVSFile, std::string strFSFile, const std::vector<std::string>& strDirs, GLSLProgram** pShaderProgram);
-    virtual bool LoadAndVerifyShader(std::string strVSFile, std::string strFSFile, GLSLProgram** pShaderProgram, bool bSearchSubdirs);
+    virtual bool LoadAndVerifyShader(std::wstring strVSFile, std::wstring strFSFile, const std::vector<std::wstring>& strDirs, GLSLProgram** pShaderProgram);
+    virtual bool LoadAndVerifyShader(std::wstring strVSFile, std::wstring strFSFile, GLSLProgram** pShaderProgram, bool bSearchSubdirs);
 
     void GeometryPreRender();
     void GeometryPostRender();

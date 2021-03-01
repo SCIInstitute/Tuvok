@@ -47,7 +47,7 @@
 #include "Controller/Controller.h"
 #include "IOManager.h"  // for the size defines
 
-typedef std::vector<std::pair<std::string, std::string>> KVPairs;
+typedef std::vector<std::pair<std::wstring, std::wstring>> KVPairs;
 
 template<class T> class MinMaxScanner {
 public:
@@ -76,17 +76,17 @@ class RAWConverter : public AbstrConverter {
 public:
   virtual ~RAWConverter() {}
 
-  static bool ConvertRAWDataset(const std::string& strFilename,
-                                const std::string& strTargetFilename,
-                                const std::string& strTempDir,
+  static bool ConvertRAWDataset(const std::wstring& strFilename,
+                                const std::wstring& strTargetFilename,
+                                const std::wstring& strTempDir,
                                 uint64_t iHeaderSkip, unsigned iComponentSize,
                                 uint64_t iComponentCount,
                                 uint64_t timesteps,
                                 bool bConvertEndianness, bool bSigned,
                                 bool bIsFloat, UINT64VECTOR3 vVolumeSize,
                                 FLOATVECTOR3 vVolumeAspect,
-                                const std::string& strDesc,
-                                const std::string& strSource,
+                                const std::wstring& strDesc,
+                                const std::wstring& strSource,
                                 const uint64_t iTargetBrickSize,
                                 const uint64_t iTargetBrickOverlap,
                                 const bool bUseMedian,
@@ -97,29 +97,29 @@ public:
                                 KVPairs* pKVPairs = NULL,
                                 const bool bQuantizeTo8Bit=false);
 
-  static bool ExtractGZIPDataset(const std::string& strFilename,
-                                 const std::string& strUncompressedFile,
+  static bool ExtractGZIPDataset(const std::wstring& strFilename,
+                                 const std::wstring& strUncompressedFile,
                                  uint64_t iHeaderSkip);
 
-  static bool ExtractBZIP2Dataset(const std::string& strFilename,
-                                  const std::string& strUncompressedFile,
+  static bool ExtractBZIP2Dataset(const std::wstring& strFilename,
+                                  const std::wstring& strUncompressedFile,
                                   uint64_t iHeaderSkip);
 
-  static bool ParseTXTDataset(const std::string& strFilename,
-                              const std::string& strBinaryFile,
+  static bool ParseTXTDataset(const std::wstring& strFilename,
+                              const std::wstring& strBinaryFile,
                               uint64_t iHeaderSkip, unsigned iComponentSize,
                               uint64_t iComponentCount, bool bSigned,
                               bool bIsFloat, UINT64VECTOR3 vVolumeSize);
 
-  static bool AppendRAW(const std::string& strRawFilename, uint64_t iHeaderSkip,
-                        const std::string& strTargetFilename,
+  static bool AppendRAW(const std::wstring& strRawFilename, uint64_t iHeaderSkip,
+                        const std::wstring& strTargetFilename,
                         unsigned iComponentSize,
                         bool bChangeEndianess=false,
                         bool bToSigned=false,
                         const bool bQuantizeTo8Bit=false);
 
-  virtual bool ConvertToNative(const std::string& strRawFilename,
-                               const std::string& strTargetFilename,
+  virtual bool ConvertToNative(const std::wstring& strRawFilename,
+                               const std::wstring& strTargetFilename,
                                uint64_t iHeaderSkip, unsigned iComponentSize,
                                uint64_t iComponentCount, bool bSigned,
                                bool bFloatingPoint, UINT64VECTOR3 vVolumeSize,
@@ -127,9 +127,9 @@ public:
                                bool bNoUserInteraction,
                                const bool bQuantizeTo8Bit);
 
-  virtual bool ConvertToUVF(const std::string& strSourceFilename,
-                            const std::string& strTargetFilename,
-                            const std::string& strTempDir,
+  virtual bool ConvertToUVF(const std::wstring& strSourceFilename,
+                            const std::wstring& strTargetFilename,
+                            const std::wstring& strTempDir,
                             const bool bNoUserInteraction,
                             const uint64_t iTargetBrickSize,
                             const uint64_t iTargetBrickOverlap,
@@ -140,9 +140,9 @@ public:
                             uint32_t iBrickLayout,
                             const bool bQuantizeTo8Bit);
 
-  virtual bool ConvertToUVF(const std::list<std::string>& files,
-                            const std::string& strTargetFilename,
-                            const std::string& strTempDir,
+  virtual bool ConvertToUVF(const std::list<std::wstring>& files,
+                            const std::wstring& strTargetFilename,
+                            const std::wstring& strTempDir,
                             const bool bNoUserInteraction,
                             const uint64_t iTargetBrickSize,
                             const uint64_t iTargetBrickOverlap,
@@ -153,11 +153,11 @@ public:
                             uint32_t iBrickLayout,
                             const bool bQuantizeTo8Bit);
 
-  virtual bool Analyze(const std::string& strSourceFilename,
-                       const std::string& strTempDir,
+  virtual bool Analyze(const std::wstring& strSourceFilename,
+                       const std::wstring& strTempDir,
                        bool bNoUserInteraction, RangeInfo& info);
 
-  static bool Analyze(const std::string& strSourceFilename, uint64_t iHeaderSkip,
+  static bool Analyze(const std::wstring& strSourceFilename, uint64_t iHeaderSkip,
                       unsigned iComponentSize, uint64_t iComponentCount,
                       bool bSigned, bool bFloatingPoint,
                       UINT64VECTOR3 vVolumeSize,
@@ -169,7 +169,7 @@ public:
   /// Removes the given file or directory.  Warns if the file could not be
   /// deleted.
   /// @return true if the remove succeeded.
-  static bool Remove(const std::string &, AbstrDebugOut &);
+  static bool Remove(const std::wstring &, AbstrDebugOut &);
 };
 
 #endif // RAWCONVERTER_H

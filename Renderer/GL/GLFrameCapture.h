@@ -52,10 +52,10 @@ class GLFrameCapture : public FrameCapture {
     GLFrameCapture() : FrameCapture() {}
     virtual ~GLFrameCapture() {}
 
-    virtual bool CaptureSingleFrame(const std::string& strFilename,
+    virtual bool CaptureSingleFrame(const std::wstring& strFilename,
                                     bool bPreserveTransparency) const;
 
-    virtual bool CaptureSingleFrame(const std::string& filename,
+    virtual bool CaptureSingleFrame(const std::wstring& filename,
                                     GLFBOTex* from,
                                     bool transparency=false) const;
 };

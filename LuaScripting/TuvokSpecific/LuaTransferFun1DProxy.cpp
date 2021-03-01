@@ -114,7 +114,7 @@ void LuaTransferFun1DProxy::defineLuaInterface(
 
 //------------------------------------------------------------------------------
 bool LuaTransferFun1DProxy::proxyLoadWithFilenameAndSize(
-    const std::string& file, size_t size)
+    const std::wstring& file, size_t size)
 {
   if (m1DTrans == NULL) return false;
   return m1DTrans->Load(file, size);
@@ -129,7 +129,7 @@ void LuaTransferFun1DProxy::proxySetStdFunction(
 }
 
 //------------------------------------------------------------------------------
-bool LuaTransferFun1DProxy::proxySave(const std::string& filename) const
+bool LuaTransferFun1DProxy::proxySave(const std::wstring& filename) const
 {
   if (m1DTrans == NULL) return false;
   return m1DTrans->Save(filename);

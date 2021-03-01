@@ -176,9 +176,9 @@ void RenderRegion::luaSetUseMIP(bool bUseMIP)
 }
 
 //-----------------------------------------------------------------------------
-void RenderRegion::luaSetTranslation4x4(FLOATMATRIX4 translation)
+void RenderRegion::luaSetTranslation4x4(FLOATMATRIX4 _translation)
 {
-  mRen->SetTranslation(this, translation);
+  mRen->SetTranslation(this, _translation);
 }
 
 //-----------------------------------------------------------------------------

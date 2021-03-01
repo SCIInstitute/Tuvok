@@ -19,8 +19,8 @@ enum shader_type { SHADER_VERTEX_DISK, SHADER_VERTEX_STRING,
 
 struct ShaderDescriptor::sinfo {
   std::vector<std::string> defines;
-  std::vector<std::pair<std::string, enum shader_type>> vertex;
-  std::vector<std::pair<std::string, enum shader_type>> fragment;
+  std::vector<std::pair<std::wstring, enum shader_type>> vertex;
+  std::vector<std::pair<std::wstring, enum shader_type>> fragment;
   bool operator==(const ShaderDescriptor::sinfo& sdi) const;
 };
 bool ShaderDescriptor::sinfo::operator==(const ShaderDescriptor::sinfo& sdi)
@@ -34,15 +34,15 @@ const {
 
 ShaderDescriptor::ShaderDescriptor() : si(new struct sinfo()) { }
 ShaderDescriptor::ShaderDescriptor(const ShaderDescriptor& sd) : si(sd.si) {}
-ShaderDescriptor::ShaderDescriptor(const std::vector<std::string>& vertex,
-                                   const std::vector<std::string>& fragment) :
+ShaderDescriptor::ShaderDescriptor(const std::vector<std::wstring>& vertex,
+                                   const std::vector<std::wstring>& fragment) :
   si(new struct sinfo())
 {
-  typedef std::vector<std::string> sv;
-  for(sv::const_iterator v = vertex.begin(); v != vertex.end(); ++v) {
+  typedef std::vector<std::wstring> sv;
+  for(sv::const_iterator v = vertex.cbegin(); v != vertex.cend(); ++v) {
     this->si->vertex.push_back(std::make_pair(*v, SHADER_VERTEX_DISK));
   }
-  for(sv::const_iterator f = fragment.begin(); f != fragment.end(); ++f) {
+  for(sv::const_iterator f = fragment.cbegin(); f != fragment.cend(); ++f) {
     this->si->fragment.push_back(std::make_pair(*f, SHADER_FRAGMENT_DISK));
   }
 }
@@ -52,23 +52,23 @@ ShaderDescriptor::ShaderDescriptor(const std::vector<std::string>& vertex,
 // out which one we want, and it's not a template or anything so we cannot just
 // be explicit.
 // This serves to rename it to avoid the ambiguity.
-static bool exists(std::string s) { return SysTools::FileExists(s); }
+static bool exists(std::wstring s) { return SysTools::FileExists(s); }
 // we could technically achieve this by composing std::plus with
 // std::plus, but my god is that a nightmare in c++03.
-static std::string concat(std::string a, std::string b, std::string c) {
+static std::wstring concat(std::wstring a, std::wstring b, std::wstring c) {
   return a + b + c;
 }
 
 /// expects a list of directories (filenames).  Removes any from the
 /// list which don't exist.
-static std::vector<std::string> existing(std::vector<std::string> directories)
+static std::vector<std::wstring> existing(std::vector<std::wstring> directories)
 {
-  typedef std::vector<std::string> sv;
+  typedef std::vector<std::wstring> sv;
   sv::iterator end = std::remove_if(directories.begin(), directories.end(),
                                     std::not1(std::ptr_fun(exists)));
   for(sv::const_iterator e = end; e != directories.end(); ++e) {
     if (!e->empty())
-      WARNING("Directory %s does not exist!", e->c_str());
+      WARNING("Directory %s does not exist!", SysTools::toNarrow(*e).c_str());
   }
   // also, we know they're junk, so don't search in them
   directories.erase(end, directories.end());
@@ -77,23 +77,23 @@ static std::vector<std::string> existing(std::vector<std::string> directories)
 
 // Searches for the given filename in the given directories.  Returns the fully
 // qualified path of the file's location.
-static std::string find_filename(const std::vector<std::string>& directories,
-                                 std::string filename)
+static std::wstring find_filename(const std::vector<std::wstring>& directories,
+                                 std::wstring filename)
 {
   // if we're on Mac, first try to see if the file is in our bundle.
 #ifdef DETECTED_OS_APPLE
   if (SysTools::FileExists(SysTools::GetFromResourceOnMac(filename))) {
     filename = SysTools::GetFromResourceOnMac(filename);
-    MESSAGE("Found %s in bundle, using that.", filename.c_str());
+    MESSAGE("Found %s in bundle, using that.", SysTools::toNarrow(filename).c_str());
     return filename;
   }
 #endif
 
-  typedef std::vector<std::string> sv;
+  typedef std::vector<std::wstring> sv;
   // okay, now prepend each directory into our flename and see if we find a
   // match.
   using namespace std::placeholders;
-  const std::string dirsep = "/";
+  const std::wstring dirsep = L"/";
   // the functor is a composition: 'exists(add(_1, dirsep, filename))'
   sv::const_iterator fn =
     std::find_if(directories.begin(), directories.end(),
@@ -103,18 +103,18 @@ static std::string find_filename(const std::vector<std::string>& directories,
                  ));
 
   if(fn == directories.end()) { // file not found.
-    throw std::runtime_error("could not find file");
+    throw std::runtime_error(std::string("could not find file ") + SysTools::toNarrow(filename));
   }
   return *fn + dirsep + filename;
 }
 
-std::vector<std::string>
-ShaderDescriptor::ValidPaths(std::vector<std::string> dirs) {
+std::vector<std::wstring>
+ShaderDescriptor::ValidPaths(const std::vector<std::wstring>& dirs) {
   return existing(dirs);
 }
 
 ShaderDescriptor ShaderDescriptor::Create(
-  std::vector<std::string> directories, 
+  std::vector<std::wstring> directories, 
   std::vector<std::pair<uint32_t, std::string>> fragmentDataBindings,
   ...
 ) {
@@ -122,37 +122,37 @@ ShaderDescriptor ShaderDescriptor::Create(
   va_list args;
   va_start(args, fragmentDataBindings);
 
-  const char* filename;
+  const wchar_t* filename;
   // we expect two NULLs: first terminates vertex list, second fragment list.
   do {
-    filename = va_arg(args, const char*);
-    if(filename != NULL) {
-      rv.si->vertex.push_back(std::make_pair(std::string(filename),
+    filename = va_arg(args, const wchar_t*);
+    if(filename != nullptr) {
+      rv.si->vertex.push_back(std::make_pair(std::wstring(filename),
                               SHADER_VERTEX_DISK));
     }
-  } while(filename != NULL);
+  } while(filename != nullptr);
 
   // now second: fragment shaders.
   do {
-    filename = va_arg(args, const char*);
-    if(filename != NULL) {
-      rv.si->fragment.push_back(std::make_pair(std::string(filename),
+    filename = va_arg(args, const wchar_t*);
+    if(filename != nullptr) {
+      rv.si->fragment.push_back(std::make_pair(std::wstring(filename),
                                 SHADER_FRAGMENT_DISK));
     }
-  } while(filename != NULL);
+  } while(filename != nullptr);
   va_end(args);
 
   // now try to clean up all those paths.
   // The user gave us some directories to search, but let's make sure we also
   // search the location of our binary.
-  std::vector<std::string> dirs = SysTools::GetSubDirList(
+  std::vector<std::wstring> dirs = SysTools::GetSubDirList(
     Controller::ConstInstance().SysInfo().GetProgramPath()
   );
   directories.insert(directories.end(), dirs.begin(), dirs.end());
   directories.push_back(Controller::ConstInstance().SysInfo().GetProgramPath());
   directories = existing(directories); // prune bad directories
     
-  typedef std::vector<std::pair<std::string, enum shader_type>> sv;
+  typedef std::vector<std::pair<std::wstring, enum shader_type>> sv;
   for(sv::iterator v = rv.si->vertex.begin(); v != rv.si->vertex.end(); ++v) {
     v->first = find_filename(directories, v->first);
   }
@@ -166,27 +166,27 @@ ShaderDescriptor ShaderDescriptor::Create(
   return rv;
 }
 ShaderDescriptor ShaderDescriptor::Create(
-  std::vector<std::string> directories, ...
+  std::vector<std::wstring> directories, ...
 ) {
   ShaderDescriptor rv;
   va_list args;
   va_start(args, directories);
 
-  const char* filename;
+  const wchar_t* filename;
   // we expect two NULLs: first terminates vertex list, second fragment list.
   do {
-    filename = va_arg(args, const char*);
+    filename = va_arg(args, const wchar_t*);
     if(filename != NULL) {
-      rv.si->vertex.push_back(std::make_pair(std::string(filename),
+      rv.si->vertex.push_back(std::make_pair(std::wstring(filename),
                               SHADER_VERTEX_DISK));
     }
   } while(filename != NULL);
 
   // now second: fragment shaders.
   do {
-    filename = va_arg(args, const char*);
+    filename = va_arg(args, const wchar_t*);
     if(filename != NULL) {
-      rv.si->fragment.push_back(std::make_pair(std::string(filename),
+      rv.si->fragment.push_back(std::make_pair(std::wstring(filename),
                                 SHADER_FRAGMENT_DISK));
     }
   } while(filename != NULL);
@@ -195,14 +195,14 @@ ShaderDescriptor ShaderDescriptor::Create(
   // now try to clean up all those paths.
   // The user gave us some directories to search, but let's make sure we also
   // search the location of our binary.
-  std::vector<std::string> dirs = SysTools::GetSubDirList(
+  std::vector<std::wstring> dirs = SysTools::GetSubDirList(
     Controller::ConstInstance().SysInfo().GetProgramPath()
   );
   directories.insert(directories.end(), dirs.begin(), dirs.end());
   directories.push_back(Controller::ConstInstance().SysInfo().GetProgramPath());
   directories = existing(directories); // prune bad directories
     
-  typedef std::vector<std::pair<std::string, enum shader_type>> sv;
+  typedef std::vector<std::pair<std::wstring, enum shader_type>> sv;
   for(sv::iterator v = rv.si->vertex.begin(); v != rv.si->vertex.end(); ++v) {
     v->first = find_filename(directories, v->first);
   }
@@ -224,13 +224,13 @@ void ShaderDescriptor::AddDefines(const std::vector<std::string>& defines) {
 }
 
 /// Adds a vertex shader in a string (i.e. not from a filename)
-void ShaderDescriptor::AddVertexShaderString(const std::string shader) {
-  this->si->vertex.push_back(std::make_pair(shader, SHADER_VERTEX_STRING));
+void ShaderDescriptor::AddVertexShaderString(const std::string& shader) {
+  this->si->vertex.push_back(std::make_pair(SysTools::toWide(shader), SHADER_VERTEX_STRING));
 }
 
 /// Adds a fragment shader in a string (i.e. not from a filename)
-void ShaderDescriptor::AddFragmentShaderString(const std::string shader) {
-  this->si->fragment.push_back(std::make_pair(shader, SHADER_FRAGMENT_STRING));
+void ShaderDescriptor::AddFragmentShaderString(const std::string& shader) {
+  this->si->fragment.push_back(std::make_pair(SysTools::toWide(shader), SHADER_FRAGMENT_STRING));
 }
 
 /// Two shaders are equal if they utilize the same set of filenames/strings
@@ -240,12 +240,12 @@ bool ShaderDescriptor::operator ==(const ShaderDescriptor& sd) const
   return this->si == sd.si;
 }
 
-static std::string readfile(const std::string& filename) {
+static std::string readfile(const std::wstring& filename) {
   // open in append mode so the file pointer will be at EOF and we can
   // therefore easily/quickly figure out the file size.
-  std::ifstream ifs(filename.c_str(), std::ios::in | std::ios::ate);
+  std::ifstream ifs(SysTools::toNarrow(filename).c_str(), std::ios::in | std::ios::ate);
   if(!ifs.is_open()) {
-    T_ERROR("Could not open shader '%s'", filename.c_str());
+    T_ERROR("Could not open shader '%s'", SysTools::toNarrow(filename).c_str());
     throw std::runtime_error("file could not be opened");
   }
   std::ifstream::pos_type len = ifs.tellg();
@@ -263,7 +263,7 @@ static std::string readfile(const std::string& filename) {
   return std::string(&file[0]);
 }
 
-typedef std::vector<std::pair<std::string, enum shader_type>> slist;
+typedef std::vector<std::pair<std::wstring, enum shader_type>> slist;
 // internal implementation: we keep track of which object (ShaderDescriptor) we
 // came from, the location within that object, and what type we are.  The
 // latter helps us with equality; no location in the vertex shader list is
@@ -275,9 +275,16 @@ struct ShaderDescriptor::SIterator::siterinfo {
 
   siterinfo(const ShaderDescriptor* sdesc, slist::const_iterator loc,
             enum VertFrag typ) : sd(sdesc), location(loc), vf(typ) { }
+
   bool operator==(const siterinfo& sit) const {
     return this->vf == sit.vf &&
            this->location == sit.location;
+  }
+  siterinfo& operator=(const siterinfo& other) {
+      this->sd = other.sd;
+      this->location = other.location;
+      this->vf = other.vf;
+      return *this;
   }
 };
 
@@ -345,23 +352,26 @@ std::string includeDefines(std::string const& defines, std::string const& source
   return modifiedSource;
 }
 
-std::pair<std::string, std::string>
+std::pair<std::string, std::wstring>
 ShaderDescriptor::SIterator::operator*() const {
   // #version is required to be the first statement in a shader file
   // and may not be repeated
   // thus we need to set all defines after this statement
-  std::string const defines = vectorStringToString(this->si->sd->si->defines);
-  std::string source = includeDefines(defines, this->si->location->first);
+  const std::string defines = vectorStringToString(this->si->sd->si->defines);
 
-  std::pair<std::string, std::string> rv(
-    std::make_pair(source, "(in-memory)")
-  );
-  if(this->si->location->second == SHADER_VERTEX_DISK ||
-     this->si->location->second == SHADER_FRAGMENT_DISK) {
+  std::pair<std::string, std::wstring> rv;
+
+  if (this->si->location->second == SHADER_VERTEX_DISK ||
+      this->si->location->second == SHADER_FRAGMENT_DISK) {
     // load it from disk and replace those parameters.
     rv.first = includeDefines(defines, readfile(this->si->location->first));
     rv.second = this->si->location->first;
+  } else {
+    std::string source = includeDefines(defines, SysTools::toNarrow(this->si->location->first));
+    rv = std::make_pair(source, L"(in-memory)");
   }
+
+
   return rv;
 }
 

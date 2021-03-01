@@ -380,11 +380,11 @@ uint64_t RasterDataBlock::ComputeLODLevelSizeAndOffsetTables(const vector<uint64
 
   ulSize = 0;
   for (size_t i = 0;i<vBrickPermutation.size();i++) {
-    uint64_t ulBrickSize = vBrickPermutation[i][0];
+    uint64_t _ulBrickSize = vBrickPermutation[i][0];
     for (size_t j = 1;j<vBrickPermutation[i].size();j++) {
-      ulBrickSize *= vBrickPermutation[i][j];
+      _ulBrickSize *= vBrickPermutation[i][j];
     }
-    ulSize += ulBrickSize;
+    ulSize += _ulBrickSize;
 
     if (i<vBrickPermutation.size()-1) m_vBrickOffsets[size_t(iLOD)].push_back(ulSize*uiBitsPerElement);
   }
@@ -405,11 +405,11 @@ uint64_t RasterDataBlock::ComputeLODLevelSize(const vector<uint64_t>& vReducedDo
 
   ulSize = 0;
   for (size_t i = 0;i<vBrickPermutation.size();i++) {
-    uint64_t ulBrickSize = vBrickPermutation[i][0];
+    uint64_t _ulBrickSize = vBrickPermutation[i][0];
     for (size_t j = 1;j<vBrickPermutation[i].size();j++) {
-      ulBrickSize *= vBrickPermutation[i][j];
+      _ulBrickSize *= vBrickPermutation[i][j];
     }
-    ulSize += ulBrickSize;
+    ulSize += _ulBrickSize;
   }
 
   return  ulSize * uiBitsPerElement;
@@ -1471,7 +1471,7 @@ void RasterDataBlock::ResetFile(LargeRAWFile_ptr raw)
   return true;
 }
 
-bool RasterDataBlock::BrickedLODToFlatData(const vector<uint64_t>& vLOD, const std::string& strTargetFile,
+bool RasterDataBlock::BrickedLODToFlatData(const vector<uint64_t>& vLOD, const std::wstring& strTargetFile,
                                            bool bAppend, AbstrDebugOut* pDebugOut) const {
 
 
@@ -1485,7 +1485,7 @@ bool RasterDataBlock::BrickedLODToFlatData(const vector<uint64_t>& vLOD, const s
 
 
   if (!pTargetFile->IsOpen()) {
-    if (pDebugOut) pDebugOut->Error(_func_,"Unable to write to target file %s.", strTargetFile.c_str());
+    if (pDebugOut) pDebugOut->Error(_func_,"Unable to write to target file %s.", SysTools::toNarrow(strTargetFile).c_str());
     return false;
   }
 

@@ -54,7 +54,7 @@ RenderMeshGL::RenderMeshGL(const VertVec& vertices, const NormVec& normals,
            const IndexVec& vIndices, const IndexVec& nIndices,
            const IndexVec& tIndices, const IndexVec& cIndices,
            bool bBuildKDTree, bool bScaleToUnitCube,
-           const std::string& desc, EMeshType meshType,
+           const std::wstring& desc, EMeshType meshType,
            const FLOATVECTOR4& defColor) :
   RenderMesh(vertices,normals,texcoords,colors,
              vIndices,nIndices,tIndices,cIndices, 

@@ -38,7 +38,7 @@ size_t Volume::Index() const {
   return static_cast<size_t>(this->index);
 }
 
-void Volume::Analyze() const throw(semantic::Error)
+void Volume::Analyze() const
 {
   // We don't know how many volumes we have at present.  So, for now, just make
   // sure we've got a nonnegative index.

@@ -49,7 +49,7 @@ using namespace std;
 
 namespace tuvok {
 
-UVFDataset::UVFDataset(const std::string& strFilename,
+UVFDataset::UVFDataset(const std::wstring& strFilename,
                        uint64_t iMaxAcceptableBricksize,
                        bool bVerify,
                        bool bMustBeSameVersion) :
@@ -69,7 +69,7 @@ UVFDataset::UVFDataset() :
   m_pKVDataBlock(NULL),
   m_bIsSameEndianness(true),
   m_pDatasetFile(NULL),
-  m_strFilename(""),
+  m_strFilename(L""),
   m_CachedRange(make_pair(+1,-1)),
   m_iMaxAcceptableBricksize(DEFAULT_BRICKSIZE)
 {
@@ -82,8 +82,7 @@ UVFDataset::~UVFDataset()
 
 void UVFDataset::Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion) {
   // open the file
-  const std::string& fn = Filename();
-  std::wstring wstrFilename(fn.begin(), fn.end());
+  const std::wstring wstrFilename = Filename();
   m_pDatasetFile = new UVF(wstrFilename);
   std::string strError;
   if(!m_pDatasetFile->Open(bMustBeSameVersion, bVerify, bReadWrite, &strError))
@@ -753,7 +752,7 @@ void UVFDataset::GetHistograms(size_t) {
 
     m_pHist1D.reset(new Histogram1D(std::min<size_t>(vHist1D.size(),
                                      std::min<size_t>(MAX_TRANSFERFUNCTION_SIZE,
-                                                     1<<GetBitWidth()))));
+                                       size_t(1)<<GetBitWidth()))));
 
     if (m_pHist1D->GetSize() != vHist1D.size()) {
       MESSAGE("1D Histogram too big to be drawn efficiently, resampling.");
@@ -874,7 +873,7 @@ UINTVECTOR3 UVFDataset::GetBrickVoxelCounts(const BrickKey& k) const
 
 
 
-bool UVFDataset::Export(uint64_t iLODLevel, const std::string& targetFilename,
+bool UVFDataset::Export(uint64_t iLODLevel, const std::wstring& targetFilename,
                         bool bAppend) const {
  if (m_bToCBlock) {
     bool okay = true;
@@ -1226,8 +1225,8 @@ bool UVFDataset::ContainsData(const BrickKey &k, double fMin,double fMax, double
           fMinGradient <= maxMinElement.maxGradient);
 }
 
-const std::vector<std::pair<std::string, std::string>> UVFDataset::GetMetadata() const {
-  std::vector<std::pair<std::string, std::string>> v;
+const std::vector<std::pair<std::wstring, std::wstring>> UVFDataset::GetMetadata() const {
+  std::vector<std::pair<std::wstring, std::wstring>> v;
   if (m_pKVDataBlock)  {
     for (size_t i = 0;i<m_pKVDataBlock->GetKeyCount();i++) {
       v.push_back(std::make_pair(m_pKVDataBlock->GetKeyByIndex(i), m_pKVDataBlock->GetValueByIndex(i)));
@@ -1453,7 +1452,7 @@ bool UVFDataset::AppendMesh(std::shared_ptr<const Mesh> meshIn) {
   tsb->SetTexCoordIndices(m.GetTexCoordIndices());
   tsb->SetColorIndices(m.GetColorIndices());
 
-  tsb->m_Desc = m.Name();
+  tsb->m_Desc = SysTools::toNarrow(m.Name());
 
   m_pDatasetFile->AppendBlockToFile(tsb);
 
@@ -1467,12 +1466,12 @@ bool UVFDataset::AppendMesh(std::shared_ptr<const Mesh> meshIn) {
 
 
 
-bool UVFDataset::Crop(const PLANE<float>& plane, const std::string& strTempDir,
+bool UVFDataset::Crop(const PLANE<float>& plane, const std::wstring& strTempDir,
                       bool bKeepOldData, bool bUseMedianFilter, bool bClampToEdge)
 {
   MESSAGE("Flattening dataset");
-  string strTempRawFilename = SysTools::FindNextSequenceName(
-    strTempDir + "crop-tmp.raw"
+  wstring strTempRawFilename = SysTools::FindNextSequenceName(
+    strTempDir + L"crop-tmp.raw"
   );
   Export(0, strTempRawFilename , false);
 
@@ -1549,10 +1548,10 @@ bool UVFDataset::Crop(const PLANE<float>& plane, const std::string& strTempDir,
   dataFile.Close();
 
   MESSAGE("Rebuilding UVF data");
-  string strTempFilename = SysTools::FindNextSequenceName(Filename());
+  std::wstring strTempFilename = SysTools::FindNextSequenceName(Filename());
 
-  std::string strDesc = std::string("Cropped ") + std::string(Name());
-  std::string strSource = SysTools::GetFilename(Filename());
+  std::wstring strDesc = std::wstring(L"Cropped ") + std::wstring(Name());
+  std::wstring strSource = SysTools::GetFilename(Filename());
 
   if(!RAWConverter::ConvertRAWDataset(
       strTempRawFilename, strTempFilename, strTempDir, 0, GetBitWidth(),
@@ -1572,24 +1571,24 @@ bool UVFDataset::Crop(const PLANE<float>& plane, const std::string& strTempDir,
   Close();
 
   if (bKeepOldData) {
-    std::string newFilename = SysTools::AppendFilename(Filename(),"-beforeCropping");
+    std::wstring newFilename = SysTools::AppendFilename(Filename(),L"-beforeCropping");
     if (SysTools::FileExists(newFilename)) {
       newFilename = SysTools::FindNextSequenceName(newFilename);
     }
-    rename(Filename().c_str(), newFilename.c_str());
+    SysTools::RenameFile(Filename(), newFilename);
   } else {
-    remove(Filename().c_str());
+    SysTools::RemoveFile(Filename());
   }
 
 
   if (SysTools::FileExists(Filename())) {
     T_ERROR("Unable to delete original UVF file, a new file (%s) has been "
-            "created alongside the old.", strTempFilename.c_str());
+            "created alongside the old.", SysTools::toNarrow(strTempFilename).c_str());
     Open(false,false,false);
     return false;
   }
 
-  rename(strTempFilename.c_str(), Filename().c_str());
+  SysTools::RenameFile(strTempFilename, Filename());
 
   MESSAGE("Opening new file");
   Open(false,false,false);
@@ -1647,7 +1646,7 @@ bool UVFDataset::SaveRescaleFactors() {
   return true;
 }
 
-bool UVFDataset::CanRead(const std::string&,
+bool UVFDataset::CanRead(const std::wstring&,
                          const std::vector<int8_t>& bytes) const
 {
   return bytes[0] == 0x55 && // 'U'
@@ -1660,25 +1659,24 @@ bool UVFDataset::CanRead(const std::string&,
          bytes[7] == 0x41;   // 'A'
 }
 
-bool UVFDataset::Verify(const std::string& filename) const
+bool UVFDataset::Verify(const std::wstring& filename) const
 {
-  std::wstring wstrFilename(filename.begin(), filename.end());
   bool checksumFail=false;
-  UVF::IsUVFFile(wstrFilename, checksumFail);
+  UVF::IsUVFFile(filename, checksumFail);
   // negate it; IsUVFFile sets the argument if the checksum *fails*!
   return !checksumFail;
 }
 
-Dataset* UVFDataset::Create(const std::string& filename,
+Dataset* UVFDataset::Create(const std::wstring& filename,
                             uint64_t max_brick_size, bool verify) const
 {
   return new UVFDataset(filename, max_brick_size, verify, false);
 }
 
-std::list<std::string> UVFDataset::Extensions() const
+std::list<std::wstring> UVFDataset::Extensions() const
 {
-  std::list<std::string> retval;
-  retval.push_back("UVF");
+  std::list<std::wstring> retval;
+  retval.push_back(L"UVF");
   return retval;
 }
 

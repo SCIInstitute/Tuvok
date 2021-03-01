@@ -29,6 +29,7 @@
 #include <fstream>
 #include <iterator>
 #include "AmiraConverter.h"
+#include "Basics/SysTools.h"
 
 // Your standard ostream_iterator will essentially do "stream << *iter".  That
 // doesn't work well for binary files, however, in which we need to use
@@ -56,11 +57,11 @@ private:
 
 AmiraConverter::AmiraConverter()
 {
-  m_vConverterDesc = "Amira";
-  m_vSupportedExt.push_back("AM");
+  m_vConverterDesc = L"Amira";
+  m_vSupportedExt.push_back(L"AM");
 }
 
-bool AmiraConverter::CanRead(const std::string& fn,
+bool AmiraConverter::CanRead(const std::wstring& fn,
                              const std::vector<int8_t>& start) const
 {
   if(!AbstrConverter::CanRead(fn, start)) {
@@ -94,8 +95,8 @@ bool AmiraConverter::CanRead(const std::string& fn,
   return true;
 }
 
-bool AmiraConverter::ConvertToRAW(const std::string& strSourceFilename,
-                                    const std::string& strTempDir,
+bool AmiraConverter::ConvertToRAW(const std::wstring& strSourceFilename,
+                                    const std::wstring& strTempDir,
                                     bool,
                                     uint64_t& iHeaderSkip,
                                     unsigned& iComponentSize,
@@ -104,15 +105,15 @@ bool AmiraConverter::ConvertToRAW(const std::string& strSourceFilename,
                                     bool& bSigned, bool& bIsFloat,
                                     UINT64VECTOR3& vVolumeSize,
                                     FLOATVECTOR3& vVolumeAspect,
-                                    std::string& strTitle,
-                                    std::string& strIntermediateFile,
+                                    std::wstring& strTitle,
+                                    std::wstring& strIntermediateFile,
                                     bool& bDeleteIntermediateFile)
 {
-  strTitle = "from Amira converter";
+  strTitle = L"from Amira converter";
 
-  std::ifstream amira(strSourceFilename.c_str());
+  std::ifstream amira(SysTools::toNarrow(strSourceFilename).c_str());
   if(!amira) {
-    T_ERROR("Could not open %s!", strSourceFilename.c_str());
+    T_ERROR("Could not open %s!", SysTools::toNarrow(strSourceFilename).c_str());
     return false;
   }
 
@@ -123,7 +124,7 @@ bool AmiraConverter::ConvertToRAW(const std::string& strSourceFilename,
   bSigned = true;
   bIsFloat = true;
   vVolumeAspect = FLOATVECTOR3(1.0, 1.0, 1.0);
-  strIntermediateFile = strTempDir + "/" + "am.iv3d.tmp";
+  strIntermediateFile = strTempDir + L"/am.iv3d.tmp";
   bDeleteIntermediateFile = true;
 
   std::string junk;
@@ -154,11 +155,11 @@ bool AmiraConverter::ConvertToRAW(const std::string& strSourceFilename,
   do { amira >> junk; } while(junk != "@1"); // " ... } = @1"
   do { amira >> junk; } while(junk != "@1"); // "@1\n"
 
-  std::ofstream inter(strIntermediateFile.c_str(),
+  std::ofstream inter(SysTools::toNarrow(strIntermediateFile).c_str(),
                       std::ofstream::out | std::ofstream::out);
   if(!inter) {
     T_ERROR("Could not create intermediate file '%s'.",
-            strIntermediateFile.c_str());
+      SysTools::toNarrow(strIntermediateFile).c_str());
     bDeleteIntermediateFile = false;
     return false;
   }
@@ -168,8 +169,8 @@ bool AmiraConverter::ConvertToRAW(const std::string& strSourceFilename,
   return true;
 }
 
-bool AmiraConverter::ConvertToNative(const std::string&,
-                                     const std::string&,
+bool AmiraConverter::ConvertToNative(const std::wstring&,
+                                     const std::wstring&,
                                      uint64_t,
                                      unsigned,
                                      uint64_t, bool,

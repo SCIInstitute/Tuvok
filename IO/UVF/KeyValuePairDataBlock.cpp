@@ -101,9 +101,9 @@ uint64_t KeyValuePairDataBlock::ComputeDataSize() const {
        m_KeyValuePairs.size() * 2 * sizeof(uint64_t);  // UINT64s indicating the stringlength
 }
 
-bool KeyValuePairDataBlock::AddPair(string key, string value) {
+bool KeyValuePairDataBlock::AddPair(std::wstring key, std::wstring value) {
   for (size_t i = 0;i<m_KeyValuePairs.size();i++) {
-    if (key == m_KeyValuePairs[i].strKey) return false;
+    if (key == m_KeyValuePairs[i].wstrKey()) return false;
   }
 
   KeyValuePair p(key,value);

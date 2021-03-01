@@ -23,9 +23,9 @@ unix:CONFIG(debug, debug|release) {
   !macx LIBS += -lGLU
 }
 
-macx:QMAKE_CXXFLAGS += -stdlib=libc++ -mmacosx-version-min=10.7
-macx:QMAKE_CFLAGS += -mmacosx-version-min=10.7
-macx:LIBS        += -stdlib=libc++ -mmacosx-version-min=10.7 -framework CoreFoundation
+macx:QMAKE_CXXFLAGS += -stdlib=libc++
+macx:QMAKE_CFLAGS +=
+macx:LIBS        += -stdlib=libc++ -framework CoreFoundation
 
 ### Should we link Qt statically or as a shared lib?
 # Find the location of QtGui's prl file, and include it here so we can look at

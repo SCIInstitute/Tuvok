@@ -44,8 +44,8 @@ using namespace std;
 
 DynamicDX::LPCREATEDXGIFACTORY DynamicDX::CreateDXGIFactory                     = NULL;
 DynamicDX::LPD3D10CREATEDEVICE DynamicDX::D3D10CreateDevice                     = NULL;
-DynamicDX::LPD3DX10CREATEEFFECTFROMFILEW DynamicDX::D3DX10CreateEffectFromFileW = NULL;
-DynamicDX::LPD3DX10CREATEEFFECTFROMFILEA DynamicDX::D3DX10CreateEffectFromFileA = NULL;
+//DynamicDX::LPD3DX10CREATEEFFECTFROMFILEW DynamicDX::D3DX10CreateEffectFromFileW = NULL;
+//DynamicDX::LPD3DX10CREATEEFFECTFROMFILEA DynamicDX::D3DX10CreateEffectFromFileA = NULL;
 
 int DynamicDX::m_iD3DX10Version           = 0;
 bool DynamicDX::m_bDynamicDXIsInitialized = false;
@@ -83,11 +83,12 @@ bool DynamicDX::InitializeDX() {
   D3D10CreateDevice = ( LPD3D10CREATEDEVICE )GetProcAddress( m_hD3D10, "D3D10CreateDevice" );
   if (!D3D10CreateDevice) return false;
   // D3DX10 calls
+  /*
   D3DX10CreateEffectFromFileW = ( LPD3DX10CREATEEFFECTFROMFILEW )GetProcAddress( m_hD3DX10, "D3DX10CreateEffectFromFileW" );
   if (!D3DX10CreateEffectFromFileW) return false;
   D3DX10CreateEffectFromFileA = ( LPD3DX10CREATEEFFECTFROMFILEA )GetProcAddress( m_hD3DX10, "D3DX10CreateEffectFromFileA" );
   if (!D3DX10CreateEffectFromFileA) return false;
-
+  */
   m_bDynamicDXIsInitialized = true;
 
   return true;

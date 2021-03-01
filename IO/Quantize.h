@@ -115,9 +115,9 @@ struct NullProgress {
 template <typename T>
 struct TuvokProgress {
   TuvokProgress(T total) : tMax(total) {}
-  void notify(const std::string& operation, T current) const {
+  void notify(const std::wstring& operation, T current) const {
     assert(current <= tMax);
-    MESSAGE("%s (%5.3f%% complete).", operation.c_str(),
+    MESSAGE("%s (%5.3f%% complete).", SysTools::toNarrow(operation).c_str(),
             static_cast<double>(current) / static_cast<double>(tMax)*100.0);
   }
   private: T tMax;
@@ -325,7 +325,7 @@ std::pair<T,T> io_minmax(DataSrc<T> ds, Histogram<T, sz> histogram,
 
     iPos += uint64_t(n_records);
     assert(iPos <= iElems);
-    progress.notify("Computing value range", iPos);
+    progress.notify(L"Computing value range", iPos);
 
     typedef typename std::vector<T>::const_iterator iterator;
     std::pair<iterator,iterator> cur_mm = std::minmax_element(data.begin(),
@@ -348,7 +348,7 @@ template <typename T, typename U>
 static bool ApplyMapping(const uint64_t iElems,
                          const size_t iCurrentInCoreSizeBytes,
                          raw_data_src<T>& ds,
-                         const std::string& strTargetFilename,
+                         const std::wstring& strTargetFilename,
                          std::map<T, size_t>& binAssignments,
                          Histogram1DDataBlock* Histogram1D,
                          TuvokProgress<uint64_t> progress) {
@@ -378,7 +378,7 @@ static bool ApplyMapping(const uint64_t iElems,
 
     iPos += uint64_t(n_records);
     assert(iPos <= iElems);
-    progress.notify("Mapping data values to bins", iPos);
+    progress.notify(L"Mapping data values to bins", iPos);
 
     // Run over the in-core data and apply mapping
     for(size_t i=0; i < n_records; ++i) {
@@ -395,7 +395,7 @@ static bool ApplyMapping(const uint64_t iElems,
   MappedData.Open(false);
   if(!MappedData.IsOpen()) {
     T_ERROR("Could not open intermediate file '%s'",
-            strTargetFilename.c_str());
+      SysTools::toNarrow(strTargetFilename).c_str());
     return false;
   }
 
@@ -428,7 +428,7 @@ static bool ApplyMapping(const uint64_t iElems,
 template <typename T, typename U>
 static bool Quantize(LargeRAWFile& InputData,
                      const BStreamDescriptor& Input,
-                     const std::string& strTargetFilename,
+                     const std::wstring& strTargetFilename,
                      Histogram1DDataBlock* Histogram1D=0,
                      size_t* iBinCount=0)
 {
@@ -505,7 +505,7 @@ static bool Quantize(LargeRAWFile& InputData,
     OutputData.Create(iSize*sizeof(U));
     if(!OutputData.IsOpen()) {
       InputData.Close();
-      T_ERROR("Could not create output file '%s'", strTargetFilename.c_str());
+      T_ERROR("Could not create output file '%s'", SysTools::toNarrow(strTargetFilename).c_str());
       return false;
     }
   }
@@ -581,7 +581,7 @@ static bool Quantize(LargeRAWFile& InputData,
 /// can just use 'InputData' as-is or on error.
 template <typename T, typename U>
 static bool BinningQuantize(LargeRAWFile& InputData,
-                            const std::string& strTargetFilename,
+                            const std::wstring& strTargetFilename,
                             uint64_t iElems,
                             unsigned& iComponentSize,
                             Histogram1DDataBlock* Histogram1D=0)
@@ -620,7 +620,7 @@ static bool BinningQuantize(LargeRAWFile& InputData,
 
     iPos += uint64_t(n_records);
     assert(iPos <= iElems);
-    progress.notify("Counting number of unique values in the data", iPos);
+    progress.notify(L"Counting number of unique values in the data", iPos);
 
     // Run over the in core data and sort it into bins
     for(size_t i=0; i < n_records; ++i) {

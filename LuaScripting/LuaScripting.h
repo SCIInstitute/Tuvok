@@ -966,12 +966,24 @@ void Tuvok_luaCheckParam(lua_State* L, const std::string& name,
   lua_gettable(L, typesTable);
   if (LSS_compareToTypeOnStack<T>(L, -1) == false)
   {
-    // Test the one special case (const char* --> std::string)
+    // Test the first special case (const char* --> std::string)
     if ((   LSS_compareToTypeOnStack<std::string>(L, -1)
          || LSS_compareToTypeOnStack<const char*>(L, -1)))
     {
       if (   LSS_compareTypes<std::string, T>()
           || LSS_compareTypes<const char*, T>())
+      {
+        lua_pop(L, 1);
+        return;
+      }
+    }
+
+    // Test another special case (const wchar_t* --> std::wstring)
+    if ((   LSS_compareToTypeOnStack<std::wstring>(L, -1)
+         || LSS_compareToTypeOnStack<const wchar_t*>(L, -1)))
+    {
+      if (   LSS_compareTypes<std::wstring, T>()
+          || LSS_compareTypes<const wchar_t*, T>())
       {
         lua_pop(L, 1);
         return;

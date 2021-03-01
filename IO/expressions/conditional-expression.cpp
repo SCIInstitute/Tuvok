@@ -29,7 +29,7 @@
 
 namespace tuvok { namespace expression {
 
-void ConditionalExpression::Analyze() const throw(semantic::Error) { }
+void ConditionalExpression::Analyze() const { }
 
 void ConditionalExpression::Print(std::ostream& os) const {
   os << "ConditionalExpression (";

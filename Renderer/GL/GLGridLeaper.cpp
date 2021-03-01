@@ -331,11 +331,11 @@ bool GLGridLeaper::LoadTraversalShaders(const std::vector<std::string>& vDefines
 #endif
   const std::string hashFragment = m_pglHashTable->GetShaderFragment(5);
 
-  std::vector<std::string> vs, fs;
-  vs.push_back(FindFileInDirs("GLGridLeaper-entry-VS.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLGridLeaper-blend.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLGridLeaper-Method-1D.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
+  std::vector<std::wstring> vs, fs;
+  vs.push_back(FindFileInDirs(L"GLGridLeaper-entry-VS.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs(L"GLGridLeaper-blend.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs(L"GLGridLeaper-Method-1D.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs(L"Compositing.glsl", m_vShaderSearchDirs, false));
   ShaderDescriptor sd(vs, fs);
   sd.AddDefines(vDefines);
   sd.AddFragmentShaderString(poolFragment);
@@ -346,10 +346,10 @@ bool GLGridLeaper::LoadTraversalShaders(const std::vector<std::string>& vDefines
   if (!LoadCheckShader(&m_pProgramRayCast1D, sd, "1D TF")) return false;
 
   vs.clear(); fs.clear();
-  vs.push_back(FindFileInDirs("GLGridLeaper-entry-VS.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLGridLeaper-blend.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLGridLeaper-Method-1D-color.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
+  vs.push_back(FindFileInDirs(L"GLGridLeaper-entry-VS.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs(L"GLGridLeaper-blend.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs(L"GLGridLeaper-Method-1D-color.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs(L"Compositing.glsl", m_vShaderSearchDirs, false));
   sd = ShaderDescriptor(vs, fs);
   sd.AddDefines(vDefines);
   sd.AddFragmentShaderString(poolFragment);
@@ -360,12 +360,12 @@ bool GLGridLeaper::LoadTraversalShaders(const std::vector<std::string>& vDefines
   if (!LoadCheckShader(&m_pProgramRayCast1DColor, sd, "Color 1D TF")) return false;
 
   vs.clear(); fs.clear();
-  vs.push_back(FindFileInDirs("GLGridLeaper-entry-VS.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLGridLeaper-blend.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLGridLeaper-Method-1D-L.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLGridLeaper-GradientTools.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("lighting.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
+  vs.push_back(FindFileInDirs(L"GLGridLeaper-entry-VS.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs(L"GLGridLeaper-blend.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs(L"GLGridLeaper-Method-1D-L.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs(L"GLGridLeaper-GradientTools.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs(L"lighting.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs(L"Compositing.glsl", m_vShaderSearchDirs, false));
   sd = ShaderDescriptor(vs, fs);
   sd.AddDefines(vDefines);
   sd.AddFragmentShaderString(poolFragment);
@@ -376,12 +376,12 @@ bool GLGridLeaper::LoadTraversalShaders(const std::vector<std::string>& vDefines
   if (!LoadCheckShader(&m_pProgramRayCast1DLighting, sd, "1D TF lighting")) return false;
 
   vs.clear(); fs.clear();
-  vs.push_back(FindFileInDirs("GLGridLeaper-entry-VS.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLGridLeaper-blend.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLGridLeaper-Method-1D-L-color.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLGridLeaper-GradientTools.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("lighting.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
+  vs.push_back(FindFileInDirs(L"GLGridLeaper-entry-VS.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs(L"GLGridLeaper-blend.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs(L"GLGridLeaper-Method-1D-L-color.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs(L"GLGridLeaper-GradientTools.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs(L"lighting.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs(L"Compositing.glsl", m_vShaderSearchDirs, false));
   sd = ShaderDescriptor(vs, fs);
   sd.AddDefines(vDefines);
   sd.AddFragmentShaderString(poolFragment);
@@ -392,11 +392,11 @@ bool GLGridLeaper::LoadTraversalShaders(const std::vector<std::string>& vDefines
   if (!LoadCheckShader(&m_pProgramRayCast1DLightingColor, sd, "Color 1D TF lighting")) return false;
 
   vs.clear(); fs.clear();
-  vs.push_back(FindFileInDirs("GLGridLeaper-entry-VS.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLGridLeaper-blend.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLGridLeaper-Method-2D.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLGridLeaper-GradientTools.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
+  vs.push_back(FindFileInDirs(L"GLGridLeaper-entry-VS.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs(L"GLGridLeaper-blend.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs(L"GLGridLeaper-Method-2D.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs(L"GLGridLeaper-GradientTools.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs(L"Compositing.glsl", m_vShaderSearchDirs, false));
   sd = ShaderDescriptor(vs, fs);
   sd.AddDefines(vDefines);
   sd.AddFragmentShaderString(poolFragment);
@@ -407,11 +407,11 @@ bool GLGridLeaper::LoadTraversalShaders(const std::vector<std::string>& vDefines
   if (!LoadCheckShader(&m_pProgramRayCast2D, sd, "2D TF")) return false;
 
   vs.clear(); fs.clear();
-  vs.push_back(FindFileInDirs("GLGridLeaper-entry-VS.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLGridLeaper-blend.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLGridLeaper-Method-2D-color.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLGridLeaper-GradientTools.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
+  vs.push_back(FindFileInDirs(L"GLGridLeaper-entry-VS.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs(L"GLGridLeaper-blend.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs(L"GLGridLeaper-Method-2D-color.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs(L"GLGridLeaper-GradientTools.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs(L"Compositing.glsl", m_vShaderSearchDirs, false));
   sd = ShaderDescriptor(vs, fs);
   sd.AddDefines(vDefines);
   sd.AddFragmentShaderString(poolFragment);
@@ -422,12 +422,12 @@ bool GLGridLeaper::LoadTraversalShaders(const std::vector<std::string>& vDefines
   if (!LoadCheckShader(&m_pProgramRayCast2DColor, sd, "Color 2D TF")) return false;
 
   vs.clear(); fs.clear();
-  vs.push_back(FindFileInDirs("GLGridLeaper-entry-VS.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLGridLeaper-blend.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLGridLeaper-Method-2D-L.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLGridLeaper-GradientTools.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("lighting.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
+  vs.push_back(FindFileInDirs(L"GLGridLeaper-entry-VS.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs(L"GLGridLeaper-blend.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs(L"GLGridLeaper-Method-2D-L.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs(L"GLGridLeaper-GradientTools.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs(L"lighting.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs(L"Compositing.glsl", m_vShaderSearchDirs, false));
   sd = ShaderDescriptor(vs, fs);
   sd.AddDefines(vDefines);
   sd.AddFragmentShaderString(poolFragment);
@@ -438,12 +438,12 @@ bool GLGridLeaper::LoadTraversalShaders(const std::vector<std::string>& vDefines
   if (!LoadCheckShader(&m_pProgramRayCast2DLighting, sd, "2D TF lighting")) return false;
 
   vs.clear(); fs.clear();
-  vs.push_back(FindFileInDirs("GLGridLeaper-entry-VS.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLGridLeaper-blend.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLGridLeaper-Method-2D-L-color.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLGridLeaper-GradientTools.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("lighting.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("Compositing.glsl", m_vShaderSearchDirs, false));
+  vs.push_back(FindFileInDirs(L"GLGridLeaper-entry-VS.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs(L"GLGridLeaper-blend.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs(L"GLGridLeaper-Method-2D-L-color.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs(L"GLGridLeaper-GradientTools.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs(L"lighting.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs(L"Compositing.glsl", m_vShaderSearchDirs, false));
   sd = ShaderDescriptor(vs, fs);
   sd.AddDefines(vDefines);
   sd.AddFragmentShaderString(poolFragment);
@@ -454,10 +454,10 @@ bool GLGridLeaper::LoadTraversalShaders(const std::vector<std::string>& vDefines
   if (!LoadCheckShader(&m_pProgramRayCast2DLightingColor, sd, "Color 2D TF lighting")) return false;
 
   vs.clear(); fs.clear();
-  vs.push_back(FindFileInDirs("GLGridLeaper-entry-VS.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLGridLeaper-iso.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLGridLeaper-Method-iso.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLGridLeaper-GradientTools.glsl", m_vShaderSearchDirs, false));
+  vs.push_back(FindFileInDirs(L"GLGridLeaper-entry-VS.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs(L"GLGridLeaper-iso.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs(L"GLGridLeaper-Method-iso.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs(L"GLGridLeaper-GradientTools.glsl", m_vShaderSearchDirs, false));
   sd = ShaderDescriptor(vs, fs);
   sd.AddDefines(vDefines);
   sd.AddFragmentShaderString(poolFragment);
@@ -468,10 +468,10 @@ bool GLGridLeaper::LoadTraversalShaders(const std::vector<std::string>& vDefines
   if (!LoadCheckShader(&m_pProgramRayCastISO, sd, "Isosurface")) return false;
 
   vs.clear(); fs.clear();
-  vs.push_back(FindFileInDirs("GLGridLeaper-entry-VS.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLGridLeaper-iso.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLGridLeaper-Method-iso-color.glsl", m_vShaderSearchDirs, false));
-  fs.push_back(FindFileInDirs("GLGridLeaper-GradientTools.glsl", m_vShaderSearchDirs, false));
+  vs.push_back(FindFileInDirs(L"GLGridLeaper-entry-VS.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs(L"GLGridLeaper-iso.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs(L"GLGridLeaper-Method-iso-color.glsl", m_vShaderSearchDirs, false));
+  fs.push_back(FindFileInDirs(L"GLGridLeaper-GradientTools.glsl", m_vShaderSearchDirs, false));
   sd = ShaderDescriptor(vs, fs);
   sd.AddDefines(vDefines);
   sd.AddFragmentShaderString(poolFragment);
@@ -540,13 +540,13 @@ bool GLGridLeaper::LoadShaders() {
 
 
   if(!LoadAndVerifyShader(&m_pProgramRenderFrontFaces, m_vShaderSearchDirs,
-                          "GLGridLeaper-entry-VS.glsl",
+                          L"GLGridLeaper-entry-VS.glsl",
                           NULL,
-                          "GLGridLeaper-frontfaces-FS.glsl", NULL) ||
+                          L"GLGridLeaper-frontfaces-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramRenderFrontFacesNearPlane, m_vShaderSearchDirs,
-                          "GLGridLeaper-NearPlane-VS.glsl",
+                          L"GLGridLeaper-NearPlane-VS.glsl",
                           NULL,
-                          "GLGridLeaper-frontfaces-FS.glsl", NULL) )
+                          L"GLGridLeaper-frontfaces-FS.glsl", NULL) )
   {
       Cleanup();
       T_ERROR("Error loading a shader.");
@@ -1169,30 +1169,30 @@ bool GLGridLeaper::PH_Converged() const {
   return m_bConverged;
 }
 
-bool GLGridLeaper::PH_OpenBrickAccessLogfile(const std::string& filename) {
+bool GLGridLeaper::PH_OpenBrickAccessLogfile(const std::wstring& filename) {
   if (m_pBrickAccess)
     return false; // we already have a file do close and open
-  std::string logFilename = filename;
-  std::string dsName;
+  std::wstring logFilename = filename;
+  std::wstring dsName;
 
   if (filename.empty()) {
     try {
       const FileBackedDataset& ds = dynamic_cast<const FileBackedDataset&>
                                                 (*m_pToCDataset);
       dsName = SysTools::RemoveExt(ds.Filename());
-      logFilename = dsName + "_log.ba";
+      logFilename = dsName + L"_log.ba";
     } catch(const std::bad_cast&) {
       return false; // we do not know which file to open
     }
   }
 
   logFilename = SysTools::FindNextSequenceName(logFilename);
-  m_pBrickAccess = new std::ofstream(logFilename);
+  m_pBrickAccess = new std::ofstream(SysTools::toNarrow(logFilename));
 
   // write header
   *m_pBrickAccess << std::fixed << std::setprecision(5);
   if (m_pToCDataset) {
-    *m_pBrickAccess << "Filename=" << dsName << std::endl;
+    *m_pBrickAccess << "Filename=" << SysTools::toNarrow(dsName) << std::endl;
     *m_pBrickAccess << "MaxBrickSize=" << m_pToCDataset->GetMaxBrickSize() << std::endl;
     *m_pBrickAccess << "BrickOverlap=" << m_pToCDataset->GetBrickOverlapSize() << std::endl;
     *m_pBrickAccess << "LoDCount=" << m_pToCDataset->GetLODLevelCount() << std::endl;
@@ -1229,23 +1229,23 @@ bool GLGridLeaper::PH_CloseBrickAccessLogfile() {
   }
 }
 
-bool GLGridLeaper::PH_OpenLogfile(const std::string& filename) {
+bool GLGridLeaper::PH_OpenLogfile(const std::wstring& filename) {
   if (m_pLogFile)
     return false; // we already have a file do close and open
-  std::string logFilename = filename;
+  std::wstring logFilename = filename;
 
   if (filename.empty()) {
     try {
       const FileBackedDataset& ds = dynamic_cast<const FileBackedDataset&>
                                                 (*m_pToCDataset);
-      logFilename = SysTools::RemoveExt(ds.Filename()) + "_log.csv";
+      logFilename = SysTools::RemoveExt(ds.Filename()) + L"_log.csv";
     } catch(const std::bad_cast&) {
       return false; // we do not know which file to open
     }
   }
 
   logFilename = SysTools::FindNextSequenceName(logFilename);
-  m_pLogFile = new std::ofstream(logFilename);
+  m_pLogFile = new std::ofstream(SysTools::toNarrow(logFilename));
 
   // write header
   *m_pLogFile << std::fixed << std::setprecision(5);

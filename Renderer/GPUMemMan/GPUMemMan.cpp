@@ -187,7 +187,7 @@ GPUMemMan::~GPUMemMan() {
   assert(m_iAllocatedCPUMemory == 0);
 }
 
-Dataset* GPUMemMan::LoadDataset(const string& strFilename,
+Dataset* GPUMemMan::LoadDataset(const wstring& strFilename,
                                 AbstrRenderer* requester) {
   // We want to reuse datasets which have already been loaded.  Yet
   // we have a list of `Dataset's, not `FileBackedDataset's, and so
@@ -209,13 +209,13 @@ Dataset* GPUMemMan::LoadDataset(const string& strFilename,
     assert(dataset != NULL);
 
     if (dataset->Filename() == strFilename) {
-      MESSAGE("Reusing %s", strFilename.c_str());
+      MESSAGE("Reusing %s", SysTools::toNarrow(strFilename).c_str());
       i->qpUser.push_back(requester);
       return i->pVolumeDataset;
     }
   }
 
-  MESSAGE("Loading %s", strFilename.c_str());
+  MESSAGE("Loading %s", SysTools::toNarrow(strFilename).c_str());
   const IOManager& mgr = *m_MasterController->IOMan();
   /// @todo fixme: just use `Dataset's here; instead of explicitly doing the
   /// IsOpen check, below, just rely on an exception being thrown.
@@ -245,13 +245,13 @@ struct find_ds : public std::unary_function<VolDataListElem, bool> {
 void GPUMemMan::FreeDataset(Dataset* pVolumeDataset,
                             AbstrRenderer* requester) {
   // store a name conditional for later logging
-  std::string ds_name;
+  std::wstring ds_name;
   try {
     const FileBackedDataset& ds = dynamic_cast<FileBackedDataset&>
                                               (*pVolumeDataset);
     ds_name = ds.Filename();
   } catch(std::bad_cast) {
-    ds_name = "(unnamed dataset)";
+    ds_name = L"(unnamed dataset)";
   }
 
   // find the dataset this refers to in our internal list
@@ -263,7 +263,7 @@ void GPUMemMan::FreeDataset(Dataset* pVolumeDataset,
   AbstrDebugOut &dbg = *(m_MasterController->DebugOut());
   if(vol_ds == m_vpVolumeDatasets.end()) {
     dbg.Warning(_func_,"Dataset '%s' not found or not being used by requester",
-                ds_name.c_str());
+                SysTools::toNarrow(ds_name).c_str());
     return;
   }
 
@@ -274,7 +274,7 @@ void GPUMemMan::FreeDataset(Dataset* pVolumeDataset,
   // renderer.
   if(renderer == vol_ds->qpUser.end()) {
     dbg.Warning(_func_, "Dataset %s does not seem to be associated "
-                        "with a renderer.", ds_name.c_str());
+                        "with a renderer.", SysTools::toNarrow(ds_name).c_str());
     return;
   }
 
@@ -297,7 +297,7 @@ void GPUMemMan::FreeDataset(Dataset* pVolumeDataset,
 
 // ******************** Simple Textures
 
-GLTexture2D* GPUMemMan::Load2DTextureFromFile(const string& strFilename, int iShareGroupID) {
+GLTexture2D* GPUMemMan::Load2DTextureFromFile(const wstring& strFilename, int iShareGroupID) {
   for (SimpleTextureListIter i = m_vpSimpleTextures.begin();
        i < m_vpSimpleTextures.end(); ++i) {
     if (i->strFilename == strFilename && i->m_iShareGroupID == iShareGroupID) {
@@ -309,7 +309,7 @@ GLTexture2D* GPUMemMan::Load2DTextureFromFile(const string& strFilename, int iSh
 
 #ifndef TUVOK_NO_QT
   QImage image;
-  if (!image.load(strFilename.c_str())) {
+  if (!image.load(QString::fromStdWString(strFilename))) {
     T_ERROR("Unable to load file %s", strFilename.c_str());
     return NULL;
   }
@@ -407,7 +407,7 @@ void GPUMemMan::GetEmpty1DTrans(size_t iSize, AbstrRenderer* requester,
                                             requester));
 }
 
-void GPUMemMan::Get1DTransFromFile(const string& strFilename,
+void GPUMemMan::Get1DTransFromFile(const wstring& strFilename,
                                    AbstrRenderer* requester,
                                    TransferFunction1D** ppTransferFunction1D,
                                    GLTexture1D** tex, size_t iSize) {
@@ -551,7 +551,7 @@ void GPUMemMan::GetEmpty2DTrans(const VECTOR2<size_t>& iSize,
                                             requester));
 }
 
-void GPUMemMan::Get2DTransFromFile(const string& strFilename,
+void GPUMemMan::Get2DTransFromFile(const wstring& strFilename,
                                    AbstrRenderer* requester,
                                    TransferFunction2D** ppTransferFunction2D,
                                    GLTexture2D** tex,

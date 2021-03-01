@@ -246,7 +246,7 @@ void G3D::convertVertices(const float * const vertices, std::vector<float*> & ve
 	}
 
 	uint32_t vertexFloats = info.vertexSize / sizeof(float);
-	for (uint32_t i=0; i<info.numberVertices; ++i)
+	for (i=0; i<info.numberVertices; ++i)
 	{
 		uint32_t offset = 0;
 		uint32_t attributeIndex = 0;

@@ -27,6 +27,7 @@
 #include <fstream>
 #include <memory>
 #include "Basics/Mesh.h"
+#include "Basics/SysTools.h"
 #include "Controller/Controller.h"
 #include "LinesGeoConverter.h"
 #include "TuvokIOError.h"
@@ -34,25 +35,25 @@
 namespace tuvok {
 
 LinesGeoConverter::LinesGeoConverter() {
-  m_vSupportedExt.push_back("IV3DLINES");
-  m_vSupportedExt.push_back("LNE");
-  m_vConverterDesc = "IV3D Hacky Lines";
+  m_vSupportedExt.push_back(L"IV3DLINES");
+  m_vSupportedExt.push_back(L"LNE");
+  m_vConverterDesc = L"IV3D Hacky Lines";
 }
 
 using namespace io;
 std::shared_ptr<Mesh>
-LinesGeoConverter::ConvertToMesh(const std::string& rawFilename) {
-  MESSAGE("Converting %s...", rawFilename.c_str());
-  std::ifstream lines(rawFilename.c_str(), std::ios::in);
+LinesGeoConverter::ConvertToMesh(const std::wstring& rawFilename) {
+  MESSAGE("Converting %s...", SysTools::toNarrow(rawFilename).c_str());
+  std::ifstream lines(SysTools::toNarrow(rawFilename).c_str(), std::ios::in);
 
   if(!lines) {
-    throw DSOpenFailed(rawFilename.c_str(), "open failed", __FILE__, __LINE__);
+    throw DSOpenFailed(SysTools::toNarrow(rawFilename).c_str(), "open failed", __FILE__, __LINE__);
   }
 
   uint64_t n_vertices;
   lines >> n_vertices;
   if(!lines || n_vertices == 0) {
-    throw DSParseFailed(rawFilename.c_str(), "number of vertices", __FILE__,
+    throw DSParseFailed(SysTools::toNarrow(rawFilename).c_str(), "number of vertices", __FILE__,
                         __LINE__);
   }
   size_t n_vertices_st = static_cast<size_t>(n_vertices);
@@ -64,7 +65,7 @@ LinesGeoConverter::ConvertToMesh(const std::string& rawFilename) {
     vertices[i] = tmp;
   }
   if(!lines) {
-    throw DSParseFailed(rawFilename.c_str(), "vertices list short", __FILE__,
+    throw DSParseFailed(SysTools::toNarrow(rawFilename).c_str(), "vertices list short", __FILE__,
                         __LINE__);
   }
 
@@ -130,7 +131,7 @@ LinesGeoConverter::ConvertToMesh(const std::string& rawFilename) {
   return std::shared_ptr<Mesh>(new Mesh(
     vertices, NormVec(), TexCoordVec(), colors, edges,
     IndexVec(), IndexVec(), c_indices, false, false,
-    "Esra-mesh", Mesh::MT_LINES
+    L"Esra-mesh", Mesh::MT_LINES
   ));
 }
 

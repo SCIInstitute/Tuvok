@@ -98,7 +98,7 @@ int main(int argc, const char *argv[])
         "tuvok.renderer.new",
         int(MasterController::OPENGL_SBVR), false, false, false, false, false);
     ss->cexec(luaRen.fqName() + ".loadDataset", uvf_file);
-    ss->cexec(luaRen.fqName() + ".addShaderPath", "../../Shaders");
+    ss->cexec(luaRen.fqName() + ".addShaderPath", L"../../Shaders");
     ss->cexec(luaRen.fqName() + ".initialize", GLContext::Current(0));
     ss->cexec(luaRen.fqName() + ".resize", UINTVECTOR2(640,480));
     ss->cexec(luaRen.fqName() + ".setRendererTarget",AbstrRenderer::RT_HEADLESS);
