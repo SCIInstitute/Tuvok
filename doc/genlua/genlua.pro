@@ -14,13 +14,13 @@ LIBS             = -lTuvok -ltuvokexpr
 unix:LIBS       += -lz
 win32:LIBS      += shlwapi.lib
 macx:LIBS       += -stdlib=libc++
-macx:LIBS       += -mmacosx-version-min=10.7
+macx:LIBS       += -mmacosx-version-min=10.15
 macx:LIBS       += -framework CoreFoundation
 unix:!macx:LIBS += -lGLU -lGL
 # don't complain about not understanding OpenMP pragmas.
 QMAKE_CXXFLAGS      += -Wno-unknown-pragmas
 macx:QMAKE_CXXFLAGS += -stdlib=libc++
-macx:QMAKE_CXXFLAGS += -mmacosx-version-min=10.7
+macx:QMAKE_CXXFLAGS += -mmacosx-version-min=10.15
 unix:QMAKE_CXXFLAGS += -std=c++0x
 unix:QMAKE_CXXFLAGS += -fno-strict-aliasing
 unix:QMAKE_CFLAGS   += -fno-strict-aliasing

@@ -12,15 +12,14 @@ INCLUDEPATH       = $$d
 LIBS              = -Lexpressions -ltuvokexpr
 unix:LIBS        += -lz
 win32:LIBS       += shlwapi.lib
+
 unix:QMAKE_CXXFLAGS += -std=c++0x
 unix:QMAKE_CXXFLAGS += -fno-strict-aliasing
 unix:QMAKE_CFLAGS += -fno-strict-aliasing
 
-macx:QMAKE_CXXFLAGS += -stdlib=libc++ -mmacosx-version-min=10.7
-macx:QMAKE_CFLAGS += -mmacosx-version-min=10.7
-macx:LIBS        += -stdlib=libc++ -framework CoreFoundation -mmacosx-version-min=10.7
-
-
+macx:QMAKE_CXXFLAGS += -stdlib=libc++ -mmacosx-version-min=10.15
+macx:QMAKE_CFLAGS += -mmacosx-version-min=10.15
+macx:LIBS        += -stdlib=libc++ -framework CoreFoundation -mmacosx-version-min=10.15
 # Find the location of QtGui's prl file, and include it here so we can look at
 # the QMAKE_PRL_CONFIG variable.
 TEMP = $$[QT_INSTALL_LIBS] libQtGui.prl
@@ -33,7 +32,6 @@ exists($$TEMP) {
 exists($$PRL) {
   include($$PRL)
 }
-
 # Input
 SOURCES += \
   ./3rdParty/bzip2/blocksort.c \
@@ -152,7 +150,7 @@ SOURCES += \
   ./DICOM/DICOMParser.cpp \
   ./DirectoryParser.cpp \
   ./DSFactory.cpp \
-  ./ExternalDataset.cpp \
+#  ./ExternalDataset.cpp \
   ./FileBackedDataset.cpp \
   ./G3D.cpp \
   ./gzio.c \
@@ -189,18 +187,17 @@ SOURCES += \
   ./UVF/Histogram2DDataBlock.cpp \
   ./UVF/KeyValuePairDataBlock.cpp \
   ./UVF/MaxMinDataBlock.cpp \
-  ./UVF/ExtendedOctree/ExtendedOctree.cpp
-  ./UVF/ExtendedOctree/ExtendedOctreeConverter.cpp
-  ./UVF/ExtendedOctree/VolumeTools.cpp
+  ./UVF/ExtendedOctree/ExtendedOctree.cpp \
+  ./UVF/ExtendedOctree/ExtendedOctreeConverter.cpp \
+  ./UVF/ExtendedOctree/VolumeTools.cpp \
   ./uvfMesh.cpp \
   ./UVF/RasterDataBlock.cpp \
   ./UVF/UVF.cpp \
   ./UVF/UVFTables.cpp \
   ./VariantArray.cpp \
   ./VFFConverter.cpp \
-  ./VGIHeaderParser.cpp \
-  ./VGStudioConverter.cpp
-
+  ./VGIHeaderParser.cpp\
+  ./VGStudioConverter.cpp#
 HEADERS += \
   ./3rdParty/bzip2/bzlib.h \
   ./3rdParty/bzip2/bzlib_private.h \
@@ -299,10 +296,10 @@ HEADERS += \
   ./UVF/UVFBasic.h \
   ./UVF/UVF.h \
   ./UVF/UVFTables.h \
-  ./UVF/ExtendedOctree/ExtendedOctree.h
-  ./UVF/ExtendedOctree/ExtendedOctreeConverter.h
-  ./UVF/ExtendedOctree/VolumeTools.h
+  ./UVF/ExtendedOctree/ExtendedOctree.h \
+  ./UVF/ExtendedOctree/ExtendedOctreeConverter.h \
+  ./UVF/ExtendedOctree/VolumeTools.h \
   ./VariantArray.h \
   ./VFFConverter.h \
   ./VGIHeaderParser.h \
-  ./VGStudioConverter.h
+  ./VGStudioConverter.h#

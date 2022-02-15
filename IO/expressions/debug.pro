@@ -12,9 +12,9 @@ unix:QMAKE_CXXFLAGS += -fno-strict-aliasing
 unix:QMAKE_CFLAGS += -fno-strict-aliasing
 
 # On mac we completely disable warnings in this library. flex and bison are not playing nice with clang.
-macx:QMAKE_CXXFLAGS += -stdlib=libc++ -mmacosx-version-min=10.7 -w
-macx:QMAKE_CFLAGS += -mmacosx-version-min=10.7
-macx:LIBS        += -stdlib=libc++ -framework CoreFoundation -mmacosx-version-min=10.7
+macx:QMAKE_CXXFLAGS += -stdlib=libc++ -mmacosx-version-min=10.15 -w
+macx:QMAKE_CFLAGS += -mmacosx-version-min=10.15
+macx:LIBS        += -stdlib=libc++ -framework CoreFoundation -mmacosx-version-min=10.15
 QTPLUGIN -= qgif qjpeg qtiff
 
 include(flex.pri)
