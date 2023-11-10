@@ -30,9 +30,9 @@ unix:QMAKE_CFLAGS += -fno-strict-aliasing
 !macx:unix:QMAKE_LFLAGS += -fopenmp -bullshit-link-flag
 !macx:unix:LIBS  += -lGLU
 
-macx:QMAKE_CXXFLAGS += -stdlib=libc++ -mmacosx-version-min=10.15
-macx:QMAKE_CFLAGS += -mmacosx-version-min=10.15
-macx:LIBS        += -stdlib=libc++ -framework CoreFoundation -mmacosx-version-min=10.15
+macx:QMAKE_CXXFLAGS += -stdlib=libc++ -mmacosx-version-min=11.1
+macx:QMAKE_CFLAGS += -mmacosx-version-min=11.1
+macx:LIBS        += -stdlib=libc++ -framework CoreFoundation -mmacosx-version-min=11.1
 # Try to link to GLU statically.
 gludirs = /usr/lib /usr/lib/x86_64-linux-gnu
 for(d, gludirs) {

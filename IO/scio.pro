@@ -17,9 +17,9 @@ unix:QMAKE_CXXFLAGS += -std=c++0x
 unix:QMAKE_CXXFLAGS += -fno-strict-aliasing
 unix:QMAKE_CFLAGS += -fno-strict-aliasing
 
-macx:QMAKE_CXXFLAGS += -stdlib=libc++ -mmacosx-version-min=10.15
-macx:QMAKE_CFLAGS += -mmacosx-version-min=10.15
-macx:LIBS        += -stdlib=libc++ -framework CoreFoundation -mmacosx-version-min=10.15
+macx:QMAKE_CXXFLAGS += -stdlib=libc++ -mmacosx-version-min=11.1
+macx:QMAKE_CFLAGS += -mmacosx-version-min=11.1
+macx:LIBS        += -stdlib=libc++ -framework CoreFoundation -mmacosx-version-min=11.1
 # Find the location of QtGui's prl file, and include it here so we can look at
 # the QMAKE_PRL_CONFIG variable.
 TEMP = $$[QT_INSTALL_LIBS] libQtGui.prl
